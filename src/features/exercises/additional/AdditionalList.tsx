@@ -15,11 +15,9 @@ import {
 
 function TableSection({
   section,
-  canManage,
   onResize,
 }: {
   section: FreeSection;
-  canManage: boolean;
   onResize: (grid: string[][]) => void;
 }) {
   const [grid, setGrid] = useState<string[][]>((section.tableData as string[][]) ?? [["", ""], ["", ""]]);
@@ -40,8 +38,7 @@ function TableSection({
 
   return (
     <div>
-      {canManage && (
-        <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-3">
           <label className="font-mono-label text-[10px] uppercase" style={{ color: "var(--faded)" }}>
             Строк:
           </label>
@@ -64,8 +61,7 @@ function TableSection({
             className="w-14 text-[13px] px-1.5 py-1 rounded-sm"
             style={{ border: "1px solid var(--rule)" }}
           />
-        </div>
-      )}
+      </div>
       <div className="overflow-x-auto">
         <table style={{ borderCollapse: "collapse" }}>
           <tbody>
@@ -153,11 +149,7 @@ export default function AdditionalList({
               className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed"
             />
           ) : (
-            <TableSection
-              section={section}
-              canManage={isMentorViewer}
-              onResize={() => {}}
-            />
+            <TableSection section={section} onResize={() => {}} />
           )}
 
           {isMentorViewer && (

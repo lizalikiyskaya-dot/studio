@@ -109,13 +109,14 @@ export default function CalendarWidget({
             if (day === null) return <div key={di} className="flex-1" />;
             const hasDeadline = tasksByDay.has(day);
             const isPaymentDay = paymentDay === day;
+            const isClickable = hasDeadline || isPaymentDay;
             return (
               <button
                 key={di}
-                onClick={() => hasDeadline && setSelectedDay(selectedDay === day ? null : day)}
+                onClick={() => isClickable && setSelectedDay(selectedDay === day ? null : day)}
                 className="flex-1 relative text-[11px] py-1 rounded-sm"
                 style={{
-                  cursor: hasDeadline ? "pointer" : "default",
+                  cursor: isClickable ? "pointer" : "default",
                   background: selectedDay === day ? "var(--rule)" : "transparent",
                 }}
               >
@@ -144,6 +145,20 @@ export default function CalendarWidget({
               {t.title || "Без названия"}
             </div>
           ))}
+        </div>
+      )}
+
+      {selectedDay !== null && selectedDay === paymentDay && (
+        <div className="mt-2 p-2.5 rounded-sm" style={{ border: "1px solid var(--rule)", background: "#fff" }}>
+          <div className="font-mono-label text-[9px] uppercase mb-1.5" style={{ color: "var(--faded)" }}>
+            Дата оплаты
+          </div>
+          <div className="text-[12.5px]">
+            {selectedDay} число каждого месяца ·{" "}
+            <span style={{ color: paymentStatus === "PAID" ? "var(--sage)" : "var(--wine)" }}>
+              {paymentStatus === "PAID" ? "оплачено" : "ожидает оплаты"}
+            </span>
+          </div>
         </div>
       )}
     </div>

@@ -49,7 +49,7 @@ export async function updateTableCell(sectionId: string, row: number, col: numbe
 
 export async function resizeTable(sectionId: string, rows: number, cols: number) {
   const section = await prisma.freeSection.findUniqueOrThrow({ where: { id: sectionId } });
-  await requireMentor(section.studentId);
+  await requireCabinetAccess(section.studentId);
   const current = (section.tableData as string[][]) ?? [];
   const grid = Array.from({ length: rows }, (_, r) =>
     Array.from({ length: cols }, (_, c) => current[r]?.[c] ?? "")
