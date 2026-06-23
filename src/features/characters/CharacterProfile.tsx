@@ -1,11 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
-import type { Character } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
-import { updateCharacterField, updateCharacterName, updateCharacterPhoto, deleteCharacter } from "./actions";
 import type { FieldGroup } from "./fields";
 
 function FieldBlock({
@@ -35,43 +32,35 @@ function FieldBlock({
 }
 
 export default function CharacterProfile({
-  character,
+  name,
+  photoUrl,
+  data,
   groups,
-  onDeleted,
+  onNameBlur,
+  onFieldBlur,
+  onPhotoUpload,
+  onDelete,
 }: {
-  character: Character;
+  name: string;
+  photoUrl: string | null;
+  data: Record<string, string>;
   groups: FieldGroup[];
-  onDeleted: (id: string) => void;
+  onNameBlur: (value: string) => void;
+  onFieldBlur: (field: string, value: string) => void;
+  onPhotoUpload: (dataUrl: string) => void;
+  onDelete: () => void;
 }) {
-  const [, startTransition] = useTransition();
-  const data = (character.data as Record<string, string>) ?? {};
-
-  function handleNameBlur(value: string) {
-    startTransition(() => updateCharacterName(character.id, value));
-  }
-
-  function handleFieldBlur(field: FieldGroup["fields"][number]["key"], value: string) {
-    startTransition(() => updateCharacterField(character.id, field, value));
-  }
-
-  function handlePhotoUpload(dataUrl: string) {
-    startTransition(() => updateCharacterPhoto(character.id, dataUrl));
-  }
-
   function handleDelete() {
-    if (!window.confirm(`Удалить персонажа «${character.name || "без имени"}»?`)) return;
-    startTransition(async () => {
-      await deleteCharacter(character.id);
-      onDeleted(character.id);
-    });
+    if (!window.confirm(`Удалить «${name || "без имени"}»?`)) return;
+    onDelete();
   }
 
   return (
     <div className="rounded-md p-5 mb-6 max-w-[760px]" style={{ border: "1px solid var(--rule)" }}>
       <div className="flex gap-5 items-center mb-6">
         <ImageUploadBox
-          value={character.photoUrl}
-          onUpload={handlePhotoUpload}
+          value={photoUrl}
+          onUpload={onPhotoUpload}
           placeholder="фото"
           className="rounded-sm flex-shrink-0"
           style={{ width: 90, height: 90, minWidth: 90 }}
@@ -81,8 +70,8 @@ export default function CharacterProfile({
             Имя
           </label>
           <input
-            defaultValue={character.name}
-            onBlur={(e) => handleNameBlur(e.target.value)}
+            defaultValue={name}
+            onBlur={(e) => onNameBlur(e.target.value)}
             className="font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
             style={{ borderColor: "var(--rule)" }}
           />
@@ -107,7 +96,7 @@ export default function CharacterProfile({
                 <FieldBlock
                   key={f.key}
                   value={data[f.key] ?? ""}
-                  onBlur={(v) => handleFieldBlur(f.key, v)}
+                  onBlur={(v) => onFieldBlur(f.key, v)}
                 />
               ))}
             </div>
@@ -125,7 +114,7 @@ export default function CharacterProfile({
                 key={f.key}
                 label={f.label}
                 value={data[f.key] ?? ""}
-                onBlur={(v) => handleFieldBlur(f.key, v)}
+                onBlur={(v) => onFieldBlur(f.key, v)}
               />
             ))}
           </Accordion>

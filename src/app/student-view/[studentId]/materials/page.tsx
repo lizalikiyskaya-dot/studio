@@ -1,5 +1,10 @@
-import SectionPlaceholder from "@/components/SectionPlaceholder";
+import MaterialsView from "@/features/materials/MaterialsView";
 
-export default function Page() {
-  return <SectionPlaceholder title="Материалы" />;
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ studentId: string }>;
+}) {
+  const { studentId } = await params;
+  return <MaterialsView studentId={studentId} />;
 }

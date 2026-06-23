@@ -1,5 +1,10 @@
-import SectionPlaceholder from "@/components/SectionPlaceholder";
+import DraftsView from "@/features/drafts/DraftsView";
 
-export default function Page() {
-  return <SectionPlaceholder title="Рукописи" />;
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ studentId: string }>;
+}) {
+  const { studentId } = await params;
+  return <DraftsView studentId={studentId} />;
 }

@@ -1,39 +1,37 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Character } from "@/generated/prisma/client";
-import CharacterProfile from "./CharacterProfile";
+import type { PopArcCharacter } from "@/generated/prisma/client";
+import CharacterProfile from "@/features/characters/CharacterProfile";
+import { ARC_GROUPS } from "@/features/characters/fields";
 import {
-  createCharacter,
-  deleteCharacter,
-  updateCharacterName,
-  updateCharacterField,
-  updateCharacterPhoto,
+  createPopArcCharacter,
+  deletePopArcCharacter,
+  updatePopArcName,
+  updatePopArcField,
+  updatePopArcPhoto,
 } from "./actions";
-import type { FieldGroup } from "./fields";
 
-export default function CharactersList({
-  bookId,
+export default function PopArcsList({
+  studentId,
   initialCharacters,
-  groups,
 }: {
-  bookId: string;
-  initialCharacters: Character[];
-  groups: FieldGroup[];
+  studentId: string;
+  initialCharacters: PopArcCharacter[];
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
 
   function handleAdd() {
     startTransition(async () => {
-      const character = await createCharacter(bookId);
+      const character = await createPopArcCharacter(studentId);
       setCharacters((prev) => [...prev, character]);
     });
   }
 
   function handleDelete(id: string) {
     setCharacters((prev) => prev.filter((c) => c.id !== id));
-    startTransition(() => deleteCharacter(id));
+    startTransition(() => deletePopArcCharacter(id));
   }
 
   return (
@@ -44,12 +42,10 @@ export default function CharactersList({
           name={character.name}
           photoUrl={character.photoUrl}
           data={(character.data as Record<string, string>) ?? {}}
-          groups={groups}
-          onNameBlur={(value) => startTransition(() => updateCharacterName(character.id, value))}
-          onFieldBlur={(field, value) =>
-            startTransition(() => updateCharacterField(character.id, field as never, value))
-          }
-          onPhotoUpload={(dataUrl) => startTransition(() => updateCharacterPhoto(character.id, dataUrl))}
+          groups={ARC_GROUPS}
+          onNameBlur={(value) => startTransition(() => updatePopArcName(character.id, value))}
+          onFieldBlur={(field, value) => startTransition(() => updatePopArcField(character.id, field, value))}
+          onPhotoUpload={(dataUrl) => startTransition(() => updatePopArcPhoto(character.id, dataUrl))}
           onDelete={() => handleDelete(character.id)}
         />
       ))}
@@ -59,7 +55,7 @@ export default function CharactersList({
         className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
         style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
       >
-        + добавить персонажа
+        + добавить героя
       </button>
     </div>
   );

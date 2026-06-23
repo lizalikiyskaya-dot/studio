@@ -35,6 +35,12 @@ enum SynopsisMode {
   LINK
 }
 
+enum MaterialStatus {
+  UNREAD
+  IN_PROGRESS
+  READ
+}
+
 model User {
   id           String     @id @default(cuid())
   name         String
@@ -46,6 +52,85 @@ model User {
   updatedAt    DateTime   @updatedAt
   books        Book[]
   tasks        Task[]
+  materials    Material[]
+  drafts       Draft[]
+  popArcCharacters  PopArcCharacter[]
+  beliefCards       BeliefCard[]
+  customExercises   CustomExercise[]
+  freeSections      FreeSection[]
+}
+
+model Material {
+  id        String         @id @default(cuid())
+  studentId String
+  student   User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order     Int            @default(0)
+  title     String         @default("")
+  status    MaterialStatus @default(UNREAD)
+  pdfUrl    String?
+  epubUrl   String?
+}
+
+model Draft {
+  id        String   @id @default(cuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order     Int      @default(0)
+  title     String   @default("")
+  note      String   @default("")
+  link      String?
+  fileName  String?
+  fileData  String?
+  createdAt DateTime @default(now())
+}
+
+model PopArcCharacter {
+  id        String   @id @default(cuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order     Int      @default(0)
+  name      String   @default("")
+  photoUrl  String?
+  data      Json     @default("{}")
+}
+
+model BeliefCard {
+  id           String @id @default(cuid())
+  studentId    String
+  student      User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order        Int    @default(0)
+  hero         String @default("")
+  startBelief  String @default("")
+  endBelief    String @default("")
+}
+
+model CustomExercise {
+  id        String            @id @default(cuid())
+  studentId String
+  student   User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order     Int               @default(0)
+  task      String            @default("")
+  answer    String            @default("")
+  status    TaskStatus        @default(IN_PROGRESS)
+  comments  ExerciseComment[]
+}
+
+model ExerciseComment {
+  id         String         @id @default(cuid())
+  exerciseId String
+  exercise   CustomExercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  author     String         @default("")
+  text       String         @default("")
+  createdAt  DateTime       @default(now())
+}
+
+model FreeSection {
+  id        String @id @default(cuid())
+  studentId String
+  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order     Int    @default(0)
+  title     String @default("")
+  content   String @default("")
 }
 
 model Task {

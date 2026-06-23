@@ -5,10 +5,12 @@ import { useState } from "react";
 export default function Accordion({
   title,
   defaultOpen,
+  headerExtra,
   children,
 }: {
   title: string;
   defaultOpen?: boolean;
+  headerExtra?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(!!defaultOpen);
@@ -18,18 +20,19 @@ export default function Accordion({
       className="rounded-md mb-3 overflow-hidden"
       style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "#FAFAF9" }}
     >
-      <button
+      <div
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold text-[14.5px]"
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left font-semibold text-[14.5px] cursor-pointer"
       >
-        <span>{title}</span>
+        <span className="flex-1 min-w-0">{title}</span>
+        {headerExtra}
         <span
-          className="text-[12px]"
+          className="text-[12px] flex-shrink-0"
           style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}
         >
           ▾
         </span>
-      </button>
+      </div>
       {open && (
         <div className="px-4 pb-5 pt-1 border-t" style={{ borderColor: "var(--rule)" }}>
           {children}
