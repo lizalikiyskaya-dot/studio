@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  STUDENT
+  MENTOR
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TaskStatus {
+  IN_PROGRESS
+  SUBMITTED
+  NEEDS_REVISION
+  ACCEPTED
+}
+
+enum SynopsisMode {
+  TEXT
+  LINK
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         UserRole   @default(STUDENT)
+  status       UserStatus @default(PENDING)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  books        Book[]
+  tasks        Task[]
+}
+
+model Task {
+  id           String     @id @default(cuid())
+  title        String     @default("")
+  workLink     String?
+  feedbackLink String?
+  status       TaskStatus @default(IN_PROGRESS)
+  order        Int        @default(0)
+  studentId    String
+  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Book {
+  id        String   @id @default(cuid())
+  title     String   @default("")
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  genre            String @default("")
+  references       String @default("")
+  audience         String @default("")
+  partsCount       String @default("")
+  timeStructure    String @default("")
+  mainCharacters   String @default("")
+  dramaticArgument String @default("")
+  logline          String @default("")
+  concept          String @default("")
+  annotation       String @default("")
+  coverUrl         String?
+
+  synopsisMode SynopsisMode @default(TEXT)
+  synopsisText String       @default("")
+  synopsisLink String       @default("")
+
+  grapesGeography    String @default("")
+  grapesReligion      String @default("")
+  grapesAchievements String @default("")
+  grapesPolitics      String @default("")
+  grapesEconomy       String @default("")
+  grapesSocial        String @default("")
+  settingPhotoUrl     String?
+  settingChips        String[] @default([])
+
+  chapters   PlanChapter[]
+  characters Character[]
+  acts       Act[]
+  storylines Storyline[]
+}
+
+model PlanChapter {
+  id               String @id @default(cuid())
+  bookId           String
+  book             Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order             Int    @default(0)
+  summary          String @default("")
+  dramaticArgument String @default("")
+  images           String @default("")
+  note             String @default("")
+  plannedChars     Int    @default(0)
+  writtenChars     Int    @default(0)
+}
+
+model Character {
+  id        String   @id @default(cuid())
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order     Int      @default(0)
+  name      String   @default("")
+  photoUrl  String?
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+}
+
+model Act {
+  id       String @id @default(cuid())
+  bookId   String
+  book     Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order    Int    @default(0)
+  title    String @default("")
+  subtitle String @default("")
+  content  String @default("")
+}
+
+model Storyline {
+  id       String @id @default(cuid())
+  bookId   String
+  book     Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order    Int    @default(0)
+  name     String @default("")
+  chapters String @default("")
+  status   String @default("")
+  color    String?
+}

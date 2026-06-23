@@ -1,0 +1,152 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import type { PlanChapter } from "@/generated/prisma/client";
+import { createPlanChapter, updatePlanChapterText, updatePlanChapterNumber } from "./actions";
+import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+
+const GRID_COLUMNS = "40px 2fr 2fr 1.6fr 1.4fr 90px 90px 60px";
+
+function percentCellBackground(percent: number) {
+  const clamped = Math.max(0, Math.min(100, percent));
+  const hue = (clamped / 100) * 120; // 0 = red, 120 = green
+  return `hsl(${hue}, 65%, 88%)`;
+}
+
+const HEADERS = [
+  "№",
+  "Суть по сюжету",
+  "Драм. аргумент",
+  "Важные образы",
+  "Примечание",
+  "План (зн.)",
+  "Написано",
+  "%",
+];
+
+export default function PlanTable({
+  bookId,
+  initialChapters,
+}: {
+  bookId: string;
+  initialChapters: PlanChapter[];
+}) {
+  const [chapters, setChapters] = useState(initialChapters);
+  const [, startTransition] = useTransition();
+
+  function handleAdd() {
+    startTransition(async () => {
+      const chapter = await createPlanChapter(bookId);
+      setChapters((prev) => [...prev, chapter]);
+    });
+  }
+
+  function handleText(
+    chapterId: string,
+    field: "summary" | "dramaticArgument" | "images" | "note",
+    value: string
+  ) {
+    setChapters((prev) =>
+      prev.map((c) => (c.id === chapterId ? { ...c, [field]: value } : c))
+    );
+    startTransition(() => updatePlanChapterText(chapterId, field, value));
+  }
+
+  function handleNumber(
+    chapterId: string,
+    field: "plannedChars" | "writtenChars",
+    value: number
+  ) {
+    setChapters((prev) =>
+      prev.map((c) => (c.id === chapterId ? { ...c, [field]: value } : c))
+    );
+    startTransition(() => updatePlanChapterNumber(chapterId, field, value));
+  }
+
+  return (
+    <div>
+      <div className="overflow-x-auto mb-4">
+        <div style={{ minWidth: 720 }}>
+          <div
+            className="grid gap-x-3 pb-2 border-b"
+            style={{ gridTemplateColumns: GRID_COLUMNS, borderColor: "var(--rule)" }}
+          >
+            {HEADERS.map((h) => (
+              <div
+                key={h}
+                className="font-mono-label text-[10px] uppercase whitespace-nowrap"
+                style={{ color: "var(--faded)" }}
+              >
+                {h}
+              </div>
+            ))}
+          </div>
+
+          {chapters.map((chapter, idx) => {
+            const percent =
+              chapter.plannedChars > 0
+                ? Math.round((chapter.writtenChars / chapter.plannedChars) * 100)
+                : 0;
+            return (
+              <div
+                key={chapter.id}
+                className="grid gap-x-3 py-2.5 border-b items-start"
+                style={{ gridTemplateColumns: GRID_COLUMNS, borderColor: "var(--rule)" }}
+              >
+                <div className="font-mono-label text-[12px] pt-1.5" style={{ color: "var(--faded)" }}>
+                  {idx + 1}
+                </div>
+                <AutoGrowTextarea
+                  defaultValue={chapter.summary}
+                  onBlur={(v) => handleText(chapter.id, "summary", v)}
+                  className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
+                />
+                <AutoGrowTextarea
+                  defaultValue={chapter.dramaticArgument}
+                  onBlur={(v) => handleText(chapter.id, "dramaticArgument", v)}
+                  className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
+                />
+                <AutoGrowTextarea
+                  defaultValue={chapter.images}
+                  onBlur={(v) => handleText(chapter.id, "images", v)}
+                  className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
+                />
+                <AutoGrowTextarea
+                  defaultValue={chapter.note}
+                  onBlur={(v) => handleText(chapter.id, "note", v)}
+                  className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
+                />
+                <input
+                  type="number"
+                  defaultValue={chapter.plannedChars}
+                  onBlur={(e) => handleNumber(chapter.id, "plannedChars", Number(e.target.value))}
+                  className="w-full min-w-0 outline-none bg-transparent text-[13px] font-mono-label py-1"
+                />
+                <input
+                  type="number"
+                  defaultValue={chapter.writtenChars}
+                  onBlur={(e) => handleNumber(chapter.id, "writtenChars", Number(e.target.value))}
+                  className="w-full min-w-0 outline-none bg-transparent text-[13px] font-mono-label py-1"
+                />
+                <div
+                  className="font-mono-label text-[12.5px] font-semibold text-center py-1.5 rounded-sm"
+                  style={{ background: percentCellBackground(percent), color: "var(--ink)" }}
+                >
+                  {percent}%
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <button
+        onClick={handleAdd}
+        className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+        style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
+      >
+        + глава
+      </button>
+    </div>
+  );
+}
