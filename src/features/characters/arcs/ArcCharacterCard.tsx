@@ -17,6 +17,11 @@ const ARC_TYPE_LABEL: Record<ArcType, string> = {
   NEGATIVE: "Отрицательная арка",
   FLAT: "Плоская арка",
 };
+const ARC_TYPE_COLOR: Record<ArcType, string> = {
+  POSITIVE: "var(--sage)",
+  NEGATIVE: "#D9779A",
+  FLAT: "#6FA8C9",
+};
 const ARC_TYPES: ArcType[] = ["POSITIVE", "NEGATIVE", "FLAT"];
 
 function FieldBlock({
@@ -95,7 +100,10 @@ export default function ArcCharacterCard({
         />
         <span className="flex-1 font-semibold text-[14.5px]">{name || "Без имени"}</span>
         {arcType && (
-          <span className="font-mono-label text-[9.5px] uppercase px-2 py-1 rounded-full" style={{ background: "var(--sage)", color: "#fff" }}>
+          <span
+            className="font-mono-label text-[9.5px] uppercase px-2 py-1 rounded-full"
+            style={{ background: ARC_TYPE_COLOR[arcType], color: "#fff" }}
+          >
             {ARC_TYPE_LABEL[arcType]}
           </span>
         )}
@@ -145,7 +153,7 @@ export default function ArcCharacterCard({
           </div>
 
           <p className="text-[12.5px] mb-3" style={{ color: "var(--faded)" }}>
-            Выберите тип арки — она подсветится зелёным, и можно заполнять.
+            Выберите тип арки — она подсветится цветом, и можно заполнять.
           </p>
           <div className="flex gap-2.5 mb-5 flex-wrap">
             {ARC_TYPES.map((type) => (
@@ -154,8 +162,8 @@ export default function ArcCharacterCard({
                 onClick={() => handleSelectType(type)}
                 className="font-mono-label text-[11px] px-3.5 py-1.5 rounded-sm"
                 style={{
-                  border: `1px solid ${arcType === type ? "var(--sage)" : "var(--rule)"}`,
-                  background: arcType === type ? "var(--sage)" : "transparent",
+                  border: `1px solid ${arcType === type ? ARC_TYPE_COLOR[type] : "var(--rule)"}`,
+                  background: arcType === type ? ARC_TYPE_COLOR[type] : "transparent",
                   color: arcType === type ? "#fff" : "var(--ink-soft)",
                 }}
               >
