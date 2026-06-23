@@ -114,14 +114,13 @@ export default function CalendarWidget({
               <button
                 key={di}
                 onClick={() => isClickable && setSelectedDay(selectedDay === day ? null : day)}
-                className="flex-1 relative text-[11px] py-1 rounded-sm"
+                className="flex-1 flex flex-col items-center text-[11px] py-1 rounded-sm"
                 style={{
                   cursor: isClickable ? "pointer" : "default",
                   background: selectedDay === day ? "var(--rule)" : "transparent",
                 }}
               >
-                {day}
-                <span className="absolute left-1/2 -translate-x-1/2 bottom-0 flex gap-0.5">
+                <span className="flex gap-0.5 mb-0.5" style={{ height: 4 }}>
                   {hasDeadline && (
                     <span style={{ width: 4, height: 4, borderRadius: 999, background: "var(--ink)" }} />
                   )}
@@ -129,6 +128,7 @@ export default function CalendarWidget({
                     <span style={{ width: 4, height: 4, borderRadius: 999, background: "var(--wine)" }} />
                   )}
                 </span>
+                {day}
               </button>
             );
           })}
