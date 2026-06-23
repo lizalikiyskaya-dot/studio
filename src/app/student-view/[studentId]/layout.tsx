@@ -28,19 +28,23 @@ export default async function StudentViewLayout({
   ]);
 
   return (
-    <div className="grid min-h-screen" style={{ gridTemplateColumns: "240px 1fr" }}>
-      <Sidebar
-        basePath={`/student-view/${studentId}`}
-        userName={student.name}
-        isMentor
-        mentorViewLabel={student.name}
-        calendar={{
-          tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
-          paymentDay: student.paymentDay,
-          paymentStatus: student.paymentStatus,
-        }}
-      />
-      <div className="px-12 py-10">{children}</div>
+    <div className="flex min-h-screen">
+      <div style={{ width: 240, flexShrink: 0 }}>
+        <Sidebar
+          basePath={`/student-view/${studentId}`}
+          userName={student.name}
+          isMentor
+          mentorViewLabel={student.name}
+          calendar={{
+            tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
+            paymentDay: student.paymentDay,
+            paymentStatus: student.paymentStatus,
+          }}
+        />
+      </div>
+      <div className="px-12 py-10" style={{ flex: 1 }}>
+        {children}
+      </div>
       <NotesPanel studentId={student.id} initialNotes={notes} />
     </div>
   );

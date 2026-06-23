@@ -70,7 +70,7 @@ export default function CalendarWidget({
   }
 
   return (
-    <div className="mt-10 pt-6 border-t" style={{ borderColor: "var(--rule)" }}>
+    <div className="mt-16 pt-8 border-t" style={{ borderColor: "var(--rule)" }}>
       <div className="mb-2.5">
         <span
           className="font-mono-label text-[10px] uppercase px-2 py-1 rounded-full"

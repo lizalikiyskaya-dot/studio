@@ -26,18 +26,22 @@ export default async function DashboardLayout({
   ]);
 
   return (
-    <div className="grid min-h-screen" style={{ gridTemplateColumns: "240px 1fr" }}>
-      <Sidebar
-        basePath="/dashboard"
-        userName={user.name}
-        isMentor={false}
-        calendar={{
-          tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
-          paymentDay: user.paymentDay,
-          paymentStatus: user.paymentStatus,
-        }}
-      />
-      <div className="px-12 py-10">{children}</div>
+    <div className="flex min-h-screen">
+      <div style={{ width: 240, flexShrink: 0 }}>
+        <Sidebar
+          basePath="/dashboard"
+          userName={user.name}
+          isMentor={false}
+          calendar={{
+            tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
+            paymentDay: user.paymentDay,
+            paymentStatus: user.paymentStatus,
+          }}
+        />
+      </div>
+      <div className="px-12 py-10" style={{ flex: 1 }}>
+        {children}
+      </div>
       <NotesPanel studentId={user.id} initialNotes={notes} />
     </div>
   );
