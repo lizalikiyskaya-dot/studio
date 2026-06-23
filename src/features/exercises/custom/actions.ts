@@ -1,11 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireCabinetAccess } from "@/lib/access";
+import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import { nextTaskStatus } from "@/features/tasks/status";
 
 export async function createCustomExercise(studentId: string) {
-  await requireCabinetAccess(studentId);
+  await requireMentor(studentId);
   const count = await prisma.customExercise.count({ where: { studentId } });
   return prisma.customExercise.create({
     data: { studentId, order: count },
@@ -13,14 +13,43 @@ export async function createCustomExercise(studentId: string) {
   });
 }
 
-export async function updateExerciseField(
-  exerciseId: string,
-  field: "task" | "answer",
-  value: string
-) {
+export async function updateExerciseTask(exerciseId: string, value: string) {
+  const exercise = await prisma.customExercise.findUniqueOrThrow({ where: { id: exerciseId } });
+  await requireMentor(exercise.studentId);
+  await prisma.customExercise.update({ where: { id: exerciseId }, data: { task: value } });
+}
+
+/**
+ * Student edits land directly in `answer`. Mentor edits to a non-empty
+ * existing answer are stored as a suggestion (`answerSuggested`) instead
+ * of overwriting, so the student can see the diff and accept it.
+ */
+export async function updateExerciseAnswer(exerciseId: string, value: string) {
+  const exercise = await prisma.customExercise.findUniqueOrThrow({ where: { id: exerciseId } });
+  const session = await requireCabinetAccess(exercise.studentId);
+
+  if (session.role === "STUDENT" || !exercise.answer) {
+    await prisma.customExercise.update({
+      where: { id: exerciseId },
+      data: { answer: value, answerSuggested: null },
+    });
+    return;
+  }
+
+  await prisma.customExercise.update({
+    where: { id: exerciseId },
+    data: { answerSuggested: value },
+  });
+}
+
+export async function acceptAnswerSuggestion(exerciseId: string) {
   const exercise = await prisma.customExercise.findUniqueOrThrow({ where: { id: exerciseId } });
   await requireCabinetAccess(exercise.studentId);
-  await prisma.customExercise.update({ where: { id: exerciseId }, data: { [field]: value } });
+  if (!exercise.answerSuggested) return;
+  await prisma.customExercise.update({
+    where: { id: exerciseId },
+    data: { answer: exercise.answerSuggested, answerSuggested: null },
+  });
 }
 
 export async function cycleExerciseStatus(exerciseId: string) {
@@ -33,7 +62,7 @@ export async function cycleExerciseStatus(exerciseId: string) {
 
 export async function deleteCustomExercise(exerciseId: string) {
   const exercise = await prisma.customExercise.findUniqueOrThrow({ where: { id: exerciseId } });
-  await requireCabinetAccess(exercise.studentId);
+  await requireMentor(exercise.studentId);
   await prisma.customExercise.delete({ where: { id: exerciseId } });
 }
 

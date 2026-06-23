@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 function resize(el: HTMLTextAreaElement) {
   el.style.height = "auto";
@@ -22,12 +22,13 @@ export default function AutoGrowTextarea({
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
 
+  useEffect(() => {
+    if (ref.current) resize(ref.current);
+  }, []);
+
   return (
     <textarea
-      ref={(el) => {
-        ref.current = el;
-        if (el) resize(el);
-      }}
+      ref={ref}
       defaultValue={defaultValue}
       placeholder={placeholder}
       rows={1}

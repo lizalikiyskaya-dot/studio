@@ -5,7 +5,9 @@ import type { CustomExercise, ExerciseComment, TaskStatus } from "@/generated/pr
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import {
   createCustomExercise,
-  updateExerciseField,
+  updateExerciseTask,
+  updateExerciseAnswer,
+  acceptAnswerSuggestion,
   cycleExerciseStatus,
   deleteCustomExercise,
   addExerciseComment,
@@ -27,6 +29,45 @@ const STATUS_STYLE: Record<TaskStatus, React.CSSProperties> = {
 };
 
 type ExerciseWithComments = CustomExercise & { comments: ExerciseComment[] };
+
+function AnswerField({
+  exercise,
+  onChange,
+  onAccept,
+}: {
+  exercise: ExerciseWithComments;
+  onChange: (value: string) => void;
+  onAccept: () => void;
+}) {
+  if (exercise.answerSuggested) {
+    return (
+      <div className="rounded-sm p-3 mb-3 text-[13.5px] leading-relaxed" style={{ border: "1px solid var(--rule)" }}>
+        <span style={{ textDecoration: "line-through", color: "var(--sage)" }}>{exercise.answer}</span>
+        {" "}
+        <span style={{ color: "var(--sage)" }}>{exercise.answerSuggested}</span>
+        <div className="mt-2">
+          <button
+            onClick={onAccept}
+            className="font-mono-label text-[10.5px] px-2.5 py-1 rounded-sm"
+            style={{ color: "#fff", background: "var(--sage)" }}
+          >
+            ✓ принять правку
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <textarea
+      defaultValue={exercise.answer}
+      onBlur={(e) => onChange(e.target.value)}
+      placeholder="Ответ ученика..."
+      className="w-full rounded-sm p-3 text-[13.5px] outline-none resize-vertical mb-3"
+      style={{ border: "1px solid var(--rule)", minHeight: 90 }}
+    />
+  );
+}
 
 function CommentsBlock({
   exerciseId,
@@ -70,9 +111,11 @@ function CommentsBlock({
 export default function CustomExercisesList({
   studentId,
   initialExercises,
+  isMentorViewer,
 }: {
   studentId: string;
   initialExercises: ExerciseWithComments[];
+  isMentorViewer: boolean;
 }) {
   const [exercises, setExercises] = useState(initialExercises);
   const [, startTransition] = useTransition();
@@ -84,9 +127,28 @@ export default function CustomExercisesList({
     });
   }
 
-  function handleField(id: string, field: "task" | "answer", value: string) {
-    setExercises((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
-    startTransition(() => updateExerciseField(id, field, value));
+  function handleTask(id: string, value: string) {
+    setExercises((prev) => prev.map((e) => (e.id === id ? { ...e, task: value } : e)));
+    startTransition(() => updateExerciseTask(id, value));
+  }
+
+  function handleAnswer(id: string, value: string) {
+    const current = exercises.find((e) => e.id === id);
+    startTransition(async () => {
+      await updateExerciseAnswer(id, value);
+      if (isMentorViewer && current?.answer) {
+        setExercises((prev) => prev.map((e) => (e.id === id ? { ...e, answerSuggested: value } : e)));
+      } else {
+        setExercises((prev) => prev.map((e) => (e.id === id ? { ...e, answer: value, answerSuggested: null } : e)));
+      }
+    });
+  }
+
+  function handleAccept(id: string) {
+    setExercises((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, answer: e.answerSuggested ?? e.answer, answerSuggested: null } : e))
+    );
+    startTransition(() => acceptAnswerSuggestion(id));
   }
 
   function handleStatus(id: string, current: TaskStatus) {
@@ -114,27 +176,33 @@ export default function CustomExercisesList({
       {exercises.map((exercise) => (
         <div key={exercise.id} className="rounded-md p-4 mb-4 max-w-[720px]" style={{ border: "1px solid var(--rule)" }}>
           <div className="flex items-start gap-3 mb-3">
-            <AutoGrowTextarea
-              defaultValue={exercise.task}
-              onBlur={(v) => handleField(exercise.id, "task", v)}
-              placeholder="Задание: ..."
-              className="flex-1 outline-none bg-transparent text-[14.5px] font-semibold leading-snug"
-            />
-            <button
-              onClick={() => handleDelete(exercise.id)}
-              className="font-mono-label text-[10px] px-2 py-1 rounded-sm flex-shrink-0"
-              style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-            >
-              Удалить
-            </button>
+            {isMentorViewer ? (
+              <AutoGrowTextarea
+                defaultValue={exercise.task}
+                onBlur={(v) => handleTask(exercise.id, v)}
+                placeholder="Задание: ..."
+                className="flex-1 outline-none bg-transparent text-[14.5px] font-semibold leading-snug"
+              />
+            ) : (
+              <p className="flex-1 text-[14.5px] font-semibold leading-snug">{exercise.task}</p>
+            )}
+            {isMentorViewer && (
+              <button
+                onClick={() => handleDelete(exercise.id)}
+                className="font-mono-label text-[10px] px-2 py-1 rounded-sm flex-shrink-0"
+                style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
+              >
+                Удалить
+              </button>
+            )}
           </div>
-          <textarea
-            defaultValue={exercise.answer}
-            onBlur={(e) => handleField(exercise.id, "answer", e.target.value)}
-            placeholder="Ответ ученика..."
-            className="w-full rounded-sm p-3 text-[13.5px] outline-none resize-vertical mb-3"
-            style={{ border: "1px solid var(--rule)", minHeight: 90 }}
+
+          <AnswerField
+            exercise={exercise}
+            onChange={(v) => handleAnswer(exercise.id, v)}
+            onAccept={() => handleAccept(exercise.id)}
           />
+
           <button
             onClick={() => handleStatus(exercise.id, exercise.status)}
             className="font-mono-label text-[10.5px] px-2.5 py-1 rounded-full whitespace-nowrap"
@@ -151,13 +219,15 @@ export default function CustomExercisesList({
         </div>
       ))}
 
-      <button
-        onClick={handleAdd}
-        className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
-        style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-      >
-        + упражнение
-      </button>
+      {isMentorViewer && (
+        <button
+          onClick={handleAdd}
+          className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+          style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
+        >
+          + упражнение
+        </button>
+      )}
     </div>
   );
 }

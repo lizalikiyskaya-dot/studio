@@ -3,6 +3,14 @@
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
 import { ALL_CHARACTER_FIELD_KEYS, type CharacterFieldKey } from "./fields";
+import type { ArcType } from "@/generated/prisma/client";
+
+export async function updateCharacterArcType(characterId: string, arcType: ArcType) {
+  const character = await prisma.character.findUniqueOrThrow({ where: { id: characterId } });
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: character.bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.character.update({ where: { id: characterId }, data: { arcType } });
+}
 
 export async function createCharacter(bookId: string) {
   const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });

@@ -1,27 +1,53 @@
 import { prisma } from "@/lib/prisma";
-import PopArcsList from "./PopArcsList";
+import Subtabs from "@/components/Subtabs";
+import { ExamplesList, OwnHeroesList } from "./PopArcsList";
 import { POP_ARC_SEED } from "./seedData";
 
-export default async function PopArcsView({ studentId }: { studentId: string }) {
-  let characters = await prisma.popArcCharacter.findMany({
-    where: { studentId },
+export default async function PopArcsView({
+  studentId,
+  isMentorViewer,
+}: {
+  studentId: string;
+  isMentorViewer: boolean;
+}) {
+  let examples = await prisma.popArcCharacter.findMany({
+    where: { studentId, isExample: true },
     orderBy: { order: "asc" },
   });
 
-  if (characters.length === 0) {
+  if (examples.length === 0) {
     await prisma.popArcCharacter.createMany({
       data: POP_ARC_SEED.map((seed, i) => ({
         studentId,
         order: i,
+        isExample: true,
         name: seed.name,
         data: seed.data,
       })),
     });
-    characters = await prisma.popArcCharacter.findMany({
-      where: { studentId },
+    examples = await prisma.popArcCharacter.findMany({
+      where: { studentId, isExample: true },
       orderBy: { order: "asc" },
     });
   }
 
-  return <PopArcsList studentId={studentId} initialCharacters={characters} />;
+  const ownHeroes = await prisma.popArcCharacter.findMany({
+    where: { studentId, isExample: false },
+    orderBy: { order: "asc" },
+  });
+
+  return (
+    <Subtabs
+      tabs={[
+        {
+          label: "Примеры",
+          content: <ExamplesList studentId={studentId} initialCharacters={examples} isMentorViewer={isMentorViewer} />,
+        },
+        {
+          label: "Мои герои",
+          content: <OwnHeroesList studentId={studentId} initialCharacters={ownHeroes} />,
+        },
+      ]}
+    />
+  );
 }

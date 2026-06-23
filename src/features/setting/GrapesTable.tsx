@@ -25,7 +25,10 @@ export default function GrapesTable({ bookId, book }: { bookId: string; book: Bo
     <div>
       {ROWS.map(({ field, letter, label }) => (
         <div key={field} className="flex gap-4 py-3 border-b" style={{ borderColor: "var(--rule)" }}>
-          <div className="w-[180px] flex-shrink-0 font-semibold text-[15px]" style={{ color: "var(--wine)" }}>
+          <div
+            className="w-[180px] flex-shrink-0 font-semibold text-[15px] pr-4 border-r"
+            style={{ color: "var(--wine)", borderColor: "var(--rule)" }}
+          >
             <span className="font-bold mr-2" style={{ color: "var(--ink)" }}>
               {letter}
             </span>

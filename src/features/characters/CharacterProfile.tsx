@@ -9,10 +9,12 @@ function FieldBlock({
   label,
   value,
   onBlur,
+  readOnly,
 }: {
   label?: string;
   value: string;
   onBlur: (v: string) => void;
+  readOnly?: boolean;
 }) {
   return (
     <div className="mb-4">
@@ -21,12 +23,18 @@ function FieldBlock({
           {label}
         </label>
       )}
-      <AutoGrowTextarea
-        defaultValue={value}
-        onBlur={onBlur}
-        className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
-        style={{ borderColor: "var(--rule)" }}
-      />
+      {readOnly ? (
+        <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
+          {value || <span style={{ color: "var(--faded)" }}>—</span>}
+        </p>
+      ) : (
+        <AutoGrowTextarea
+          defaultValue={value}
+          onBlur={onBlur}
+          className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
+          style={{ borderColor: "var(--rule)" }}
+        />
+      )}
     </div>
   );
 }
@@ -40,6 +48,7 @@ export default function CharacterProfile({
   onFieldBlur,
   onPhotoUpload,
   onDelete,
+  readOnly,
 }: {
   name: string;
   photoUrl: string | null;
@@ -49,6 +58,7 @@ export default function CharacterProfile({
   onFieldBlur: (field: string, value: string) => void;
   onPhotoUpload: (dataUrl: string) => void;
   onDelete: () => void;
+  readOnly?: boolean;
 }) {
   function handleDelete() {
     if (!window.confirm(`Удалить «${name || "без имени"}»?`)) return;
@@ -58,31 +68,51 @@ export default function CharacterProfile({
   return (
     <div className="rounded-md p-5 mb-6 max-w-[760px]" style={{ border: "1px solid var(--rule)" }}>
       <div className="flex gap-5 items-center mb-6">
-        <ImageUploadBox
-          value={photoUrl}
-          onUpload={onPhotoUpload}
-          placeholder="фото"
-          className="rounded-sm flex-shrink-0"
-          style={{ width: 90, height: 90, minWidth: 90 }}
-        />
+        {readOnly ? (
+          <div
+            className="rounded-sm flex-shrink-0"
+            style={{
+              width: 90,
+              height: 90,
+              border: "1px solid var(--rule)",
+              backgroundImage: photoUrl ? `url(${photoUrl})` : undefined,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        ) : (
+          <ImageUploadBox
+            value={photoUrl}
+            onUpload={onPhotoUpload}
+            placeholder="фото"
+            className="rounded-sm flex-shrink-0"
+            style={{ width: 90, height: 90, minWidth: 90 }}
+          />
+        )}
         <div className="flex-1 min-w-0">
           <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
             Имя
           </label>
-          <input
-            defaultValue={name}
-            onBlur={(e) => onNameBlur(e.target.value)}
-            className="font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
-            style={{ borderColor: "var(--rule)" }}
-          />
+          {readOnly ? (
+            <p className="font-semibold text-[18px] pb-1">{name}</p>
+          ) : (
+            <input
+              defaultValue={name}
+              onBlur={(e) => onNameBlur(e.target.value)}
+              className="font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
+              style={{ borderColor: "var(--rule)" }}
+            />
+          )}
         </div>
-        <button
-          onClick={handleDelete}
-          className="font-mono-label text-[10px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
-          style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-        >
-          Удалить
-        </button>
+        {!readOnly && (
+          <button
+            onClick={handleDelete}
+            className="font-mono-label text-[10px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
+            style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
+          >
+            Удалить
+          </button>
+        )}
       </div>
 
       {groups.map((group, i) => {
@@ -97,6 +127,7 @@ export default function CharacterProfile({
                   key={f.key}
                   value={data[f.key] ?? ""}
                   onBlur={(v) => onFieldBlur(f.key, v)}
+                  readOnly={readOnly}
                 />
               ))}
             </div>
@@ -115,6 +146,7 @@ export default function CharacterProfile({
                 label={f.label}
                 value={data[f.key] ?? ""}
                 onBlur={(v) => onFieldBlur(f.key, v)}
+                readOnly={readOnly}
               />
             ))}
           </Accordion>

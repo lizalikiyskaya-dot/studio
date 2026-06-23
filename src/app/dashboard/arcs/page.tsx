@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import CharactersView from "@/features/characters/CharactersView";
-import { ARC_GROUPS } from "@/features/characters/fields";
+import ArcsView from "@/features/characters/arcs/ArcsView";
 
 export default async function Page({
   searchParams,
@@ -11,13 +10,5 @@ export default async function Page({
   const session = await getSession();
   if (!session) redirect("/login");
   const { book } = await searchParams;
-  return (
-    <CharactersView
-      studentId={session.userId}
-      basePath="/dashboard"
-      requestedBookId={book}
-      title="Арки персонажей"
-      groups={ARC_GROUPS}
-    />
-  );
+  return <ArcsView studentId={session.userId} basePath="/dashboard" requestedBookId={book} />;
 }

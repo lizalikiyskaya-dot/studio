@@ -39,8 +39,8 @@ body {
 }
 
 .masthead-rule {
-  border-top: 3px solid var(--ink);
+  border-top: 1px solid var(--ink);
   border-bottom: 1px solid var(--ink);
-  height: 4px;
+  height: 3px;
   margin-top: 4px;
 }

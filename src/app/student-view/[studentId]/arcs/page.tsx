@@ -1,5 +1,4 @@
-import CharactersView from "@/features/characters/CharactersView";
-import { ARC_GROUPS } from "@/features/characters/fields";
+import ArcsView from "@/features/characters/arcs/ArcsView";
 
 export default async function Page({
   params,
@@ -10,13 +9,5 @@ export default async function Page({
 }) {
   const { studentId } = await params;
   const { book } = await searchParams;
-  return (
-    <CharactersView
-      studentId={studentId}
-      basePath={`/student-view/${studentId}`}
-      requestedBookId={book}
-      title="Арки персонажей"
-      groups={ARC_GROUPS}
-    />
-  );
+  return <ArcsView studentId={studentId} basePath={`/student-view/${studentId}`} requestedBookId={book} />;
 }

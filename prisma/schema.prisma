@@ -46,6 +46,17 @@ enum MaterialCategory {
   HANDOUT
 }
 
+enum ArcType {
+  POSITIVE
+  NEGATIVE
+  FLAT
+}
+
+enum FreeSectionType {
+  TEXT
+  TABLE
+}
+
 model User {
   id           String     @id @default(cuid())
   name         String
@@ -102,6 +113,7 @@ model PopArcCharacter {
   name      String   @default("")
   photoUrl  String?
   data      Json     @default("{}")
+  isExample Boolean  @default(false)
 }
 
 model BeliefCard {
@@ -115,14 +127,15 @@ model BeliefCard {
 }
 
 model CustomExercise {
-  id        String            @id @default(cuid())
-  studentId String
-  student   User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  order     Int               @default(0)
-  task      String            @default("")
-  answer    String            @default("")
-  status    TaskStatus        @default(IN_PROGRESS)
-  comments  ExerciseComment[]
+  id               String            @id @default(cuid())
+  studentId        String
+  student          User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order            Int               @default(0)
+  task             String            @default("")
+  answer           String            @default("")
+  answerSuggested  String?
+  status           TaskStatus        @default(IN_PROGRESS)
+  comments         ExerciseComment[]
 }
 
 model ExerciseComment {
@@ -135,12 +148,14 @@ model ExerciseComment {
 }
 
 model FreeSection {
-  id        String @id @default(cuid())
+  id        String          @id @default(cuid())
   studentId String
-  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  order     Int    @default(0)
-  title     String @default("")
-  content   String @default("")
+  student   User            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order     Int             @default(0)
+  type      FreeSectionType @default(TEXT)
+  title     String          @default("")
+  content   String          @default("")
+  tableData Json?
 }
 
 model Task {
@@ -215,6 +230,7 @@ model Character {
   name      String   @default("")
   photoUrl  String?
   data      Json     @default("{}")
+  arcType   ArcType?
   createdAt DateTime @default(now())
 }
 
