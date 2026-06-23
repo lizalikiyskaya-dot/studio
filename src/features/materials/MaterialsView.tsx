@@ -1,7 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import MaterialsList from "./MaterialsList";
 
-export default async function MaterialsView({ studentId }: { studentId: string }) {
+export default async function MaterialsView({
+  studentId,
+  canManage,
+}: {
+  studentId: string;
+  canManage: boolean;
+}) {
   const materials = await prisma.material.findMany({
     where: { studentId },
     orderBy: { order: "asc" },
@@ -13,7 +19,7 @@ export default async function MaterialsView({ studentId }: { studentId: string }
       <p className="text-[13px] mb-6" style={{ color: "var(--faded)" }}>
         Статус кликабелен: не прочитано → в процессе → прочитано.
       </p>
-      <MaterialsList studentId={studentId} initialMaterials={materials} />
+      <MaterialsList studentId={studentId} initialMaterials={materials} canManage={canManage} />
     </div>
   );
 }

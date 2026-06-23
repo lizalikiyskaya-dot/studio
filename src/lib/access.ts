@@ -13,3 +13,14 @@ export async function requireCabinetAccess(studentId: string) {
   if (session.userId === studentId) return session;
   throw new AccessDeniedError("Нет доступа");
 }
+
+/**
+ * Throws unless the current session is a mentor. Used for actions that
+ * only the mentor should perform (e.g. managing materials), even though
+ * the student themselves has read/cabinet access.
+ */
+export async function requireMentor(studentId: string) {
+  const session = await requireCabinetAccess(studentId);
+  if (session.role !== "MENTOR") throw new AccessDeniedError("Только наставник");
+  return session;
+}

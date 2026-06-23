@@ -45,7 +45,7 @@ export default function DraftsList({
           <input
             defaultValue={draft.title}
             onBlur={(e) => handleField(draft.id, "title", e.target.value)}
-            placeholder="Глава 1 — черновик"
+            placeholder="Название"
             className="w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-2"
             style={{ borderColor: "var(--rule)" }}
           />

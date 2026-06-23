@@ -5,5 +5,5 @@ import MaterialsView from "@/features/materials/MaterialsView";
 export default async function Page() {
   const session = await getSession();
   if (!session) redirect("/login");
-  return <MaterialsView studentId={session.userId} />;
+  return <MaterialsView studentId={session.userId} canManage={false} />;
 }
