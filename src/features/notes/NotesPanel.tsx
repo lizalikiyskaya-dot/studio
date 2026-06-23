@@ -43,9 +43,9 @@ export default function NotesPanel({
     <>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="fixed right-0 top-1/2 -translate-y-1/2 z-40 font-mono-label text-[11px] uppercase tracking-wide px-2 py-3 rounded-l-md"
+        className="fixed right-0 top-1/2 -translate-y-1/2 z-40 font-mono-label text-[10.5px] uppercase tracking-wide px-2 py-3"
         style={{
-          background: "var(--wine)",
+          background: "#161616",
           color: "#fff",
           writingMode: "vertical-rl",
         }}
@@ -56,67 +56,69 @@ export default function NotesPanel({
       {open && (
         <div
           className="fixed right-0 top-0 h-full z-50 flex flex-col shadow-lg"
-          style={{
-            width: 320,
-            background:
-              "repeating-linear-gradient(to bottom, #fffdf7 0px, #fffdf7 27px, #cfe0ee 28px)",
-            borderLeft: "1px solid var(--rule)",
-          }}
+          style={{ width: 300, background: "#fafafa", borderLeft: "1px solid #e2e2e2" }}
         >
           <div
             className="flex items-center justify-between px-4 py-3 flex-shrink-0"
-            style={{ borderBottom: "2px solid #D9779A", background: "#fffdf7" }}
+            style={{ borderBottom: "1px solid #e2e2e2" }}
           >
-            <span className="font-semibold text-[14.5px]">Заметки</span>
-            <button onClick={() => setOpen(false)} className="text-[16px]" style={{ color: "var(--faded)" }}>
+            <span className="font-mono-label text-[10.5px] uppercase tracking-wide" style={{ color: "#161616" }}>
+              Заметки
+            </span>
+            <button onClick={() => setOpen(false)} className="text-[16px]" style={{ color: "#9a9a9a" }}>
               ×
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6">
+          <div className="flex-1 overflow-y-auto">
+            {notes.length === 0 && (
+              <p className="px-4 py-4 text-[12.5px]" style={{ color: "#9a9a9a" }}>
+                Пока нет заметок.
+              </p>
+            )}
             {notes.map((note) => (
-              <div key={note.id} className="pt-3 pb-1 group" style={{ minHeight: 28 }}>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="font-mono-label text-[9px] uppercase" style={{ color: "var(--faded)" }}>
-                    {note.author}, {new Date(note.createdAt).toLocaleDateString("ru-RU")}
+              <div key={note.id} className="px-4 py-3" style={{ borderBottom: "1px solid #ececec" }}>
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <div className="font-mono-label text-[9px] uppercase" style={{ color: "#9a9a9a" }}>
+                    {note.author} · {new Date(note.createdAt).toLocaleDateString("ru-RU")}
                   </div>
                   <div className="flex gap-1.5 flex-shrink-0">
                     <button
                       onClick={() => handleEdit(note.id, note.text)}
                       className="font-mono-label text-[8.5px]"
-                      style={{ color: "var(--sage)" }}
+                      style={{ color: "#5a5a5a" }}
                     >
                       изм.
                     </button>
                     <button
                       onClick={() => handleDelete(note.id)}
                       className="font-mono-label text-[8.5px]"
-                      style={{ color: "var(--wine)" }}
+                      style={{ color: "#5a5a5a" }}
                     >
                       удал.
                     </button>
                   </div>
                 </div>
-                <div className="text-[13.5px] leading-7" style={{ color: "var(--ink-soft)" }}>
+                <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "#2a2a2a" }}>
                   {note.text}
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="px-6 py-3 flex-shrink-0" style={{ borderTop: "1px solid var(--rule)", background: "#fffdf7" }}>
+          <div className="px-4 py-3 flex-shrink-0" style={{ borderTop: "1px solid #e2e2e2", background: "#fff" }}>
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Новая заметка..."
-              className="w-full outline-none bg-transparent text-[13.5px] leading-7 resize-none"
+              className="w-full outline-none bg-transparent text-[13px] leading-relaxed resize-none"
               rows={2}
-              style={{ color: "var(--ink-soft)" }}
+              style={{ color: "#2a2a2a" }}
             />
             <button
               onClick={handleAdd}
-              className="font-mono-label text-[10.5px] px-3 py-1.5 rounded-sm mt-1"
-              style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
+              className="font-mono-label text-[10px] uppercase tracking-wide px-3 py-1.5 mt-1"
+              style={{ color: "#fff", background: "#161616" }}
             >
               + добавить
             </button>

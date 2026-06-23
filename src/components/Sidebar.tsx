@@ -44,10 +44,10 @@ export default function Sidebar({
 
   return (
     <div
-      className="border-r flex flex-col min-h-full px-5 py-8"
+      className="border-r flex flex-col h-screen sticky top-0 px-5 py-8"
       style={{ borderColor: "var(--rule)" }}
     >
-      <div className="flex-1">
+      <div className="flex-1 overflow-y-auto pr-1 min-h-0">
         <div className="mb-8">
           <div className="masthead-title font-semibold text-[17px] leading-tight">
             Студия художественной прозы
@@ -143,7 +143,7 @@ export default function Sidebar({
         )}
       </div>
 
-      <div>
+      <div className="flex-shrink-0">
         <div className="h-px mb-3.5" style={{ background: "var(--rule)" }} />
         <div className="flex items-center justify-between pt-3.5">
           <span className="text-[13.5px]" style={{ color: "var(--ink-soft)" }}>
