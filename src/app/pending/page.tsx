@@ -20,7 +20,10 @@ export default async function PendingPage() {
         <span className="masthead-title italic text-[13px] block mt-0.5" style={{ color: "var(--ink-soft)" }}>
           Лизы Ликийской
         </span>
-        <div className="masthead-rule mb-6" />
+        <div className="masthead-rule mb-6">
+          <div className="masthead-rule-line" />
+          <div className="masthead-rule-line" />
+        </div>
 
         {user.status === "PENDING" ? (
           <>

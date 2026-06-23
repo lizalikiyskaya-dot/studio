@@ -39,8 +39,14 @@ body {
 }
 
 .masthead-rule {
-  border-top: 1px solid var(--ink);
-  border-bottom: 1px solid var(--ink);
-  height: 7px;
-  margin-top: 4px;
+  margin-top: 6px;
+}
+
+.masthead-rule-line {
+  height: 1px;
+  background: var(--ink);
+}
+
+.masthead-rule-line + .masthead-rule-line {
+  margin-top: 3px;
 }

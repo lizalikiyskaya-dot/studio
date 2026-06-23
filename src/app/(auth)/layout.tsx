@@ -9,7 +9,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <span className="masthead-title italic text-[13px] block mt-0.5" style={{ color: "var(--ink-soft)" }}>
             Лизы Ликийской
           </span>
-          <div className="masthead-rule" />
+          <div className="masthead-rule">
+            <div className="masthead-rule-line" />
+            <div className="masthead-rule-line" />
+          </div>
         </div>
         {children}
       </div>
