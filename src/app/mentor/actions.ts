@@ -23,3 +23,18 @@ export async function rejectUser(userId: string) {
   await prisma.user.update({ where: { id: userId }, data: { status: "REJECTED" } });
   revalidatePath("/mentor");
 }
+
+export async function updatePaymentDay(userId: string, paymentDay: number | null) {
+  await requireMentor();
+  await prisma.user.update({ where: { id: userId }, data: { paymentDay } });
+  revalidatePath("/mentor");
+}
+
+export async function togglePaymentStatus(userId: string) {
+  await requireMentor();
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const next = user.paymentStatus === "PAID" ? "PENDING" : "PAID";
+  await prisma.user.update({ where: { id: userId }, data: { paymentStatus: next } });
+  revalidatePath("/mentor");
+  return next;
+}

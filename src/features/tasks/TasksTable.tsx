@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react";
 import type { Task, TaskStatus } from "@/generated/prisma/client";
-import { createTask, updateTaskTitle, updateTaskLink, cycleTaskStatus } from "./actions";
+import { createTask, updateTaskTitle, updateTaskLink, updateTaskDeadline, cycleTaskStatus } from "./actions";
 import { nextTaskStatus } from "./status";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 
-const GRID_COLUMNS = "2fr 170px 170px 150px";
+const GRID_COLUMNS = "2fr 150px 170px 170px 150px";
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
   IN_PROGRESS: "в процессе",
@@ -56,6 +56,12 @@ function LinkCell({
   );
 }
 
+function toDateInputValue(date: Date | string | null): string {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toISOString().slice(0, 10);
+}
+
 export default function TasksTable({
   studentId,
   initialTasks,
@@ -83,6 +89,12 @@ export default function TasksTable({
     startTransition(() => updateTaskLink(taskId, field, value));
   }
 
+  function handleDeadline(taskId: string, value: string) {
+    const deadline = value ? new Date(value) : null;
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, deadline } : t)));
+    startTransition(() => updateTaskDeadline(taskId, value || null));
+  }
+
   function handleStatus(taskId: string, current: TaskStatus) {
     const next = nextTaskStatus(current);
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: next } : t)));
@@ -94,12 +106,12 @@ export default function TasksTable({
   return (
     <div>
       <div className="overflow-x-auto mb-4">
-        <div style={{ minWidth: 640 }}>
+        <div style={{ minWidth: 780 }}>
           <div
             className="grid gap-x-3 pb-2 border-b"
             style={{ gridTemplateColumns: GRID_COLUMNS, borderColor: "var(--rule)" }}
           >
-            {["Задание", "Ссылка на работу", "Обратная связь", "Статус"].map((h) => (
+            {["Задание", "Дедлайн", "Ссылка на работу", "Обратная связь", "Статус"].map((h) => (
               <div
                 key={h}
                 className="font-mono-label text-[10px] uppercase whitespace-nowrap"
@@ -121,6 +133,13 @@ export default function TasksTable({
                 onBlur={(v) => handleTitleBlur(task.id, v)}
                 placeholder="Описание задания"
                 className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
+              />
+              <input
+                type="date"
+                defaultValue={toDateInputValue(task.deadline)}
+                onChange={(e) => handleDeadline(task.id, e.target.value)}
+                className="w-full outline-none bg-transparent text-[12.5px] py-1.5"
+                style={{ border: "1px solid var(--rule)", borderRadius: 2, padding: "4px 6px" }}
               />
               <div className="pt-1">
                 <LinkCell value={task.workLink} onSave={(v) => handleLink(task.id, "workLink", v)} />

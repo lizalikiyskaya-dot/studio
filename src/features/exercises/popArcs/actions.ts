@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import { ALL_CHARACTER_FIELD_KEYS } from "@/features/characters/fields";
+import type { ArcType } from "@/generated/prisma/client";
 
 async function requireAccessForCharacter(id: string) {
   const character = await prisma.popArcCharacter.findUniqueOrThrow({ where: { id } });
@@ -47,4 +48,9 @@ export async function updatePopArcField(id: string, field: string, value: string
   const data = (character.data as Record<string, string>) ?? {};
   data[field] = value;
   await prisma.popArcCharacter.update({ where: { id }, data: { data } });
+}
+
+export async function updatePopArcType(id: string, arcType: ArcType) {
+  await requireAccessForCharacter(id);
+  await prisma.popArcCharacter.update({ where: { id }, data: { arcType } });
 }

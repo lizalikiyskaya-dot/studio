@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LogoutButton from "./LogoutButton";
+import CalendarWidget from "./CalendarWidget";
 
 const TOP_ITEMS = [
   { path: "tasks", label: "Задания и обратная связь" },
@@ -26,12 +27,18 @@ export default function Sidebar({
   isMentor,
   mentorViewLabel,
   mentorMenuOnly,
+  calendar,
 }: {
   basePath: string;
   userName: string;
   isMentor: boolean;
   mentorViewLabel?: string;
   mentorMenuOnly?: boolean;
+  calendar?: {
+    tasks: { id: string; title: string; deadline: string }[];
+    paymentDay: number | null;
+    paymentStatus: "PAID" | "PENDING";
+  };
 }) {
   const pathname = usePathname();
 
@@ -125,6 +132,14 @@ export default function Sidebar({
               );
             })}
           </>
+        )}
+
+        {calendar && (
+          <CalendarWidget
+            tasks={calendar.tasks}
+            paymentDay={calendar.paymentDay}
+            paymentStatus={calendar.paymentStatus}
+          />
         )}
       </div>
 

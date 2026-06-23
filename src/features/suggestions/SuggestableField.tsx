@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { saveFieldOrSuggest, acceptFieldSuggestion } from "./actions";
 import type { SuggestableModel } from "@/lib/suggestionRegistry";
+import { wordDiff } from "@/lib/wordDiff";
 
 export default function SuggestableField({
   model,
@@ -50,11 +51,24 @@ export default function SuggestableField({
   }
 
   if (suggestion) {
+    const tokens = wordDiff(value, suggestion);
     return (
       <div className="rounded-sm p-2.5" style={{ border: "1px solid var(--rule)" }}>
-        <span style={{ textDecoration: "line-through", color: "var(--sage)" }}>{value}</span>
-        {value && " "}
-        <span style={{ color: "var(--sage)" }}>{suggestion}</span>
+        <span>
+          {tokens.map((t, i) =>
+            t.type === "same" ? (
+              <span key={i}>{t.text}</span>
+            ) : t.type === "del" ? (
+              <span key={i} style={{ textDecoration: "line-through", color: "var(--sage)" }}>
+                {t.text}
+              </span>
+            ) : (
+              <span key={i} style={{ color: "var(--sage)" }}>
+                {t.text}
+              </span>
+            )
+          )}
+        </span>
         <div className="mt-1.5">
           <button
             onClick={handleAccept}

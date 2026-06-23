@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { BeliefCard } from "@/generated/prisma/client";
+import type { BeliefCard, Comment } from "@/generated/prisma/client";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
 import SuggestableField from "@/features/suggestions/SuggestableField";
+import CommentsBlock from "@/features/comments/CommentsBlock";
 import { createBeliefCard, deleteBeliefCard } from "./actions";
 
 function CardBody({
@@ -87,12 +88,14 @@ function CardShell({
   readOnly,
   suggestable,
   suggestions,
+  initialComments,
   onDelete,
 }: {
   card: BeliefCard;
   readOnly: boolean;
   suggestable: boolean;
   suggestions: Record<string, string>;
+  initialComments: Comment[];
   onDelete: (id: string) => void;
 }) {
   return (
@@ -107,6 +110,7 @@ function CardShell({
           Удалить
         </button>
       )}
+      <CommentsBlock model="BeliefCard" recordId={card.id} initialComments={initialComments} />
     </CollapsibleCharacterShell>
   );
 }
@@ -115,10 +119,12 @@ export function BeliefExamplesList({
   studentId,
   initialCards,
   isMentorViewer,
+  comments,
 }: {
   studentId: string;
   initialCards: BeliefCard[];
   isMentorViewer: boolean;
+  comments: Record<string, Comment[]>;
 }) {
   const [cards, setCards] = useState(initialCards);
   const [, startTransition] = useTransition();
@@ -144,6 +150,7 @@ export function BeliefExamplesList({
           readOnly={!isMentorViewer}
           suggestable={false}
           suggestions={{}}
+          initialComments={comments[card.id] ?? []}
           onDelete={handleDelete}
         />
       ))}
@@ -164,10 +171,12 @@ export function BeliefOwnList({
   studentId,
   initialCards,
   suggestions,
+  comments,
 }: {
   studentId: string;
   initialCards: BeliefCard[];
   suggestions: Record<string, Record<string, string>>;
+  comments: Record<string, Comment[]>;
 }) {
   const [cards, setCards] = useState(initialCards);
   const [, startTransition] = useTransition();
@@ -193,6 +202,7 @@ export function BeliefOwnList({
           readOnly={false}
           suggestable
           suggestions={suggestions[card.id] ?? {}}
+          initialComments={comments[card.id] ?? []}
           onDelete={handleDelete}
         />
       ))}

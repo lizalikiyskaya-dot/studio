@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { approveUser, rejectUser } from "./actions";
+import PaymentControls from "./PaymentControls";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -86,14 +87,17 @@ export default async function MentorPage() {
         <tbody>
           {students.map((s) => (
             <tr key={s.id} style={{ borderBottom: "1px solid var(--rule)" }}>
-              <td className="py-2.5 pr-3 text-[13.5px]">{s.name}</td>
-              <td className="py-2.5 pr-3 text-[13.5px]" style={{ color: "var(--ink-soft)" }}>
+              <td className="py-2.5 pr-3 text-[13.5px] align-top">{s.name}</td>
+              <td className="py-2.5 pr-3 text-[13.5px] align-top" style={{ color: "var(--ink-soft)" }}>
                 {s.email}
               </td>
-              <td className="py-2.5 text-right">
+              <td className="py-2.5 align-top">
+                <PaymentControls userId={s.id} paymentDay={s.paymentDay} paymentStatus={s.paymentStatus} />
+              </td>
+              <td className="py-2.5 pl-3 text-right align-top">
                 <Link
                   href={`/student-view/${s.id}/tasks`}
-                  className="font-mono-label text-[10.5px] px-3 py-1.5 rounded-sm inline-block"
+                  className="font-mono-label text-[10.5px] px-3 py-1.5 rounded-sm inline-block whitespace-nowrap"
                   style={{ background: "var(--wine)", color: "#fff" }}
                 >
                   Открыть кабинет

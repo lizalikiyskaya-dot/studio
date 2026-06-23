@@ -32,6 +32,15 @@ export async function updateTaskLink(
   await prisma.task.update({ where: { id: taskId }, data: { [field]: value } });
 }
 
+export async function updateTaskDeadline(taskId: string, deadline: string | null) {
+  const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
+  await requireCabinetAccess(task.studentId);
+  await prisma.task.update({
+    where: { id: taskId },
+    data: { deadline: deadline ? new Date(deadline) : null },
+  });
+}
+
 export async function cycleTaskStatus(taskId: string) {
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
   await requireCabinetAccess(task.studentId);

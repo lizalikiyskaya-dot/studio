@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { FreeSection } from "@/generated/prisma/client";
+import type { FreeSection, Comment } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
 import SuggestableField from "@/features/suggestions/SuggestableField";
+import CommentsBlock from "@/features/comments/CommentsBlock";
 import {
   createAdditionalSection,
   updateSectionTitle,
@@ -94,11 +95,13 @@ export default function AdditionalList({
   initialSections,
   isMentorViewer,
   suggestions,
+  comments,
 }: {
   studentId: string;
   initialSections: FreeSection[];
   isMentorViewer: boolean;
   suggestions: Record<string, Record<string, string>>;
+  comments: Record<string, Comment[]>;
 }) {
   const [sections, setSections] = useState(initialSections);
   const [, startTransition] = useTransition();
@@ -166,6 +169,8 @@ export default function AdditionalList({
               Удалить раздел
             </button>
           )}
+
+          <CommentsBlock model="FreeSection" recordId={section.id} initialComments={comments[section.id] ?? []} />
         </Accordion>
       ))}
 

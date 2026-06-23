@@ -3,6 +3,7 @@ import Subtabs from "@/components/Subtabs";
 import { BeliefExamplesList, BeliefOwnList } from "./BeliefList";
 import { BELIEF_SEED } from "./seedData";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
+import { getCommentsForRecords } from "@/features/comments/actions";
 
 export default async function BeliefView({
   studentId,
@@ -31,17 +32,35 @@ export default async function BeliefView({
     orderBy: { order: "asc" },
   });
   const ownSuggestions = await getSuggestionsForRecords("BeliefCard", ownCards.map((c) => c.id));
+  const allComments = await getCommentsForRecords(
+    "BeliefCard",
+    [...examples, ...ownCards].map((c) => c.id)
+  );
 
   return (
     <Subtabs
       tabs={[
         {
           label: "Примеры",
-          content: <BeliefExamplesList studentId={studentId} initialCards={examples} isMentorViewer={isMentorViewer} />,
+          content: (
+            <BeliefExamplesList
+              studentId={studentId}
+              initialCards={examples}
+              isMentorViewer={isMentorViewer}
+              comments={allComments}
+            />
+          ),
         },
         {
           label: "Мои герои",
-          content: <BeliefOwnList studentId={studentId} initialCards={ownCards} suggestions={ownSuggestions} />,
+          content: (
+            <BeliefOwnList
+              studentId={studentId}
+              initialCards={ownCards}
+              suggestions={ownSuggestions}
+              comments={allComments}
+            />
+          ),
         },
       ]}
     />

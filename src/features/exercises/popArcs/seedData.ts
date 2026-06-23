@@ -1,6 +1,9 @@
-export const POP_ARC_SEED: { name: string; data: Record<string, string> }[] = [
+import type { ArcType } from "@/generated/prisma/client";
+
+export const POP_ARC_SEED: { name: string; arcType: ArcType; data: Record<string, string> }[] = [
   {
     name: "Шрек",
+    arcType: "POSITIVE",
     data: {
       posFalseBelief: "я чудовище, меня можно только бояться, любви и дружбы мне не положено",
       posFalseGoal: "вернуть себе одиночество и болото, избавиться от чужого общества",
@@ -13,6 +16,7 @@ export const POP_ARC_SEED: { name: string; data: Record<string, string> }[] = [
   },
   {
     name: "Эльза (Frozen)",
+    arcType: "POSITIVE",
     data: {
       posFalseBelief: "моя сила — угроза, её нужно прятать и подавлять",
       posFalseGoal: "контролировать и скрывать силу любой ценой, даже изоляцией",
@@ -25,6 +29,7 @@ export const POP_ARC_SEED: { name: string; data: Record<string, string> }[] = [
   },
   {
     name: "Джокер (Артур Флек)",
+    arcType: "NEGATIVE",
     data: {
       negInitialTruth: "он способен на доброту и хочет быть увиденным и принятым обществом",
       negTemptation: "жестокость и хаос дают власть и внимание, которых не дала добропорядочная жизнь",

@@ -13,6 +13,7 @@ import {
   addExerciseComment,
 } from "./actions";
 import { nextTaskStatus } from "@/features/tasks/status";
+import { wordDiff } from "@/lib/wordDiff";
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
   IN_PROGRESS: "в процессе",
@@ -40,11 +41,22 @@ function AnswerField({
   onAccept: () => void;
 }) {
   if (exercise.answerSuggested) {
+    const tokens = wordDiff(exercise.answer, exercise.answerSuggested);
     return (
       <div className="rounded-sm p-3 mb-3 text-[13.5px] leading-relaxed" style={{ border: "1px solid var(--rule)" }}>
-        <span style={{ textDecoration: "line-through", color: "var(--sage)" }}>{exercise.answer}</span>
-        {" "}
-        <span style={{ color: "var(--sage)" }}>{exercise.answerSuggested}</span>
+        {tokens.map((t, i) =>
+          t.type === "same" ? (
+            <span key={i}>{t.text}</span>
+          ) : t.type === "del" ? (
+            <span key={i} style={{ textDecoration: "line-through", color: "var(--sage)" }}>
+              {t.text}
+            </span>
+          ) : (
+            <span key={i} style={{ color: "var(--sage)" }}>
+              {t.text}
+            </span>
+          )
+        )}
         <div className="mt-2">
           <button
             onClick={onAccept}

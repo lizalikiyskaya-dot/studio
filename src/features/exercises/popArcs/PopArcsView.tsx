@@ -3,6 +3,7 @@ import Subtabs from "@/components/Subtabs";
 import { ExamplesList, OwnHeroesList } from "./PopArcsList";
 import { POP_ARC_SEED } from "./seedData";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
+import { getCommentsForRecords } from "@/features/comments/actions";
 
 export default async function PopArcsView({
   studentId,
@@ -23,6 +24,7 @@ export default async function PopArcsView({
         order: i,
         isExample: true,
         name: seed.name,
+        arcType: seed.arcType,
         data: seed.data,
       })),
     });
@@ -37,17 +39,33 @@ export default async function PopArcsView({
     orderBy: { order: "asc" },
   });
   const ownSuggestions = await getSuggestionsForRecords("PopArcCharacter", ownHeroes.map((c) => c.id));
+  const allIds = [...examples, ...ownHeroes].map((c) => c.id);
+  const allComments = await getCommentsForRecords("PopArcCharacter", allIds);
 
   return (
     <Subtabs
       tabs={[
         {
           label: "Примеры",
-          content: <ExamplesList studentId={studentId} initialCharacters={examples} isMentorViewer={isMentorViewer} />,
+          content: (
+            <ExamplesList
+              studentId={studentId}
+              initialCharacters={examples}
+              isMentorViewer={isMentorViewer}
+              comments={allComments}
+            />
+          ),
         },
         {
           label: "Мои герои",
-          content: <OwnHeroesList studentId={studentId} initialCharacters={ownHeroes} suggestions={ownSuggestions} />,
+          content: (
+            <OwnHeroesList
+              studentId={studentId}
+              initialCharacters={ownHeroes}
+              suggestions={ownSuggestions}
+              comments={allComments}
+            />
+          ),
         },
       ]}
     />
