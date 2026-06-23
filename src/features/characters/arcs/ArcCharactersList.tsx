@@ -8,9 +8,11 @@ import { createCharacter } from "../actions";
 export default function ArcCharactersList({
   bookId,
   initialCharacters,
+  suggestions,
 }: {
   bookId: string;
   initialCharacters: Character[];
+  suggestions: Record<string, Record<string, string>>;
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
@@ -29,7 +31,12 @@ export default function ArcCharactersList({
   return (
     <div>
       {characters.map((character) => (
-        <ArcCharacterCard key={character.id} character={character} onDeleted={handleDeleted} />
+        <ArcCharacterCard
+          key={character.id}
+          character={character}
+          suggestions={suggestions[character.id] ?? {}}
+          onDeleted={handleDeleted}
+        />
       ))}
 
       <button

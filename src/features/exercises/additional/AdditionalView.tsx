@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import AdditionalList from "./AdditionalList";
+import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 
 export default async function AdditionalView({
   studentId,
@@ -12,6 +13,14 @@ export default async function AdditionalView({
     where: { studentId },
     orderBy: { order: "asc" },
   });
+  const suggestions = await getSuggestionsForRecords("FreeSection", sections.map((s) => s.id));
 
-  return <AdditionalList studentId={studentId} initialSections={sections} isMentorViewer={isMentorViewer} />;
+  return (
+    <AdditionalList
+      studentId={studentId}
+      initialSections={sections}
+      isMentorViewer={isMentorViewer}
+      suggestions={suggestions}
+    />
+  );
 }

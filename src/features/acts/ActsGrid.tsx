@@ -2,10 +2,18 @@
 
 import { useState, useTransition } from "react";
 import type { Act } from "@/generated/prisma/client";
-import { createAct, updateActField, deleteAct } from "./actions";
-import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import { createAct, deleteAct } from "./actions";
+import SuggestableField from "@/features/suggestions/SuggestableField";
 
-export default function ActsGrid({ bookId, initialActs }: { bookId: string; initialActs: Act[] }) {
+export default function ActsGrid({
+  bookId,
+  initialActs,
+  suggestions,
+}: {
+  bookId: string;
+  initialActs: Act[];
+  suggestions: Record<string, Record<string, string>>;
+}) {
   const [acts, setActs] = useState(initialActs);
   const [, startTransition] = useTransition();
 
@@ -14,11 +22,6 @@ export default function ActsGrid({ bookId, initialActs }: { bookId: string; init
       const act = await createAct(bookId);
       setActs((prev) => [...prev, act]);
     });
-  }
-
-  function handleField(actId: string, field: "title" | "subtitle" | "content", value: string) {
-    setActs((prev) => prev.map((a) => (a.id === actId ? { ...a, [field]: value } : a)));
-    startTransition(() => updateActField(actId, field, value));
   }
 
   function handleDelete(actId: string) {
@@ -31,36 +34,50 @@ export default function ActsGrid({ bookId, initialActs }: { bookId: string; init
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-      {acts.map((act) => (
-        <div key={act.id} className="rounded-md p-4" style={{ border: "1px solid var(--rule)" }}>
-          <div className="flex justify-between items-start mb-1">
-            <input
-              defaultValue={act.title}
-              onBlur={(e) => handleField(act.id, "title", e.target.value)}
-              className="font-semibold text-[16px] outline-none bg-transparent flex-1"
+      {acts.map((act) => {
+        const actSuggestions = suggestions[act.id] ?? {};
+        return (
+          <div key={act.id} className="rounded-md p-4" style={{ border: "1px solid var(--rule)" }}>
+            <div className="flex justify-between items-start mb-1">
+              <SuggestableField
+                model="Act"
+                recordId={act.id}
+                field="title"
+                value={act.title}
+                suggestion={actSuggestions.title}
+                as="input"
+                className="font-semibold text-[16px] outline-none bg-transparent flex-1"
+              />
+              <button
+                onClick={() => handleDelete(act.id)}
+                className="font-mono-label text-[9px]"
+                style={{ color: "var(--wine)" }}
+              >
+                ✕
+              </button>
+            </div>
+            <SuggestableField
+              model="Act"
+              recordId={act.id}
+              field="subtitle"
+              value={act.subtitle}
+              suggestion={actSuggestions.subtitle}
+              as="input"
+              placeholder="завязка / развитие / развязка"
+              className="font-mono-label text-[9.5px] outline-none bg-transparent mb-2.5 w-full"
+              style={{ color: "var(--faded)" }}
             />
-            <button
-              onClick={() => handleDelete(act.id)}
-              className="font-mono-label text-[9px]"
-              style={{ color: "var(--wine)" }}
-            >
-              ✕
-            </button>
+            <SuggestableField
+              model="Act"
+              recordId={act.id}
+              field="content"
+              value={act.content}
+              suggestion={actSuggestions.content}
+              className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed"
+            />
           </div>
-          <input
-            defaultValue={act.subtitle}
-            onBlur={(e) => handleField(act.id, "subtitle", e.target.value)}
-            placeholder="завязка / развитие / развязка"
-            className="font-mono-label text-[9.5px] outline-none bg-transparent mb-2.5 w-full"
-            style={{ color: "var(--faded)" }}
-          />
-          <AutoGrowTextarea
-            defaultValue={act.content}
-            onBlur={(v) => handleField(act.id, "content", v)}
-            className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed"
-          />
-        </div>
-      ))}
+        );
+      })}
 
       <button
         onClick={handleAdd}

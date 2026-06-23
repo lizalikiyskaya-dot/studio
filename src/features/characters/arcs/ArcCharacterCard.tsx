@@ -2,12 +2,10 @@
 
 import { useState, useTransition } from "react";
 import type { Character, ArcType } from "@/generated/prisma/client";
-import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
+import SuggestableField from "@/features/suggestions/SuggestableField";
 import { ARC_GROUPS } from "../fields";
 import {
-  updateCharacterName,
-  updateCharacterField,
   updateCharacterPhoto,
   updateCharacterArcType,
   deleteCharacter,
@@ -24,11 +22,15 @@ const ARC_TYPES: ArcType[] = ["POSITIVE", "NEGATIVE", "FLAT"];
 function FieldBlock({
   label,
   value,
-  onBlur,
+  suggestion,
+  recordId,
+  fieldKey,
 }: {
   label?: string;
   value: string;
-  onBlur: (v: string) => void;
+  suggestion?: string;
+  recordId: string;
+  fieldKey: string;
 }) {
   return (
     <div className="mb-4">
@@ -37,9 +39,12 @@ function FieldBlock({
           {label}
         </label>
       )}
-      <AutoGrowTextarea
-        defaultValue={value}
-        onBlur={onBlur}
+      <SuggestableField
+        model="Character"
+        recordId={recordId}
+        field={fieldKey}
+        value={value}
+        suggestion={suggestion}
         className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
         style={{ borderColor: "var(--rule)" }}
       />
@@ -49,9 +54,11 @@ function FieldBlock({
 
 export default function ArcCharacterCard({
   character,
+  suggestions,
   onDeleted,
 }: {
   character: Character;
+  suggestions: Record<string, string>;
   onDeleted: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -70,10 +77,6 @@ export default function ArcCharacterCard({
   function handleSelectType(type: ArcType) {
     setArcType(type);
     startTransition(() => updateCharacterArcType(character.id, type));
-  }
-
-  function handleFieldBlur(field: string, value: string) {
-    startTransition(() => updateCharacterField(character.id, field as never, value));
   }
 
   return (
@@ -121,12 +124,13 @@ export default function ArcCharacterCard({
               <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
                 Имя
               </label>
-              <input
-                defaultValue={name}
-                onBlur={(e) => {
-                  setName(e.target.value);
-                  startTransition(() => updateCharacterName(character.id, e.target.value));
-                }}
+              <SuggestableField
+                model="Character"
+                recordId={character.id}
+                field="name"
+                value={name}
+                suggestion={suggestions.name}
+                as="input"
                 className="font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
                 style={{ borderColor: "var(--rule)" }}
               />
@@ -167,7 +171,9 @@ export default function ArcCharacterCard({
                   key={f.key}
                   label={f.label}
                   value={data[f.key] ?? ""}
-                  onBlur={(v) => handleFieldBlur(f.key, v)}
+                  suggestion={suggestions[f.key]}
+                  recordId={character.id}
+                  fieldKey={f.key}
                 />
               ))}
             </div>

@@ -2,33 +2,135 @@
 
 import { useState, useTransition } from "react";
 import type { BeliefCard } from "@/generated/prisma/client";
-import AutoGrowTextarea from "@/components/AutoGrowTextarea";
-import { createBeliefCard, updateBeliefField, deleteBeliefCard } from "./actions";
+import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
+import SuggestableField from "@/features/suggestions/SuggestableField";
+import { createBeliefCard, deleteBeliefCard } from "./actions";
 
-export default function BeliefList({
+function CardBody({
+  card,
+  readOnly,
+  suggestable,
+  suggestions,
+}: {
+  card: BeliefCard;
+  readOnly: boolean;
+  suggestable: boolean;
+  suggestions: Record<string, string>;
+}) {
+  return (
+    <div>
+      <div className="mb-3">
+        <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--faded)" }}>
+          Герой
+        </label>
+        {readOnly ? (
+          <p className="text-[15px] font-semibold pb-1">{card.hero}</p>
+        ) : (
+          <SuggestableField
+            model="BeliefCard"
+            recordId={card.id}
+            field="hero"
+            value={card.hero}
+            suggestion={suggestions.hero}
+            as="input"
+            className="w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1"
+            style={{ borderColor: "var(--rule)" }}
+          />
+        )}
+      </div>
+      <div className="mb-3">
+        <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--faded)" }}>
+          В начале истории герой думает, что...
+        </label>
+        {readOnly ? (
+          <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
+            {card.startBelief}
+          </p>
+        ) : (
+          <SuggestableField
+            model="BeliefCard"
+            recordId={card.id}
+            field="startBelief"
+            value={card.startBelief}
+            suggestion={suggestions.startBelief}
+            className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
+            style={{ borderColor: "var(--rule)" }}
+          />
+        )}
+      </div>
+      <div>
+        <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--faded)" }}>
+          В конце истории понимает, что...
+        </label>
+        {readOnly ? (
+          <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
+            {card.endBelief}
+          </p>
+        ) : (
+          <SuggestableField
+            model="BeliefCard"
+            recordId={card.id}
+            field="endBelief"
+            value={card.endBelief}
+            suggestion={suggestions.endBelief}
+            className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
+            style={{ borderColor: "var(--rule)" }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CardShell({
+  card,
+  readOnly,
+  suggestable,
+  suggestions,
+  onDelete,
+}: {
+  card: BeliefCard;
+  readOnly: boolean;
+  suggestable: boolean;
+  suggestions: Record<string, string>;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <CollapsibleCharacterShell name={card.hero} photoUrl={null}>
+      <CardBody card={card} readOnly={readOnly} suggestable={suggestable} suggestions={suggestions} />
+      {!readOnly && (
+        <button
+          onClick={() => onDelete(card.id)}
+          className="font-mono-label text-[10px] px-2.5 py-1.5 rounded-sm mt-4"
+          style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
+        >
+          Удалить
+        </button>
+      )}
+    </CollapsibleCharacterShell>
+  );
+}
+
+export function BeliefExamplesList({
   studentId,
   initialCards,
+  isMentorViewer,
 }: {
   studentId: string;
   initialCards: BeliefCard[];
+  isMentorViewer: boolean;
 }) {
   const [cards, setCards] = useState(initialCards);
   const [, startTransition] = useTransition();
 
   function handleAdd() {
     startTransition(async () => {
-      const card = await createBeliefCard(studentId);
+      const card = await createBeliefCard(studentId, true);
       setCards((prev) => [...prev, card]);
     });
   }
 
-  function handleField(id: string, field: "hero" | "startBelief" | "endBelief", value: string) {
-    setCards((prev) => prev.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
-    startTransition(() => updateBeliefField(id, field, value));
-  }
-
   function handleDelete(id: string) {
-    if (!window.confirm("Удалить карточку?")) return;
     setCards((prev) => prev.filter((c) => c.id !== id));
     startTransition(() => deleteBeliefCard(id));
   }
@@ -36,50 +138,64 @@ export default function BeliefList({
   return (
     <div>
       {cards.map((card) => (
-        <div key={card.id} className="rounded-md p-4 mb-4 max-w-[680px]" style={{ border: "1px solid var(--rule)" }}>
-          <div className="flex items-center gap-3 mb-3">
-            <label className="font-mono-label text-[9px] uppercase tracking-wide" style={{ color: "var(--faded)" }}>
-              Герой
-            </label>
-            <input
-              defaultValue={card.hero}
-              onBlur={(e) => handleField(card.id, "hero", e.target.value)}
-              className="flex-1 outline-none bg-transparent text-[15px] font-semibold border-b pb-1"
-              style={{ borderColor: "var(--rule)" }}
-            />
-            <button
-              onClick={() => handleDelete(card.id)}
-              className="font-mono-label text-[10px] px-2 py-1 rounded-sm flex-shrink-0"
-              style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-            >
-              Удалить
-            </button>
-          </div>
-          <div className="mb-3">
-            <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--faded)" }}>
-              В начале истории герой думает, что...
-            </label>
-            <AutoGrowTextarea
-              defaultValue={card.startBelief}
-              onBlur={(v) => handleField(card.id, "startBelief", v)}
-              className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
-              style={{ borderColor: "var(--rule)" }}
-            />
-          </div>
-          <div>
-            <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--faded)" }}>
-              В конце истории понимает, что...
-            </label>
-            <AutoGrowTextarea
-              defaultValue={card.endBelief}
-              onBlur={(v) => handleField(card.id, "endBelief", v)}
-              className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
-              style={{ borderColor: "var(--rule)" }}
-            />
-          </div>
-        </div>
+        <CardShell
+          key={card.id}
+          card={card}
+          readOnly={!isMentorViewer}
+          suggestable={false}
+          suggestions={{}}
+          onDelete={handleDelete}
+        />
       ))}
+      {isMentorViewer && (
+        <button
+          onClick={handleAdd}
+          className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+          style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
+        >
+          + добавить пример
+        </button>
+      )}
+    </div>
+  );
+}
 
+export function BeliefOwnList({
+  studentId,
+  initialCards,
+  suggestions,
+}: {
+  studentId: string;
+  initialCards: BeliefCard[];
+  suggestions: Record<string, Record<string, string>>;
+}) {
+  const [cards, setCards] = useState(initialCards);
+  const [, startTransition] = useTransition();
+
+  function handleAdd() {
+    startTransition(async () => {
+      const card = await createBeliefCard(studentId, false);
+      setCards((prev) => [...prev, card]);
+    });
+  }
+
+  function handleDelete(id: string) {
+    setCards((prev) => prev.filter((c) => c.id !== id));
+    startTransition(() => deleteBeliefCard(id));
+  }
+
+  return (
+    <div>
+      {cards.map((card) => (
+        <CardShell
+          key={card.id}
+          card={card}
+          readOnly={false}
+          suggestable
+          suggestions={suggestions[card.id] ?? {}}
+          onDelete={handleDelete}
+        />
+      ))}
       <button
         onClick={handleAdd}
         className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"

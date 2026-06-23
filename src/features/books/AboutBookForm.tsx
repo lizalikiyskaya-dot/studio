@@ -3,25 +3,34 @@
 import { useState, useTransition } from "react";
 import type { Book } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
-import { updateBookField, updateSynopsisMode, type BookTextField } from "./actions";
+import SuggestableField from "@/features/suggestions/SuggestableField";
+import { updateBookField, updateSynopsisMode } from "./actions";
 
 function Field({
   label,
   value,
-  onSave,
+  field,
+  bookId,
+  suggestion,
 }: {
   label: string;
   value: string;
-  onSave: (value: string) => void;
+  field: string;
+  bookId: string;
+  suggestion?: string;
 }) {
   return (
     <div className="mb-5">
       <label className="block font-mono-label text-[10px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
         {label}
       </label>
-      <input
-        defaultValue={value}
-        onBlur={(e) => onSave(e.target.value)}
+      <SuggestableField
+        model="Book"
+        recordId={bookId}
+        field={field}
+        value={value}
+        suggestion={suggestion}
+        as="input"
         className="w-full border-b py-1.5 text-[15px] outline-none bg-transparent"
         style={{ borderColor: "var(--rule)" }}
       />
@@ -32,12 +41,16 @@ function Field({
 function TextAreaField({
   label,
   value,
-  onSave,
+  field,
+  bookId,
+  suggestion,
   minHeight = 60,
 }: {
   label: string;
   value: string;
-  onSave: (value: string) => void;
+  field: string;
+  bookId: string;
+  suggestion?: string;
   minHeight?: number;
 }) {
   return (
@@ -45,9 +58,12 @@ function TextAreaField({
       <label className="block font-mono-label text-[10px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
         {label}
       </label>
-      <textarea
-        defaultValue={value}
-        onBlur={(e) => onSave(e.target.value)}
+      <SuggestableField
+        model="Book"
+        recordId={bookId}
+        field={field}
+        value={value}
+        suggestion={suggestion}
         style={{ borderColor: "var(--rule)", minHeight }}
         className="w-full border-b py-1.5 text-[14px] outline-none bg-transparent resize-vertical"
       />
@@ -55,14 +71,16 @@ function TextAreaField({
   );
 }
 
-export default function AboutBookForm({ book }: { book: Book }) {
+export default function AboutBookForm({
+  book,
+  suggestions,
+}: {
+  book: Book;
+  suggestions: Record<string, string>;
+}) {
   const [synopsisMode, setSynopsisMode] = useState(book.synopsisMode);
   const [synopsisOpen, setSynopsisOpen] = useState(true);
   const [, startTransition] = useTransition();
-
-  function save(field: BookTextField, value: string) {
-    startTransition(() => updateBookField(book.id, field, value));
-  }
 
   function toggleSynopsisMode() {
     const next = synopsisMode === "TEXT" ? "LINK" : "TEXT";
@@ -74,33 +92,37 @@ export default function AboutBookForm({ book }: { book: Book }) {
     <div>
       <ImageUploadBox
         value={book.coverUrl}
-        onUpload={(dataUrl) => save("coverUrl", dataUrl)}
+        onUpload={(dataUrl) => startTransition(() => updateBookField(book.id, "coverUrl", dataUrl))}
         placeholder="нажмите, чтобы добавить обложку"
         className="rounded-sm mb-6"
         style={{ width: 140, height: 200 }}
       />
 
       <div className="grid grid-cols-2 gap-x-8">
-        <Field label="Название (рабочее)" value={book.title} onSave={(v) => save("title", v)} />
-        <Field label="Жанр" value={book.genre} onSave={(v) => save("genre", v)} />
-        <Field label="Референсы" value={book.references} onSave={(v) => save("references", v)} />
-        <Field label="Целевая аудитория" value={book.audience} onSave={(v) => save("audience", v)} />
-        <Field label="Количество частей" value={book.partsCount} onSave={(v) => save("partsCount", v)} />
-        <Field label="Временная структура" value={book.timeStructure} onSave={(v) => save("timeStructure", v)} />
-        <Field label="Главные герои" value={book.mainCharacters} onSave={(v) => save("mainCharacters", v)} />
+        <Field label="Название (рабочее)" value={book.title} field="title" bookId={book.id} suggestion={suggestions.title} />
+        <Field label="Жанр" value={book.genre} field="genre" bookId={book.id} suggestion={suggestions.genre} />
+        <Field label="Референсы" value={book.references} field="references" bookId={book.id} suggestion={suggestions.references} />
+        <Field label="Целевая аудитория" value={book.audience} field="audience" bookId={book.id} suggestion={suggestions.audience} />
+        <Field label="Количество частей" value={book.partsCount} field="partsCount" bookId={book.id} suggestion={suggestions.partsCount} />
+        <Field label="Временная структура" value={book.timeStructure} field="timeStructure" bookId={book.id} suggestion={suggestions.timeStructure} />
+        <Field label="Главные герои" value={book.mainCharacters} field="mainCharacters" bookId={book.id} suggestion={suggestions.mainCharacters} />
         <Field
           label="Драматический аргумент"
           value={book.dramaticArgument}
-          onSave={(v) => save("dramaticArgument", v)}
+          field="dramaticArgument"
+          bookId={book.id}
+          suggestion={suggestions.dramaticArgument}
         />
       </div>
 
-      <TextAreaField label="Логлайн" value={book.logline} onSave={(v) => save("logline", v)} />
-      <TextAreaField label="Концепт" value={book.concept} onSave={(v) => save("concept", v)} />
+      <TextAreaField label="Логлайн" value={book.logline} field="logline" bookId={book.id} suggestion={suggestions.logline} />
+      <TextAreaField label="Концепт" value={book.concept} field="concept" bookId={book.id} suggestion={suggestions.concept} />
       <TextAreaField
         label="Аннотация"
         value={book.annotation}
-        onSave={(v) => save("annotation", v)}
+        field="annotation"
+        bookId={book.id}
+        suggestion={suggestions.annotation}
         minHeight={80}
       />
 
@@ -127,17 +149,24 @@ export default function AboutBookForm({ book }: { book: Book }) {
           </div>
           {synopsisOpen && (
             synopsisMode === "TEXT" ? (
-              <textarea
-                defaultValue={book.synopsisText}
-                onBlur={(e) => save("synopsisText", e.target.value)}
+              <SuggestableField
+                model="Book"
+                recordId={book.id}
+                field="synopsisText"
+                value={book.synopsisText}
+                suggestion={suggestions.synopsisText}
                 placeholder="Полный синопсис от начала до конца, со спойлерами..."
-                className="w-full outline-none bg-transparent text-[14px] resize-vertical"
+                className="w-full outline-none bg-transparent text-[14px]"
                 style={{ minHeight: 120, lineHeight: 1.7 }}
               />
             ) : (
-              <input
-                defaultValue={book.synopsisLink}
-                onBlur={(e) => save("synopsisLink", e.target.value)}
+              <SuggestableField
+                model="Book"
+                recordId={book.id}
+                field="synopsisLink"
+                value={book.synopsisLink}
+                suggestion={suggestions.synopsisLink}
+                as="input"
                 placeholder="https://docs.google.com/..."
                 className="w-full border-b py-1.5 outline-none bg-transparent text-[14px]"
                 style={{ borderColor: "var(--rule)" }}

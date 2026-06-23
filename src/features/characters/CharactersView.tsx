@@ -3,6 +3,7 @@ import { resolveActiveBook } from "@/lib/resolveBook";
 import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
 import CharactersList from "./CharactersList";
+import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import type { FieldGroup } from "./fields";
 
 export default async function CharactersView({
@@ -33,12 +34,13 @@ export default async function CharactersView({
     where: { bookId: activeBook.id },
     orderBy: { order: "asc" },
   });
+  const suggestions = await getSuggestionsForRecords("Character", characters.map((c) => c.id));
 
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
       <h1 className="text-[24px] font-semibold mb-6">{title}</h1>
-      <CharactersList bookId={activeBook.id} initialCharacters={characters} groups={groups} />
+      <CharactersList bookId={activeBook.id} initialCharacters={characters} groups={groups} suggestions={suggestions} />
     </div>
   );
 }

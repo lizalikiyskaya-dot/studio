@@ -3,39 +3,46 @@
 import { useState, useTransition } from "react";
 import type { PopArcCharacter } from "@/generated/prisma/client";
 import CharacterProfile from "@/features/characters/CharacterProfile";
-import Accordion from "@/components/Accordion";
+import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
 import { ARC_GROUPS } from "@/features/characters/fields";
 import {
   createPopArcCharacter,
   deletePopArcCharacter,
-  updatePopArcName,
-  updatePopArcField,
   updatePopArcPhoto,
 } from "./actions";
 
 function CharacterCard({
   character,
   readOnly,
+  suggestable,
+  suggestions,
   onDelete,
 }: {
   character: PopArcCharacter;
   readOnly: boolean;
+  suggestable: boolean;
+  suggestions: Record<string, string>;
   onDelete: (id: string) => void;
 }) {
   const [, startTransition] = useTransition();
 
   return (
-    <CharacterProfile
-      name={character.name}
-      photoUrl={character.photoUrl}
-      data={(character.data as Record<string, string>) ?? {}}
-      groups={ARC_GROUPS}
-      readOnly={readOnly}
-      onNameBlur={(value) => startTransition(() => updatePopArcName(character.id, value))}
-      onFieldBlur={(field, value) => startTransition(() => updatePopArcField(character.id, field, value))}
-      onPhotoUpload={(dataUrl) => startTransition(() => updatePopArcPhoto(character.id, dataUrl))}
-      onDelete={() => onDelete(character.id)}
-    />
+    <CollapsibleCharacterShell name={character.name} photoUrl={character.photoUrl}>
+      <CharacterProfile
+        name={character.name}
+        photoUrl={character.photoUrl}
+        data={(character.data as Record<string, string>) ?? {}}
+        groups={ARC_GROUPS}
+        readOnly={readOnly}
+        onNameBlur={() => {}}
+        onFieldBlur={() => {}}
+        onPhotoUpload={(dataUrl) => startTransition(() => updatePopArcPhoto(character.id, dataUrl))}
+        onDelete={() => onDelete(character.id)}
+        suggestable={suggestable ? { model: "PopArcCharacter", recordId: character.id } : undefined}
+        nameSuggestion={suggestions.name}
+        fieldSuggestions={suggestions}
+      />
+    </CollapsibleCharacterShell>
   );
 }
 
@@ -66,9 +73,14 @@ export function ExamplesList({
   return (
     <div>
       {characters.map((character) => (
-        <Accordion key={character.id} title={character.name || "Без названия"}>
-          <CharacterCard character={character} readOnly={!isMentorViewer} onDelete={handleDelete} />
-        </Accordion>
+        <CharacterCard
+          key={character.id}
+          character={character}
+          readOnly={!isMentorViewer}
+          suggestable={false}
+          suggestions={{}}
+          onDelete={handleDelete}
+        />
       ))}
 
       {isMentorViewer && (
@@ -87,9 +99,11 @@ export function ExamplesList({
 export function OwnHeroesList({
   studentId,
   initialCharacters,
+  suggestions,
 }: {
   studentId: string;
   initialCharacters: PopArcCharacter[];
+  suggestions: Record<string, Record<string, string>>;
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
@@ -109,7 +123,14 @@ export function OwnHeroesList({
   return (
     <div>
       {characters.map((character) => (
-        <CharacterCard key={character.id} character={character} readOnly={false} onDelete={handleDelete} />
+        <CharacterCard
+          key={character.id}
+          character={character}
+          readOnly={false}
+          suggestable
+          suggestions={suggestions[character.id] ?? {}}
+          onDelete={handleDelete}
+        />
       ))}
 
       <button

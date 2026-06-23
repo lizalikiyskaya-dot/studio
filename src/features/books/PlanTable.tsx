@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import type { PlanChapter } from "@/generated/prisma/client";
-import { createPlanChapter, updatePlanChapterText, updatePlanChapterNumber } from "./actions";
-import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import { createPlanChapter, updatePlanChapterNumber } from "./actions";
+import SuggestableField from "@/features/suggestions/SuggestableField";
 
 const GRID_COLUMNS = "40px 2fr 2fr 1.6fr 1.4fr 90px 90px 60px";
 
@@ -27,9 +27,11 @@ const HEADERS = [
 export default function PlanTable({
   bookId,
   initialChapters,
+  suggestions,
 }: {
   bookId: string;
   initialChapters: PlanChapter[];
+  suggestions: Record<string, Record<string, string>>;
 }) {
   const [chapters, setChapters] = useState(initialChapters);
   const [, startTransition] = useTransition();
@@ -39,17 +41,6 @@ export default function PlanTable({
       const chapter = await createPlanChapter(bookId);
       setChapters((prev) => [...prev, chapter]);
     });
-  }
-
-  function handleText(
-    chapterId: string,
-    field: "summary" | "dramaticArgument" | "images" | "note",
-    value: string
-  ) {
-    setChapters((prev) =>
-      prev.map((c) => (c.id === chapterId ? { ...c, [field]: value } : c))
-    );
-    startTransition(() => updatePlanChapterText(chapterId, field, value));
   }
 
   function handleNumber(
@@ -87,6 +78,7 @@ export default function PlanTable({
               chapter.plannedChars > 0
                 ? Math.round((chapter.writtenChars / chapter.plannedChars) * 100)
                 : 0;
+            const chapterSuggestions = suggestions[chapter.id] ?? {};
             return (
               <div
                 key={chapter.id}
@@ -96,24 +88,36 @@ export default function PlanTable({
                 <div className="font-mono-label text-[12px] pt-1.5" style={{ color: "var(--faded)" }}>
                   {idx + 1}
                 </div>
-                <AutoGrowTextarea
-                  defaultValue={chapter.summary}
-                  onBlur={(v) => handleText(chapter.id, "summary", v)}
+                <SuggestableField
+                  model="PlanChapter"
+                  recordId={chapter.id}
+                  field="summary"
+                  value={chapter.summary}
+                  suggestion={chapterSuggestions.summary}
                   className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
                 />
-                <AutoGrowTextarea
-                  defaultValue={chapter.dramaticArgument}
-                  onBlur={(v) => handleText(chapter.id, "dramaticArgument", v)}
+                <SuggestableField
+                  model="PlanChapter"
+                  recordId={chapter.id}
+                  field="dramaticArgument"
+                  value={chapter.dramaticArgument}
+                  suggestion={chapterSuggestions.dramaticArgument}
                   className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
                 />
-                <AutoGrowTextarea
-                  defaultValue={chapter.images}
-                  onBlur={(v) => handleText(chapter.id, "images", v)}
+                <SuggestableField
+                  model="PlanChapter"
+                  recordId={chapter.id}
+                  field="images"
+                  value={chapter.images}
+                  suggestion={chapterSuggestions.images}
                   className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
                 />
-                <AutoGrowTextarea
-                  defaultValue={chapter.note}
-                  onBlur={(v) => handleText(chapter.id, "note", v)}
+                <SuggestableField
+                  model="PlanChapter"
+                  recordId={chapter.id}
+                  field="note"
+                  value={chapter.note}
+                  suggestion={chapterSuggestions.note}
                   className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
                 />
                 <input

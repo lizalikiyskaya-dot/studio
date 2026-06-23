@@ -3,6 +3,7 @@ import { resolveActiveBook } from "@/lib/resolveBook";
 import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
 import ArcCharactersList from "./ArcCharactersList";
+import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 
 export default async function ArcsView({
   studentId,
@@ -28,12 +29,13 @@ export default async function ArcsView({
     where: { bookId: activeBook.id },
     orderBy: { order: "asc" },
   });
+  const suggestions = await getSuggestionsForRecords("Character", characters.map((c) => c.id));
 
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
       <h1 className="text-[24px] font-semibold mb-6">Арки персонажей</h1>
-      <ArcCharactersList bookId={activeBook.id} initialCharacters={characters} />
+      <ArcCharactersList bookId={activeBook.id} initialCharacters={characters} suggestions={suggestions} />
     </div>
   );
 }

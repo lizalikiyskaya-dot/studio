@@ -3,11 +3,10 @@
 import { useState, useTransition } from "react";
 import type { FreeSection } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
-import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import SuggestableField from "@/features/suggestions/SuggestableField";
 import {
   createAdditionalSection,
   updateSectionTitle,
-  updateSectionContent,
   updateTableCell,
   resizeTable,
   deleteAdditionalSection,
@@ -94,10 +93,12 @@ export default function AdditionalList({
   studentId,
   initialSections,
   isMentorViewer,
+  suggestions,
 }: {
   studentId: string;
   initialSections: FreeSection[];
   isMentorViewer: boolean;
+  suggestions: Record<string, Record<string, string>>;
 }) {
   const [sections, setSections] = useState(initialSections);
   const [, startTransition] = useTransition();
@@ -112,11 +113,6 @@ export default function AdditionalList({
   function handleTitle(id: string, value: string) {
     setSections((prev) => prev.map((s) => (s.id === id ? { ...s, title: value } : s)));
     startTransition(() => updateSectionTitle(id, value));
-  }
-
-  function handleContent(id: string, value: string) {
-    setSections((prev) => prev.map((s) => (s.id === id ? { ...s, content: value } : s)));
-    startTransition(() => updateSectionContent(id, value));
   }
 
   function handleDelete(id: string) {
@@ -144,9 +140,12 @@ export default function AdditionalList({
           )}
 
           {section.type === "TEXT" ? (
-            <AutoGrowTextarea
-              defaultValue={section.content}
-              onBlur={(v) => handleContent(section.id, v)}
+            <SuggestableField
+              model="FreeSection"
+              recordId={section.id}
+              field="content"
+              value={section.content}
+              suggestion={suggestions[section.id]?.content}
               placeholder="Ответ..."
               className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed"
             />

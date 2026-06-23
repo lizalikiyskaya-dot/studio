@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Subtabs from "@/components/Subtabs";
 import { ExamplesList, OwnHeroesList } from "./PopArcsList";
 import { POP_ARC_SEED } from "./seedData";
+import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 
 export default async function PopArcsView({
   studentId,
@@ -35,6 +36,7 @@ export default async function PopArcsView({
     where: { studentId, isExample: false },
     orderBy: { order: "asc" },
   });
+  const ownSuggestions = await getSuggestionsForRecords("PopArcCharacter", ownHeroes.map((c) => c.id));
 
   return (
     <Subtabs
@@ -45,7 +47,7 @@ export default async function PopArcsView({
         },
         {
           label: "Мои герои",
-          content: <OwnHeroesList studentId={studentId} initialCharacters={ownHeroes} />,
+          content: <OwnHeroesList studentId={studentId} initialCharacters={ownHeroes} suggestions={ownSuggestions} />,
         },
       ]}
     />

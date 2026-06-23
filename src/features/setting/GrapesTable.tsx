@@ -1,9 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
 import type { Book } from "@/generated/prisma/client";
-import { updateGrapesField, type GrapesField } from "./actions";
-import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import type { GrapesField } from "./actions";
+import SuggestableField from "@/features/suggestions/SuggestableField";
 
 const ROWS: { field: GrapesField; letter: string; label: string }[] = [
   { field: "grapesGeography", letter: "G", label: "География" },
@@ -14,13 +13,15 @@ const ROWS: { field: GrapesField; letter: string; label: string }[] = [
   { field: "grapesSocial", letter: "S", label: "Соц. структура" },
 ];
 
-export default function GrapesTable({ bookId, book }: { bookId: string; book: Book }) {
-  const [, startTransition] = useTransition();
-
-  function handleSave(field: GrapesField, value: string) {
-    startTransition(() => updateGrapesField(bookId, field, value));
-  }
-
+export default function GrapesTable({
+  bookId,
+  book,
+  suggestions,
+}: {
+  bookId: string;
+  book: Book;
+  suggestions: Record<string, string>;
+}) {
   return (
     <div>
       {ROWS.map(({ field, letter, label }) => (
@@ -34,9 +35,12 @@ export default function GrapesTable({ bookId, book }: { bookId: string; book: Bo
             </span>
             {label}
           </div>
-          <AutoGrowTextarea
-            defaultValue={book[field]}
-            onBlur={(v) => handleSave(field, v)}
+          <SuggestableField
+            model="Book"
+            recordId={bookId}
+            field={field}
+            value={book[field]}
+            suggestion={suggestions[field]}
             className="flex-1 outline-none bg-transparent text-[13.5px] leading-snug"
           />
         </div>

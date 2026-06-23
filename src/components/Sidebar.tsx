@@ -14,10 +14,10 @@ const TOP_ITEMS = [
 const WORKSHOP_ITEMS = [
   { path: "about", n: "01", label: "О книге" },
   { path: "plan", n: "02", label: "План книги" },
-  { path: "setting", n: "03", label: "Сеттинг" },
+  { path: "acts", n: "03", label: "Акты и сюжетные линии" },
   { path: "dossier", n: "04", label: "Досье персонажей" },
   { path: "arcs", n: "05", label: "Арки персонажей" },
-  { path: "acts", n: "06", label: "Акты и сюжетные линии" },
+  { path: "setting", n: "06", label: "Сеттинг" },
 ];
 
 export default function Sidebar({

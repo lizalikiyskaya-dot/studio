@@ -3,6 +3,7 @@ import { resolveActiveBook } from "@/lib/resolveBook";
 import BookSelect from "./BookSelect";
 import NoBookRedirect from "./NoBookRedirect";
 import PlanTable from "./PlanTable";
+import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 
 export default async function PlanBookView({
   studentId,
@@ -28,12 +29,13 @@ export default async function PlanBookView({
     where: { bookId: activeBook.id },
     orderBy: { order: "asc" },
   });
+  const suggestions = await getSuggestionsForRecords("PlanChapter", chapters.map((c) => c.id));
 
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
       <h1 className="text-[24px] font-semibold mb-6">План книги</h1>
-      <PlanTable bookId={activeBook.id} initialChapters={chapters} />
+      <PlanTable bookId={activeBook.id} initialChapters={chapters} suggestions={suggestions} />
     </div>
   );
 }

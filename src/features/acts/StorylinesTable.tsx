@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import type { Storyline } from "@/generated/prisma/client";
-import { createStoryline, updateStorylineField, updateStorylineColor, deleteStoryline, type StorylineColor } from "./actions";
-import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import { createStoryline, updateStorylineColor, deleteStoryline, type StorylineColor } from "./actions";
+import SuggestableField from "@/features/suggestions/SuggestableField";
 
 const GRID_COLUMNS = "28px 2fr 1.4fr 1.6fr 24px";
 
@@ -70,9 +70,11 @@ function ColorPicker({
 export default function StorylinesTable({
   bookId,
   initialStorylines,
+  suggestions,
 }: {
   bookId: string;
   initialStorylines: Storyline[];
+  suggestions: Record<string, Record<string, string>>;
 }) {
   const [storylines, setStorylines] = useState(initialStorylines);
   const [, startTransition] = useTransition();
@@ -82,11 +84,6 @@ export default function StorylinesTable({
       const storyline = await createStoryline(bookId);
       setStorylines((prev) => [...prev, storyline]);
     });
-  }
-
-  function handleField(id: string, field: "name" | "chapters" | "status", value: string) {
-    setStorylines((prev) => prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
-    startTransition(() => updateStorylineField(id, field, value));
   }
 
   function handleColor(id: string, color: StorylineColor | null) {
@@ -109,51 +106,75 @@ export default function StorylinesTable({
       <div className="overflow-x-auto mb-4">
         <div style={{ minWidth: 620 }}>
           <div
-            className="grid gap-x-3 pb-2 border-b"
+            className="grid pb-2 border-b"
             style={{ gridTemplateColumns: GRID_COLUMNS, borderColor: "var(--rule)" }}
           >
             {["", "Линия", "Через какие главы проходит", "Статус развития", ""].map((h, i) => (
-              <div key={i} className="font-mono-label text-[10px] uppercase whitespace-nowrap" style={{ color: "var(--faded)" }}>
+              <div
+                key={i}
+                className="font-mono-label text-[10px] uppercase whitespace-nowrap px-3"
+                style={{ borderRight: i < 3 ? "1px solid var(--rule)" : undefined, color: "var(--faded)" }}
+              >
                 {h}
               </div>
             ))}
           </div>
 
-          {storylines.map((s) => (
+          {storylines.map((s) => {
+            const rowSuggestions = suggestions[s.id] ?? {};
+            return (
             <div
               key={s.id}
-              className="grid gap-x-3 py-2.5 border-b items-start"
+              className="grid py-2.5 border-b items-start"
               style={{
                 gridTemplateColumns: GRID_COLUMNS,
                 borderColor: "var(--rule)",
                 background: colorHex(s.color) ? `${colorHex(s.color)}55` : undefined,
               }}
             >
-              <ColorPicker value={s.color} onChange={(c) => handleColor(s.id, c)} />
-              <AutoGrowTextarea
-                defaultValue={s.name}
-                onBlur={(v) => handleField(s.id, "name", v)}
-                className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
-              />
-              <AutoGrowTextarea
-                defaultValue={s.chapters}
-                onBlur={(v) => handleField(s.id, "chapters", v)}
-                className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
-              />
-              <AutoGrowTextarea
-                defaultValue={s.status}
-                onBlur={(v) => handleField(s.id, "status", v)}
-                className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
-              />
+              <div className="px-3" style={{ borderRight: "1px solid var(--rule)" }}>
+                <ColorPicker value={s.color} onChange={(c) => handleColor(s.id, c)} />
+              </div>
+              <div className="px-3" style={{ borderRight: "1px solid var(--rule)" }}>
+                <SuggestableField
+                  model="Storyline"
+                  recordId={s.id}
+                  field="name"
+                  value={s.name}
+                  suggestion={rowSuggestions.name}
+                  className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
+                />
+              </div>
+              <div className="px-3" style={{ borderRight: "1px solid var(--rule)" }}>
+                <SuggestableField
+                  model="Storyline"
+                  recordId={s.id}
+                  field="chapters"
+                  value={s.chapters}
+                  suggestion={rowSuggestions.chapters}
+                  className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
+                />
+              </div>
+              <div className="px-3" style={{ borderRight: "1px solid var(--rule)" }}>
+                <SuggestableField
+                  model="Storyline"
+                  recordId={s.id}
+                  field="status"
+                  value={s.status}
+                  suggestion={rowSuggestions.status}
+                  className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
+                />
+              </div>
               <button
                 onClick={() => handleDelete(s.id)}
-                className="font-mono-label text-[9px] pt-1.5"
+                className="font-mono-label text-[9px] pt-1.5 px-3"
                 style={{ color: "var(--wine)" }}
               >
                 ✕
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

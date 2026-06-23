@@ -3,23 +3,20 @@
 import { useState, useTransition } from "react";
 import type { Character } from "@/generated/prisma/client";
 import CharacterProfile from "./CharacterProfile";
-import {
-  createCharacter,
-  deleteCharacter,
-  updateCharacterName,
-  updateCharacterField,
-  updateCharacterPhoto,
-} from "./actions";
+import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
+import { createCharacter, deleteCharacter, updateCharacterPhoto } from "./actions";
 import type { FieldGroup } from "./fields";
 
 export default function CharactersList({
   bookId,
   initialCharacters,
   groups,
+  suggestions,
 }: {
   bookId: string;
   initialCharacters: Character[];
   groups: FieldGroup[];
+  suggestions: Record<string, Record<string, string>>;
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
@@ -38,21 +35,26 @@ export default function CharactersList({
 
   return (
     <div>
-      {characters.map((character) => (
-        <CharacterProfile
-          key={character.id}
-          name={character.name}
-          photoUrl={character.photoUrl}
-          data={(character.data as Record<string, string>) ?? {}}
-          groups={groups}
-          onNameBlur={(value) => startTransition(() => updateCharacterName(character.id, value))}
-          onFieldBlur={(field, value) =>
-            startTransition(() => updateCharacterField(character.id, field as never, value))
-          }
-          onPhotoUpload={(dataUrl) => startTransition(() => updateCharacterPhoto(character.id, dataUrl))}
-          onDelete={() => handleDelete(character.id)}
-        />
-      ))}
+      {characters.map((character) => {
+        const charSuggestions = suggestions[character.id] ?? {};
+        return (
+          <CollapsibleCharacterShell key={character.id} name={character.name} photoUrl={character.photoUrl}>
+            <CharacterProfile
+              name={character.name}
+              photoUrl={character.photoUrl}
+              data={(character.data as Record<string, string>) ?? {}}
+              groups={groups}
+              onNameBlur={() => {}}
+              onFieldBlur={() => {}}
+              onPhotoUpload={(dataUrl) => startTransition(() => updateCharacterPhoto(character.id, dataUrl))}
+              onDelete={() => handleDelete(character.id)}
+              suggestable={{ model: "Character", recordId: character.id }}
+              nameSuggestion={charSuggestions.name}
+              fieldSuggestions={charSuggestions}
+            />
+          </CollapsibleCharacterShell>
+        );
+      })}
 
       <button
         onClick={handleAdd}

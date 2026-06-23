@@ -41,6 +41,6 @@ body {
 .masthead-rule {
   border-top: 1px solid var(--ink);
   border-bottom: 1px solid var(--ink);
-  height: 3px;
+  height: 7px;
   margin-top: 4px;
 }

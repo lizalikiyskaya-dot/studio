@@ -57,6 +57,21 @@ enum FreeSectionType {
   TABLE
 }
 
+// Generic mentor-edit suggestion for a single field on any record.
+// When a mentor edits a field that the student already filled in,
+// the new text is stored here instead of overwriting the field, so
+// the student can review and accept it.
+model FieldSuggestion {
+  id        String   @id @default(cuid())
+  model     String
+  recordId  String
+  field     String
+  value     String
+  createdAt DateTime @default(now())
+
+  @@unique([model, recordId, field])
+}
+
 model User {
   id           String     @id @default(cuid())
   name         String
@@ -117,13 +132,14 @@ model PopArcCharacter {
 }
 
 model BeliefCard {
-  id           String @id @default(cuid())
+  id           String  @id @default(cuid())
   studentId    String
-  student      User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  order        Int    @default(0)
-  hero         String @default("")
-  startBelief  String @default("")
-  endBelief    String @default("")
+  student      User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order        Int     @default(0)
+  hero         String  @default("")
+  startBelief  String  @default("")
+  endBelief    String  @default("")
+  isExample    Boolean @default(false)
 }
 
 model CustomExercise {

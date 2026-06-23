@@ -20,7 +20,10 @@ export default function ExercisesView({
             label: "Арки из поп-культуры",
             content: <PopArcsView studentId={studentId} isMentorViewer={isMentorViewer} />,
           },
-          { label: "Начало / конец пути героя", content: <BeliefView studentId={studentId} /> },
+          {
+            label: "Начало / конец пути героя",
+            content: <BeliefView studentId={studentId} isMentorViewer={isMentorViewer} />,
+          },
           {
             label: "Творческие упражнения",
             content: <CustomExercisesView studentId={studentId} isMentorViewer={isMentorViewer} />,

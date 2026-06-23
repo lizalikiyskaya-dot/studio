@@ -3,18 +3,28 @@
 import Accordion from "@/components/Accordion";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
+import SuggestableField from "@/features/suggestions/SuggestableField";
+import type { SuggestableModel } from "@/lib/suggestionRegistry";
 import type { FieldGroup } from "./fields";
+
+type Suggestable = { model: SuggestableModel; recordId: string };
 
 function FieldBlock({
   label,
   value,
   onBlur,
   readOnly,
+  suggestable,
+  fieldKey,
+  suggestion,
 }: {
   label?: string;
   value: string;
   onBlur: (v: string) => void;
   readOnly?: boolean;
+  suggestable?: Suggestable;
+  fieldKey: string;
+  suggestion?: string;
 }) {
   return (
     <div className="mb-4">
@@ -27,6 +37,16 @@ function FieldBlock({
         <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
           {value || <span style={{ color: "var(--faded)" }}>—</span>}
         </p>
+      ) : suggestable ? (
+        <SuggestableField
+          model={suggestable.model}
+          recordId={suggestable.recordId}
+          field={fieldKey}
+          value={value}
+          suggestion={suggestion}
+          className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
+          style={{ borderColor: "var(--rule)" }}
+        />
       ) : (
         <AutoGrowTextarea
           defaultValue={value}
@@ -49,6 +69,9 @@ export default function CharacterProfile({
   onPhotoUpload,
   onDelete,
   readOnly,
+  suggestable,
+  nameSuggestion,
+  fieldSuggestions,
 }: {
   name: string;
   photoUrl: string | null;
@@ -59,6 +82,9 @@ export default function CharacterProfile({
   onPhotoUpload: (dataUrl: string) => void;
   onDelete: () => void;
   readOnly?: boolean;
+  suggestable?: Suggestable;
+  nameSuggestion?: string;
+  fieldSuggestions?: Record<string, string>;
 }) {
   function handleDelete() {
     if (!window.confirm(`Удалить «${name || "без имени"}»?`)) return;
@@ -66,7 +92,7 @@ export default function CharacterProfile({
   }
 
   return (
-    <div className="rounded-md p-5 mb-6 max-w-[760px]" style={{ border: "1px solid var(--rule)" }}>
+    <div>
       <div className="flex gap-5 items-center mb-6">
         {readOnly ? (
           <div
@@ -95,6 +121,17 @@ export default function CharacterProfile({
           </label>
           {readOnly ? (
             <p className="font-semibold text-[18px] pb-1">{name}</p>
+          ) : suggestable ? (
+            <SuggestableField
+              model={suggestable.model}
+              recordId={suggestable.recordId}
+              field="name"
+              value={name}
+              suggestion={nameSuggestion}
+              as="input"
+              className="font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
+              style={{ borderColor: "var(--rule)" }}
+            />
           ) : (
             <input
               defaultValue={name}
@@ -128,6 +165,9 @@ export default function CharacterProfile({
                   value={data[f.key] ?? ""}
                   onBlur={(v) => onFieldBlur(f.key, v)}
                   readOnly={readOnly}
+                  suggestable={suggestable}
+                  fieldKey={f.key}
+                  suggestion={fieldSuggestions?.[f.key]}
                 />
               ))}
             </div>
@@ -147,6 +187,9 @@ export default function CharacterProfile({
                 value={data[f.key] ?? ""}
                 onBlur={(v) => onFieldBlur(f.key, v)}
                 readOnly={readOnly}
+                suggestable={suggestable}
+                fieldKey={f.key}
+                suggestion={fieldSuggestions?.[f.key]}
               />
             ))}
           </Accordion>

@@ -4,6 +4,7 @@ import NoBookRedirect from "@/features/books/NoBookRedirect";
 import Subtabs from "@/components/Subtabs";
 import GrapesTable from "./GrapesTable";
 import SettingTypeSection from "./SettingTypeSection";
+import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 
 export default async function SettingView({
   studentId,
@@ -25,13 +26,20 @@ export default async function SettingView({
     );
   }
 
+  const suggestions = await getSuggestionsForRecords("Book", [activeBook.id]);
+
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
       <h1 className="text-[24px] font-semibold mb-6">Сеттинг</h1>
       <Subtabs
         tabs={[
-          { label: "Метод GRAPES", content: <GrapesTable bookId={activeBook.id} book={activeBook} /> },
+          {
+            label: "Метод GRAPES",
+            content: (
+              <GrapesTable bookId={activeBook.id} book={activeBook} suggestions={suggestions[activeBook.id] ?? {}} />
+            ),
+          },
           {
             label: "Тип сеттинга",
             content: <SettingTypeSection bookId={activeBook.id} book={activeBook} />,
