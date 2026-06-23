@@ -25,7 +25,7 @@ export default async function MentorPage() {
 
   return (
     <div>
-      <h1 className="text-[28px] font-semibold mb-2">Модерация заявок</h1>
+      <h1 className="page-title text-[28px] font-semibold mb-2">Модерация заявок</h1>
       <p className="text-[13px] mb-7 max-w-[640px]" style={{ color: "var(--faded)" }}>
         Новые ученики попадают сюда после регистрации и получают доступ в
         личный кабинет только после одобрения.

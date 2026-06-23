@@ -9,7 +9,7 @@ export default async function TasksView({ studentId }: { studentId: string }) {
 
   return (
     <div>
-      <h1 className="text-[24px] font-semibold mb-6">Задания и обратная связь</h1>
+      <h1 className="page-title text-[24px] font-semibold mb-6">Задания и обратная связь</h1>
       <TasksTable studentId={studentId} initialTasks={tasks} />
     </div>
   );

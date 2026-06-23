@@ -21,7 +21,7 @@ export default async function ActsView({
   if (!activeBook) {
     return (
       <div>
-        <h1 className="text-[24px] font-semibold mb-6">Акты и сюжетные линии</h1>
+        <h1 className="page-title text-[24px] font-semibold mb-6">Акты и сюжетные линии</h1>
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -39,7 +39,7 @@ export default async function ActsView({
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
-      <h1 className="text-[24px] font-semibold mb-6">Акты и сюжетные линии</h1>
+      <h1 className="page-title text-[24px] font-semibold mb-6">Акты и сюжетные линии</h1>
       <Subtabs
         tabs={[
           {

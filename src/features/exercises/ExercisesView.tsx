@@ -13,7 +13,7 @@ export default function ExercisesView({
 }) {
   return (
     <div>
-      <h1 className="text-[24px] font-semibold mb-6">Упражнения</h1>
+      <h1 className="page-title text-[24px] font-semibold mb-6">Упражнения</h1>
       <Subtabs
         tabs={[
           {

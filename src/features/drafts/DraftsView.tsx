@@ -9,7 +9,7 @@ export default async function DraftsView({ studentId }: { studentId: string }) {
 
   return (
     <div>
-      <h1 className="text-[24px] font-semibold mb-6">Рукописи</h1>
+      <h1 className="page-title text-[24px] font-semibold mb-6">Рукописи</h1>
       <DraftsList studentId={studentId} initialDrafts={drafts} />
     </div>
   );

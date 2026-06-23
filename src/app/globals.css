@@ -34,7 +34,8 @@ body {
   letter-spacing: 0.04em;
 }
 
-.masthead-title {
+.masthead-title,
+.page-title {
   font-family: var(--font-fraunces), serif;
 }
 

@@ -19,7 +19,7 @@ export default async function ArcsView({
   if (!activeBook) {
     return (
       <div>
-        <h1 className="text-[24px] font-semibold mb-6">Арки персонажей</h1>
+        <h1 className="page-title text-[24px] font-semibold mb-6">Арки персонажей</h1>
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -34,7 +34,7 @@ export default async function ArcsView({
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
-      <h1 className="text-[24px] font-semibold mb-6">Арки персонажей</h1>
+      <h1 className="page-title text-[24px] font-semibold mb-6">Арки персонажей</h1>
       <ArcCharactersList bookId={activeBook.id} initialCharacters={characters} suggestions={suggestions} />
     </div>
   );

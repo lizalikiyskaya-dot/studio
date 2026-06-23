@@ -20,7 +20,7 @@ export default async function SettingView({
   if (!activeBook) {
     return (
       <div>
-        <h1 className="text-[24px] font-semibold mb-6">Сеттинг</h1>
+        <h1 className="page-title text-[24px] font-semibold mb-6">Сеттинг</h1>
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -31,7 +31,7 @@ export default async function SettingView({
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
-      <h1 className="text-[24px] font-semibold mb-6">Сеттинг</h1>
+      <h1 className="page-title text-[24px] font-semibold mb-6">Сеттинг</h1>
       <Subtabs
         tabs={[
           {
