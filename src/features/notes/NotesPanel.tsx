@@ -43,8 +43,14 @@ export default function NotesPanel({
     <>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="fixed right-0 top-1/2 -translate-y-1/2 z-40 font-mono-label text-[10.5px] uppercase tracking-wide px-2 py-3"
+        className="font-mono-label text-[10.5px] uppercase tracking-wide px-2 py-3"
         style={{
+          position: "fixed",
+          right: 0,
+          left: "auto",
+          top: "50%",
+          transform: "translateY(-50%)",
+          zIndex: 9999,
           background: "#161616",
           color: "#fff",
           writingMode: "vertical-rl",
@@ -55,8 +61,18 @@ export default function NotesPanel({
 
       {open && (
         <div
-          className="fixed right-0 top-0 h-full z-50 flex flex-col shadow-lg"
-          style={{ width: 300, background: "#fafafa", borderLeft: "1px solid #e2e2e2" }}
+          className="flex flex-col shadow-lg"
+          style={{
+            position: "fixed",
+            right: 0,
+            left: "auto",
+            top: 0,
+            height: "100vh",
+            zIndex: 9999,
+            width: 300,
+            background: "#fafafa",
+            borderLeft: "1px solid #e2e2e2",
+          }}
         >
           <div
             className="flex items-center justify-between px-4 py-3 flex-shrink-0"
