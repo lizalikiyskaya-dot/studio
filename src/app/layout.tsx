@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Lora } from "next/font/google";
+import { Inter, Lora, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -10,6 +10,11 @@ const inter = Inter({
 const lora = Lora({
   subsets: ["latin", "cyrillic"],
   variable: "--font-fraunces",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
@@ -23,7 +28,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className={`${inter.variable} ${lora.variable} h-full antialiased`}>
+    <html
+      lang="ru"
+      className={`${inter.variable} ${lora.variable} ${playfair.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

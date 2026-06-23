@@ -34,9 +34,13 @@ body {
   letter-spacing: 0.04em;
 }
 
-.masthead-title,
-.page-title {
+.masthead-title {
   font-family: var(--font-fraunces), serif;
+}
+
+.page-title {
+  font-family: var(--font-playfair), serif !important;
+  font-weight: 700 !important;
 }
 
 .masthead-rule {
