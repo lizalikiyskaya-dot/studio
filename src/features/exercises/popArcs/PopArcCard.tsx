@@ -105,7 +105,7 @@ export default function PopArcCard({
             backgroundPosition: "center",
           }}
         />
-        <span className="flex-1 font-semibold text-[14.5px]">{character.name || "Без имени"}</span>
+        <span className="heading flex-1 font-semibold text-[14.5px]">{character.name || "Без имени"}</span>
         {arcType && (
           <span
             className="font-mono-label text-[9.5px] uppercase px-2 py-1 rounded-full"
@@ -154,7 +154,7 @@ export default function PopArcCard({
                 Имя
               </label>
               {readOnly ? (
-                <p className="font-semibold text-[18px] pb-1">{character.name}</p>
+                <p className="heading font-semibold text-[18px] pb-1">{character.name}</p>
               ) : (
                 <SuggestableField
                   model="PopArcCharacter"
@@ -163,7 +163,7 @@ export default function PopArcCard({
                   value={character.name}
                   suggestion={suggestions.name}
                   as="input"
-                  className="font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
+                  className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
                   style={{ borderColor: "var(--rule)" }}
                 />
               )}

@@ -13,8 +13,8 @@ export default function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="font-mono-label text-[10.5px] tracking-wide rounded-sm px-3 py-1.5"
-      style={{ color: "var(--faded)", border: "1px solid var(--rule)" }}
+      className="btn-pill font-mono-label text-[10.5px] tracking-wide px-3.5 py-1.5"
+      style={{ color: "var(--faded)", background: "var(--paper-light)", border: "1px solid var(--rule)" }}
     >
       Выйти
     </button>

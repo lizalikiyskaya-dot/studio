@@ -120,7 +120,7 @@ export default function CharacterProfile({
             Имя
           </label>
           {readOnly ? (
-            <p className="font-semibold text-[18px] pb-1">{name}</p>
+            <p className="heading font-semibold text-[18px] pb-1">{name}</p>
           ) : suggestable ? (
             <SuggestableField
               model={suggestable.model}
@@ -129,14 +129,14 @@ export default function CharacterProfile({
               value={name}
               suggestion={nameSuggestion}
               as="input"
-              className="font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
+              className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
               style={{ borderColor: "var(--rule)" }}
             />
           ) : (
             <input
               defaultValue={name}
               onBlur={(e) => onNameBlur(e.target.value)}
-              className="font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
+              className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
               style={{ borderColor: "var(--rule)" }}
             />
           )}

@@ -62,6 +62,17 @@ enum PaymentStatus {
   PENDING
 }
 
+enum WorldCategory {
+  LOCATIONS
+  FACTIONS
+  LORE
+  TECHNOLOGY
+  MAGIC
+  HISTORY
+  CREATURES
+  LANGUAGES
+}
+
 // Generic comment thread attachable to any record (used in Упражнения).
 model Comment {
   id        String   @id @default(cuid())
@@ -249,10 +260,15 @@ model Book {
   settingPhotoUrl     String?
   settingChips        String[] @default([])
 
-  chapters   PlanChapter[]
-  characters Character[]
-  acts       Act[]
-  storylines Storyline[]
+  fantasyUnlocked Boolean @default(false)
+  fantasyNotes    String  @default("")
+  fantasyGeneral  String  @default("")
+
+  chapters     PlanChapter[]
+  characters   Character[]
+  acts         Act[]
+  storylines   Storyline[]
+  worldEntries WorldEntry[]
 }
 
 model PlanChapter {
@@ -278,6 +294,18 @@ model Character {
   data      Json     @default("{}")
   arcType   ArcType?
   createdAt DateTime @default(now())
+}
+
+model WorldEntry {
+  id        String        @id @default(cuid())
+  bookId    String
+  book      Book          @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  category  WorldCategory
+  order     Int           @default(0)
+  title     String        @default("Новая запись")
+  body      String        @default("")
+  photoUrl  String?
+  createdAt DateTime      @default(now())
 }
 
 model Act {

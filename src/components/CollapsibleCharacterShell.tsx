@@ -34,7 +34,7 @@ export default function CollapsibleCharacterShell({
             backgroundPosition: "center",
           }}
         />
-        <span className="flex-1 font-semibold text-[14.5px]">{name || "Без имени"}</span>
+        <span className="heading flex-1 font-semibold text-[14.5px]">{name || "Без имени"}</span>
         {headerExtra}
         <span
           className="text-[12px] flex-shrink-0"

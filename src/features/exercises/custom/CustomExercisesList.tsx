@@ -193,10 +193,10 @@ export default function CustomExercisesList({
                 defaultValue={exercise.task}
                 onBlur={(v) => handleTask(exercise.id, v)}
                 placeholder="Задание: ..."
-                className="flex-1 outline-none bg-transparent text-[14.5px] font-semibold leading-snug"
+                className="heading flex-1 outline-none bg-transparent text-[14.5px] font-semibold leading-snug"
               />
             ) : (
-              <p className="flex-1 text-[14.5px] font-semibold leading-snug">{exercise.task}</p>
+              <p className="heading flex-1 text-[14.5px] font-semibold leading-snug">{exercise.task}</p>
             )}
             {isMentorViewer && (
               <button

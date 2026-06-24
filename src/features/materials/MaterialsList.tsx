@@ -124,7 +124,7 @@ function BooksList({
               defaultValue={material.title}
               onBlur={(e) => handleTitle(material.id, e.target.value)}
               placeholder="Название книги"
-              className="w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
+              className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
               style={{ borderColor: "var(--rule)" }}
             />
           )}

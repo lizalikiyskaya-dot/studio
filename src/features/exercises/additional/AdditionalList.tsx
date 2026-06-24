@@ -129,12 +129,12 @@ export default function AdditionalList({
               defaultValue={section.title}
               onBlur={(e) => handleTitle(section.id, e.target.value)}
               placeholder={section.type === "TABLE" ? "Название таблицы" : "Вопрос"}
-              className="w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
+              className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
               style={{ borderColor: "var(--rule)" }}
             />
           ) : (
             section.type === "TEXT" && (
-              <p className="text-[14px] font-semibold mb-3">{section.title}</p>
+              <p className="heading text-[14px] font-semibold mb-3">{section.title}</p>
             )
           )}
 

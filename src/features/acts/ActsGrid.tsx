@@ -46,7 +46,7 @@ export default function ActsGrid({
                 value={act.title}
                 suggestion={actSuggestions.title}
                 as="input"
-                className="font-semibold text-[16px] outline-none bg-transparent flex-1"
+                className="heading font-semibold text-[16px] outline-none bg-transparent flex-1"
               />
               <button
                 onClick={() => handleDelete(act.id)}

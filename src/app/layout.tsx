@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Lora, Playfair_Display } from "next/font/google";
+import { Inter, Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -7,14 +7,14 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const lora = Lora({
+const manrope = Manrope({
   subsets: ["latin", "cyrillic"],
-  variable: "--font-fraunces",
+  variable: "--font-manrope",
 });
 
-const playfair = Playfair_Display({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin", "cyrillic"],
-  variable: "--font-playfair",
+  variable: "--font-jetbrains",
 });
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export default function RootLayout({
   return (
     <html
       lang="ru"
-      className={`${inter.variable} ${lora.variable} ${playfair.variable} min-h-full antialiased`}
+      className={`${inter.variable} ${manrope.variable} ${jetbrainsMono.variable} min-h-full antialiased`}
     >
       <body className="min-h-full">{children}</body>
     </html>

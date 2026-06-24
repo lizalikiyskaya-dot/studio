@@ -71,9 +71,9 @@ export default function CalendarWidget({
 
   return (
     <div className="mt-16 pt-10 border-t" style={{ borderColor: "var(--rule)" }}>
-      <div className="mb-2.5">
+      <div className="mb-4">
         <span
-          className="font-mono-label text-[10px] uppercase px-2 py-1 rounded-full"
+          className="font-mono-label text-[10px] px-2 py-1 rounded-full"
           style={{
             background: paymentStatus === "PAID" ? "var(--sage)" : "var(--wine)",
             color: "#fff",

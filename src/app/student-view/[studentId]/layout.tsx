@@ -28,8 +28,8 @@ export default async function StudentViewLayout({
   ]);
 
   return (
-    <div className="flex min-h-screen">
-      <div style={{ width: 240, flexShrink: 0 }}>
+    <div className="flex min-h-screen gap-5 p-5 mx-auto" style={{ maxWidth: 1320 }}>
+      <div style={{ width: 250, flexShrink: 0 }}>
         <Sidebar
           basePath={`/student-view/${studentId}`}
           userName={student.name}
@@ -42,7 +42,7 @@ export default async function StudentViewLayout({
           }}
         />
       </div>
-      <div className="px-12 py-10" style={{ flex: 1 }}>
+      <div className="page-card px-[46px] py-10" style={{ flex: 1, minHeight: "calc(100vh - 40px)" }}>
         {children}
       </div>
       <NotesPanel studentId={student.id} initialNotes={notes} />

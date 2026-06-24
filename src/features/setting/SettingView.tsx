@@ -1,9 +1,12 @@
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
 import { resolveActiveBook } from "@/lib/resolveBook";
 import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
 import Subtabs from "@/components/Subtabs";
 import GrapesTable from "./GrapesTable";
 import SettingTypeSection from "./SettingTypeSection";
+import FantasySection from "./FantasySection";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 
 export default async function SettingView({
@@ -27,6 +30,12 @@ export default async function SettingView({
   }
 
   const suggestions = await getSuggestionsForRecords("Book", [activeBook.id]);
+  const worldEntries = await prisma.worldEntry.findMany({
+    where: { bookId: activeBook.id },
+    orderBy: { order: "asc" },
+  });
+  const session = await getSession();
+  const isMentor = session?.role === "MENTOR";
 
   return (
     <div>
@@ -43,6 +52,17 @@ export default async function SettingView({
           {
             label: "Тип сеттинга",
             content: <SettingTypeSection bookId={activeBook.id} book={activeBook} />,
+          },
+          {
+            label: "Фэнтези мир",
+            content: (
+              <FantasySection
+                bookId={activeBook.id}
+                book={activeBook}
+                initialEntries={worldEntries}
+                isMentor={isMentor}
+              />
+            ),
           },
         ]}
       />

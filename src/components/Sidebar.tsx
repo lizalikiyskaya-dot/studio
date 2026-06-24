@@ -43,16 +43,13 @@ export default function Sidebar({
   const pathname = usePathname();
 
   return (
-    <div
-      className="border-r px-5 py-8"
-      style={{ borderColor: "var(--rule)" }}
-    >
-      <div>
-        <div className="mb-8">
-          <div className="masthead-title font-semibold text-[17px] leading-tight">
+    <div className="px-[18px] py-7 flex flex-col" style={{ minHeight: "calc(100vh - 40px)" }}>
+      <div className="flex-1">
+        <div className="mb-[26px]">
+          <div className="masthead-title font-extrabold text-[19px] leading-tight">
             Студия художественной прозы
           </div>
-          <span className="masthead-title italic text-[12.5px] block mt-0.5" style={{ color: "var(--ink-soft)" }}>
+          <span className="text-[12px] block mt-0.5" style={{ color: "var(--faded)" }}>
             Лизы Ликийской
           </span>
           <div className="masthead-rule">
@@ -97,13 +94,13 @@ export default function Sidebar({
                 <Link
                   key={item.path}
                   href={href}
-                  className="flex items-baseline gap-2 px-2.5 py-2.5 mb-1 rounded-sm text-[13.5px]"
+                  className={`nav-featured flex items-baseline gap-2 px-3 py-2.5 mb-1 text-[13.5px]${active ? " active" : ""}`}
                   style={{
-                    background: active ? "var(--ink)" : "var(--wine)",
+                    background: "var(--wine)",
                     color: "#fff",
                   }}
                 >
-                  <span className="font-mono-label text-[10px]">→</span>
+                  <span className="font-mono-label text-[10px]" style={{ color: "#F3C3CE" }}>→</span>
                   {item.label}
                 </Link>
               );
@@ -121,7 +118,7 @@ export default function Sidebar({
                 <Link
                   key={item.path}
                   href={href}
-                  className="flex items-baseline gap-2 py-2 text-[13.5px]"
+                  className={`nav-index-item flex items-baseline gap-2.5 px-2.5 py-2.5 text-[13.5px] mb-px${active ? " active" : ""}`}
                   style={{ color: active ? "var(--wine)" : "var(--ink-soft)" }}
                 >
                   <span className="font-mono-label text-[10px] font-semibold" style={{ color: active ? "var(--wine)" : "var(--ink)" }}>
@@ -143,7 +140,7 @@ export default function Sidebar({
         )}
       </div>
 
-      <div className="mt-10">
+      <div className="mt-6">
         <div className="h-px mb-3.5" style={{ background: "var(--rule)" }} />
         <div className="flex items-center justify-between pt-3.5">
           <span className="text-[13.5px]" style={{ color: "var(--ink-soft)" }}>

@@ -22,7 +22,7 @@ export default function Accordion({
     >
       <div
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left font-semibold text-[14.5px] cursor-pointer"
+        className="heading w-full flex items-center justify-between gap-3 px-4 py-3 text-left font-semibold text-[14.5px] cursor-pointer"
       >
         <span className="flex-1 min-w-0">{title}</span>
         {headerExtra}

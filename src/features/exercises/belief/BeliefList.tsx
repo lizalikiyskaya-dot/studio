@@ -25,7 +25,7 @@ function CardBody({
           Герой
         </label>
         {readOnly ? (
-          <p className="text-[15px] font-semibold pb-1">{card.hero}</p>
+          <p className="heading text-[15px] font-semibold pb-1">{card.hero}</p>
         ) : (
           <SuggestableField
             model="BeliefCard"
@@ -34,7 +34,7 @@ function CardBody({
             value={card.hero}
             suggestion={suggestions.hero}
             as="input"
-            className="w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1"
+            className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1"
             style={{ borderColor: "var(--rule)" }}
           />
         )}
