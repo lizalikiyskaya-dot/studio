@@ -20,26 +20,47 @@ export type CharacterFieldKey =
   | "resistance"
   | "transformationResult"
   | "posFalseBelief"
+  | "posFalseBeliefScene"
   | "posFalseGoal"
+  | "posFalseGoalScene"
   | "posFalseGoalAchieved"
+  | "posFalseGoalAchievedScene"
   | "posTurningPoint"
+  | "posTurningPointScene"
   | "posTrueMotivation"
+  | "posTrueMotivationScene"
   | "posTrueGoalAchieved"
+  | "posTrueGoalAchievedScene"
   | "posResult"
+  | "posResultScene"
   | "negInitialTruth"
+  | "negInitialTruthScene"
   | "negTemptation"
+  | "negTemptationScene"
   | "negTempSuccess"
+  | "negTempSuccessScene"
   | "negRejectionPoint"
+  | "negRejectionPointScene"
   | "negLieRoot"
+  | "negLieRootScene"
   | "negFalseGoalFull"
+  | "negFalseGoalFullScene"
   | "negResult"
+  | "negResultScene"
   | "flatTrueBelief"
+  | "flatTrueBeliefScene"
   | "flatTrueGoal"
+  | "flatTrueGoalScene"
   | "flatWorldLie"
+  | "flatWorldLieScene"
   | "flatBeliefTest"
+  | "flatBeliefTestScene"
   | "flatInfluence"
+  | "flatInfluenceScene"
   | "flatClimax"
-  | "flatResult";
+  | "flatClimaxScene"
+  | "flatResult"
+  | "flatResultScene";
 
 export const ALL_CHARACTER_FIELD_KEYS: CharacterFieldKey[] = [
   "habits",
@@ -63,32 +84,53 @@ export const ALL_CHARACTER_FIELD_KEYS: CharacterFieldKey[] = [
   "resistance",
   "transformationResult",
   "posFalseBelief",
+  "posFalseBeliefScene",
   "posFalseGoal",
+  "posFalseGoalScene",
   "posFalseGoalAchieved",
+  "posFalseGoalAchievedScene",
   "posTurningPoint",
+  "posTurningPointScene",
   "posTrueMotivation",
+  "posTrueMotivationScene",
   "posTrueGoalAchieved",
+  "posTrueGoalAchievedScene",
   "posResult",
+  "posResultScene",
   "negInitialTruth",
+  "negInitialTruthScene",
   "negTemptation",
+  "negTemptationScene",
   "negTempSuccess",
+  "negTempSuccessScene",
   "negRejectionPoint",
+  "negRejectionPointScene",
   "negLieRoot",
+  "negLieRootScene",
   "negFalseGoalFull",
+  "negFalseGoalFullScene",
   "negResult",
+  "negResultScene",
   "flatTrueBelief",
+  "flatTrueBeliefScene",
   "flatTrueGoal",
+  "flatTrueGoalScene",
   "flatWorldLie",
+  "flatWorldLieScene",
   "flatBeliefTest",
+  "flatBeliefTestScene",
   "flatInfluence",
+  "flatInfluenceScene",
   "flatClimax",
+  "flatClimaxScene",
   "flatResult",
+  "flatResultScene",
 ];
 
 export type FieldGroup = {
   title: string;
   subhead?: string;
-  fields: { key: CharacterFieldKey; label: string }[];
+  fields: { key: CharacterFieldKey; label: string; sceneKey?: CharacterFieldKey }[];
   defaultOpen?: boolean;
 };
 
@@ -156,37 +198,37 @@ export const ARC_GROUPS: FieldGroup[] = [
     title: "Позитивная арка",
     defaultOpen: true,
     fields: [
-      { key: "posFalseBelief", label: "Ложное убеждение" },
-      { key: "posFalseGoal", label: "Ложная мотивация / цель" },
-      { key: "posFalseGoalAchieved", label: "Достижение ложной мотивации" },
-      { key: "posTurningPoint", label: "Точка трансформации" },
-      { key: "posTrueMotivation", label: "Истинная мотивация" },
-      { key: "posTrueGoalAchieved", label: "Достижение истинной мотивации" },
-      { key: "posResult", label: "Результат трансформации" },
+      { key: "posFalseBelief", sceneKey: "posFalseBeliefScene", label: "Ложное убеждение" },
+      { key: "posFalseGoal", sceneKey: "posFalseGoalScene", label: "Ложная мотивация / цель" },
+      { key: "posFalseGoalAchieved", sceneKey: "posFalseGoalAchievedScene", label: "Достижение ложной мотивации" },
+      { key: "posTurningPoint", sceneKey: "posTurningPointScene", label: "Точка трансформации" },
+      { key: "posTrueMotivation", sceneKey: "posTrueMotivationScene", label: "Истинная мотивация" },
+      { key: "posTrueGoalAchieved", sceneKey: "posTrueGoalAchievedScene", label: "Достижение истинной мотивации" },
+      { key: "posResult", sceneKey: "posResultScene", label: "Результат трансформации" },
     ],
   },
   {
     title: "Отрицательная арка",
     fields: [
-      { key: "negInitialTruth", label: "Исходная (частичная) истина" },
-      { key: "negTemptation", label: "Искушение ложью" },
-      { key: "negTempSuccess", label: "Временный успех лжи" },
-      { key: "negRejectionPoint", label: "Точка отказа от истины" },
-      { key: "negLieRoot", label: "Укоренение лжи" },
-      { key: "negFalseGoalFull", label: "Полное достижение ложной цели" },
-      { key: "negResult", label: "Результат — крах / разрушение" },
+      { key: "negInitialTruth", sceneKey: "negInitialTruthScene", label: "Исходная (частичная) истина" },
+      { key: "negTemptation", sceneKey: "negTemptationScene", label: "Искушение ложью" },
+      { key: "negTempSuccess", sceneKey: "negTempSuccessScene", label: "Временный успех лжи" },
+      { key: "negRejectionPoint", sceneKey: "negRejectionPointScene", label: "Точка отказа от истины" },
+      { key: "negLieRoot", sceneKey: "negLieRootScene", label: "Укоренение лжи" },
+      { key: "negFalseGoalFull", sceneKey: "negFalseGoalFullScene", label: "Полное достижение ложной цели" },
+      { key: "negResult", sceneKey: "negResultScene", label: "Результат — крах / разрушение" },
     ],
   },
   {
     title: "Плоская арка",
     fields: [
-      { key: "flatTrueBelief", label: "Истинное убеждение (с начала)" },
-      { key: "flatTrueGoal", label: "Цель, основанная на истине" },
-      { key: "flatWorldLie", label: "Ложь мира, которая противостоит герою" },
-      { key: "flatBeliefTest", label: "Испытание убеждения" },
-      { key: "flatInfluence", label: "Влияние героя на других / мир" },
-      { key: "flatClimax", label: "Кульминация — истина побеждает сопротивление мира" },
-      { key: "flatResult", label: "Результат — меняется мир, а не герой" },
+      { key: "flatTrueBelief", sceneKey: "flatTrueBeliefScene", label: "Истинное убеждение (с начала)" },
+      { key: "flatTrueGoal", sceneKey: "flatTrueGoalScene", label: "Цель, основанная на истине" },
+      { key: "flatWorldLie", sceneKey: "flatWorldLieScene", label: "Ложь мира, которая противостоит герою" },
+      { key: "flatBeliefTest", sceneKey: "flatBeliefTestScene", label: "Испытание убеждения" },
+      { key: "flatInfluence", sceneKey: "flatInfluenceScene", label: "Влияние героя на других / мир" },
+      { key: "flatClimax", sceneKey: "flatClimaxScene", label: "Кульминация — истина побеждает сопротивление мира" },
+      { key: "flatResult", sceneKey: "flatResultScene", label: "Результат — меняется мир, а не герой" },
     ],
   },
 ];

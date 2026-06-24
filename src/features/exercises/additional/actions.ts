@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import type { FreeSectionType } from "@/generated/prisma/client";
+import { nextTaskStatus } from "@/features/tasks/status";
 
 export async function createAdditionalSection(
   studentId: string,
@@ -62,4 +63,12 @@ export async function deleteAdditionalSection(sectionId: string) {
   const section = await prisma.freeSection.findUniqueOrThrow({ where: { id: sectionId } });
   await requireMentor(section.studentId);
   await prisma.freeSection.delete({ where: { id: sectionId } });
+}
+
+export async function cycleSectionStatus(sectionId: string) {
+  const section = await prisma.freeSection.findUniqueOrThrow({ where: { id: sectionId } });
+  await requireCabinetAccess(section.studentId);
+  const next = nextTaskStatus(section.status);
+  await prisma.freeSection.update({ where: { id: sectionId }, data: { status: next } });
+  return next;
 }

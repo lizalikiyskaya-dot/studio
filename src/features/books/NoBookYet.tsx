@@ -22,7 +22,7 @@ export default function NoBookYet({ studentId }: { studentId: string }) {
       </p>
       <button
         onClick={handleCreate}
-        className="font-mono-label text-[12px] px-3 py-2 rounded-sm"
+        className="text-[13px] px-3 py-2 rounded-sm"
         style={{ background: "var(--wine)", color: "#fff" }}
       >
         + новая книга

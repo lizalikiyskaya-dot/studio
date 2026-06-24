@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react";
 import type { Task, TaskStatus } from "@/generated/prisma/client";
-import { createTask, updateTaskTitle, updateTaskLink, updateTaskDeadline, cycleTaskStatus } from "./actions";
+import { createTask, updateTaskTitle, updateTaskLink, updateTaskDeadline, cycleTaskStatus, deleteTask } from "./actions";
 import { nextTaskStatus } from "./status";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 
-const GRID_COLUMNS = "2fr 150px 170px 170px 150px";
+const GRID_COLUMNS = "2fr 150px 170px 170px 150px 30px";
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
   IN_PROGRESS: "в процессе",
@@ -48,7 +48,7 @@ function LinkCell({
         const url = window.prompt("Ссылка");
         if (url) onSave(url);
       }}
-      className="font-mono-label text-[11px] px-2.5 py-1 rounded-sm"
+      className="text-[12.5px] px-2.5 py-1 rounded-sm"
       style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
     >
       + ссылка
@@ -103,6 +103,12 @@ export default function TasksTable({
     });
   }
 
+  function handleDelete(taskId: string) {
+    if (!window.confirm("Удалить задание?")) return;
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    startTransition(() => deleteTask(taskId));
+  }
+
   return (
     <div>
       <div className="overflow-x-auto mb-4">
@@ -111,10 +117,10 @@ export default function TasksTable({
             className="grid gap-x-3 pb-2 border-b"
             style={{ gridTemplateColumns: GRID_COLUMNS, borderColor: "var(--rule)" }}
           >
-            {["Задание", "Дедлайн", "Ссылка на работу", "Обратная связь", "Статус"].map((h) => (
+            {["Задание", "Дедлайн", "Ссылка на работу", "Обратная связь", "Статус", ""].map((h) => (
               <div
                 key={h}
-                className="font-mono-label text-[10px] uppercase whitespace-nowrap"
+                className="text-[12px] whitespace-nowrap"
                 style={{ color: "var(--faded)" }}
               >
                 {h}
@@ -156,6 +162,16 @@ export default function TasksTable({
                   {STATUS_LABEL[task.status]}
                 </button>
               </div>
+              <div className="pt-1">
+                <button
+                  onClick={() => handleDelete(task.id)}
+                  className="text-[12px]"
+                  style={{ color: "var(--wine)" }}
+                  title="Удалить задание"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -163,7 +179,7 @@ export default function TasksTable({
 
       <button
         onClick={handleAdd}
-        className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+        className="text-[12.5px] px-3 py-1.5 rounded-sm"
         style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
       >
         + задание

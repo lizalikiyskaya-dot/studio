@@ -18,7 +18,7 @@ export default function BookSelect({
 
   return (
     <div className="flex items-center gap-3 mb-6">
-      <label className="font-mono-label text-[10px] uppercase tracking-wide" style={{ color: "var(--faded)" }}>
+      <label className="text-[13px]" style={{ color: "var(--faded)" }}>
         Книга:
       </label>
       <select

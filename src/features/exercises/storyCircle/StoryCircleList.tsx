@@ -1,34 +1,37 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { BeliefCard, Comment } from "@/generated/prisma/client";
+import type { StoryCircleCard, Comment } from "@/generated/prisma/client";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
-import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
-import { createBeliefCard, deleteBeliefCard } from "./actions";
+import SuggestableField from "@/features/suggestions/SuggestableField";
+import StoryCircleDiagram from "./StoryCircleDiagram";
+import { STORY_CIRCLE_STEPS } from "./steps";
+import { createStoryCircleCard, deleteStoryCircleCard } from "./actions";
 
 function CardBody({
   card,
   readOnly,
-  suggestable,
   suggestions,
 }: {
-  card: BeliefCard;
+  card: StoryCircleCard;
   readOnly: boolean;
-  suggestable: boolean;
   suggestions: Record<string, string>;
 }) {
+  const data = (card.data as Record<string, string>) ?? {};
+  const [hoverStep, setHoverStep] = useState<number | undefined>(undefined);
+
   return (
     <div>
-      <div className="mb-3">
+      <div className="mb-4">
         <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
-          Герой
+          Герой / история
         </label>
         {readOnly ? (
           <p className="heading text-[15px] font-semibold pb-1">{card.hero}</p>
         ) : (
           <SuggestableField
-            model="BeliefCard"
+            model="StoryCircleCard"
             recordId={card.id}
             field="hero"
             value={card.hero}
@@ -39,46 +42,39 @@ function CardBody({
           />
         )}
       </div>
-      <div className="mb-3">
-        <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
-          В начале истории герой думает, что...
-        </label>
-        {readOnly ? (
-          <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
-            {card.startBelief}
-          </p>
-        ) : (
-          <SuggestableField
-            model="BeliefCard"
-            recordId={card.id}
-            field="startBelief"
-            value={card.startBelief}
-            suggestion={suggestions.startBelief}
-            className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
-            style={{ borderColor: "var(--rule)" }}
-          />
-        )}
+      <div className="mb-5">
+        <StoryCircleDiagram activeStep={hoverStep} />
       </div>
-      <div>
-        <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
-          В конце истории понимает, что...
-        </label>
-        {readOnly ? (
-          <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
-            {card.endBelief}
-          </p>
-        ) : (
-          <SuggestableField
-            model="BeliefCard"
-            recordId={card.id}
-            field="endBelief"
-            value={card.endBelief}
-            suggestion={suggestions.endBelief}
-            className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
-            style={{ borderColor: "var(--rule)" }}
-          />
-        )}
-      </div>
+      {STORY_CIRCLE_STEPS.map((step) => (
+        <div
+          key={step.key}
+          className="mb-4"
+          onMouseEnter={() => setHoverStep(step.n)}
+          onMouseLeave={() => setHoverStep(undefined)}
+        >
+          <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
+            <span className="heading font-semibold" style={{ color: "var(--wine)" }}>
+              {step.n}. {step.short}
+            </span>{" "}
+            — {step.label}
+          </label>
+          {readOnly ? (
+            <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
+              {data[step.key] || <span style={{ color: "var(--faded)" }}>—</span>}
+            </p>
+          ) : (
+            <SuggestableField
+              model="StoryCircleCard"
+              recordId={card.id}
+              field={step.key}
+              value={data[step.key] ?? ""}
+              suggestion={suggestions[step.key]}
+              className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
+              style={{ borderColor: "var(--rule)" }}
+            />
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -86,21 +82,19 @@ function CardBody({
 function CardShell({
   card,
   readOnly,
-  suggestable,
   suggestions,
   initialComments,
   onDelete,
 }: {
-  card: BeliefCard;
+  card: StoryCircleCard;
   readOnly: boolean;
-  suggestable: boolean;
   suggestions: Record<string, string>;
   initialComments: Comment[];
   onDelete: (id: string) => void;
 }) {
   return (
     <CollapsibleCharacterShell name={card.hero} photoUrl={null}>
-      <CardBody card={card} readOnly={readOnly} suggestable={suggestable} suggestions={suggestions} />
+      <CardBody card={card} readOnly={readOnly} suggestions={suggestions} />
       {!readOnly && (
         <button
           onClick={() => onDelete(card.id)}
@@ -110,19 +104,19 @@ function CardShell({
           Удалить
         </button>
       )}
-      <CommentsBlock model="BeliefCard" recordId={card.id} initialComments={initialComments} />
+      <CommentsBlock model="StoryCircleCard" recordId={card.id} initialComments={initialComments} />
     </CollapsibleCharacterShell>
   );
 }
 
-export function BeliefExamplesList({
+export function StoryCircleExamplesList({
   studentId,
   initialCards,
   isMentorViewer,
   comments,
 }: {
   studentId: string;
-  initialCards: BeliefCard[];
+  initialCards: StoryCircleCard[];
   isMentorViewer: boolean;
   comments: Record<string, Comment[]>;
 }) {
@@ -131,14 +125,14 @@ export function BeliefExamplesList({
 
   function handleAdd() {
     startTransition(async () => {
-      const card = await createBeliefCard(studentId, true);
+      const card = await createStoryCircleCard(studentId, true);
       setCards((prev) => [...prev, card]);
     });
   }
 
   function handleDelete(id: string) {
     setCards((prev) => prev.filter((c) => c.id !== id));
-    startTransition(() => deleteBeliefCard(id));
+    startTransition(() => deleteStoryCircleCard(id));
   }
 
   return (
@@ -148,7 +142,6 @@ export function BeliefExamplesList({
           key={card.id}
           card={card}
           readOnly={!isMentorViewer}
-          suggestable={false}
           suggestions={{}}
           initialComments={comments[card.id] ?? []}
           onDelete={handleDelete}
@@ -167,14 +160,14 @@ export function BeliefExamplesList({
   );
 }
 
-export function BeliefOwnList({
+export function StoryCircleOwnList({
   studentId,
   initialCards,
   suggestions,
   comments,
 }: {
   studentId: string;
-  initialCards: BeliefCard[];
+  initialCards: StoryCircleCard[];
   suggestions: Record<string, Record<string, string>>;
   comments: Record<string, Comment[]>;
 }) {
@@ -183,14 +176,14 @@ export function BeliefOwnList({
 
   function handleAdd() {
     startTransition(async () => {
-      const card = await createBeliefCard(studentId, false);
+      const card = await createStoryCircleCard(studentId, false);
       setCards((prev) => [...prev, card]);
     });
   }
 
   function handleDelete(id: string) {
     setCards((prev) => prev.filter((c) => c.id !== id));
-    startTransition(() => deleteBeliefCard(id));
+    startTransition(() => deleteStoryCircleCard(id));
   }
 
   return (
@@ -200,7 +193,6 @@ export function BeliefOwnList({
           key={card.id}
           card={card}
           readOnly={false}
-          suggestable
           suggestions={suggestions[card.id] ?? {}}
           initialComments={comments[card.id] ?? []}
           onDelete={handleDelete}

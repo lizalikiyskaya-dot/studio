@@ -41,7 +41,7 @@ export default function SettingTypeSection({ bookId, book }: { bookId: string; b
           backgroundPosition: "center",
         }}
       >
-        {!photoUrl && <span className="font-mono-label text-[11px]">нажмите, чтобы добавить фото настроения</span>}
+        {!photoUrl && <span className="text-[12.5px]">нажмите, чтобы добавить фото настроения</span>}
       </div>
 
       <div className="flex gap-2.5 flex-wrap">

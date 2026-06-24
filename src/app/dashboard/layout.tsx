@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import Sidebar from "@/components/Sidebar";
 import NotesPanel from "@/features/notes/NotesPanel";
+import { getCommentsForRecords } from "@/features/comments/actions";
 
 export default async function DashboardLayout({
   children,
@@ -24,6 +25,7 @@ export default async function DashboardLayout({
     }),
     prisma.note.findMany({ where: { studentId: user.id }, orderBy: { createdAt: "desc" } }),
   ]);
+  const noteComments = await getCommentsForRecords("Note", notes.map((n) => n.id));
 
   return (
     <div className="flex min-h-screen gap-5 p-5 mx-auto" style={{ maxWidth: 1320 }}>
@@ -32,6 +34,8 @@ export default async function DashboardLayout({
           basePath="/dashboard"
           userName={user.name}
           isMentor={false}
+          studentId={user.id}
+          initialReviewMode={user.reviewModeEnabled}
           calendar={{
             tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
             paymentDay: user.paymentDay,
@@ -42,7 +46,7 @@ export default async function DashboardLayout({
       <div className="page-card px-[46px] py-10" style={{ flex: 1, minHeight: "calc(100vh - 40px)" }}>
         {children}
       </div>
-      <NotesPanel studentId={user.id} initialNotes={notes} />
+      <NotesPanel studentId={user.id} initialNotes={notes} initialComments={noteComments} />
     </div>
   );
 }

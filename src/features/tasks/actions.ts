@@ -41,6 +41,12 @@ export async function updateTaskDeadline(taskId: string, deadline: string | null
   });
 }
 
+export async function deleteTask(taskId: string) {
+  const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
+  await requireCabinetAccess(task.studentId);
+  await prisma.task.delete({ where: { id: taskId } });
+}
+
 export async function cycleTaskStatus(taskId: string) {
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
   await requireCabinetAccess(task.studentId);

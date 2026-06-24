@@ -96,7 +96,7 @@ export default function FantasySection({
           <div className="mt-3.5">
             <button
               onClick={handleToggleLock}
-              className="font-mono-label text-[11px] px-3 py-1.5 rounded-full"
+              className="text-[12.5px] px-3 py-1.5 rounded-full"
               style={{ border: "1px solid var(--sage)", color: "var(--sage)" }}
             >
               Открыть мир
@@ -115,7 +115,7 @@ export default function FantasySection({
         <div className="mb-3.5">
           <button
             onClick={handleToggleLock}
-            className="font-mono-label text-[11px] px-3 py-1.5 rounded-full"
+            className="text-[12.5px] px-3 py-1.5 rounded-full"
             style={{ border: "1px solid var(--sage)", color: "var(--sage)" }}
           >
             🔓 Открыто для ученика — закрыть
@@ -162,7 +162,7 @@ export default function FantasySection({
                 className="rounded-md flex items-center justify-center cursor-pointer text-center"
                 style={{ border: "1px dashed var(--rule)", minHeight: 124, color: "var(--faded)" }}
               >
-                <span className="font-mono-label text-[11px]">+ добавить</span>
+                <span className="text-[12.5px]">+ добавить</span>
               </div>
             </div>
           </Accordion>
@@ -229,19 +229,19 @@ export default function FantasySection({
             <div className="mt-3.5 flex items-center gap-3">
               <button
                 onClick={() => handleSaveEntry(openEntry.id)}
-                className="font-mono-label text-[11px] px-4 py-1.5 rounded-full"
+                className="text-[12.5px] px-4 py-1.5 rounded-full"
                 style={{ border: "1px solid var(--sage)", color: "#fff", background: "var(--sage)" }}
               >
                 Сохранить
               </button>
               {justSaved && (
-                <span className="font-mono-label text-[10.5px]" style={{ color: "var(--sage)" }}>
+                <span className="text-[12.5px]" style={{ color: "var(--sage)" }}>
                   ✓ сохранено
                 </span>
               )}
               <button
                 onClick={() => handleDeleteEntry(openEntry.id)}
-                className="font-mono-label text-[11px] px-3 py-1.5 rounded-full"
+                className="text-[12.5px] px-3 py-1.5 rounded-full"
                 style={{ border: "1px dashed var(--wine-soft)", color: "var(--wine)" }}
               >
                 удалить запись

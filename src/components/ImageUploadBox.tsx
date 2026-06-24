@@ -53,7 +53,7 @@ export default function ImageUploadBox({
         ...style,
       }}
     >
-      {!preview && <span className="font-mono-label text-[9px]">{placeholder}</span>}
+      {!preview && <span className="text-[12px]">{placeholder}</span>}
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleChange} />
     </div>
   );

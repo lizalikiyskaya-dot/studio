@@ -19,7 +19,7 @@ export default async function PlanBookView({
   if (!activeBook) {
     return (
       <div>
-        <h1 className="page-title text-[24px] font-semibold mb-6">План книги</h1>
+        <h1 className="page-title text-[24px] font-semibold mb-6">Трекер по главам</h1>
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -34,7 +34,7 @@ export default async function PlanBookView({
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
-      <h1 className="page-title text-[24px] font-semibold mb-6">План книги</h1>
+      <h1 className="page-title text-[24px] font-semibold mb-6">Трекер по главам</h1>
       <PlanTable bookId={activeBook.id} initialChapters={chapters} suggestions={suggestions} />
     </div>
   );

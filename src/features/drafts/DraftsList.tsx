@@ -67,7 +67,7 @@ export default function DraftsList({
                   const url = window.prompt("Ссылка");
                   if (url) handleField(draft.id, "link", url);
                 }}
-                className="font-mono-label text-[11px] px-2.5 py-1 rounded-sm"
+                className="text-[12.5px] px-2.5 py-1 rounded-sm"
                 style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
               >
                 + ссылка
@@ -76,7 +76,7 @@ export default function DraftsList({
             <FileAttachBox fileName={draft.fileName} onUpload={(fileName, dataUrl) => handleFile(draft.id, fileName, dataUrl)} />
             <button
               onClick={() => handleDelete(draft.id)}
-              className="font-mono-label text-[10px] px-2.5 py-1 rounded-sm ml-auto"
+              className="text-[12.5px] px-2.5 py-1 rounded-sm ml-auto"
               style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
             >
               Удалить
@@ -87,7 +87,7 @@ export default function DraftsList({
 
       <button
         onClick={handleAdd}
-        className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+        className="text-[12.5px] px-3 py-1.5 rounded-sm"
         style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
       >
         + черновик

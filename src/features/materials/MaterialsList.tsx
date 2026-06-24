@@ -32,7 +32,7 @@ function DownloadOrUpload({
       <a
         href={fileUrl}
         download={fileName ?? undefined}
-        className="font-mono-label text-[11px] px-2.5 py-1 rounded-sm inline-block"
+        className="text-[13px] px-2.5 py-1 rounded-sm inline-block"
         style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
       >
         Скачать {label}
@@ -43,7 +43,7 @@ function DownloadOrUpload({
     return <FileAttachBox onUpload={onUpload} />;
   }
   return (
-    <span className="font-mono-label text-[11px]" style={{ color: "var(--faded)" }}>
+    <span className="text-[13px]" style={{ color: "var(--faded)" }}>
       файл пока не загружен
     </span>
   );
@@ -146,7 +146,7 @@ function BooksList({
             {canManage && (
               <button
                 onClick={() => handleDelete(material.id)}
-                className="font-mono-label text-[10px] px-2.5 py-1 rounded-sm ml-auto"
+                className="text-[12.5px] px-2.5 py-1 rounded-sm ml-auto"
                 style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
               >
                 Удалить
@@ -159,7 +159,7 @@ function BooksList({
       {canManage && (
         <button
           onClick={handleAdd}
-          className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+          className="text-[12.5px] px-3 py-1.5 rounded-sm"
           style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
         >
           + книга
@@ -204,6 +204,14 @@ function HandoutsList({
     startTransition(() => deleteMaterial(id));
   }
 
+  function handleStatus(id: string, current: Material["status"]) {
+    const next = nextMaterialStatus(current);
+    setHandouts((prev) => prev.map((m) => (m.id === id ? { ...m, status: next } : m)));
+    startTransition(() => {
+      cycleMaterialStatus(id);
+    });
+  }
+
   return (
     <div>
       {handouts.map((material) => (
@@ -217,11 +225,18 @@ function HandoutsList({
               defaultValue={material.title}
               onBlur={(e) => handleTitle(material.id, e.target.value)}
               placeholder="Название методички"
-              className="flex-1 min-w-0 outline-none bg-transparent text-[14px]"
+              className="heading flex-1 min-w-0 outline-none bg-transparent text-[15px] font-semibold"
             />
           ) : (
-            <span className="flex-1 min-w-0 text-[14px]">{material.title || "Без названия"}</span>
+            <span className="heading flex-1 min-w-0 text-[15px] font-semibold">{material.title || "Без названия"}</span>
           )}
+          <span
+            onClick={() => handleStatus(material.id, material.status)}
+            className="font-mono-label text-[10.5px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
+            style={MATERIAL_STATUS_STYLE[material.status]}
+          >
+            {MATERIAL_STATUS_LABEL[material.status]}
+          </span>
           <DownloadOrUpload
             label="файл"
             fileUrl={material.fileUrl}
@@ -232,7 +247,7 @@ function HandoutsList({
           {canManage && (
             <button
               onClick={() => handleDelete(material.id)}
-              className="font-mono-label text-[10px] px-2.5 py-1 rounded-sm"
+              className="text-[12.5px] px-2.5 py-1 rounded-sm"
               style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
             >
               Удалить
@@ -244,7 +259,7 @@ function HandoutsList({
       {canManage && (
         <button
           onClick={handleAdd}
-          className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm mt-3"
+          className="text-[12.5px] px-3 py-1.5 rounded-sm mt-3"
           style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
         >
           + методичка

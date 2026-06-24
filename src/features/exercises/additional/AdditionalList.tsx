@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { FreeSection, Comment } from "@/generated/prisma/client";
+import type { FreeSection, Comment, TaskStatus } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
@@ -11,7 +11,22 @@ import {
   updateTableCell,
   resizeTable,
   deleteAdditionalSection,
+  cycleSectionStatus,
 } from "./actions";
+
+const STATUS_LABEL: Record<TaskStatus, string> = {
+  IN_PROGRESS: "в процессе",
+  SUBMITTED: "сдано на проверку",
+  NEEDS_REVISION: "на доработке",
+  ACCEPTED: "принято",
+};
+
+const STATUS_STYLE: Record<TaskStatus, React.CSSProperties> = {
+  IN_PROGRESS: { background: "#fff", color: "var(--faded)", border: "1px dashed var(--rule)" },
+  SUBMITTED: { background: "#fff", color: "var(--sage)", border: "1px solid var(--sage)" },
+  NEEDS_REVISION: { background: "#fff", color: "var(--wine)", border: "1px solid var(--wine)" },
+  ACCEPTED: { background: "var(--ink)", color: "#fff", border: "1px solid var(--ink)" },
+};
 
 function TableSection({
   section,
@@ -39,7 +54,7 @@ function TableSection({
   return (
     <div>
       <div className="flex items-center gap-3 mb-3">
-          <label className="font-mono-label text-[10px] uppercase" style={{ color: "var(--faded)" }}>
+          <label className="text-[13px]" style={{ color: "var(--faded)" }}>
             Строк:
           </label>
           <input
@@ -50,7 +65,7 @@ function TableSection({
             className="w-14 text-[13px] px-1.5 py-1 rounded-sm"
             style={{ border: "1px solid var(--rule)" }}
           />
-          <label className="font-mono-label text-[10px] uppercase" style={{ color: "var(--faded)" }}>
+          <label className="text-[13px]" style={{ color: "var(--faded)" }}>
             Столбцов:
           </label>
           <input
@@ -120,10 +135,40 @@ export default function AdditionalList({
     startTransition(() => deleteAdditionalSection(id));
   }
 
+  function handleStatus(id: string) {
+    setSections((prev) =>
+      prev.map((s) => {
+        if (s.id !== id) return s;
+        const order: TaskStatus[] = ["IN_PROGRESS", "SUBMITTED", "NEEDS_REVISION", "ACCEPTED"];
+        const next = order[(order.indexOf(s.status) + 1) % order.length];
+        return { ...s, status: next };
+      })
+    );
+    startTransition(() => {
+      void cycleSectionStatus(id);
+    });
+  }
+
   return (
     <div>
       {sections.map((section) => (
-        <Accordion key={section.id} title={section.title || "Без названия"} defaultOpen>
+        <Accordion
+          key={section.id}
+          title={section.title || "Без названия"}
+          defaultOpen
+          headerExtra={
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                handleStatus(section.id);
+              }}
+              className="font-mono-label text-[10.5px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
+              style={STATUS_STYLE[section.status]}
+            >
+              {STATUS_LABEL[section.status]}
+            </span>
+          }
+        >
           {isMentorViewer ? (
             <input
               defaultValue={section.title}
@@ -155,7 +200,7 @@ export default function AdditionalList({
           {isMentorViewer && (
             <button
               onClick={() => handleDelete(section.id)}
-              className="font-mono-label text-[10px] px-2.5 py-1 rounded-sm mt-3"
+              className="text-[12.5px] px-2.5 py-1 rounded-sm mt-3"
               style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
             >
               Удалить раздел
@@ -170,14 +215,14 @@ export default function AdditionalList({
         <div className="flex gap-2.5">
           <button
             onClick={() => handleAdd("TEXT")}
-            className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+            className="text-[12.5px] px-3 py-1.5 rounded-sm"
             style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
           >
             + текст (вопрос-ответ)
           </button>
           <button
             onClick={() => handleAdd("TABLE")}
-            className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+            className="text-[12.5px] px-3 py-1.5 rounded-sm"
             style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
           >
             + таблица

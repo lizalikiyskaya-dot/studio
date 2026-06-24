@@ -21,28 +21,30 @@ const ARC_TYPE_COLOR: Record<ArcType, string> = {
 };
 const ARC_TYPES: ArcType[] = ["POSITIVE", "NEGATIVE", "FLAT"];
 
-function FieldBlock({
-  label,
+function FieldColumn({
+  caption,
+  captionColor,
   value,
   suggestion,
   recordId,
   fieldKey,
   readOnly,
+  placeholder,
 }: {
-  label?: string;
+  caption: string;
+  captionColor: string;
   value: string;
   suggestion?: string;
   recordId: string;
   fieldKey: string;
   readOnly: boolean;
+  placeholder?: string;
 }) {
   return (
-    <div className="mb-4">
-      {label && (
-        <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--faded)" }}>
-          {label}
-        </label>
-      )}
+    <div>
+      <div className="font-mono-label text-[9px] mb-0.5" style={{ color: captionColor }}>
+        {caption}
+      </div>
       {readOnly ? (
         <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
           {value || <span style={{ color: "var(--faded)" }}>—</span>}
@@ -54,10 +56,66 @@ function FieldBlock({
           field={fieldKey}
           value={value}
           suggestion={suggestion}
+          placeholder={placeholder}
           className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
           style={{ borderColor: "var(--rule)" }}
         />
       )}
+    </div>
+  );
+}
+
+function FieldBlock({
+  label,
+  value,
+  suggestion,
+  recordId,
+  fieldKey,
+  sceneValue,
+  sceneSuggestion,
+  sceneFieldKey,
+  readOnly,
+}: {
+  label?: string;
+  value: string;
+  suggestion?: string;
+  recordId: string;
+  fieldKey: string;
+  sceneValue?: string;
+  sceneSuggestion?: string;
+  sceneFieldKey?: string;
+  readOnly: boolean;
+}) {
+  return (
+    <div className="mb-4">
+      {label && (
+        <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
+          {label}
+        </label>
+      )}
+      <div className="grid grid-cols-2 gap-3">
+        <FieldColumn
+          caption="тезис"
+          captionColor="var(--wine)"
+          value={value}
+          suggestion={suggestion}
+          recordId={recordId}
+          fieldKey={fieldKey}
+          readOnly={readOnly}
+        />
+        {sceneFieldKey && (
+          <FieldColumn
+            caption="сцена"
+            captionColor="var(--sage)"
+            value={sceneValue ?? ""}
+            suggestion={sceneSuggestion}
+            recordId={recordId}
+            fieldKey={sceneFieldKey}
+            readOnly={readOnly}
+            placeholder="в какой сцене и как это проявляется"
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -150,7 +208,7 @@ export default function PopArcCard({
               />
             )}
             <div className="flex-1 min-w-0">
-              <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
+              <label className="block text-[12.5px] mb-1.5" style={{ color: "var(--faded)" }}>
                 Имя
               </label>
               {readOnly ? (
@@ -171,7 +229,7 @@ export default function PopArcCard({
             {!readOnly && (
               <button
                 onClick={handleDelete}
-                className="font-mono-label text-[10px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
+                className="text-[12.5px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
                 style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
               >
                 Удалить
@@ -188,7 +246,7 @@ export default function PopArcCard({
                 key={type}
                 onClick={() => !readOnly && handleSelectType(type)}
                 disabled={readOnly}
-                className="font-mono-label text-[11px] px-3.5 py-1.5 rounded-sm"
+                className="text-[12.5px] px-3.5 py-1.5 rounded-sm"
                 style={{
                   border: `1px solid ${arcType === type ? ARC_TYPE_COLOR[type] : "var(--rule)"}`,
                   background: arcType === type ? ARC_TYPE_COLOR[type] : "transparent",
@@ -211,6 +269,9 @@ export default function PopArcCard({
                   suggestion={suggestions[f.key]}
                   recordId={character.id}
                   fieldKey={f.key}
+                  sceneValue={f.sceneKey ? data[f.sceneKey] ?? "" : undefined}
+                  sceneSuggestion={f.sceneKey ? suggestions[f.sceneKey] : undefined}
+                  sceneFieldKey={f.sceneKey}
                   readOnly={readOnly}
                 />
               ))}

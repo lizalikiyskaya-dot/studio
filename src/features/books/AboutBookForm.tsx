@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Book } from "@/generated/prisma/client";
+import type { Book, Comment } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import SuggestableField from "@/features/suggestions/SuggestableField";
+import CommentsBlock from "@/features/comments/CommentsBlock";
 import { updateBookField, updateSynopsisMode } from "./actions";
 
 function Field({
@@ -21,7 +22,7 @@ function Field({
 }) {
   return (
     <div className="mb-5">
-      <label className="block font-mono-label text-[10px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
+      <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
         {label}
       </label>
       <SuggestableField
@@ -55,7 +56,7 @@ function TextAreaField({
 }) {
   return (
     <div className="mb-5 max-w-[680px]">
-      <label className="block font-mono-label text-[10px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
+      <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
         {label}
       </label>
       <SuggestableField
@@ -74,9 +75,11 @@ function TextAreaField({
 export default function AboutBookForm({
   book,
   suggestions,
+  comments,
 }: {
   book: Book;
   suggestions: Record<string, string>;
+  comments: Comment[];
 }) {
   const [synopsisMode, setSynopsisMode] = useState(book.synopsisMode);
   const [synopsisOpen, setSynopsisOpen] = useState(true);
@@ -127,7 +130,7 @@ export default function AboutBookForm({
       />
 
       <div className="max-w-[680px]">
-        <label className="block font-mono-label text-[10px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
+        <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
           Синопсис
         </label>
         <div className="rounded-md p-4" style={{ border: "1px solid var(--rule)" }}>
@@ -141,7 +144,7 @@ export default function AboutBookForm({
             </button>
             <button
               onClick={toggleSynopsisMode}
-              className="font-mono-label text-[10px] underline"
+              className="text-[12.5px] underline"
               style={{ color: "var(--sage)" }}
             >
               переключить: текст / ссылка на Google Doc
@@ -175,6 +178,8 @@ export default function AboutBookForm({
           )}
         </div>
       </div>
+
+      <CommentsBlock model="Book" recordId={book.id} initialComments={comments} />
     </div>
   );
 }

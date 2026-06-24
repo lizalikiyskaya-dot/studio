@@ -32,7 +32,7 @@ export default async function MentorPage() {
         личный кабинет только после одобрения.
       </p>
 
-      <h2 className="font-mono-label text-[10.5px] uppercase tracking-wide mb-3" style={{ color: "var(--faded)" }}>
+      <h2 className="heading text-[15px] font-semibold mb-3" style={{ color: "var(--faded)" }}>
         Ожидают решения ({pending.length})
       </h2>
 
@@ -53,7 +53,7 @@ export default async function MentorPage() {
               <td className="py-2.5 text-right">
                 <form action={approveUser.bind(null, u.id)} className="inline">
                   <button
-                    className="font-mono-label text-[10.5px] px-3 py-1.5 rounded-sm mr-2"
+                    className="text-[13px] px-3 py-1.5 rounded-sm mr-2"
                     style={{ background: "var(--sage)", color: "#fff" }}
                   >
                     Одобрить
@@ -61,7 +61,7 @@ export default async function MentorPage() {
                 </form>
                 <form action={rejectUser.bind(null, u.id)} className="inline">
                   <button
-                    className="font-mono-label text-[10.5px] px-3 py-1.5 rounded-sm"
+                    className="text-[13px] px-3 py-1.5 rounded-sm"
                     style={{ border: "1px solid var(--wine)", color: "var(--wine)" }}
                   >
                     Отклонить
@@ -73,7 +73,7 @@ export default async function MentorPage() {
         </tbody>
       </table>
 
-      <h2 className="font-mono-label text-[10.5px] uppercase tracking-wide mb-3" style={{ color: "var(--faded)" }}>
+      <h2 className="heading text-[15px] font-semibold mb-3" style={{ color: "var(--faded)" }}>
         Ученики ({students.length})
       </h2>
 
@@ -97,7 +97,8 @@ export default async function MentorPage() {
               <td className="py-2.5 pl-3 text-right align-top">
                 <Link
                   href={`/student-view/${s.id}/tasks`}
-                  className="font-mono-label text-[10.5px] px-3 py-1.5 rounded-sm inline-block whitespace-nowrap"
+                  prefetch={false}
+                  className="text-[13px] px-3 py-1.5 rounded-sm inline-block whitespace-nowrap"
                   style={{ background: "var(--wine)", color: "#fff" }}
                 >
                   Открыть кабинет
@@ -108,7 +109,7 @@ export default async function MentorPage() {
         </tbody>
       </table>
 
-      <h2 className="font-mono-label text-[10.5px] uppercase tracking-wide mb-3" style={{ color: "var(--faded)" }}>
+      <h2 className="heading text-[15px] font-semibold mb-3" style={{ color: "var(--faded)" }}>
         Недавние решения
       </h2>
       <table className="w-full">

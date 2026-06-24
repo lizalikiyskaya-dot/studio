@@ -16,7 +16,7 @@ export default function Subtabs({
           <button
             key={tab.label}
             onClick={() => setActive(i)}
-            className="font-mono-label text-[11px] px-3.5 py-1.5 rounded-sm"
+            className="text-[13px] px-3.5 py-1.5 rounded-sm"
             style={{
               border: `1px solid ${active === i ? "var(--wine)" : "var(--rule)"}`,
               background: active === i ? "var(--wine)" : "transparent",

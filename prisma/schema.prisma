@@ -78,6 +78,7 @@ model Comment {
   id        String   @id @default(cuid())
   model     String
   recordId  String
+  field     String?
   author    String
   text      String
   createdAt DateTime @default(now())
@@ -107,6 +108,7 @@ model User {
   status        UserStatus    @default(PENDING)
   paymentDay    Int?
   paymentStatus PaymentStatus @default(PENDING)
+  reviewModeEnabled Boolean   @default(true)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   books        Book[]
@@ -115,6 +117,7 @@ model User {
   drafts       Draft[]
   popArcCharacters  PopArcCharacter[]
   beliefCards       BeliefCard[]
+  storyCircleCards  StoryCircleCard[]
   customExercises   CustomExercise[]
   freeSections      FreeSection[]
   notes             Note[]
@@ -182,6 +185,16 @@ model BeliefCard {
   isExample    Boolean @default(false)
 }
 
+model StoryCircleCard {
+  id        String  @id @default(cuid())
+  studentId String
+  student   User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order     Int     @default(0)
+  hero      String  @default("")
+  data      Json    @default("{}")
+  isExample Boolean @default(false)
+}
+
 model CustomExercise {
   id               String            @id @default(cuid())
   studentId        String
@@ -212,6 +225,7 @@ model FreeSection {
   title     String          @default("")
   content   String          @default("")
   tableData Json?
+  status    TaskStatus      @default(IN_PROGRESS)
 }
 
 model Task {
@@ -267,7 +281,6 @@ model Book {
   chapters     PlanChapter[]
   characters   Character[]
   acts         Act[]
-  storylines   Storyline[]
   worldEntries WorldEntry[]
 }
 
@@ -309,22 +322,32 @@ model WorldEntry {
 }
 
 model Act {
-  id       String @id @default(cuid())
+  id       String       @id @default(cuid())
   bookId   String
-  book     Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  order    Int    @default(0)
-  title    String @default("")
-  subtitle String @default("")
-  content  String @default("")
+  book     Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order    Int          @default(0)
+  title    String       @default("")
+  subtitle String       @default("")
+  content  String       @default("")
+  chapters ActChapter[]
 }
 
-model Storyline {
-  id       String @id @default(cuid())
-  bookId   String
-  book     Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  order    Int    @default(0)
-  name     String @default("")
-  chapters String @default("")
-  status   String @default("")
-  color    String?
+model ActChapter {
+  id          String           @id @default(cuid())
+  actId       String
+  act         Act              @relation(fields: [actId], references: [id], onDelete: Cascade)
+  order       Int              @default(0)
+  title       String           @default("")
+  description String           @default("")
+  blocks      StorylineBlock[]
+}
+
+model StorylineBlock {
+  id          String     @id @default(cuid())
+  chapterId   String
+  chapter     ActChapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  order       Int        @default(0)
+  color       String     @default("pink")
+  name        String     @default("")
+  description String     @default("")
 }

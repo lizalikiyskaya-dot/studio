@@ -87,7 +87,7 @@ export default function CalendarWidget({
         <button onClick={() => changeMonth(-1)} className="text-[11px] px-1" style={{ color: "var(--faded)" }}>
           ‹
         </button>
-        <span className="font-mono-label text-[10px] uppercase" style={{ color: "var(--ink-soft)" }}>
+        <span className="text-[13px]" style={{ color: "var(--ink-soft)" }}>
           {MONTH_NAMES[month]} {year}
         </span>
         <button onClick={() => changeMonth(1)} className="text-[11px] px-1" style={{ color: "var(--faded)" }}>
@@ -110,6 +110,9 @@ export default function CalendarWidget({
             const hasDeadline = tasksByDay.has(day);
             const isPaymentDay = paymentDay === day;
             const isClickable = hasDeadline || isPaymentDay;
+            const today = new Date();
+            const isToday =
+              day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
             return (
               <button
                 key={di}
@@ -128,7 +131,19 @@ export default function CalendarWidget({
                     <span style={{ width: 4, height: 4, borderRadius: 999, background: "var(--wine)" }} />
                   )}
                 </span>
-                {day}
+                <span
+                  className="flex items-center justify-center"
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 999,
+                    background: isToday ? "#fff" : "transparent",
+                    boxShadow: isToday ? "0 1px 3px rgba(20,20,30,0.15)" : undefined,
+                    fontWeight: isToday ? 700 : undefined,
+                  }}
+                >
+                  {day}
+                </span>
               </button>
             );
           })}
@@ -137,7 +152,7 @@ export default function CalendarWidget({
 
       {selectedDay !== null && tasksByDay.has(selectedDay) && (
         <div className="mt-2 p-2.5 rounded-sm" style={{ border: "1px solid var(--rule)", background: "#fff" }}>
-          <div className="font-mono-label text-[9px] uppercase mb-1.5" style={{ color: "var(--faded)" }}>
+          <div className="text-[12px] mb-1.5" style={{ color: "var(--faded)" }}>
             Дедлайн {selectedDay} {MONTH_NAMES[month].toLowerCase()}
           </div>
           {tasksByDay.get(selectedDay)!.map((t) => (
@@ -150,7 +165,7 @@ export default function CalendarWidget({
 
       {selectedDay !== null && selectedDay === paymentDay && (
         <div className="mt-2 p-2.5 rounded-sm" style={{ border: "1px solid var(--rule)", background: "#fff" }}>
-          <div className="font-mono-label text-[9px] uppercase mb-1.5" style={{ color: "var(--faded)" }}>
+          <div className="text-[12px] mb-1.5" style={{ color: "var(--faded)" }}>
             Дата оплаты
           </div>
           <div className="text-[12.5px]">

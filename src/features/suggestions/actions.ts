@@ -25,6 +25,13 @@ export async function saveFieldOrSuggest(
     return { suggested: false };
   }
 
+  const student = await prisma.user.findUniqueOrThrow({ where: { id: studentId } });
+  if (!student.reviewModeEnabled) {
+    await entry.apply(recordId, field, value);
+    await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
+    return { suggested: false };
+  }
+
   const currentValue = await entry.getCurrentValue(recordId, field);
   if (!currentValue.trim()) {
     await entry.apply(recordId, field, value);

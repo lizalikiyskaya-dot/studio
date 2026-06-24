@@ -4,6 +4,7 @@ import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
 import CharactersList from "./CharactersList";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
+import { getCommentsForRecords } from "@/features/comments/actions";
 import type { FieldGroup } from "./fields";
 
 export default async function CharactersView({
@@ -35,12 +36,19 @@ export default async function CharactersView({
     orderBy: { order: "asc" },
   });
   const suggestions = await getSuggestionsForRecords("Character", characters.map((c) => c.id));
+  const comments = await getCommentsForRecords("Character", characters.map((c) => c.id));
 
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
       <h1 className="page-title text-[24px] font-semibold mb-6">{title}</h1>
-      <CharactersList bookId={activeBook.id} initialCharacters={characters} groups={groups} suggestions={suggestions} />
+      <CharactersList
+        bookId={activeBook.id}
+        initialCharacters={characters}
+        groups={groups}
+        suggestions={suggestions}
+        comments={comments}
+      />
     </div>
   );
 }

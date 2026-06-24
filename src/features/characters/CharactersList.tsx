@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Character } from "@/generated/prisma/client";
+import type { Character, Comment } from "@/generated/prisma/client";
 import CharacterProfile from "./CharacterProfile";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
+import CommentsBlock from "@/features/comments/CommentsBlock";
 import { createCharacter, deleteCharacter, updateCharacterPhoto } from "./actions";
 import type { FieldGroup } from "./fields";
 
@@ -12,11 +13,13 @@ export default function CharactersList({
   initialCharacters,
   groups,
   suggestions,
+  comments,
 }: {
   bookId: string;
   initialCharacters: Character[];
   groups: FieldGroup[];
   suggestions: Record<string, Record<string, string>>;
+  comments: Record<string, Comment[]>;
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
@@ -52,13 +55,14 @@ export default function CharactersList({
               nameSuggestion={charSuggestions.name}
               fieldSuggestions={charSuggestions}
             />
+            <CommentsBlock model="Character" recordId={character.id} initialComments={comments[character.id] ?? []} />
           </CollapsibleCharacterShell>
         );
       })}
 
       <button
         onClick={handleAdd}
-        className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+        className="text-[12.5px] px-3 py-1.5 rounded-sm"
         style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
       >
         + добавить персонажа

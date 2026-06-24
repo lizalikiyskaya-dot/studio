@@ -42,7 +42,7 @@ export default function RegisterPage() {
       </p>
 
       <div className="mb-4">
-        <label className="block font-mono-label text-[10px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
+        <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
           Имя
         </label>
         <input
@@ -56,7 +56,7 @@ export default function RegisterPage() {
       </div>
 
       <div className="mb-4">
-        <label className="block font-mono-label text-[10px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
+        <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
           Почта
         </label>
         <input
@@ -70,7 +70,7 @@ export default function RegisterPage() {
       </div>
 
       <div className="mb-6">
-        <label className="block font-mono-label text-[10px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
+        <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
           Пароль
         </label>
         <input
@@ -93,7 +93,7 @@ export default function RegisterPage() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 rounded-[2px] text-white font-mono-label text-[12px] tracking-wide uppercase disabled:opacity-60"
+        className="w-full py-2.5 rounded-[2px] text-white text-[15px] disabled:opacity-60"
         style={{ background: "var(--wine)" }}
       >
         {loading ? "Отправка..." : "Зарегистрироваться"}

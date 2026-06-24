@@ -47,7 +47,7 @@ export default function BookSwitcher({
 
   return (
     <div className="flex items-center gap-3 mb-6">
-      <label className="font-mono-label text-[10px] uppercase tracking-wide" style={{ color: "var(--faded)" }}>
+      <label className="text-[13px]" style={{ color: "var(--faded)" }}>
         Книга:
       </label>
       <select
@@ -64,14 +64,14 @@ export default function BookSwitcher({
       </select>
       <button
         onClick={handleAddBook}
-        className="font-mono-label text-[11px] px-2.5 py-1 rounded-sm"
+        className="text-[12.5px] px-2.5 py-1 rounded-sm"
         style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
       >
         + новая книга
       </button>
       <button
         onClick={handleDeleteBook}
-        className="font-mono-label text-[11px] px-2.5 py-1 rounded-sm"
+        className="text-[12.5px] px-2.5 py-1 rounded-sm"
         style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
       >
         Удалить книгу

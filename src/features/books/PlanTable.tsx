@@ -65,7 +65,7 @@ export default function PlanTable({
             {HEADERS.map((h) => (
               <div
                 key={h}
-                className="font-mono-label text-[10px] uppercase whitespace-nowrap"
+                className="text-[12px] whitespace-nowrap"
                 style={{ color: "var(--faded)" }}
               >
                 {h}
@@ -146,7 +146,7 @@ export default function PlanTable({
 
       <button
         onClick={handleAdd}
-        className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+        className="text-[12.5px] px-3 py-1.5 rounded-sm"
         style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
       >
         + глава

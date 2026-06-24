@@ -72,7 +72,7 @@ export default function SuggestableField({
         <div className="mt-1.5">
           <button
             onClick={handleAccept}
-            className="font-mono-label text-[10px] px-2 py-0.5 rounded-sm"
+            className="text-[12px] px-2 py-0.5 rounded-sm"
             style={{ color: "#fff", background: "var(--sage)" }}
           >
             ✓ принять правку

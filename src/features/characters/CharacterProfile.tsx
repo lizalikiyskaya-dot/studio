@@ -29,7 +29,7 @@ function FieldBlock({
   return (
     <div className="mb-4">
       {label && (
-        <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--faded)" }}>
+        <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
           {label}
         </label>
       )}
@@ -116,7 +116,7 @@ export default function CharacterProfile({
           />
         )}
         <div className="flex-1 min-w-0">
-          <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
+          <label className="block text-[12.5px] mb-1.5" style={{ color: "var(--faded)" }}>
             Имя
           </label>
           {readOnly ? (
@@ -144,7 +144,7 @@ export default function CharacterProfile({
         {!readOnly && (
           <button
             onClick={handleDelete}
-            className="font-mono-label text-[10px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
+            className="text-[12.5px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
             style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
           >
             Удалить
@@ -156,7 +156,7 @@ export default function CharacterProfile({
         if (!group.title) {
           return (
             <div key={i} className="mb-5">
-              <div className="font-mono-label text-[10px] uppercase tracking-wide mb-2" style={{ color: "var(--wine)" }}>
+              <div className="text-[13px] font-medium mb-2" style={{ color: "var(--wine)" }}>
                 {group.subhead}
               </div>
               {group.fields.map((f) => (
@@ -176,7 +176,7 @@ export default function CharacterProfile({
         return (
           <Accordion key={i} title={group.title} defaultOpen={group.defaultOpen}>
             {group.subhead && (
-              <div className="font-mono-label text-[10px] uppercase tracking-wide mb-3" style={{ color: "var(--wine)" }}>
+              <div className="text-[13px] font-medium mb-3" style={{ color: "var(--wine)" }}>
                 {group.subhead}
               </div>
             )}

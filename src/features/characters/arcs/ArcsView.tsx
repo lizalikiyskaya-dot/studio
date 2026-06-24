@@ -4,6 +4,7 @@ import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
 import ArcCharactersList from "./ArcCharactersList";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
+import { getCommentsForRecords } from "@/features/comments/actions";
 
 export default async function ArcsView({
   studentId,
@@ -30,12 +31,18 @@ export default async function ArcsView({
     orderBy: { order: "asc" },
   });
   const suggestions = await getSuggestionsForRecords("Character", characters.map((c) => c.id));
+  const comments = await getCommentsForRecords("Character", characters.map((c) => c.id));
 
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
       <h1 className="page-title text-[24px] font-semibold mb-6">Арки персонажей</h1>
-      <ArcCharactersList bookId={activeBook.id} initialCharacters={characters} suggestions={suggestions} />
+      <ArcCharactersList
+        bookId={activeBook.id}
+        initialCharacters={characters}
+        suggestions={suggestions}
+        comments={comments}
+      />
     </div>
   );
 }

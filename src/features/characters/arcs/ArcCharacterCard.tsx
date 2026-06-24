@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Character, ArcType } from "@/generated/prisma/client";
+import type { Character, ArcType, Comment } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import SuggestableField from "@/features/suggestions/SuggestableField";
+import CommentsBlock from "@/features/comments/CommentsBlock";
 import { ARC_GROUPS } from "../fields";
 import {
   updateCharacterPhoto,
@@ -30,29 +31,59 @@ function FieldBlock({
   suggestion,
   recordId,
   fieldKey,
+  sceneValue,
+  sceneSuggestion,
+  sceneFieldKey,
 }: {
   label?: string;
   value: string;
   suggestion?: string;
   recordId: string;
   fieldKey: string;
+  sceneValue?: string;
+  sceneSuggestion?: string;
+  sceneFieldKey?: string;
 }) {
   return (
     <div className="mb-4">
       {label && (
-        <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--faded)" }}>
+        <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
           {label}
         </label>
       )}
-      <SuggestableField
-        model="Character"
-        recordId={recordId}
-        field={fieldKey}
-        value={value}
-        suggestion={suggestion}
-        className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
-        style={{ borderColor: "var(--rule)" }}
-      />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <div className="font-mono-label text-[9px] mb-0.5" style={{ color: "var(--wine)" }}>
+            тезис
+          </div>
+          <SuggestableField
+            model="Character"
+            recordId={recordId}
+            field={fieldKey}
+            value={value}
+            suggestion={suggestion}
+            className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
+            style={{ borderColor: "var(--rule)" }}
+          />
+        </div>
+        {sceneFieldKey && (
+          <div>
+            <div className="font-mono-label text-[9px] mb-0.5" style={{ color: "var(--sage)" }}>
+              сцена
+            </div>
+            <SuggestableField
+              model="Character"
+              recordId={recordId}
+              field={sceneFieldKey}
+              value={sceneValue ?? ""}
+              suggestion={sceneSuggestion}
+              placeholder="в какой сцене и как это проявляется"
+              className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
+              style={{ borderColor: "var(--rule)" }}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -60,10 +91,12 @@ function FieldBlock({
 export default function ArcCharacterCard({
   character,
   suggestions,
+  initialComments,
   onDeleted,
 }: {
   character: Character;
   suggestions: Record<string, string>;
+  initialComments: Comment[];
   onDeleted: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -129,7 +162,7 @@ export default function ArcCharacterCard({
               style={{ width: 90, height: 90, minWidth: 90 }}
             />
             <div className="flex-1 min-w-0">
-              <label className="block font-mono-label text-[9px] uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
+              <label className="block text-[12.5px] mb-1.5" style={{ color: "var(--faded)" }}>
                 Имя
               </label>
               <SuggestableField
@@ -145,7 +178,7 @@ export default function ArcCharacterCard({
             </div>
             <button
               onClick={handleDelete}
-              className="font-mono-label text-[10px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
+              className="text-[12.5px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
               style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
             >
               Удалить
@@ -160,7 +193,7 @@ export default function ArcCharacterCard({
               <button
                 key={type}
                 onClick={() => handleSelectType(type)}
-                className="font-mono-label text-[11px] px-3.5 py-1.5 rounded-sm"
+                className="text-[12.5px] px-3.5 py-1.5 rounded-sm"
                 style={{
                   border: `1px solid ${arcType === type ? ARC_TYPE_COLOR[type] : "var(--rule)"}`,
                   background: arcType === type ? ARC_TYPE_COLOR[type] : "transparent",
@@ -182,6 +215,9 @@ export default function ArcCharacterCard({
                   suggestion={suggestions[f.key]}
                   recordId={character.id}
                   fieldKey={f.key}
+                  sceneValue={f.sceneKey ? data[f.sceneKey] ?? "" : undefined}
+                  sceneSuggestion={f.sceneKey ? suggestions[f.sceneKey] : undefined}
+                  sceneFieldKey={f.sceneKey}
                 />
               ))}
             </div>
@@ -190,6 +226,7 @@ export default function ArcCharacterCard({
               Сначала выберите тип арки выше.
             </p>
           )}
+          <CommentsBlock model="Character" recordId={character.id} initialComments={initialComments} />
         </div>
       )}
     </div>

@@ -47,7 +47,7 @@ export function ExamplesList({
       {isMentorViewer && (
         <button
           onClick={handleAdd}
-          className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+          className="text-[12.5px] px-3 py-1.5 rounded-sm"
           style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
         >
           + добавить пример
@@ -98,7 +98,7 @@ export function OwnHeroesList({
 
       <button
         onClick={handleAdd}
-        className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+        className="text-[12.5px] px-3 py-1.5 rounded-sm"
         style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
       >
         + добавить героя

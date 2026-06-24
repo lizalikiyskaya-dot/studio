@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Manrope, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Old_Standard_TT } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -7,14 +7,15 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const manrope = Manrope({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-manrope",
-});
-
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin", "cyrillic"],
   variable: "--font-jetbrains",
+});
+
+const oldStandard = Old_Standard_TT({
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "700"],
+  variable: "--font-old-standard",
 });
 
 export const metadata: Metadata = {
@@ -30,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="ru"
-      className={`${inter.variable} ${manrope.variable} ${jetbrainsMono.variable} min-h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${oldStandard.variable} min-h-full antialiased`}
     >
       <body className="min-h-full">{children}</body>
     </html>

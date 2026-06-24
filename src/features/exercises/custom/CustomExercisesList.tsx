@@ -60,7 +60,7 @@ function AnswerField({
         <div className="mt-2">
           <button
             onClick={onAccept}
-            className="font-mono-label text-[10.5px] px-2.5 py-1 rounded-sm"
+            className="text-[12.5px] px-2.5 py-1 rounded-sm"
             style={{ color: "#fff", background: "var(--sage)" }}
           >
             ✓ принять правку
@@ -90,13 +90,15 @@ function CommentsBlock({
   comments: ExerciseComment[];
   onAdd: (comment: ExerciseComment) => void;
 }) {
+  const [text, setText] = useState("");
   const [, startTransition] = useTransition();
 
-  function handleAdd() {
-    const text = window.prompt("Комментарий");
-    if (!text) return;
+  function submit() {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setText("");
     startTransition(async () => {
-      const comment = await addExerciseComment(exerciseId, text);
+      const comment = await addExerciseComment(exerciseId, trimmed);
       onAdd(comment);
     });
   }
@@ -105,7 +107,7 @@ function CommentsBlock({
     <div className="mt-3 pt-3 border-t" style={{ borderColor: "var(--rule)" }}>
       {comments.map((c) => (
         <div key={c.id} className="mb-2 pl-2.5" style={{ borderLeft: "2px solid var(--wine)" }}>
-          <div className="font-mono-label text-[9.5px] uppercase" style={{ color: "var(--faded)" }}>
+          <div className="font-mono-label text-[9.5px]" style={{ color: "var(--faded)" }}>
             {c.author}, {new Date(c.createdAt).toLocaleDateString("ru-RU")}
           </div>
           <div className="text-[13px] italic mt-0.5" style={{ color: "var(--ink-soft)" }}>
@@ -113,9 +115,29 @@ function CommentsBlock({
           </div>
         </div>
       ))}
-      <button onClick={handleAdd} className="text-[12.5px] underline" style={{ color: "var(--sage)" }}>
-        + комментарий
-      </button>
+      <div className="flex items-end gap-1.5 mt-1.5">
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          placeholder="+ комментарий..."
+          rows={1}
+          className="flex-1 outline-none bg-transparent text-[13px] leading-relaxed resize-none rounded-sm px-2 py-1.5"
+          style={{ border: "1px solid var(--rule)" }}
+        />
+        <button
+          onClick={submit}
+          className="text-[12px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
+          style={{ background: "var(--sage)", color: "#fff" }}
+        >
+          ↵
+        </button>
+      </div>
     </div>
   );
 }
@@ -201,7 +223,7 @@ export default function CustomExercisesList({
             {isMentorViewer && (
               <button
                 onClick={() => handleDelete(exercise.id)}
-                className="font-mono-label text-[10px] px-2 py-1 rounded-sm flex-shrink-0"
+                className="text-[12.5px] px-2 py-1 rounded-sm flex-shrink-0"
                 style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
               >
                 Удалить
@@ -234,7 +256,7 @@ export default function CustomExercisesList({
       {isMentorViewer && (
         <button
           onClick={handleAdd}
-          className="font-mono-label text-[11px] px-3 py-1.5 rounded-sm"
+          className="text-[12.5px] px-3 py-1.5 rounded-sm"
           style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
         >
           + упражнение

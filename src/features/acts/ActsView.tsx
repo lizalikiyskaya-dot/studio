@@ -2,10 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { resolveActiveBook } from "@/lib/resolveBook";
 import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
-import Subtabs from "@/components/Subtabs";
 import ActsGrid from "./ActsGrid";
-import StorylinesTable from "./StorylinesTable";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
+import { getCommentsForRecords } from "@/features/comments/actions";
 
 export default async function ActsView({
   studentId,
@@ -21,43 +20,25 @@ export default async function ActsView({
   if (!activeBook) {
     return (
       <div>
-        <h1 className="page-title text-[24px] font-semibold mb-6">Акты и сюжетные линии</h1>
+        <h1 className="page-title text-[24px] font-semibold mb-6">План книги</h1>
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
   }
 
-  const [acts, storylines] = await Promise.all([
-    prisma.act.findMany({ where: { bookId: activeBook.id }, orderBy: { order: "asc" } }),
-    prisma.storyline.findMany({ where: { bookId: activeBook.id }, orderBy: { order: "asc" } }),
-  ]);
-  const [actSuggestions, storylineSuggestions] = await Promise.all([
-    getSuggestionsForRecords("Act", acts.map((a) => a.id)),
-    getSuggestionsForRecords("Storyline", storylines.map((s) => s.id)),
-  ]);
+  const acts = await prisma.act.findMany({
+    where: { bookId: activeBook.id },
+    orderBy: { order: "asc" },
+    include: { chapters: { orderBy: { order: "asc" }, include: { blocks: { orderBy: { order: "asc" } } } } },
+  });
+  const actSuggestions = await getSuggestionsForRecords("Act", acts.map((a) => a.id));
+  const actComments = await getCommentsForRecords("Act", acts.map((a) => a.id));
 
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
-      <h1 className="page-title text-[24px] font-semibold mb-6">Акты и сюжетные линии</h1>
-      <Subtabs
-        tabs={[
-          {
-            label: "Акты",
-            content: <ActsGrid bookId={activeBook.id} initialActs={acts} suggestions={actSuggestions} />,
-          },
-          {
-            label: "Сюжетные линии",
-            content: (
-              <StorylinesTable
-                bookId={activeBook.id}
-                initialStorylines={storylines}
-                suggestions={storylineSuggestions}
-              />
-            ),
-          },
-        ]}
-      />
+      <h1 className="page-title text-[24px] font-semibold mb-6">План книги</h1>
+      <ActsGrid bookId={activeBook.id} initialActs={acts} suggestions={actSuggestions} comments={actComments} />
     </div>
   );
 }

@@ -5,10 +5,10 @@ export type SuggestableModel =
   | "PlanChapter"
   | "Character"
   | "PopArcCharacter"
-  | "Storyline"
   | "Act"
   | "BeliefCard"
-  | "FreeSection";
+  | "FreeSection"
+  | "StoryCircleCard";
 
 type RegistryEntry = {
   getStudentId: (recordId: string) => Promise<string>;
@@ -92,21 +92,6 @@ export const SUGGESTION_REGISTRY: Record<SuggestableModel, RegistryEntry> = {
       await prisma.popArcCharacter.update({ where: { id }, data: { data } });
     },
   },
-  Storyline: {
-    getStudentId: async (id) => {
-      const storyline = await prisma.storyline.findUniqueOrThrow({ where: { id } });
-      const book = await prisma.book.findUniqueOrThrow({ where: { id: storyline.bookId } });
-      return book.studentId;
-    },
-    getCurrentValue: async (id, field) => {
-      const storyline = await prisma.storyline.findUniqueOrThrow({ where: { id } });
-      const value = (storyline as unknown as Record<string, unknown>)[field];
-      return typeof value === "string" ? value : "";
-    },
-    apply: async (id, field, value) => {
-      await prisma.storyline.update({ where: { id }, data: { [field]: value } });
-    },
-  },
   Act: {
     getStudentId: async (id) => {
       const act = await prisma.act.findUniqueOrThrow({ where: { id } });
@@ -142,6 +127,24 @@ export const SUGGESTION_REGISTRY: Record<SuggestableModel, RegistryEntry> = {
     },
     apply: async (id, field, value) => {
       await prisma.freeSection.update({ where: { id }, data: { [field]: value } });
+    },
+  },
+  StoryCircleCard: {
+    getStudentId: async (id) => (await prisma.storyCircleCard.findUniqueOrThrow({ where: { id } })).studentId,
+    getCurrentValue: async (id, field) => {
+      const card = await prisma.storyCircleCard.findUniqueOrThrow({ where: { id } });
+      if (field === "hero") return card.hero;
+      return getJsonFieldValue(card.data as Record<string, unknown>, field);
+    },
+    apply: async (id, field, value) => {
+      if (field === "hero") {
+        await prisma.storyCircleCard.update({ where: { id }, data: { hero: value } });
+        return;
+      }
+      const card = await prisma.storyCircleCard.findUniqueOrThrow({ where: { id } });
+      const data = (card.data as Record<string, string>) ?? {};
+      data[field] = value;
+      await prisma.storyCircleCard.update({ where: { id }, data: { data } });
     },
   },
 };

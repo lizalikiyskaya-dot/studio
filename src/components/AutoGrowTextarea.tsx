@@ -34,6 +34,12 @@ export default function AutoGrowTextarea({
       rows={1}
       onInput={(e) => resize(e.currentTarget)}
       onBlur={(e) => onBlur(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          e.currentTarget.blur();
+        }
+      }}
       className={className}
       style={{ resize: "none", overflow: "hidden", display: "block", ...style }}
     />
