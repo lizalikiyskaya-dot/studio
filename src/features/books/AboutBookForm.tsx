@@ -105,12 +105,12 @@ export default function AboutBookForm({
       <div className="grid grid-cols-2 gap-x-8">
         <Field label="Название (рабочее)" value={book.title} field="title" bookId={book.id} suggestion={suggestions.title} />
         <Field label="Жанр" value={book.genre} field="genre" bookId={book.id} suggestion={suggestions.genre} />
-        <Field label="Референсы" value={book.references} field="references" bookId={book.id} suggestion={suggestions.references} />
+        <TextAreaField label="Референсы" value={book.references} field="references" bookId={book.id} suggestion={suggestions.references} />
         <Field label="Целевая аудитория" value={book.audience} field="audience" bookId={book.id} suggestion={suggestions.audience} />
         <Field label="Количество частей" value={book.partsCount} field="partsCount" bookId={book.id} suggestion={suggestions.partsCount} />
-        <Field label="Временная структура" value={book.timeStructure} field="timeStructure" bookId={book.id} suggestion={suggestions.timeStructure} />
-        <Field label="Главные герои" value={book.mainCharacters} field="mainCharacters" bookId={book.id} suggestion={suggestions.mainCharacters} />
-        <Field
+        <TextAreaField label="Временная структура" value={book.timeStructure} field="timeStructure" bookId={book.id} suggestion={suggestions.timeStructure} />
+        <TextAreaField label="Главные герои" value={book.mainCharacters} field="mainCharacters" bookId={book.id} suggestion={suggestions.mainCharacters} />
+        <TextAreaField
           label="Драматический аргумент"
           value={book.dramaticArgument}
           field="dramaticArgument"

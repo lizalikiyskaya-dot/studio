@@ -15,7 +15,8 @@ import { nextTaskStatus } from "./status";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { shortenUrl } from "@/lib/shortenUrl";
 
-const GRID_COLUMNS = "2fr 150px 150px 150px 2fr 150px 30px";
+const GRID_COLUMNS = "3fr 130px 140px 140px 3fr 130px 28px";
+const HEADER_ALIGN = ["left", "left", "center", "center", "left", "center", "left"] as const;
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
   IN_PROGRESS: "в процессе",
@@ -46,7 +47,7 @@ function LinkCell({
         rel="noopener noreferrer"
         title={value}
         className="text-[12.5px] block text-center"
-        style={{ color: "var(--wine)" }}
+        style={{ color: "var(--wine)", overflowWrap: "anywhere" }}
       >
         {shortenUrl(value)}
       </a>
@@ -132,11 +133,11 @@ export default function TasksTable({
             className="grid gap-x-3 pb-2 border-b"
             style={{ gridTemplateColumns: GRID_COLUMNS, borderColor: "var(--rule)" }}
           >
-            {["Задание", "Дедлайн", "Ссылка на работу", "Обратная связь", "Примечания", "Статус", ""].map((h) => (
+            {["Задание", "Дедлайн", "Ссылка на работу", "Обратная связь", "Примечания", "Статус", ""].map((h, i) => (
               <div
                 key={h}
                 className="text-[12px] whitespace-nowrap"
-                style={{ color: "var(--faded)" }}
+                style={{ color: "var(--faded)", textAlign: HEADER_ALIGN[i] }}
               >
                 {h}
               </div>
@@ -162,10 +163,10 @@ export default function TasksTable({
                 className="w-full outline-none bg-transparent text-[12.5px] py-1.5"
                 style={{ border: "1px solid var(--rule)", borderRadius: 2, padding: "4px 6px" }}
               />
-              <div className="pt-1">
+              <div className="pt-1 min-w-0">
                 <LinkCell value={task.workLink} onSave={(v) => handleLink(task.id, "workLink", v)} />
               </div>
-              <div className="pt-1">
+              <div className="pt-1 min-w-0">
                 <LinkCell value={task.feedbackLink} onSave={(v) => handleLink(task.id, "feedbackLink", v)} />
               </div>
               <AutoGrowTextarea
