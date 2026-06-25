@@ -33,11 +33,12 @@ export default function Accordion({
           ▾
         </span>
       </div>
-      {open && (
-        <div className="px-4 pb-5 pt-1 border-t" style={{ borderColor: "var(--rule)" }}>
-          {children}
-        </div>
-      )}
+      <div
+        className="px-4 pb-5 pt-1 border-t"
+        style={{ borderColor: "var(--rule)", display: open ? "block" : "none" }}
+      >
+        {children}
+      </div>
     </div>
   );
 }

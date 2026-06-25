@@ -148,8 +148,10 @@ export default function ArcCharacterCard({
         </span>
       </div>
 
-      {open && (
-        <div className="px-4 pb-5 pt-1 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div
+        className="px-4 pb-5 pt-1 border-t"
+        style={{ borderColor: "var(--rule)", display: open ? "block" : "none" }}
+      >
           <div className="flex gap-5 items-center my-4">
             <ImageUploadBox
               value={photoUrl}
@@ -227,8 +229,7 @@ export default function ArcCharacterCard({
             </p>
           )}
           <CommentsBlock model="Character" recordId={character.id} initialComments={initialComments} />
-        </div>
-      )}
+      </div>
     </div>
   );
 }

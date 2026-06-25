@@ -180,8 +180,10 @@ export default function PopArcCard({
         </span>
       </div>
 
-      {open && (
-        <div className="px-4 pb-5 pt-1 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div
+        className="px-4 pb-5 pt-1 border-t"
+        style={{ borderColor: "var(--rule)", display: open ? "block" : "none" }}
+      >
           <div className="flex gap-5 items-center my-4">
             {readOnly ? (
               <div
@@ -283,8 +285,7 @@ export default function PopArcCard({
           )}
 
           <CommentsBlock model="PopArcCharacter" recordId={character.id} initialComments={initialComments} />
-        </div>
-      )}
+      </div>
     </div>
   );
 }
