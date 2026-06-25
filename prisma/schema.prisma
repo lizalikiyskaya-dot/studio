@@ -48,7 +48,9 @@ enum MaterialCategory {
 
 enum ArcType {
   POSITIVE
-  NEGATIVE
+  DISILLUSIONMENT
+  FALL
+  CORRUPTION
   FLAT
 }
 

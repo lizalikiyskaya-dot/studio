@@ -47,6 +47,34 @@ export type CharacterFieldKey =
   | "negFalseGoalFullScene"
   | "negResult"
   | "negResultScene"
+  | "disFalseBelief"
+  | "disFalseBeliefScene"
+  | "disFalseGoal"
+  | "disFalseGoalScene"
+  | "disTempSuccess"
+  | "disTempSuccessScene"
+  | "disRevealPoint"
+  | "disRevealPointScene"
+  | "disBitterTruth"
+  | "disBitterTruthScene"
+  | "disAcceptance"
+  | "disAcceptanceScene"
+  | "disResult"
+  | "disResultScene"
+  | "fallVagueBelief"
+  | "fallVagueBeliefScene"
+  | "fallLieGoal"
+  | "fallLieGoalScene"
+  | "fallFirstCracks"
+  | "fallFirstCracksScene"
+  | "fallTruthDenied"
+  | "fallTruthDeniedScene"
+  | "fallDeepening"
+  | "fallDeepeningScene"
+  | "fallDestructiveActs"
+  | "fallDestructiveActsScene"
+  | "fallResult"
+  | "fallResultScene"
   | "flatTrueBelief"
   | "flatTrueBeliefScene"
   | "flatTrueGoal"
@@ -111,6 +139,34 @@ export const ALL_CHARACTER_FIELD_KEYS: CharacterFieldKey[] = [
   "negFalseGoalFullScene",
   "negResult",
   "negResultScene",
+  "disFalseBelief",
+  "disFalseBeliefScene",
+  "disFalseGoal",
+  "disFalseGoalScene",
+  "disTempSuccess",
+  "disTempSuccessScene",
+  "disRevealPoint",
+  "disRevealPointScene",
+  "disBitterTruth",
+  "disBitterTruthScene",
+  "disAcceptance",
+  "disAcceptanceScene",
+  "disResult",
+  "disResultScene",
+  "fallVagueBelief",
+  "fallVagueBeliefScene",
+  "fallLieGoal",
+  "fallLieGoalScene",
+  "fallFirstCracks",
+  "fallFirstCracksScene",
+  "fallTruthDenied",
+  "fallTruthDeniedScene",
+  "fallDeepening",
+  "fallDeepeningScene",
+  "fallDestructiveActs",
+  "fallDestructiveActsScene",
+  "fallResult",
+  "fallResultScene",
   "flatTrueBelief",
   "flatTrueBeliefScene",
   "flatTrueGoal",
@@ -208,15 +264,39 @@ export const ARC_GROUPS: FieldGroup[] = [
     ],
   },
   {
-    title: "Отрицательная арка",
+    title: "Арка разочарования",
     fields: [
-      { key: "negInitialTruth", sceneKey: "negInitialTruthScene", label: "Исходная (частичная) истина" },
-      { key: "negTemptation", sceneKey: "negTemptationScene", label: "Искушение ложью" },
-      { key: "negTempSuccess", sceneKey: "negTempSuccessScene", label: "Временный успех лжи" },
-      { key: "negRejectionPoint", sceneKey: "negRejectionPointScene", label: "Точка отказа от истины" },
-      { key: "negLieRoot", sceneKey: "negLieRootScene", label: "Укоренение лжи" },
-      { key: "negFalseGoalFull", sceneKey: "negFalseGoalFullScene", label: "Полное достижение ложной цели" },
-      { key: "negResult", sceneKey: "negResultScene", label: "Результат — крах / разрушение" },
+      { key: "disFalseBelief", sceneKey: "disFalseBeliefScene", label: "Ложное убеждение" },
+      { key: "disFalseGoal", sceneKey: "disFalseGoalScene", label: "Ложная мотивация / цель" },
+      { key: "disTempSuccess", sceneKey: "disTempSuccessScene", label: "Временный успех ложной мотивации" },
+      { key: "disRevealPoint", sceneKey: "disRevealPointScene", label: "Точка раскрытия истины" },
+      { key: "disBitterTruth", sceneKey: "disBitterTruthScene", label: "Истина (горькая, не утешительная)" },
+      { key: "disAcceptance", sceneKey: "disAcceptanceScene", label: "Принятие тяжёлой истины" },
+      { key: "disResult", sceneKey: "disResultScene", label: "Результат — горькое прозрение без счастья" },
+    ],
+  },
+  {
+    title: "Арка падения",
+    fields: [
+      { key: "fallVagueBelief", sceneKey: "fallVagueBeliefScene", label: "Ложное убеждение (расплывчатая мотивация)" },
+      { key: "fallLieGoal", sceneKey: "fallLieGoalScene", label: "Цель, основанная на лжи" },
+      { key: "fallFirstCracks", sceneKey: "fallFirstCracksScene", label: "Первые трещины — намёки на истину, которые герой игнорирует" },
+      { key: "fallTruthDenied", sceneKey: "fallTruthDeniedScene", label: "Истина становится очевидна, но герой отказывается её принять" },
+      { key: "fallDeepening", sceneKey: "fallDeepeningScene", label: "Углубление в ложь как защитная реакция" },
+      { key: "fallDestructiveActs", sceneKey: "fallDestructiveActsScene", label: "Разрушительные действия в защиту лжи" },
+      { key: "fallResult", sceneKey: "fallResultScene", label: "Результат — трагический крах без сознательного выбора зла" },
+    ],
+  },
+  {
+    title: "Арка порчи",
+    fields: [
+      { key: "negInitialTruth", sceneKey: "negInitialTruthScene", label: "Истинное убеждение / добрые намерения в начале" },
+      { key: "negTemptation", sceneKey: "negTemptationScene", label: "Искушение — ложь, которая кажется путём к цели" },
+      { key: "negTempSuccess", sceneKey: "negTempSuccessScene", label: "Первые шаги к лжи — пока обратимые" },
+      { key: "negRejectionPoint", sceneKey: "negRejectionPointScene", label: "Поворотный момент — осознанный отказ от истины" },
+      { key: "negLieRoot", sceneKey: "negLieRootScene", label: "Активное принятие лжи и оправдание поступков" },
+      { key: "negFalseGoalFull", sceneKey: "negFalseGoalFullScene", label: "Разрушительные поступки ради ложной цели" },
+      { key: "negResult", sceneKey: "negResultScene", label: "Результат — герой теряет себя, сознательно выбрав тьму" },
     ],
   },
   {

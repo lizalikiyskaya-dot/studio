@@ -9,18 +9,28 @@ import { ARC_GROUPS } from "@/features/characters/fields";
 import { uploadFile } from "@/lib/uploadFile";
 import { updatePopArcType } from "./actions";
 
-const ARC_TYPE_INDEX: Record<ArcType, number> = { POSITIVE: 0, NEGATIVE: 1, FLAT: 2 };
+const ARC_TYPE_INDEX: Record<ArcType, number> = {
+  POSITIVE: 0,
+  DISILLUSIONMENT: 1,
+  FALL: 2,
+  CORRUPTION: 3,
+  FLAT: 4,
+};
 const ARC_TYPE_LABEL: Record<ArcType, string> = {
   POSITIVE: "Позитивная арка",
-  NEGATIVE: "Отрицательная арка",
+  DISILLUSIONMENT: "Арка разочарования",
+  FALL: "Арка падения",
+  CORRUPTION: "Арка порчи",
   FLAT: "Плоская арка",
 };
 const ARC_TYPE_COLOR: Record<ArcType, string> = {
   POSITIVE: "var(--sage)",
-  NEGATIVE: "#D9779A",
+  DISILLUSIONMENT: "#9B8AC4",
+  FALL: "#C98A56",
+  CORRUPTION: "#D9779A",
   FLAT: "#6FA8C9",
 };
-const ARC_TYPES: ArcType[] = ["POSITIVE", "NEGATIVE", "FLAT"];
+const ARC_TYPES: ArcType[] = ["POSITIVE", "DISILLUSIONMENT", "FALL", "CORRUPTION", "FLAT"];
 
 function FieldColumn({
   caption,
