@@ -65,12 +65,11 @@ function StorylineBlockCard({
           ✕
         </button>
       </div>
-      <textarea
+      <AutoGrowTextarea
         defaultValue={block.description}
-        onBlur={(e) => onUpdateField("description", e.target.value)}
+        onBlur={(v) => onUpdateField("description", v)}
         placeholder="Описание сюжетной линии"
-        className="w-full outline-none bg-transparent text-[12px] leading-snug resize-none"
-        rows={3}
+        className="w-full outline-none bg-transparent text-[12px] leading-snug"
         style={{ color: "var(--ink-soft)" }}
       />
       <div className="flex gap-1 mt-1.5">

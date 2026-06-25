@@ -71,11 +71,11 @@ function AnswerField({
   }
 
   return (
-    <textarea
+    <AutoGrowTextarea
       defaultValue={exercise.answer}
-      onBlur={(e) => onChange(e.target.value)}
+      onBlur={onChange}
       placeholder="Ответ ученика..."
-      className="w-full rounded-sm p-3 text-[13.5px] outline-none resize-vertical mb-3"
+      className="w-full rounded-sm p-3 text-[13.5px] outline-none mb-3"
       style={{ border: "1px solid var(--rule)", minHeight: 90 }}
     />
   );
