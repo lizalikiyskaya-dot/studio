@@ -37,35 +37,38 @@ export default async function SettingView({
   const session = await getSession();
   const isMentor = session?.role === "MENTOR";
 
+  const tabs = [
+    {
+      label: "Метод GRAPES",
+      content: (
+        <GrapesTable bookId={activeBook.id} book={activeBook} suggestions={suggestions[activeBook.id] ?? {}} />
+      ),
+    },
+    {
+      label: "Тип сеттинга",
+      content: <SettingTypeSection bookId={activeBook.id} book={activeBook} />,
+    },
+  ];
+
+  if (isMentor || activeBook.fantasyUnlocked) {
+    tabs.push({
+      label: "Фэнтези мир",
+      content: (
+        <FantasySection
+          bookId={activeBook.id}
+          book={activeBook}
+          initialEntries={worldEntries}
+          isMentor={isMentor}
+        />
+      ),
+    });
+  }
+
   return (
     <div>
       <BookSelect books={books} activeBookId={activeBook.id} />
       <h1 className="page-title text-[24px] font-semibold mb-6">Сеттинг</h1>
-      <Subtabs
-        tabs={[
-          {
-            label: "Метод GRAPES",
-            content: (
-              <GrapesTable bookId={activeBook.id} book={activeBook} suggestions={suggestions[activeBook.id] ?? {}} />
-            ),
-          },
-          {
-            label: "Тип сеттинга",
-            content: <SettingTypeSection bookId={activeBook.id} book={activeBook} />,
-          },
-          {
-            label: "Фэнтези мир",
-            content: (
-              <FantasySection
-                bookId={activeBook.id}
-                book={activeBook}
-                initialEntries={worldEntries}
-                isMentor={isMentor}
-              />
-            ),
-          },
-        ]}
-      />
+      <Subtabs tabs={tabs} />
     </div>
   );
 }
