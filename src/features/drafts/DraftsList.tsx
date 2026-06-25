@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import type { Draft } from "@/generated/prisma/client";
 import FileAttachBox from "@/components/FileAttachBox";
 import { uploadFile } from "@/lib/uploadFile";
+import { blurOnEnter } from "@/lib/blurOnEnter";
 import { createDraft, updateDraftField, deleteDraft } from "./actions";
 
 export default function DraftsList({
@@ -48,6 +49,7 @@ export default function DraftsList({
           <input
             defaultValue={draft.title}
             onBlur={(e) => handleField(draft.id, "title", e.target.value)}
+            onKeyDown={blurOnEnter}
             placeholder="Название"
             className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-2"
             style={{ borderColor: "var(--rule)" }}
@@ -55,6 +57,7 @@ export default function DraftsList({
           <input
             defaultValue={draft.note}
             onBlur={(e) => handleField(draft.id, "note", e.target.value)}
+            onKeyDown={blurOnEnter}
             placeholder="примечание"
             className="w-full outline-none bg-transparent text-[13px] italic mb-3"
             style={{ color: "var(--ink-soft)" }}

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import type { PlanChapter } from "@/generated/prisma/client";
 import { createPlanChapter, updatePlanChapterNumber } from "./actions";
 import SuggestableField from "@/features/suggestions/SuggestableField";
+import { blurOnEnter } from "@/lib/blurOnEnter";
 
 const GRID_COLUMNS = "40px 2fr 2fr 1.6fr 1.4fr 90px 90px 60px";
 
@@ -124,12 +125,14 @@ export default function PlanTable({
                   type="number"
                   defaultValue={chapter.plannedChars}
                   onBlur={(e) => handleNumber(chapter.id, "plannedChars", Number(e.target.value))}
+                  onKeyDown={blurOnEnter}
                   className="w-full min-w-0 outline-none bg-transparent text-[13px] font-mono-label py-1"
                 />
                 <input
                   type="number"
                   defaultValue={chapter.writtenChars}
                   onBlur={(e) => handleNumber(chapter.id, "writtenChars", Number(e.target.value))}
+                  onKeyDown={blurOnEnter}
                   className="w-full min-w-0 outline-none bg-transparent text-[13px] font-mono-label py-1"
                 />
                 <div

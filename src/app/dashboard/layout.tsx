@@ -35,7 +35,6 @@ export default async function DashboardLayout({
           userName={user.name}
           isMentor={false}
           studentId={user.id}
-          initialReviewMode={user.reviewModeEnabled}
           calendar={{
             tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
             paymentDay: user.paymentDay,

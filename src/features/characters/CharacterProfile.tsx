@@ -5,6 +5,7 @@ import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import type { SuggestableModel } from "@/lib/suggestionRegistry";
+import { blurOnEnter } from "@/lib/blurOnEnter";
 import type { FieldGroup } from "./fields";
 
 type Suggestable = { model: SuggestableModel; recordId: string };
@@ -136,6 +137,7 @@ export default function CharacterProfile({
             <input
               defaultValue={name}
               onBlur={(e) => onNameBlur(e.target.value)}
+              onKeyDown={blurOnEnter}
               className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
               style={{ borderColor: "var(--rule)" }}
             />

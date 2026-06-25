@@ -102,6 +102,12 @@ export default function SuggestableField({
         defaultValue={value}
         placeholder={placeholder}
         onBlur={(e) => handleBlur(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            e.currentTarget.blur();
+          }
+        }}
         className={className}
         style={style}
       />

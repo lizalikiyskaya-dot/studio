@@ -18,6 +18,7 @@ import {
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import CommentsBlock from "@/features/comments/CommentsBlock";
+import { blurOnEnter } from "@/lib/blurOnEnter";
 
 type ChapterWithBlocks = ActChapter & { blocks: StorylineBlock[] };
 type ActWithChapters = Act & { chapters: ChapterWithBlocks[] };
@@ -56,6 +57,7 @@ function StorylineBlockCard({
         <input
           defaultValue={block.name}
           onBlur={(e) => onUpdateField("name", e.target.value)}
+          onKeyDown={blurOnEnter}
           placeholder="Название линии"
           className="heading flex-1 min-w-0 outline-none bg-transparent text-[13.5px] font-semibold"
         />
@@ -119,6 +121,7 @@ function ChapterRow({
         <input
           defaultValue={chapter.title}
           onBlur={(e) => onUpdateField("title", e.target.value)}
+          onKeyDown={blurOnEnter}
           className="heading flex-1 min-w-0 outline-none bg-transparent text-[14px] font-semibold"
         />
         <button onClick={onDelete} className="text-[10px] flex-shrink-0" style={{ color: "var(--wine)" }}>

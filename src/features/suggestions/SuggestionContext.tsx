@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 
-const CanSuggestContext = createContext(false);
+const CanSuggestContext = createContext<[boolean, (v: boolean) => void]>([false, () => {}]);
 
 export function SuggestionProvider({
   canSuggest,
@@ -11,9 +11,14 @@ export function SuggestionProvider({
   canSuggest: boolean;
   children: React.ReactNode;
 }) {
-  return <CanSuggestContext.Provider value={canSuggest}>{children}</CanSuggestContext.Provider>;
+  const state = useState(canSuggest);
+  return <CanSuggestContext.Provider value={state}>{children}</CanSuggestContext.Provider>;
 }
 
 export function useCanSuggest() {
-  return useContext(CanSuggestContext);
+  return useContext(CanSuggestContext)[0];
+}
+
+export function useSetCanSuggest() {
+  return useContext(CanSuggestContext)[1];
 }

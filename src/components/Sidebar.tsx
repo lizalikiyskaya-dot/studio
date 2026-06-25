@@ -7,6 +7,7 @@ import LogoutButton from "./LogoutButton";
 import CalendarWidget from "./CalendarWidget";
 import ToggleSwitch from "./ToggleSwitch";
 import { setReviewMode } from "@/features/reviewMode/actions";
+import { useCanSuggest, useSetCanSuggest } from "@/features/suggestions/SuggestionContext";
 
 const TOP_ITEMS = [
   { path: "tasks", label: "Задания" },
@@ -32,7 +33,6 @@ export default function Sidebar({
   mentorMenuOnly,
   calendar,
   studentId,
-  initialReviewMode,
 }: {
   basePath: string;
   userName: string;
@@ -45,10 +45,10 @@ export default function Sidebar({
     paymentStatus: "PAID" | "PENDING";
   };
   studentId?: string;
-  initialReviewMode?: boolean;
 }) {
   const pathname = usePathname();
-  const [reviewMode, setReviewModeState] = useState(initialReviewMode ?? true);
+  const reviewMode = useCanSuggest();
+  const setReviewModeState = useSetCanSuggest();
   const [, startTransition] = useTransition();
 
   function handleToggleReviewMode(checked: boolean) {

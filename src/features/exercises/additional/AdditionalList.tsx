@@ -5,6 +5,7 @@ import type { FreeSection, Comment, TaskStatus } from "@/generated/prisma/client
 import Accordion from "@/components/Accordion";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
+import { blurOnEnter } from "@/lib/blurOnEnter";
 import {
   createAdditionalSection,
   updateSectionTitle,
@@ -62,6 +63,7 @@ function TableSection({
             min={1}
             defaultValue={grid.length}
             onBlur={(e) => handleResize(Number(e.target.value) || grid.length, grid[0]?.length || 2)}
+            onKeyDown={blurOnEnter}
             className="w-14 text-[13px] px-1.5 py-1 rounded-sm"
             style={{ border: "1px solid var(--rule)" }}
           />
@@ -73,6 +75,7 @@ function TableSection({
             min={1}
             defaultValue={grid[0]?.length ?? 2}
             onBlur={(e) => handleResize(grid.length, Number(e.target.value) || grid[0]?.length || 2)}
+            onKeyDown={blurOnEnter}
             className="w-14 text-[13px] px-1.5 py-1 rounded-sm"
             style={{ border: "1px solid var(--rule)" }}
           />
@@ -87,6 +90,7 @@ function TableSection({
                     <input
                       defaultValue={cell}
                       onBlur={(e) => handleCell(ri, ci, e.target.value)}
+                      onKeyDown={blurOnEnter}
                       className="outline-none bg-transparent text-[13px] px-2.5 py-2"
                       style={{ width: 140 }}
                     />
@@ -173,6 +177,7 @@ export default function AdditionalList({
             <input
               defaultValue={section.title}
               onBlur={(e) => handleTitle(section.id, e.target.value)}
+              onKeyDown={blurOnEnter}
               placeholder={section.type === "TABLE" ? "Название таблицы" : "Вопрос"}
               className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
               style={{ borderColor: "var(--rule)" }}

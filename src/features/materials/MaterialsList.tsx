@@ -6,6 +6,7 @@ import Accordion from "@/components/Accordion";
 import FileAttachBox from "@/components/FileAttachBox";
 import Subtabs from "@/components/Subtabs";
 import { uploadFile } from "@/lib/uploadFile";
+import { blurOnEnter } from "@/lib/blurOnEnter";
 import {
   createMaterial,
   updateMaterialTitle,
@@ -125,6 +126,7 @@ function BooksList({
             <input
               defaultValue={material.title}
               onBlur={(e) => handleTitle(material.id, e.target.value)}
+              onKeyDown={blurOnEnter}
               placeholder="Название книги"
               className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
               style={{ borderColor: "var(--rule)" }}
@@ -228,6 +230,7 @@ function HandoutsList({
             <input
               defaultValue={material.title}
               onBlur={(e) => handleTitle(material.id, e.target.value)}
+              onKeyDown={blurOnEnter}
               placeholder="Название методички"
               className="heading flex-1 min-w-0 outline-none bg-transparent text-[15px] font-semibold"
             />

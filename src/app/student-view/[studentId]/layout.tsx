@@ -31,26 +31,27 @@ export default async function StudentViewLayout({
   const noteComments = await getCommentsForRecords("Note", notes.map((n) => n.id));
 
   return (
-    <div className="flex min-h-screen gap-5 p-5 mx-auto" style={{ maxWidth: 1320 }}>
-      <div style={{ width: 250, flexShrink: 0 }}>
-        <Sidebar
-          basePath={`/student-view/${studentId}`}
-          userName={student.name}
-          isMentor
-          mentorViewLabel={student.name}
-          studentId={student.id}
-          initialReviewMode={student.reviewModeEnabled}
-          calendar={{
-            tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
-            paymentDay: student.paymentDay,
-            paymentStatus: student.paymentStatus,
-          }}
-        />
+    <SuggestionProvider canSuggest={student.reviewModeEnabled}>
+      <div className="flex min-h-screen gap-5 p-5 mx-auto" style={{ maxWidth: 1320 }}>
+        <div style={{ width: 250, flexShrink: 0 }}>
+          <Sidebar
+            basePath={`/student-view/${studentId}`}
+            userName={student.name}
+            isMentor
+            mentorViewLabel={student.name}
+            studentId={student.id}
+            calendar={{
+              tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
+              paymentDay: student.paymentDay,
+              paymentStatus: student.paymentStatus,
+            }}
+          />
+        </div>
+        <div className="page-card px-[46px] py-10" style={{ flex: 1, minHeight: "calc(100vh - 40px)" }}>
+          {children}
+        </div>
+        <NotesPanel studentId={student.id} initialNotes={notes} initialComments={noteComments} />
       </div>
-      <div className="page-card px-[46px] py-10" style={{ flex: 1, minHeight: "calc(100vh - 40px)" }}>
-        <SuggestionProvider canSuggest={student.reviewModeEnabled}>{children}</SuggestionProvider>
-      </div>
-      <NotesPanel studentId={student.id} initialNotes={notes} initialComments={noteComments} />
-    </div>
+    </SuggestionProvider>
   );
 }
