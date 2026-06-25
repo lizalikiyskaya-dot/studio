@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import type { Character, Comment } from "@/generated/prisma/client";
 import ArcCharacterCard from "./ArcCharacterCard";
-import { createCharacter } from "../actions";
+import { createCharacter, reorderCharacters } from "../actions";
+import { useDragReorder } from "@/lib/useDragReorder";
 
 export default function ArcCharactersList({
   bookId,
@@ -18,6 +19,9 @@ export default function ArcCharactersList({
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
+  const dragHandlers = useDragReorder(characters, setCharacters, (orderedIds) =>
+    startTransition(() => reorderCharacters(bookId, orderedIds))
+  );
 
   function handleAdd() {
     startTransition(async () => {
@@ -33,13 +37,14 @@ export default function ArcCharactersList({
   return (
     <div>
       {characters.map((character) => (
-        <ArcCharacterCard
-          key={character.id}
-          character={character}
-          suggestions={suggestions[character.id] ?? {}}
-          initialComments={comments[character.id] ?? []}
-          onDeleted={handleDeleted}
-        />
+        <div key={character.id} {...dragHandlers(character.id)} className="cursor-grab">
+          <ArcCharacterCard
+            character={character}
+            suggestions={suggestions[character.id] ?? {}}
+            initialComments={comments[character.id] ?? []}
+            onDeleted={handleDeleted}
+          />
+        </div>
       ))}
 
       <button

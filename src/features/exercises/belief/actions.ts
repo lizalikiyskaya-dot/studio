@@ -27,6 +27,17 @@ export async function updateBeliefField(
   await prisma.beliefCard.update({ where: { id: cardId }, data: { [field]: value } });
 }
 
+export async function reorderBeliefCards(studentId: string, isExample: boolean, orderedIds: string[]) {
+  if (isExample) {
+    await requireMentor(studentId);
+  } else {
+    await requireCabinetAccess(studentId);
+  }
+  await prisma.$transaction(
+    orderedIds.map((id, index) => prisma.beliefCard.update({ where: { id }, data: { order: index } }))
+  );
+}
+
 export async function deleteBeliefCard(cardId: string) {
   const card = await prisma.beliefCard.findUniqueOrThrow({ where: { id: cardId } });
   if (card.isExample) {

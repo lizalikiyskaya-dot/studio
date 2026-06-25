@@ -39,6 +39,17 @@ export async function updateStoryCircleStep(cardId: string, step: StoryCircleSte
   await prisma.storyCircleCard.update({ where: { id: cardId }, data: { data } });
 }
 
+export async function reorderStoryCircleCards(studentId: string, isExample: boolean, orderedIds: string[]) {
+  if (isExample) {
+    await requireMentor(studentId);
+  } else {
+    await requireCabinetAccess(studentId);
+  }
+  await prisma.$transaction(
+    orderedIds.map((id, index) => prisma.storyCircleCard.update({ where: { id }, data: { order: index } }))
+  );
+}
+
 export async function deleteStoryCircleCard(cardId: string) {
   const card = await prisma.storyCircleCard.findUniqueOrThrow({ where: { id: cardId } });
   if (card.isExample) {

@@ -27,6 +27,17 @@ export async function createPopArcCharacter(studentId: string, isExample: boolea
   });
 }
 
+export async function reorderPopArcCharacters(studentId: string, isExample: boolean, orderedIds: string[]) {
+  if (isExample) {
+    await requireMentor(studentId);
+  } else {
+    await requireCabinetAccess(studentId);
+  }
+  await prisma.$transaction(
+    orderedIds.map((id, index) => prisma.popArcCharacter.update({ where: { id }, data: { order: index } }))
+  );
+}
+
 export async function deletePopArcCharacter(id: string) {
   await requireAccessForCharacter(id);
   await prisma.popArcCharacter.delete({ where: { id } });

@@ -21,6 +21,14 @@ export async function createCharacter(bookId: string) {
   });
 }
 
+export async function reorderCharacters(bookId: string, orderedIds: string[]) {
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.$transaction(
+    orderedIds.map((id, index) => prisma.character.update({ where: { id }, data: { order: index } }))
+  );
+}
+
 export async function deleteCharacter(characterId: string) {
   const character = await prisma.character.findUniqueOrThrow({ where: { id: characterId } });
   const book = await prisma.book.findUniqueOrThrow({ where: { id: character.bookId } });

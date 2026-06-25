@@ -5,8 +5,9 @@ import type { Character, Comment } from "@/generated/prisma/client";
 import CharacterProfile from "./CharacterProfile";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
 import CommentsBlock from "@/features/comments/CommentsBlock";
-import { createCharacter, deleteCharacter } from "./actions";
+import { createCharacter, deleteCharacter, reorderCharacters } from "./actions";
 import { uploadFile } from "@/lib/uploadFile";
+import { useDragReorder } from "@/lib/useDragReorder";
 import type { FieldGroup } from "./fields";
 
 export default function CharactersList({
@@ -24,6 +25,9 @@ export default function CharactersList({
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
+  const dragHandlers = useDragReorder(characters, setCharacters, (orderedIds) =>
+    startTransition(() => reorderCharacters(bookId, orderedIds))
+  );
 
   function handleAdd() {
     startTransition(async () => {
@@ -48,7 +52,8 @@ export default function CharactersList({
       {characters.map((character) => {
         const charSuggestions = suggestions[character.id] ?? {};
         return (
-          <CollapsibleCharacterShell key={character.id} name={character.name} photoUrl={character.photoUrl}>
+          <div key={character.id} {...dragHandlers(character.id)} className="cursor-grab">
+          <CollapsibleCharacterShell name={character.name} photoUrl={character.photoUrl}>
             <CharacterProfile
               name={character.name}
               photoUrl={character.photoUrl}
@@ -64,6 +69,7 @@ export default function CharactersList({
             />
             <CommentsBlock model="Character" recordId={character.id} initialComments={comments[character.id] ?? []} />
           </CollapsibleCharacterShell>
+          </div>
         );
       })}
 

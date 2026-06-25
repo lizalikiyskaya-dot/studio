@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import type { PopArcCharacter, Comment } from "@/generated/prisma/client";
 import PopArcCard from "./PopArcCard";
-import { createPopArcCharacter, deletePopArcCharacter } from "./actions";
+import { createPopArcCharacter, deletePopArcCharacter, reorderPopArcCharacters } from "./actions";
+import { useDragReorder } from "@/lib/useDragReorder";
 
 export function ExamplesList({
   studentId,
@@ -18,6 +19,9 @@ export function ExamplesList({
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
+  const dragHandlers = useDragReorder(characters, setCharacters, (orderedIds) =>
+    startTransition(() => reorderPopArcCharacters(studentId, true, orderedIds))
+  );
 
   function handleAdd() {
     startTransition(async () => {
@@ -34,14 +38,15 @@ export function ExamplesList({
   return (
     <div>
       {characters.map((character) => (
-        <PopArcCard
-          key={character.id}
-          character={character}
-          readOnly={!isMentorViewer}
-          suggestions={{}}
-          initialComments={comments[character.id] ?? []}
-          onDelete={() => handleDelete(character.id)}
-        />
+        <div key={character.id} {...(isMentorViewer ? dragHandlers(character.id) : {})} className={isMentorViewer ? "cursor-grab" : undefined}>
+          <PopArcCard
+            character={character}
+            readOnly={!isMentorViewer}
+            suggestions={{}}
+            initialComments={comments[character.id] ?? []}
+            onDelete={() => handleDelete(character.id)}
+          />
+        </div>
       ))}
 
       {isMentorViewer && (
@@ -70,6 +75,9 @@ export function OwnHeroesList({
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
+  const dragHandlers = useDragReorder(characters, setCharacters, (orderedIds) =>
+    startTransition(() => reorderPopArcCharacters(studentId, false, orderedIds))
+  );
 
   function handleAdd() {
     startTransition(async () => {
@@ -86,14 +94,15 @@ export function OwnHeroesList({
   return (
     <div>
       {characters.map((character) => (
-        <PopArcCard
-          key={character.id}
-          character={character}
-          readOnly={false}
-          suggestions={suggestions[character.id] ?? {}}
-          initialComments={comments[character.id] ?? []}
-          onDelete={() => handleDelete(character.id)}
-        />
+        <div key={character.id} {...dragHandlers(character.id)} className="cursor-grab">
+          <PopArcCard
+            character={character}
+            readOnly={false}
+            suggestions={suggestions[character.id] ?? {}}
+            initialComments={comments[character.id] ?? []}
+            onDelete={() => handleDelete(character.id)}
+          />
+        </div>
       ))}
 
       <button
