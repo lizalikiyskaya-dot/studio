@@ -74,3 +74,17 @@ export async function addExerciseComment(exerciseId: string, text: string) {
     data: { exerciseId, author, text },
   });
 }
+
+export async function updateExerciseComment(commentId: string, text: string) {
+  const comment = await prisma.exerciseComment.findUniqueOrThrow({ where: { id: commentId } });
+  const exercise = await prisma.customExercise.findUniqueOrThrow({ where: { id: comment.exerciseId } });
+  await requireCabinetAccess(exercise.studentId);
+  await prisma.exerciseComment.update({ where: { id: commentId }, data: { text } });
+}
+
+export async function deleteExerciseComment(commentId: string) {
+  const comment = await prisma.exerciseComment.findUniqueOrThrow({ where: { id: commentId } });
+  const exercise = await prisma.customExercise.findUniqueOrThrow({ where: { id: comment.exerciseId } });
+  await requireCabinetAccess(exercise.studentId);
+  await prisma.exerciseComment.delete({ where: { id: commentId } });
+}

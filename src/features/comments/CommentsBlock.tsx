@@ -131,7 +131,7 @@ export default function CommentsBlock({
               />
             </div>
           ) : (
-            <div className="text-[13px] italic mt-0.5" style={{ color: "var(--ink-soft)" }}>
+            <div className="text-[13px] italic mt-0.5 whitespace-pre-wrap" style={{ color: "var(--ink-soft)" }}>
               {c.text}
             </div>
           )}
