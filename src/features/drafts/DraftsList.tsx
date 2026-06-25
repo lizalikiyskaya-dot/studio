@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import type { Draft } from "@/generated/prisma/client";
 import FileAttachBox from "@/components/FileAttachBox";
-import { createDraft, updateDraftField, updateDraftFile, deleteDraft } from "./actions";
+import { uploadFile } from "@/lib/uploadFile";
+import { createDraft, updateDraftField, deleteDraft } from "./actions";
 
 export default function DraftsList({
   studentId,
@@ -27,9 +28,11 @@ export default function DraftsList({
     startTransition(() => updateDraftField(id, field, value));
   }
 
-  function handleFile(id: string, fileName: string, fileData: string) {
-    setDrafts((prev) => prev.map((d) => (d.id === id ? { ...d, fileName } : d)));
-    startTransition(() => updateDraftFile(id, fileName, fileData));
+  function handleFile(id: string, file: File) {
+    startTransition(async () => {
+      const { fileName } = await uploadFile("draft", id, "file", file);
+      setDrafts((prev) => prev.map((d) => (d.id === id ? { ...d, fileName } : d)));
+    });
   }
 
   function handleDelete(id: string) {
@@ -73,7 +76,7 @@ export default function DraftsList({
                 + ссылка
               </button>
             )}
-            <FileAttachBox fileName={draft.fileName} onUpload={(fileName, dataUrl) => handleFile(draft.id, fileName, dataUrl)} />
+            <FileAttachBox fileName={draft.fileName} onUpload={(file) => handleFile(draft.id, file)} />
             <button
               onClick={() => handleDelete(draft.id)}
               className="text-[12.5px] px-2.5 py-1 rounded-sm ml-auto"

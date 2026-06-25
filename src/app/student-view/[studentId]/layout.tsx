@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import Sidebar from "@/components/Sidebar";
 import NotesPanel from "@/features/notes/NotesPanel";
 import { getCommentsForRecords } from "@/features/comments/actions";
+import { SuggestionProvider } from "@/features/suggestions/SuggestionContext";
 
 export default async function StudentViewLayout({
   children,
@@ -47,7 +48,7 @@ export default async function StudentViewLayout({
         />
       </div>
       <div className="page-card px-[46px] py-10" style={{ flex: 1, minHeight: "calc(100vh - 40px)" }}>
-        {children}
+        <SuggestionProvider canSuggest={student.reviewModeEnabled}>{children}</SuggestionProvider>
       </div>
       <NotesPanel studentId={student.id} initialNotes={notes} initialComments={noteComments} />
     </div>

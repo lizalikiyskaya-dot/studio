@@ -2,35 +2,25 @@
 
 import { useRef, useState } from "react";
 
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
 export default function FileAttachBox({
   fileName,
   onUpload,
 }: {
   fileName?: string | null;
-  onUpload: (fileName: string, dataUrl: string) => void;
+  onUpload: (file: File) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(fileName ?? "");
 
-  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 8 * 1024 * 1024) {
       window.alert("Файл слишком большой (максимум 8 МБ)");
       return;
     }
-    const dataUrl = await readAsDataUrl(file);
     setName(file.name);
-    onUpload(file.name, dataUrl);
+    onUpload(file);
   }
 
   return (

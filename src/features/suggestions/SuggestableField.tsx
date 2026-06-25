@@ -5,6 +5,7 @@ import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { saveFieldOrSuggest, acceptFieldSuggestion } from "./actions";
 import type { SuggestableModel } from "@/lib/suggestionRegistry";
 import { wordDiff } from "@/lib/wordDiff";
+import { useCanSuggest } from "./SuggestionContext";
 
 export default function SuggestableField({
   model,
@@ -30,10 +31,11 @@ export default function SuggestableField({
   const [value, setValue] = useState(initialValue);
   const [suggestion, setSuggestion] = useState(initialSuggestion ?? null);
   const [, startTransition] = useTransition();
+  const canSuggest = useCanSuggest();
 
   function handleBlur(newValue: string) {
     if (newValue === value) return;
-    if (value.trim()) {
+    if (canSuggest && value.trim()) {
       // Optimistic: show the diff immediately rather than waiting on the
       // server round-trip, which can take a second or more on a slow link.
       setSuggestion(newValue);

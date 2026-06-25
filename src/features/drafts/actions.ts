@@ -19,12 +19,6 @@ export async function updateDraftField(
   await prisma.draft.update({ where: { id: draftId }, data: { [field]: value } });
 }
 
-export async function updateDraftFile(draftId: string, fileName: string, fileData: string) {
-  const draft = await prisma.draft.findUniqueOrThrow({ where: { id: draftId } });
-  await requireCabinetAccess(draft.studentId);
-  await prisma.draft.update({ where: { id: draftId }, data: { fileName, fileData } });
-}
-
 export async function deleteDraft(draftId: string) {
   const draft = await prisma.draft.findUniqueOrThrow({ where: { id: draftId } });
   await requireCabinetAccess(draft.studentId);

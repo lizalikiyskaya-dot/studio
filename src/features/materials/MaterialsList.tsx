@@ -5,10 +5,10 @@ import type { Material } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
 import FileAttachBox from "@/components/FileAttachBox";
 import Subtabs from "@/components/Subtabs";
+import { uploadFile } from "@/lib/uploadFile";
 import {
   createMaterial,
   updateMaterialTitle,
-  updateMaterialFile,
   cycleMaterialStatus,
   deleteMaterial,
 } from "./actions";
@@ -25,7 +25,7 @@ function DownloadOrUpload({
   fileUrl: string | null;
   fileName: string | null;
   canManage: boolean;
-  onUpload: (fileName: string, dataUrl: string) => void;
+  onUpload: (file: File) => void;
 }) {
   if (fileUrl) {
     return (
@@ -73,17 +73,19 @@ function BooksList({
     startTransition(() => updateMaterialTitle(id, value));
   }
 
-  function handleFile(id: string, field: "pdf" | "epub", fileName: string, dataUrl: string) {
-    setBooks((prev) =>
-      prev.map((m) =>
-        m.id === id
-          ? field === "pdf"
-            ? { ...m, pdfUrl: dataUrl, pdfName: fileName }
-            : { ...m, epubUrl: dataUrl, epubName: fileName }
-          : m
-      )
-    );
-    startTransition(() => updateMaterialFile(id, field, fileName, dataUrl));
+  function handleFile(id: string, field: "pdf" | "epub", file: File) {
+    startTransition(async () => {
+      const { fileName, dataUrl } = await uploadFile("material", id, field, file);
+      setBooks((prev) =>
+        prev.map((m) =>
+          m.id === id
+            ? field === "pdf"
+              ? { ...m, pdfUrl: dataUrl, pdfName: fileName }
+              : { ...m, epubUrl: dataUrl, epubName: fileName }
+            : m
+        )
+      );
+    });
   }
 
   function handleStatus(id: string, current: Material["status"]) {
@@ -134,14 +136,14 @@ function BooksList({
               fileUrl={material.pdfUrl}
               fileName={material.pdfName}
               canManage={canManage}
-              onUpload={(fileName, dataUrl) => handleFile(material.id, "pdf", fileName, dataUrl)}
+              onUpload={(file) => handleFile(material.id, "pdf", file)}
             />
             <DownloadOrUpload
               label="EPUB"
               fileUrl={material.epubUrl}
               fileName={material.epubName}
               canManage={canManage}
-              onUpload={(fileName, dataUrl) => handleFile(material.id, "epub", fileName, dataUrl)}
+              onUpload={(file) => handleFile(material.id, "epub", file)}
             />
             {canManage && (
               <button
@@ -193,9 +195,11 @@ function HandoutsList({
     startTransition(() => updateMaterialTitle(id, value));
   }
 
-  function handleFile(id: string, fileName: string, dataUrl: string) {
-    setHandouts((prev) => prev.map((m) => (m.id === id ? { ...m, fileUrl: dataUrl, fileName } : m)));
-    startTransition(() => updateMaterialFile(id, "file", fileName, dataUrl));
+  function handleFile(id: string, file: File) {
+    startTransition(async () => {
+      const { fileName, dataUrl } = await uploadFile("material", id, "file", file);
+      setHandouts((prev) => prev.map((m) => (m.id === id ? { ...m, fileUrl: dataUrl, fileName } : m)));
+    });
   }
 
   function handleDelete(id: string) {
@@ -242,7 +246,7 @@ function HandoutsList({
             fileUrl={material.fileUrl}
             fileName={material.fileName}
             canManage={canManage}
-            onUpload={(fileName, dataUrl) => handleFile(material.id, fileName, dataUrl)}
+            onUpload={(file) => handleFile(material.id, file)}
           />
           {canManage && (
             <button

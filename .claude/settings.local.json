@@ -133,7 +133,13 @@
       "Bash(curl -s -b /tmp/cookies13.txt -o /dev/null -w \"exercises: %{http_code}\\\\n\" http://localhost:3000/student-view/cmqpiuswe0000f4lzie05l1zl/exercises)",
       "Bash(npx next *)",
       "Bash(kill 28209 28207)",
-      "Bash(curl -s -o /dev/null -w \"site http_code: %{http_code}\\\\n\" --max-time 10 https://lizalikiyskaya-dot-studio-9545.twc1.net)"
+      "Bash(curl -s -o /dev/null -w \"site http_code: %{http_code}\\\\n\" --max-time 10 https://lizalikiyskaya-dot-studio-9545.twc1.net)",
+      "Bash(curl -sv --max-time 8 https://lizalikiyskaya-dot-studio-9545.twc1.net/)",
+      "Bash(git fetch *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" --max-time 8 https://lizalikiyskaya-dot-studio-9545.twc1.net/)",
+      "Bash(echo \"exit:$?\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(grep -rn \"href=\\\\\"/mentor\\\\|href={\\\\`/mentor\\\\|/mentor/\" src/components/Sidebar.tsx)"
     ]
   }
 }

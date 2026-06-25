@@ -19,23 +19,6 @@ export async function updateMaterialTitle(materialId: string, title: string) {
   await prisma.material.update({ where: { id: materialId }, data: { title } });
 }
 
-export async function updateMaterialFile(
-  materialId: string,
-  field: "pdf" | "epub" | "file",
-  fileName: string,
-  dataUrl: string
-) {
-  const material = await prisma.material.findUniqueOrThrow({ where: { id: materialId } });
-  await requireMentor(material.studentId);
-  const data =
-    field === "pdf"
-      ? { pdfUrl: dataUrl, pdfName: fileName }
-      : field === "epub"
-        ? { epubUrl: dataUrl, epubName: fileName }
-        : { fileUrl: dataUrl, fileName };
-  await prisma.material.update({ where: { id: materialId }, data });
-}
-
 export async function cycleMaterialStatus(materialId: string) {
   const material = await prisma.material.findUniqueOrThrow({ where: { id: materialId } });
   await requireCabinetAccess(material.studentId);
