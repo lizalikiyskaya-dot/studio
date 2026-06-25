@@ -14,16 +14,37 @@ import {
   updateWorldEntryBody,
   updateWorldEntryPhoto,
 } from "./actions";
+import {
+  MapIcon,
+  SwordsIcon,
+  ScrollIcon,
+  GearIcon,
+  SparkleIcon,
+  ColumnIcon,
+  DragonIcon,
+  LanguageIcon,
+  QuillIcon,
+  GeneralIcon,
+} from "./FantasyIcons";
 
-const CATEGORY_LABELS: Record<WorldCategory, string> = {
-  LOCATIONS: "🗺️ Локации",
-  FACTIONS: "⚔️ Фракции",
-  LORE: "📜 Лор",
-  TECHNOLOGY: "⚙️ Технологии",
-  MAGIC: "✨ Магия / Система",
-  HISTORY: "🏛️ История",
-  CREATURES: "🐉 Существа",
-  LANGUAGES: "🔤 Языки",
+function CategoryTitle({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <span className="flex items-center gap-2">
+      {icon}
+      {label}
+    </span>
+  );
+}
+
+const CATEGORY_LABELS: Record<WorldCategory, React.ReactNode> = {
+  LOCATIONS: <CategoryTitle icon={<MapIcon />} label="Локации" />,
+  FACTIONS: <CategoryTitle icon={<SwordsIcon />} label="Фракции" />,
+  LORE: <CategoryTitle icon={<ScrollIcon />} label="Лор" />,
+  TECHNOLOGY: <CategoryTitle icon={<GearIcon />} label="Технологии" />,
+  MAGIC: <CategoryTitle icon={<SparkleIcon />} label="Магия / Система" />,
+  HISTORY: <CategoryTitle icon={<ColumnIcon />} label="История" />,
+  CREATURES: <CategoryTitle icon={<DragonIcon />} label="Существа" />,
+  LANGUAGES: <CategoryTitle icon={<LanguageIcon />} label="Языки" />,
 };
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as WorldCategory[];
@@ -123,7 +144,7 @@ export default function FantasySection({
         </div>
       )}
 
-      <Accordion title="📋 Все заметки" defaultOpen>
+      <Accordion title={<CategoryTitle icon={<QuillIcon />} label="Все заметки" />} defaultOpen>
         <AutoGrowTextarea
           defaultValue={book.fantasyNotes}
           placeholder="общий черновик по миру..."
@@ -169,7 +190,7 @@ export default function FantasySection({
         );
       })}
 
-      <Accordion title="📌 Общее">
+      <Accordion title={<CategoryTitle icon={<GeneralIcon />} label="Общее" />}>
         <AutoGrowTextarea
           defaultValue={book.fantasyGeneral}
           placeholder="всё остальное..."

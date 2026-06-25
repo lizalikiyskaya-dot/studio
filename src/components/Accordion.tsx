@@ -8,7 +8,7 @@ export default function Accordion({
   headerExtra,
   children,
 }: {
-  title: string;
+  title: React.ReactNode;
   defaultOpen?: boolean;
   headerExtra?: React.ReactNode;
   children: React.ReactNode;
