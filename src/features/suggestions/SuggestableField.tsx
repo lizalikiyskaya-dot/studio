@@ -32,6 +32,12 @@ export default function SuggestableField({
   const [, startTransition] = useTransition();
 
   function handleBlur(newValue: string) {
+    if (newValue === value) return;
+    if (value.trim()) {
+      // Optimistic: show the diff immediately rather than waiting on the
+      // server round-trip, which can take a second or more on a slow link.
+      setSuggestion(newValue);
+    }
     startTransition(async () => {
       const result = await saveFieldOrSuggest(model, recordId, field, newValue);
       if (result.suggested) {

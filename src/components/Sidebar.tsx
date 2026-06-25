@@ -88,7 +88,7 @@ export default function Sidebar({
           </span>
         )}
 
-        {studentId && !mentorMenuOnly && (
+        {studentId && !mentorMenuOnly && isMentor && (
           <div className="mb-5 px-0.5">
             <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} label="Режим правок" />
           </div>
