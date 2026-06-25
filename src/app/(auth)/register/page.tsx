@@ -3,18 +3,26 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (password !== passwordConfirm) {
+      setError("Пароли не совпадают");
+      return;
+    }
+
     setLoading(true);
 
     const res = await fetch("/api/auth/register", {
@@ -69,19 +77,18 @@ export default function RegisterPage() {
         />
       </div>
 
-      <div className="mb-6">
+      <div className="mb-4">
         <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
           Пароль
         </label>
-        <input
-          type="password"
-          required
-          minLength={8}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border-b py-1.5 text-[15px] outline-none bg-transparent"
-          style={{ borderColor: "var(--rule)" }}
-        />
+        <PasswordInput value={password} onChange={setPassword} required minLength={8} />
+      </div>
+
+      <div className="mb-6">
+        <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
+          Повторите пароль
+        </label>
+        <PasswordInput value={passwordConfirm} onChange={setPasswordConfirm} required minLength={8} />
       </div>
 
       {error && (
