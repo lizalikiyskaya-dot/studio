@@ -97,7 +97,6 @@ export default async function MentorPage() {
               <td className="py-2.5 pl-3 text-right align-top">
                 <Link
                   href={`/student-view/${s.id}/tasks`}
-                  prefetch={false}
                   className="text-[13px] px-3 py-1.5 rounded-sm inline-block whitespace-nowrap"
                   style={{ background: "var(--wine)", color: "#fff" }}
                 >

@@ -77,7 +77,6 @@ export default function Sidebar({
         {mentorViewLabel ? (
           <Link
             href="/mentor"
-            prefetch={false}
             className="block text-[12.5px] mb-7"
             style={{ color: "var(--wine)" }}
           >
@@ -98,7 +97,6 @@ export default function Sidebar({
         {isMentor && !mentorViewLabel && (
           <Link
             href="/mentor"
-            prefetch={false}
             className="block text-[13px] mb-2 px-2.5 py-2 rounded-sm"
             style={{
               background: pathname === "/mentor" ? "var(--ink)" : "var(--sage)",
@@ -118,7 +116,6 @@ export default function Sidebar({
                 <Link
                   key={item.path}
                   href={href}
-                  prefetch={false}
                   className={`nav-featured flex items-baseline gap-2 px-3 py-2.5 mb-1 text-[13.5px]${active ? " active" : ""}`}
                   style={{
                     background: "var(--wine)",
@@ -143,7 +140,6 @@ export default function Sidebar({
                 <Link
                   key={item.path}
                   href={href}
-                  prefetch={false}
                   className={`nav-index-item flex items-baseline gap-2.5 px-2.5 py-2.5 text-[13.5px] mb-px${active ? " active" : ""}`}
                   style={{ color: active ? "var(--wine)" : "var(--ink-soft)" }}
                 >
