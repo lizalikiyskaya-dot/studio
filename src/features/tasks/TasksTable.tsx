@@ -2,11 +2,20 @@
 
 import { useState, useTransition } from "react";
 import type { Task, TaskStatus } from "@/generated/prisma/client";
-import { createTask, updateTaskTitle, updateTaskLink, updateTaskDeadline, cycleTaskStatus, deleteTask } from "./actions";
+import {
+  createTask,
+  updateTaskTitle,
+  updateTaskLink,
+  updateTaskDeadline,
+  updateTaskNotes,
+  cycleTaskStatus,
+  deleteTask,
+} from "./actions";
 import { nextTaskStatus } from "./status";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import { shortenUrl } from "@/lib/shortenUrl";
 
-const GRID_COLUMNS = "2fr 150px 170px 170px 150px 30px";
+const GRID_COLUMNS = "2fr 150px 150px 150px 2fr 150px 30px";
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
   IN_PROGRESS: "в процессе",
@@ -35,10 +44,11 @@ function LinkCell({
         href={value}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-[12.5px] break-all"
+        title={value}
+        className="text-[12.5px] block text-center"
         style={{ color: "var(--wine)" }}
       >
-        {value}
+        {shortenUrl(value)}
       </a>
     );
   }
@@ -48,7 +58,7 @@ function LinkCell({
         const url = window.prompt("Ссылка");
         if (url) onSave(url);
       }}
-      className="text-[12.5px] px-2.5 py-1 rounded-sm"
+      className="text-[12.5px] px-2.5 py-1 rounded-sm mx-auto block"
       style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
     >
       + ссылка
@@ -95,6 +105,11 @@ export default function TasksTable({
     startTransition(() => updateTaskDeadline(taskId, value || null));
   }
 
+  function handleNotes(taskId: string, value: string) {
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, notes: value } : t)));
+    startTransition(() => updateTaskNotes(taskId, value));
+  }
+
   function handleStatus(taskId: string, current: TaskStatus) {
     const next = nextTaskStatus(current);
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: next } : t)));
@@ -112,12 +127,12 @@ export default function TasksTable({
   return (
     <div>
       <div className="overflow-x-auto mb-4">
-        <div style={{ minWidth: 780 }}>
+        <div style={{ minWidth: 980 }}>
           <div
             className="grid gap-x-3 pb-2 border-b"
             style={{ gridTemplateColumns: GRID_COLUMNS, borderColor: "var(--rule)" }}
           >
-            {["Задание", "Дедлайн", "Ссылка на работу", "Обратная связь", "Статус", ""].map((h) => (
+            {["Задание", "Дедлайн", "Ссылка на работу", "Обратная связь", "Примечания", "Статус", ""].map((h) => (
               <div
                 key={h}
                 className="text-[12px] whitespace-nowrap"
@@ -153,6 +168,12 @@ export default function TasksTable({
               <div className="pt-1">
                 <LinkCell value={task.feedbackLink} onSave={(v) => handleLink(task.id, "feedbackLink", v)} />
               </div>
+              <AutoGrowTextarea
+                defaultValue={task.notes}
+                onBlur={(v) => handleNotes(task.id, v)}
+                placeholder="примечание..."
+                className="w-full min-w-0 outline-none bg-transparent text-[13px] py-1 leading-snug"
+              />
               <div className="pt-1">
                 <button
                   onClick={() => handleStatus(task.id, task.status)}

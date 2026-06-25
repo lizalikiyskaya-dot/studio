@@ -5,6 +5,7 @@ import type { Draft } from "@/generated/prisma/client";
 import FileAttachBox from "@/components/FileAttachBox";
 import { uploadFile } from "@/lib/uploadFile";
 import { blurOnEnter } from "@/lib/blurOnEnter";
+import { shortenUrl } from "@/lib/shortenUrl";
 import { createDraft, updateDraftField, deleteDraft } from "./actions";
 
 export default function DraftsList({
@@ -64,8 +65,8 @@ export default function DraftsList({
           />
           <div className="flex items-center gap-2 flex-wrap">
             {draft.link ? (
-              <a href={draft.link} target="_blank" rel="noopener noreferrer" className="text-[12.5px] break-all" style={{ color: "var(--wine)" }}>
-                {draft.link}
+              <a href={draft.link} target="_blank" rel="noopener noreferrer" title={draft.link} className="text-[12.5px]" style={{ color: "var(--wine)" }}>
+                {shortenUrl(draft.link)}
               </a>
             ) : (
               <button

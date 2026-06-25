@@ -233,6 +233,7 @@ model Task {
   title        String     @default("")
   workLink     String?
   feedbackLink String?
+  notes        String     @default("")
   status       TaskStatus @default(IN_PROGRESS)
   order        Int        @default(0)
   deadline     DateTime?
