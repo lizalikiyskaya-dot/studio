@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Old_Standard_TT } from "next/font/google";
+import { Bitter, JetBrains_Mono, Literata } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const literata = Literata({
   subsets: ["latin", "cyrillic"],
   variable: "--font-inter",
 });
@@ -12,7 +12,7 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
 });
 
-const oldStandard = Old_Standard_TT({
+const bitter = Bitter({
   subsets: ["latin", "cyrillic"],
   weight: ["400", "700"],
   variable: "--font-old-standard",
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="ru"
-      className={`${inter.variable} ${jetbrainsMono.variable} ${oldStandard.variable} min-h-full antialiased`}
+      className={`${literata.variable} ${jetbrainsMono.variable} ${bitter.variable} min-h-full antialiased`}
     >
       <body className="min-h-full">{children}</body>
     </html>

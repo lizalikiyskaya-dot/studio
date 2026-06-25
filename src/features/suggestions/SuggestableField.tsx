@@ -59,11 +59,17 @@ export default function SuggestableField({
             t.type === "same" ? (
               <span key={i}>{t.text}</span>
             ) : t.type === "del" ? (
-              <span key={i} style={{ textDecoration: "line-through", color: "var(--sage)" }}>
+              <span
+                key={i}
+                style={{ textDecoration: "line-through", textDecorationColor: "var(--wine)", color: "var(--faded)" }}
+              >
                 {t.text}
               </span>
             ) : (
-              <span key={i} style={{ color: "var(--sage)" }}>
+              <span
+                key={i}
+                style={{ textDecoration: "underline wavy", textDecorationColor: "var(--wine)", color: "var(--wine)" }}
+              >
                 {t.text}
               </span>
             )
