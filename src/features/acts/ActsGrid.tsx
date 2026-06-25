@@ -195,10 +195,8 @@ export default function ActsGrid({
 
   function handleDeleteAct(actId: string) {
     if (!window.confirm("Удалить акт?")) return;
-    startTransition(async () => {
-      await deleteAct(actId);
-      setActs((prev) => prev.filter((a) => a.id !== actId));
-    });
+    setActs((prev) => prev.filter((a) => a.id !== actId));
+    startTransition(() => deleteAct(actId));
   }
 
   function handleAddChapter(actId: string) {
