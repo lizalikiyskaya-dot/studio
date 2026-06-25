@@ -5,7 +5,6 @@ import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { saveFieldOrSuggest, acceptFieldSuggestion } from "./actions";
 import type { SuggestableModel } from "@/lib/suggestionRegistry";
 import { wordDiff } from "@/lib/wordDiff";
-import { useCanSuggest } from "./SuggestionContext";
 
 export default function SuggestableField({
   model,
@@ -17,6 +16,7 @@ export default function SuggestableField({
   className,
   style,
   placeholder,
+  resizable,
 }: {
   model: SuggestableModel;
   recordId: string;
@@ -27,19 +27,18 @@ export default function SuggestableField({
   className?: string;
   style?: React.CSSProperties;
   placeholder?: string;
+  resizable?: boolean;
 }) {
   const [value, setValue] = useState(initialValue);
   const [suggestion, setSuggestion] = useState(initialSuggestion ?? null);
   const [, startTransition] = useTransition();
-  const canSuggest = useCanSuggest();
 
   function handleBlur(newValue: string) {
     if (newValue === value) return;
-    if (canSuggest && value.trim()) {
-      // Optimistic: show the diff immediately rather than waiting on the
-      // server round-trip, which can take a second or more on a slow link.
-      setSuggestion(newValue);
-    }
+    // Wait for the server's actual decision rather than guessing
+    // client-side whether this edit will become a suggestion — guessing
+    // caused a one-frame flash of the accept-suggestion UI even when
+    // review mode was off.
     startTransition(async () => {
       const result = await saveFieldOrSuggest(model, recordId, field, newValue);
       if (result.suggested) {
@@ -62,7 +61,7 @@ export default function SuggestableField({
     const tokens = wordDiff(value, suggestion);
     return (
       <div className="rounded-sm p-2.5" style={{ border: "1px solid var(--rule)" }}>
-        <span>
+        <span className="whitespace-pre-wrap">
           {tokens.map((t, i) =>
             t.type === "same" ? (
               <span key={i}>{t.text}</span>
@@ -121,6 +120,7 @@ export default function SuggestableField({
       onBlur={handleBlur}
       className={className}
       style={style}
+      resizable={resizable}
     />
   );
 }

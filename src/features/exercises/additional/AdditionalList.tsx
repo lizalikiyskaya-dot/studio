@@ -196,7 +196,9 @@ export default function AdditionalList({
               value={section.content}
               suggestion={suggestions[section.id]?.content}
               placeholder="Ответ..."
-              className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed"
+              className="outline-none bg-transparent text-[13.5px] leading-relaxed"
+              style={{ width: "100%", minWidth: 220 }}
+              resizable
             />
           ) : (
             <TableSection section={section} onResize={() => {}} />

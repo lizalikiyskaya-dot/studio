@@ -14,12 +14,14 @@ export default function AutoGrowTextarea({
   className,
   placeholder,
   style,
+  resizable,
 }: {
   defaultValue: string;
   onBlur: (value: string) => void;
   className?: string;
   placeholder?: string;
   style?: React.CSSProperties;
+  resizable?: boolean;
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -57,7 +59,13 @@ export default function AutoGrowTextarea({
         }
       }}
       className={className}
-      style={{ resize: "none", overflow: "hidden", display: "block", ...style }}
+      style={{
+        resize: resizable ? "horizontal" : "none",
+        overflowY: "hidden",
+        overflowX: resizable ? "auto" : "hidden",
+        display: "block",
+        ...style,
+      }}
     />
   );
 }
