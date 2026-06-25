@@ -95,12 +95,16 @@ h4 {
 
 .nav-index-item {
   border-radius: 10px;
-  transition: background 0.18s var(--ease), color 0.18s var(--ease), transform 0.18s var(--ease);
+  transition: background 0.12s var(--ease), color 0.12s var(--ease), transform 0.12s var(--ease);
 }
 .nav-index-item:hover {
   color: var(--wine);
   background: #fff;
   transform: translateX(2px);
+}
+.nav-index-item:active {
+  background: var(--rule);
+  transform: translateX(2px) scale(0.97);
 }
 .nav-index-item.active {
   color: var(--wine);
