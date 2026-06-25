@@ -6,7 +6,8 @@ import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { createBeliefCard, deleteBeliefCard, reorderBeliefCards } from "./actions";
-import { useDragReorder, type DragHandlers } from "@/lib/useDragReorder";
+import DragHandle from "@/components/DragHandle";
+import { useDragReorder, type DropTargetHandlers, type DragHandleHandlers } from "@/lib/useDragReorder";
 
 function CardBody({
   card,
@@ -91,7 +92,8 @@ function CardShell({
   suggestions,
   initialComments,
   onDelete,
-  dragHandlers,
+  dropTarget,
+  dragHandle,
 }: {
   card: BeliefCard;
   readOnly: boolean;
@@ -99,23 +101,27 @@ function CardShell({
   suggestions: Record<string, string>;
   initialComments: Comment[];
   onDelete: (id: string) => void;
-  dragHandlers?: DragHandlers;
+  dropTarget?: DropTargetHandlers;
+  dragHandle?: DragHandleHandlers;
 }) {
   return (
-    <div {...dragHandlers} className={dragHandlers ? "cursor-grab" : undefined}>
-      <CollapsibleCharacterShell name={card.hero} photoUrl={null}>
-        <CardBody card={card} readOnly={readOnly} suggestable={suggestable} suggestions={suggestions} />
-        {!readOnly && (
-          <button
-            onClick={() => onDelete(card.id)}
-            className="text-[12.5px] px-2.5 py-1.5 rounded-sm mt-4"
-            style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-          >
-            Удалить
-          </button>
-        )}
-        <CommentsBlock model="BeliefCard" recordId={card.id} initialComments={initialComments} />
-      </CollapsibleCharacterShell>
+    <div {...dropTarget} className="flex items-start gap-1.5">
+      {dragHandle && <DragHandle handlers={dragHandle} />}
+      <div className="flex-1 min-w-0">
+        <CollapsibleCharacterShell name={card.hero} photoUrl={null}>
+          <CardBody card={card} readOnly={readOnly} suggestable={suggestable} suggestions={suggestions} />
+          {!readOnly && (
+            <button
+              onClick={() => onDelete(card.id)}
+              className="text-[12.5px] px-2.5 py-1.5 rounded-sm mt-4"
+              style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
+            >
+              Удалить
+            </button>
+          )}
+          <CommentsBlock model="BeliefCard" recordId={card.id} initialComments={initialComments} />
+        </CollapsibleCharacterShell>
+      </div>
     </div>
   );
 }
@@ -133,7 +139,7 @@ export function BeliefExamplesList({
 }) {
   const [cards, setCards] = useState(initialCards);
   const [, startTransition] = useTransition();
-  const dragHandlers = useDragReorder(cards, setCards, (orderedIds) =>
+  const { dropTarget, dragHandle } = useDragReorder(cards, setCards, (orderedIds) =>
     startTransition(() => reorderBeliefCards(studentId, true, orderedIds))
   );
 
@@ -160,7 +166,8 @@ export function BeliefExamplesList({
           suggestions={{}}
           initialComments={comments[card.id] ?? []}
           onDelete={handleDelete}
-          dragHandlers={isMentorViewer ? dragHandlers(card.id) : undefined}
+          dropTarget={dropTarget(card.id)}
+          dragHandle={isMentorViewer ? dragHandle(card.id) : undefined}
         />
       ))}
       {isMentorViewer && (
@@ -189,7 +196,7 @@ export function BeliefOwnList({
 }) {
   const [cards, setCards] = useState(initialCards);
   const [, startTransition] = useTransition();
-  const dragHandlers = useDragReorder(cards, setCards, (orderedIds) =>
+  const { dropTarget, dragHandle } = useDragReorder(cards, setCards, (orderedIds) =>
     startTransition(() => reorderBeliefCards(studentId, false, orderedIds))
   );
 
@@ -216,7 +223,8 @@ export function BeliefOwnList({
           suggestions={suggestions[card.id] ?? {}}
           initialComments={comments[card.id] ?? []}
           onDelete={handleDelete}
-          dragHandlers={dragHandlers(card.id)}
+          dropTarget={dropTarget(card.id)}
+          dragHandle={dragHandle(card.id)}
         />
       ))}
       <button

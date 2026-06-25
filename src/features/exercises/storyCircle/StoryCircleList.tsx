@@ -8,7 +8,8 @@ import SuggestableField from "@/features/suggestions/SuggestableField";
 import StoryCircleDiagram from "./StoryCircleDiagram";
 import { STORY_CIRCLE_STEPS } from "./steps";
 import { createStoryCircleCard, deleteStoryCircleCard, reorderStoryCircleCards } from "./actions";
-import { useDragReorder, type DragHandlers } from "@/lib/useDragReorder";
+import DragHandle from "@/components/DragHandle";
+import { useDragReorder, type DropTargetHandlers, type DragHandleHandlers } from "@/lib/useDragReorder";
 
 function CardBody({
   card,
@@ -86,30 +87,35 @@ function CardShell({
   suggestions,
   initialComments,
   onDelete,
-  dragHandlers,
+  dropTarget,
+  dragHandle,
 }: {
   card: StoryCircleCard;
   readOnly: boolean;
   suggestions: Record<string, string>;
   initialComments: Comment[];
   onDelete: (id: string) => void;
-  dragHandlers?: DragHandlers;
+  dropTarget?: DropTargetHandlers;
+  dragHandle?: DragHandleHandlers;
 }) {
   return (
-    <div {...dragHandlers} className={dragHandlers ? "cursor-grab" : undefined}>
-      <CollapsibleCharacterShell name={card.hero} photoUrl={null}>
-        <CardBody card={card} readOnly={readOnly} suggestions={suggestions} />
-        {!readOnly && (
-          <button
-            onClick={() => onDelete(card.id)}
-            className="text-[12.5px] px-2.5 py-1.5 rounded-sm mt-4"
-            style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-          >
-            Удалить
-          </button>
-        )}
-        <CommentsBlock model="StoryCircleCard" recordId={card.id} initialComments={initialComments} />
-      </CollapsibleCharacterShell>
+    <div {...dropTarget} className="flex items-start gap-1.5">
+      {dragHandle && <DragHandle handlers={dragHandle} />}
+      <div className="flex-1 min-w-0">
+        <CollapsibleCharacterShell name={card.hero} photoUrl={null}>
+          <CardBody card={card} readOnly={readOnly} suggestions={suggestions} />
+          {!readOnly && (
+            <button
+              onClick={() => onDelete(card.id)}
+              className="text-[12.5px] px-2.5 py-1.5 rounded-sm mt-4"
+              style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
+            >
+              Удалить
+            </button>
+          )}
+          <CommentsBlock model="StoryCircleCard" recordId={card.id} initialComments={initialComments} />
+        </CollapsibleCharacterShell>
+      </div>
     </div>
   );
 }
@@ -127,7 +133,7 @@ export function StoryCircleExamplesList({
 }) {
   const [cards, setCards] = useState(initialCards);
   const [, startTransition] = useTransition();
-  const dragHandlers = useDragReorder(cards, setCards, (orderedIds) =>
+  const { dropTarget, dragHandle } = useDragReorder(cards, setCards, (orderedIds) =>
     startTransition(() => reorderStoryCircleCards(studentId, true, orderedIds))
   );
 
@@ -153,7 +159,8 @@ export function StoryCircleExamplesList({
           suggestions={{}}
           initialComments={comments[card.id] ?? []}
           onDelete={handleDelete}
-          dragHandlers={isMentorViewer ? dragHandlers(card.id) : undefined}
+          dropTarget={dropTarget(card.id)}
+          dragHandle={isMentorViewer ? dragHandle(card.id) : undefined}
         />
       ))}
       {isMentorViewer && (
@@ -182,7 +189,7 @@ export function StoryCircleOwnList({
 }) {
   const [cards, setCards] = useState(initialCards);
   const [, startTransition] = useTransition();
-  const dragHandlers = useDragReorder(cards, setCards, (orderedIds) =>
+  const { dropTarget, dragHandle } = useDragReorder(cards, setCards, (orderedIds) =>
     startTransition(() => reorderStoryCircleCards(studentId, false, orderedIds))
   );
 
@@ -208,7 +215,8 @@ export function StoryCircleOwnList({
           suggestions={suggestions[card.id] ?? {}}
           initialComments={comments[card.id] ?? []}
           onDelete={handleDelete}
-          dragHandlers={dragHandlers(card.id)}
+          dropTarget={dropTarget(card.id)}
+          dragHandle={dragHandle(card.id)}
         />
       ))}
       <button

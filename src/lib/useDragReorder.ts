@@ -3,13 +3,22 @@
 import { useState } from "react";
 import { reorderArray } from "./reorder";
 
-export type DragHandlers = {
-  draggable: boolean;
-  onDragStart: () => void;
+export type DropTargetHandlers = {
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
 };
 
+export type DragHandleHandlers = {
+  draggable: boolean;
+  onDragStart: () => void;
+};
+
+/**
+ * draggable=true on a whole card breaks text selection and clicks on
+ * inner inputs (the browser treats the gesture as a potential drag).
+ * Keep `draggable` on a small dedicated handle only, and put
+ * onDragOver/onDrop on the card itself so dropping anywhere on it works.
+ */
 export function useDragReorder<T extends { id: string }>(
   items: T[],
   setItems: (items: T[]) => void,
@@ -17,12 +26,10 @@ export function useDragReorder<T extends { id: string }>(
 ) {
   const [dragId, setDragId] = useState<string | null>(null);
 
-  return function dragHandlers(id: string): DragHandlers {
+  function dropTarget(id: string): DropTargetHandlers {
     return {
-      draggable: true,
-      onDragStart: () => setDragId(id),
-      onDragOver: (e: React.DragEvent) => e.preventDefault(),
-      onDrop: (e: React.DragEvent) => {
+      onDragOver: (e) => e.preventDefault(),
+      onDrop: (e) => {
         e.preventDefault();
         if (!dragId || dragId === id) return;
         const fromIndex = items.findIndex((i) => i.id === dragId);
@@ -34,5 +41,14 @@ export function useDragReorder<T extends { id: string }>(
         setDragId(null);
       },
     };
-  };
+  }
+
+  function dragHandle(id: string): DragHandleHandlers {
+    return {
+      draggable: true,
+      onDragStart: () => setDragId(id),
+    };
+  }
+
+  return { dropTarget, dragHandle };
 }

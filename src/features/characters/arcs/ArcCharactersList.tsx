@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import type { Character, Comment } from "@/generated/prisma/client";
 import ArcCharacterCard from "./ArcCharacterCard";
+import DragHandle from "@/components/DragHandle";
 import { createCharacter, reorderCharacters } from "../actions";
 import { useDragReorder } from "@/lib/useDragReorder";
 
@@ -19,7 +20,7 @@ export default function ArcCharactersList({
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
-  const dragHandlers = useDragReorder(characters, setCharacters, (orderedIds) =>
+  const { dropTarget, dragHandle } = useDragReorder(characters, setCharacters, (orderedIds) =>
     startTransition(() => reorderCharacters(bookId, orderedIds))
   );
 
@@ -37,13 +38,16 @@ export default function ArcCharactersList({
   return (
     <div>
       {characters.map((character) => (
-        <div key={character.id} {...dragHandlers(character.id)} className="cursor-grab">
-          <ArcCharacterCard
-            character={character}
-            suggestions={suggestions[character.id] ?? {}}
-            initialComments={comments[character.id] ?? []}
-            onDeleted={handleDeleted}
-          />
+        <div key={character.id} {...dropTarget(character.id)} className="flex items-start gap-1.5">
+          <DragHandle handlers={dragHandle(character.id)} />
+          <div className="flex-1 min-w-0">
+            <ArcCharacterCard
+              character={character}
+              suggestions={suggestions[character.id] ?? {}}
+              initialComments={comments[character.id] ?? []}
+              onDeleted={handleDeleted}
+            />
+          </div>
         </div>
       ))}
 

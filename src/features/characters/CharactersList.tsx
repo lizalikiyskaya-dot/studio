@@ -5,6 +5,7 @@ import type { Character, Comment } from "@/generated/prisma/client";
 import CharacterProfile from "./CharacterProfile";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
 import CommentsBlock from "@/features/comments/CommentsBlock";
+import DragHandle from "@/components/DragHandle";
 import { createCharacter, deleteCharacter, reorderCharacters } from "./actions";
 import { uploadFile } from "@/lib/uploadFile";
 import { useDragReorder } from "@/lib/useDragReorder";
@@ -25,7 +26,7 @@ export default function CharactersList({
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
-  const dragHandlers = useDragReorder(characters, setCharacters, (orderedIds) =>
+  const { dropTarget, dragHandle } = useDragReorder(characters, setCharacters, (orderedIds) =>
     startTransition(() => reorderCharacters(bookId, orderedIds))
   );
 
@@ -52,23 +53,26 @@ export default function CharactersList({
       {characters.map((character) => {
         const charSuggestions = suggestions[character.id] ?? {};
         return (
-          <div key={character.id} {...dragHandlers(character.id)} className="cursor-grab">
-          <CollapsibleCharacterShell name={character.name} photoUrl={character.photoUrl}>
-            <CharacterProfile
-              name={character.name}
-              photoUrl={character.photoUrl}
-              data={(character.data as Record<string, string>) ?? {}}
-              groups={groups}
-              onNameBlur={() => {}}
-              onFieldBlur={() => {}}
-              onPhotoUpload={(file) => handlePhotoUpload(character.id, file)}
-              onDelete={() => handleDelete(character.id)}
-              suggestable={{ model: "Character", recordId: character.id }}
-              nameSuggestion={charSuggestions.name}
-              fieldSuggestions={charSuggestions}
-            />
-            <CommentsBlock model="Character" recordId={character.id} initialComments={comments[character.id] ?? []} />
-          </CollapsibleCharacterShell>
+          <div key={character.id} {...dropTarget(character.id)} className="flex items-start gap-1.5">
+            <DragHandle handlers={dragHandle(character.id)} />
+            <div className="flex-1 min-w-0">
+              <CollapsibleCharacterShell name={character.name} photoUrl={character.photoUrl}>
+                <CharacterProfile
+                  name={character.name}
+                  photoUrl={character.photoUrl}
+                  data={(character.data as Record<string, string>) ?? {}}
+                  groups={groups}
+                  onNameBlur={() => {}}
+                  onFieldBlur={() => {}}
+                  onPhotoUpload={(file) => handlePhotoUpload(character.id, file)}
+                  onDelete={() => handleDelete(character.id)}
+                  suggestable={{ model: "Character", recordId: character.id }}
+                  nameSuggestion={charSuggestions.name}
+                  fieldSuggestions={charSuggestions}
+                />
+                <CommentsBlock model="Character" recordId={character.id} initialComments={comments[character.id] ?? []} />
+              </CollapsibleCharacterShell>
+            </div>
           </div>
         );
       })}

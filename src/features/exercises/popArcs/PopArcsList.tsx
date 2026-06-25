@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import type { PopArcCharacter, Comment } from "@/generated/prisma/client";
 import PopArcCard from "./PopArcCard";
 import { createPopArcCharacter, deletePopArcCharacter, reorderPopArcCharacters } from "./actions";
+import DragHandle from "@/components/DragHandle";
 import { useDragReorder } from "@/lib/useDragReorder";
 
 export function ExamplesList({
@@ -19,7 +20,7 @@ export function ExamplesList({
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
-  const dragHandlers = useDragReorder(characters, setCharacters, (orderedIds) =>
+  const { dropTarget, dragHandle } = useDragReorder(characters, setCharacters, (orderedIds) =>
     startTransition(() => reorderPopArcCharacters(studentId, true, orderedIds))
   );
 
@@ -38,14 +39,17 @@ export function ExamplesList({
   return (
     <div>
       {characters.map((character) => (
-        <div key={character.id} {...(isMentorViewer ? dragHandlers(character.id) : {})} className={isMentorViewer ? "cursor-grab" : undefined}>
-          <PopArcCard
-            character={character}
-            readOnly={!isMentorViewer}
-            suggestions={{}}
-            initialComments={comments[character.id] ?? []}
-            onDelete={() => handleDelete(character.id)}
-          />
+        <div key={character.id} {...dropTarget(character.id)} className="flex items-start gap-1.5">
+          {isMentorViewer && <DragHandle handlers={dragHandle(character.id)} />}
+          <div className="flex-1 min-w-0">
+            <PopArcCard
+              character={character}
+              readOnly={!isMentorViewer}
+              suggestions={{}}
+              initialComments={comments[character.id] ?? []}
+              onDelete={() => handleDelete(character.id)}
+            />
+          </div>
         </div>
       ))}
 
@@ -75,7 +79,7 @@ export function OwnHeroesList({
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [, startTransition] = useTransition();
-  const dragHandlers = useDragReorder(characters, setCharacters, (orderedIds) =>
+  const { dropTarget, dragHandle } = useDragReorder(characters, setCharacters, (orderedIds) =>
     startTransition(() => reorderPopArcCharacters(studentId, false, orderedIds))
   );
 
@@ -94,14 +98,17 @@ export function OwnHeroesList({
   return (
     <div>
       {characters.map((character) => (
-        <div key={character.id} {...dragHandlers(character.id)} className="cursor-grab">
-          <PopArcCard
-            character={character}
-            readOnly={false}
-            suggestions={suggestions[character.id] ?? {}}
-            initialComments={comments[character.id] ?? []}
-            onDelete={() => handleDelete(character.id)}
-          />
+        <div key={character.id} {...dropTarget(character.id)} className="flex items-start gap-1.5">
+          <DragHandle handlers={dragHandle(character.id)} />
+          <div className="flex-1 min-w-0">
+            <PopArcCard
+              character={character}
+              readOnly={false}
+              suggestions={suggestions[character.id] ?? {}}
+              initialComments={comments[character.id] ?? []}
+              onDelete={() => handleDelete(character.id)}
+            />
+          </div>
         </div>
       ))}
 
