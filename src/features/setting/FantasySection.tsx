@@ -5,6 +5,7 @@ import type { Book, WorldEntry, WorldCategory } from "@/generated/prisma/client"
 import Accordion from "@/components/Accordion";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
+import { uploadFile } from "@/lib/uploadFile";
 import {
   toggleFantasyLock,
   updateFantasyText,
@@ -12,7 +13,6 @@ import {
   deleteWorldEntry,
   updateWorldEntryTitle,
   updateWorldEntryBody,
-  updateWorldEntryPhoto,
 } from "./actions";
 import {
   MapIcon,
@@ -219,9 +219,9 @@ export default function FantasySection({
 
             <ImageUploadBox
               value={openEntry.photoUrl}
-              onUpload={(dataUrl) => {
-                patchEntry(openEntry.id, { photoUrl: dataUrl });
-                startTransition(() => updateWorldEntryPhoto(openEntry.id, dataUrl));
+              onUpload={(file) => {
+                patchEntry(openEntry.id, { photoUrl: URL.createObjectURL(file) });
+                startTransition(() => { void uploadFile("world-entry-photo", openEntry.id, "photoUrl", file); });
               }}
               placeholder="нажмите, чтобы добавить изображение"
               className="w-full h-[200px] rounded-md mb-5 mt-3.5"

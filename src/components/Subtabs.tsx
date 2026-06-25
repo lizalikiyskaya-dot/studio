@@ -27,7 +27,11 @@ export default function Subtabs({
           </button>
         ))}
       </div>
-      {tabs[active].content}
+      {tabs.map((tab, i) => (
+        <div key={tab.label} style={{ display: active === i ? "block" : "none" }}>
+          {tab.content}
+        </div>
+      ))}
     </div>
   );
 }

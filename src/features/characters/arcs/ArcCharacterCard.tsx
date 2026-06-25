@@ -6,8 +6,8 @@ import ImageUploadBox from "@/components/ImageUploadBox";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { ARC_GROUPS } from "../fields";
+import { uploadFile } from "@/lib/uploadFile";
 import {
-  updateCharacterPhoto,
   updateCharacterArcType,
   deleteCharacter,
 } from "../actions";
@@ -155,9 +155,9 @@ export default function ArcCharacterCard({
           <div className="flex gap-5 items-center my-4">
             <ImageUploadBox
               value={photoUrl}
-              onUpload={(dataUrl) => {
-                setPhotoUrl(dataUrl);
-                startTransition(() => updateCharacterPhoto(character.id, dataUrl));
+              onUpload={(file) => {
+                setPhotoUrl(URL.createObjectURL(file));
+                startTransition(() => { void uploadFile("character-photo", character.id, "photoUrl", file); });
               }}
               placeholder="фото"
               className="rounded-sm flex-shrink-0"

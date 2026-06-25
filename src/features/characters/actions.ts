@@ -35,13 +35,6 @@ export async function updateCharacterName(characterId: string, name: string) {
   await prisma.character.update({ where: { id: characterId }, data: { name } });
 }
 
-export async function updateCharacterPhoto(characterId: string, photoUrl: string) {
-  const character = await prisma.character.findUniqueOrThrow({ where: { id: characterId } });
-  const book = await prisma.book.findUniqueOrThrow({ where: { id: character.bookId } });
-  await requireCabinetAccess(book.studentId);
-  await prisma.character.update({ where: { id: characterId }, data: { photoUrl } });
-}
-
 export async function updateCharacterField(
   characterId: string,
   field: CharacterFieldKey,

@@ -139,7 +139,9 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" --max-time 8 https://lizalikiyskaya-dot-studio-9545.twc1.net/)",
       "Bash(echo \"exit:$?\")",
       "mcp__Claude_Preview__preview_start",
-      "Bash(grep -rn \"href=\\\\\"/mentor\\\\|href={\\\\`/mentor\\\\|/mentor/\" src/components/Sidebar.tsx)"
+      "Bash(grep -rn \"href=\\\\\"/mentor\\\\|href={\\\\`/mentor\\\\|/mentor/\" src/components/Sidebar.tsx)",
+      "Bash(curl -sL --max-time 15 https://lizalikiyskaya-dot-studio-2171.twc1.net/)",
+      "Bash(curl -s -c /tmp/tw_cookies.txt -X POST https://lizalikiyskaya-dot-studio-2171.twc1.net/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"lizalikiyskaya@gmail.com\",\"password\":\"2NC-aqOL\"}' -w \"\\\\nHTTP:%{http_code}\\\\n\")"
     ]
   }
 }

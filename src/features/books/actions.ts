@@ -5,25 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
 import type { SynopsisMode } from "@/generated/prisma/client";
 
-const BOOK_TEXT_FIELDS = [
-  "title",
-  "genre",
-  "references",
-  "audience",
-  "partsCount",
-  "timeStructure",
-  "mainCharacters",
-  "dramaticArgument",
-  "logline",
-  "concept",
-  "annotation",
-  "synopsisText",
-  "synopsisLink",
-  "coverUrl",
-] as const;
-
-export type BookTextField = (typeof BOOK_TEXT_FIELDS)[number];
-
 export async function createBook(studentId: string) {
   await requireCabinetAccess(studentId);
   const book = await prisma.book.create({
@@ -32,17 +13,6 @@ export async function createBook(studentId: string) {
   revalidatePath("/dashboard", "layout");
   revalidatePath(`/student-view/${studentId}`, "layout");
   return book;
-}
-
-export async function updateBookField(
-  bookId: string,
-  field: BookTextField,
-  value: string
-) {
-  if (!BOOK_TEXT_FIELDS.includes(field)) throw new Error("Недопустимое поле");
-  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
-  await requireCabinetAccess(book.studentId);
-  await prisma.book.update({ where: { id: bookId }, data: { [field]: value } });
 }
 
 export async function deleteBook(bookId: string) {

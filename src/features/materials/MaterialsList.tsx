@@ -40,7 +40,7 @@ function DownloadOrUpload({
     );
   }
   if (canManage) {
-    return <FileAttachBox onUpload={onUpload} />;
+    return <FileAttachBox label={label === "файл" ? "+ файл" : `+ файл ${label}`} onUpload={onUpload} />;
   }
   return (
     <span className="text-[13px]" style={{ color: "var(--faded)" }}>

@@ -5,7 +5,8 @@ import type { Character, Comment } from "@/generated/prisma/client";
 import CharacterProfile from "./CharacterProfile";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
 import CommentsBlock from "@/features/comments/CommentsBlock";
-import { createCharacter, deleteCharacter, updateCharacterPhoto } from "./actions";
+import { createCharacter, deleteCharacter } from "./actions";
+import { uploadFile } from "@/lib/uploadFile";
 import type { FieldGroup } from "./fields";
 
 export default function CharactersList({
@@ -36,6 +37,12 @@ export default function CharactersList({
     startTransition(() => deleteCharacter(id));
   }
 
+  function handlePhotoUpload(id: string, file: File) {
+    const objectUrl = URL.createObjectURL(file);
+    setCharacters((prev) => prev.map((c) => (c.id === id ? { ...c, photoUrl: objectUrl } : c)));
+    startTransition(() => { void uploadFile("character-photo", id, "photoUrl", file); });
+  }
+
   return (
     <div>
       {characters.map((character) => {
@@ -49,7 +56,7 @@ export default function CharactersList({
               groups={groups}
               onNameBlur={() => {}}
               onFieldBlur={() => {}}
-              onPhotoUpload={(dataUrl) => startTransition(() => updateCharacterPhoto(character.id, dataUrl))}
+              onPhotoUpload={(file) => handlePhotoUpload(character.id, file)}
               onDelete={() => handleDelete(character.id)}
               suggestable={{ model: "Character", recordId: character.id }}
               nameSuggestion={charSuggestions.name}

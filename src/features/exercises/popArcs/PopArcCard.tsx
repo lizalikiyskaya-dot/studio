@@ -6,7 +6,8 @@ import ImageUploadBox from "@/components/ImageUploadBox";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { ARC_GROUPS } from "@/features/characters/fields";
-import { updatePopArcPhoto, updatePopArcType } from "./actions";
+import { uploadFile } from "@/lib/uploadFile";
+import { updatePopArcType } from "./actions";
 
 const ARC_TYPE_INDEX: Record<ArcType, number> = { POSITIVE: 0, NEGATIVE: 1, FLAT: 2 };
 const ARC_TYPE_LABEL: Record<ArcType, string> = {
@@ -200,9 +201,9 @@ export default function PopArcCard({
             ) : (
               <ImageUploadBox
                 value={photoUrl}
-                onUpload={(dataUrl) => {
-                  setPhotoUrl(dataUrl);
-                  startTransition(() => updatePopArcPhoto(character.id, dataUrl));
+                onUpload={(file) => {
+                  setPhotoUrl(URL.createObjectURL(file));
+                  startTransition(() => { void uploadFile("popArc-photo", character.id, "photoUrl", file); });
                 }}
                 placeholder="фото"
                 className="rounded-sm flex-shrink-0"

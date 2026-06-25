@@ -37,11 +37,6 @@ export async function updatePopArcName(id: string, name: string) {
   await prisma.popArcCharacter.update({ where: { id }, data: { name } });
 }
 
-export async function updatePopArcPhoto(id: string, photoUrl: string) {
-  await requireAccessForCharacter(id);
-  await prisma.popArcCharacter.update({ where: { id }, data: { photoUrl } });
-}
-
 export async function updatePopArcField(id: string, field: string, value: string) {
   if (!ALL_CHARACTER_FIELD_KEYS.includes(field as never)) throw new Error("Недопустимое поле");
   const character = await requireAccessForCharacter(id);

@@ -79,7 +79,7 @@ export default function CharacterProfile({
   groups: FieldGroup[];
   onNameBlur: (value: string) => void;
   onFieldBlur: (field: string, value: string) => void;
-  onPhotoUpload: (dataUrl: string) => void;
+  onPhotoUpload: (file: File) => void;
   onDelete: () => void;
   readOnly?: boolean;
   suggestable?: Suggestable;

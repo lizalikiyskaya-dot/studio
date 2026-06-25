@@ -2,14 +2,7 @@
 
 import { useRef, useState } from "react";
 
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+const MAX_SIZE = 4 * 1024 * 1024;
 
 export default function ImageUploadBox({
   value,
@@ -19,7 +12,7 @@ export default function ImageUploadBox({
   style,
 }: {
   value?: string | null;
-  onUpload: (dataUrl: string) => void;
+  onUpload: (file: File) => void;
   placeholder: string;
   className?: string;
   style?: React.CSSProperties;
@@ -27,12 +20,15 @@ export default function ImageUploadBox({
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState(value ?? "");
 
-  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const dataUrl = await readAsDataUrl(file);
-    setPreview(dataUrl);
-    onUpload(dataUrl);
+    if (file.size > MAX_SIZE) {
+      window.alert("Файл слишком большой (максимум 4 МБ)");
+      return;
+    }
+    setPreview(URL.createObjectURL(file));
+    onUpload(file);
   }
 
   return (

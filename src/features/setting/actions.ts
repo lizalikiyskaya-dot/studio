@@ -93,9 +93,3 @@ export async function updateWorldEntryBody(entryId: string, body: string) {
   await prisma.worldEntry.update({ where: { id: entryId }, data: { body } });
 }
 
-export async function updateWorldEntryPhoto(entryId: string, photoUrl: string) {
-  const entry = await prisma.worldEntry.findUniqueOrThrow({ where: { id: entryId } });
-  const book = await prisma.book.findUniqueOrThrow({ where: { id: entry.bookId } });
-  await requireCabinetAccess(book.studentId);
-  await prisma.worldEntry.update({ where: { id: entryId }, data: { photoUrl } });
-}
