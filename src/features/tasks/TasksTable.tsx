@@ -15,7 +15,7 @@ import { nextTaskStatus } from "./status";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { shortenUrl } from "@/lib/shortenUrl";
 
-const GRID_COLUMNS = "3fr 130px 140px 140px 3fr 130px 28px";
+const GRID_COLUMNS = "4fr 130px 140px 140px 3fr 105px 28px";
 const HEADER_ALIGN = ["left", "left", "center", "center", "left", "center", "left"] as const;
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
