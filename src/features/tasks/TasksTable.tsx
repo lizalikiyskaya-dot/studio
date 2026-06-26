@@ -177,7 +177,7 @@ export default function TasksTable({
       <div className="flex gap-3 mb-6 flex-wrap">
         <Kpi icon={Bookmark} iconBg="var(--accent-soft)" iconColor="var(--wine)" num={tasks.length} label="всего заданий" />
         <Kpi icon={Check} iconBg="var(--sage-soft)" iconColor="var(--sage)" num={accepted} label="принято" />
-        <Kpi icon={Clock} iconBg="var(--accent-soft)" iconColor="var(--wine)" num={inProgress} label="в процессе" />
+        <Kpi icon={Clock} iconBg="#E2E9EE" iconColor="#3F6080" num={inProgress} label="в процессе" />
         <Kpi icon={RotateCcw} iconBg="var(--accent-soft)" iconColor="var(--wine)" num={needsRevision} label="на доработке" />
       </div>
 
