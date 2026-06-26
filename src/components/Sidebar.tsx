@@ -134,7 +134,7 @@ export default function Sidebar({
               );
             })}
 
-            {(bookWorkshopUnlocked || isMentor) && (
+            {bookWorkshopUnlocked && (
               <>
                 <div className="h-px my-[18px]" style={{ background: "var(--rule)" }} />
                 <div className="text-[12.5px] mb-2.5" style={{ color: "var(--faded)" }}>
@@ -161,7 +161,7 @@ export default function Sidebar({
               </>
             )}
 
-            {(storyWorkshopUnlocked || isMentor) && (
+            {storyWorkshopUnlocked && (
               <>
                 <div className="h-px my-[18px]" style={{ background: "var(--rule)" }} />
                 <div className="text-[12.5px] mb-2.5" style={{ color: "var(--faded)" }}>
