@@ -28,23 +28,21 @@ export default async function DashboardLayout({
   const noteComments = await getCommentsForRecords("Note", notes.map((n) => n.id));
 
   return (
-    <div className="flex min-h-screen gap-5 p-5 mx-auto" style={{ maxWidth: 1320 }}>
-      <div style={{ width: 250, flexShrink: 0 }}>
-        <Sidebar
-          basePath="/dashboard"
-          userName={user.name}
-          isMentor={false}
-          studentId={user.id}
-          bookWorkshopUnlocked={user.bookWorkshopUnlocked}
-          storyWorkshopUnlocked={user.storyWorkshopUnlocked}
-          calendar={{
-            tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
-            paymentDay: user.paymentDay,
-            paymentStatus: user.paymentStatus,
-          }}
-        />
-      </div>
-      <div className="page-card px-[46px] py-10" style={{ flex: 1, minHeight: "calc(100vh - 40px)" }}>
+    <div className="flex min-h-screen">
+      <Sidebar
+        basePath="/dashboard"
+        userName={user.name}
+        isMentor={false}
+        studentId={user.id}
+        bookWorkshopUnlocked={user.bookWorkshopUnlocked}
+        storyWorkshopUnlocked={user.storyWorkshopUnlocked}
+        calendar={{
+          tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
+          paymentDay: user.paymentDay,
+          paymentStatus: user.paymentStatus,
+        }}
+      />
+      <div className="px-11 py-9" style={{ flex: 1, background: "var(--paper-light)", minHeight: "100vh" }}>
         {children}
       </div>
       <NotesPanel studentId={user.id} initialNotes={notes} initialComments={noteComments} />

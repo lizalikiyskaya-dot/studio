@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check } from "lucide-react";
 
 /**
  * Explicit "Сохранить" affordance for cards whose fields save on blur.
@@ -22,14 +23,15 @@ export default function CardSaveButton({ scopeRef }: { scopeRef: React.RefObject
   return (
     <button
       onClick={handleSave}
-      className="text-[12.5px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
+      className="flex items-center gap-1.5 text-[12.5px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
       style={{
         color: justSaved ? "#fff" : "var(--sage)",
         background: justSaved ? "var(--sage)" : "transparent",
         border: "1px solid var(--sage)",
       }}
     >
-      {justSaved ? "✓ сохранено" : "Сохранить"}
+      {justSaved && <Check size={13} />}
+      {justSaved ? "сохранено" : "Сохранить"}
     </button>
   );
 }

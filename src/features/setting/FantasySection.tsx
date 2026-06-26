@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { Lock, Unlock, Check, X } from "lucide-react";
 import type { Book, WorldEntry, WorldCategory } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
@@ -111,7 +112,7 @@ export default function FantasySection({
         className="rounded-md p-9 text-center max-w-[480px]"
         style={{ border: "1px dashed var(--rule)", color: "var(--faded)" }}
       >
-        <span className="block text-[26px] mb-2.5">🔒</span>
+        <span className="flex justify-center mb-2.5"><Lock size={26} /></span>
         <span className="text-[13.5px]">Раздел скрыт от ученика — открой, если он пишет фэнтези</span>
         {isMentor && (
           <div className="mt-3.5">
@@ -136,10 +137,10 @@ export default function FantasySection({
         <div className="mb-3.5">
           <button
             onClick={handleToggleLock}
-            className="text-[12.5px] px-3 py-1.5 rounded-full"
+            className="flex items-center gap-1.5 text-[12.5px] px-3 py-1.5 rounded-full"
             style={{ border: "1px solid var(--sage)", color: "var(--sage)" }}
           >
-            🔓 Открыто для ученика — закрыть
+            <Unlock size={13} /> Открыто для ученика — закрыть
           </button>
         </div>
       )}
@@ -211,10 +212,10 @@ export default function FantasySection({
           <div className="bg-white w-full max-w-[520px] h-full overflow-y-auto p-9 relative" style={{ boxShadow: "-8px 0 28px rgba(0,0,0,0.18)" }}>
             <button
               onClick={() => setOpenEntryId(null)}
-              className="absolute top-[18px] right-[22px] text-[24px] leading-none cursor-pointer"
+              className="absolute top-[18px] right-[22px] cursor-pointer"
               style={{ color: "var(--faded)", border: "none", background: "transparent" }}
             >
-              ×
+              <X size={20} />
             </button>
 
             <ImageUploadBox
@@ -256,8 +257,8 @@ export default function FantasySection({
                 Сохранить
               </button>
               {justSaved && (
-                <span className="text-[12.5px]" style={{ color: "var(--sage)" }}>
-                  ✓ сохранено
+                <span className="flex items-center gap-1 text-[12.5px]" style={{ color: "var(--sage)" }}>
+                  <Check size={13} /> сохранено
                 </span>
               )}
               <button

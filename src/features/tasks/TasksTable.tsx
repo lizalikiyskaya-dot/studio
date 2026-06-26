@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { X, Bookmark, Check, Clock, RotateCcw } from "lucide-react";
 import type { Task, TaskStatus } from "@/generated/prisma/client";
 import {
   createTask,
@@ -15,8 +16,7 @@ import { nextTaskStatus } from "./status";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { shortenUrl } from "@/lib/shortenUrl";
 
-const GRID_COLUMNS = "4fr 130px 140px 140px 3fr 105px 28px";
-const HEADER_ALIGN = ["left", "left", "center", "center", "left", "center", "left"] as const;
+const GRID_COLUMNS = "1fr 100px 110px 110px 130px";
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
   IN_PROGRESS: "в процессе",
@@ -26,11 +26,53 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
 };
 
 const STATUS_STYLE: Record<TaskStatus, React.CSSProperties> = {
-  IN_PROGRESS: { background: "#fff", color: "var(--faded)", border: "1px dashed var(--rule)" },
-  SUBMITTED: { background: "#fff", color: "var(--sage)", border: "1px solid var(--sage)" },
-  NEEDS_REVISION: { background: "#fff", color: "var(--wine)", border: "1px solid var(--wine)" },
-  ACCEPTED: { background: "var(--ink)", color: "#fff", border: "1px solid var(--ink)" },
+  IN_PROGRESS: { background: "var(--bg-surface-2)", color: "var(--faded)", border: "1px dashed var(--rule)" },
+  SUBMITTED: { background: "var(--sage-soft)", color: "var(--sage)", border: "none" },
+  NEEDS_REVISION: { background: "var(--accent-soft)", color: "var(--wine)", border: "none" },
+  ACCEPTED: { background: "var(--ink)", color: "#fff", border: "none" },
 };
+
+function MetaLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="font-mono-label block text-[9px] uppercase mb-0.5" style={{ color: "var(--faded)" }}>
+      {children}
+    </span>
+  );
+}
+
+function Kpi({
+  icon: Icon,
+  iconBg,
+  iconColor,
+  num,
+  label,
+}: {
+  icon: typeof Bookmark;
+  iconBg: string;
+  iconColor: string;
+  num: number;
+  label: string;
+}) {
+  return (
+    <div
+      className="flex items-center gap-3 rounded-[14px] px-4 py-3.5"
+      style={{ background: "var(--bg-surface-2)", flex: 1, minWidth: 140 }}
+    >
+      <div
+        className="flex items-center justify-center rounded-[10px] flex-shrink-0"
+        style={{ width: 36, height: 36, background: iconBg, color: iconColor }}
+      >
+        <Icon size={17} />
+      </div>
+      <div>
+        <div className="heading text-[19px] leading-none">{num}</div>
+        <div className="text-[11.5px]" style={{ color: "var(--faded)" }}>
+          {label}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function LinkCell({
   value,
@@ -46,7 +88,7 @@ function LinkCell({
         target="_blank"
         rel="noopener noreferrer"
         title={value}
-        className="text-[12.5px] block text-center"
+        className="text-[12.5px] block"
         style={{ color: "var(--wine)", overflowWrap: "anywhere" }}
       >
         {shortenUrl(value)}
@@ -59,7 +101,7 @@ function LinkCell({
         const url = window.prompt("Ссылка");
         if (url) onSave(url);
       }}
-      className="text-[12.5px] px-2.5 py-1 rounded-sm mx-auto block"
+      className="text-[12.5px] px-2.5 py-1 rounded-sm"
       style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
     >
       + ссылка
@@ -81,6 +123,7 @@ export default function TasksTable({
   initialTasks: Task[];
 }) {
   const [tasks, setTasks] = useState(initialTasks);
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
 
   function handleAdd() {
@@ -125,78 +168,94 @@ export default function TasksTable({
     startTransition(() => deleteTask(taskId));
   }
 
+  const accepted = tasks.filter((t) => t.status === "ACCEPTED").length;
+  const inProgress = tasks.filter((t) => t.status === "IN_PROGRESS").length;
+  const needsRevision = tasks.filter((t) => t.status === "NEEDS_REVISION").length;
+
   return (
     <div>
-      <div className="overflow-x-auto mb-4">
-        <div style={{ minWidth: 980 }}>
-          <div
-            className="grid gap-x-3 pb-2 border-b"
-            style={{ gridTemplateColumns: GRID_COLUMNS, borderColor: "var(--rule)" }}
-          >
-            {["Задание", "Дедлайн", "Ссылка на работу", "Обратная связь", "Примечания", "Статус", ""].map((h, i) => (
-              <div
-                key={h}
-                className="text-[12px] whitespace-nowrap"
-                style={{ color: "var(--faded)", textAlign: HEADER_ALIGN[i] }}
-              >
-                {h}
-              </div>
-            ))}
-          </div>
+      <div className="flex gap-3 mb-6 flex-wrap">
+        <Kpi icon={Bookmark} iconBg="var(--accent-soft)" iconColor="var(--wine)" num={tasks.length} label="всего заданий" />
+        <Kpi icon={Check} iconBg="var(--sage-soft)" iconColor="var(--sage)" num={accepted} label="принято" />
+        <Kpi icon={Clock} iconBg="var(--accent-soft)" iconColor="var(--wine)" num={inProgress} label="в процессе" />
+        <Kpi icon={RotateCcw} iconBg="var(--accent-soft)" iconColor="var(--wine)" num={needsRevision} label="на доработке" />
+      </div>
 
-          {tasks.map((task) => (
-            <div
-              key={task.id}
-              className="grid gap-x-3 py-2.5 border-b items-start"
-              style={{ gridTemplateColumns: GRID_COLUMNS, borderColor: "var(--rule)" }}
-            >
-              <AutoGrowTextarea
-                defaultValue={task.title}
-                onBlur={(v) => handleTitleBlur(task.id, v)}
-                placeholder="Описание задания"
-                className="w-full min-w-0 outline-none bg-transparent text-[13.5px] py-1 leading-snug"
-              />
-              <input
-                type="date"
-                defaultValue={toDateInputValue(task.deadline)}
-                onChange={(e) => handleDeadline(task.id, e.target.value)}
-                className="w-full outline-none bg-transparent text-[12.5px] py-1.5"
-                style={{ border: "1px solid var(--rule)", borderRadius: 2, padding: "4px 6px" }}
-              />
-              <div className="pt-1 min-w-0">
+      <div className="flex flex-col gap-2.5 mb-4">
+        {tasks.map((task) => (
+          <div
+            key={task.id}
+            className="rounded-[14px] px-4 py-3.5"
+            style={{ border: "1px solid var(--border)", background: "var(--paper-light)" }}
+          >
+            <div className="grid gap-x-3.5 items-start" style={{ gridTemplateColumns: GRID_COLUMNS }}>
+              <div className="min-w-0">
+                <MetaLabel>задание</MetaLabel>
+                <AutoGrowTextarea
+                  defaultValue={task.title}
+                  onBlur={(v) => handleTitleBlur(task.id, v)}
+                  placeholder="Описание задания"
+                  className="w-full min-w-0 outline-none bg-transparent text-[13.5px] leading-snug"
+                />
+              </div>
+              <div>
+                <MetaLabel>дедлайн</MetaLabel>
+                <input
+                  type="date"
+                  defaultValue={toDateInputValue(task.deadline)}
+                  onChange={(e) => handleDeadline(task.id, e.target.value)}
+                  className="w-full outline-none bg-transparent text-[12.5px]"
+                  style={{ border: "1px solid var(--rule)", borderRadius: 6, padding: "4px 6px" }}
+                />
+              </div>
+              <div className="min-w-0">
+                <MetaLabel>работа</MetaLabel>
                 <LinkCell value={task.workLink} onSave={(v) => handleLink(task.id, "workLink", v)} />
               </div>
-              <div className="pt-1 min-w-0">
+              <div className="min-w-0">
+                <MetaLabel>отзыв</MetaLabel>
                 <LinkCell value={task.feedbackLink} onSave={(v) => handleLink(task.id, "feedbackLink", v)} />
               </div>
-              <AutoGrowTextarea
-                defaultValue={task.notes}
-                onBlur={(v) => handleNotes(task.id, v)}
-                placeholder="примечание..."
-                className="w-full min-w-0 outline-none bg-transparent text-[13px] py-1 leading-snug"
-              />
-              <div className="pt-1">
+              <div className="flex items-center justify-end gap-2.5">
                 <button
                   onClick={() => handleStatus(task.id, task.status)}
-                  className="font-mono-label text-[10.5px] px-2.5 py-1 rounded-full whitespace-nowrap"
+                  className="font-mono-label text-[10px] px-2.5 py-1.5 rounded-full whitespace-nowrap uppercase"
                   style={STATUS_STYLE[task.status]}
                 >
                   {STATUS_LABEL[task.status]}
                 </button>
-              </div>
-              <div className="pt-1">
                 <button
                   onClick={() => handleDelete(task.id)}
-                  className="text-[12px]"
-                  style={{ color: "var(--wine)" }}
+                  style={{ color: "var(--faded)" }}
                   title="Удалить задание"
                 >
-                  ✕
+                  <X size={14} />
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+
+            {task.notes || expandedNotes.has(task.id) ? (
+              <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px solid var(--rule)" }}>
+                <MetaLabel>примечание</MetaLabel>
+                <AutoGrowTextarea
+                  defaultValue={task.notes}
+                  onBlur={(v) => handleNotes(task.id, v)}
+                  placeholder="примечание..."
+                  className="w-full min-w-0 outline-none bg-transparent text-[13px] leading-snug"
+                  style={{ maxWidth: 560 }}
+                />
+              </div>
+            ) : (
+              <button
+                onClick={() => setExpandedNotes((prev) => new Set(prev).add(task.id))}
+                className="text-[11px] mt-2"
+                style={{ color: "var(--faded)" }}
+              >
+                + примечание
+              </button>
+            )}
+          </div>
+        ))}
       </div>
 
       <button

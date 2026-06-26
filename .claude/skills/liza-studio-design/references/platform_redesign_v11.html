@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Студия — современный макет v2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg-page: #F8F4F1;
+    --bg-card: #FFFFFF;
+    --bg-surface-2: #FAF8F4;
+    --ink: #1F201E;
+    --ink-soft: #5C5B56;
+    --ink-faint: #8E8B84;
+    --border: #E7E4DC;
+
+    --accent: #873443;
+    --accent-soft: #F0E1E4;
+    --accent-text-on-soft: #873443;
+
+    --sage: #4C684B;
+    --sage-soft: #E2EADC;
+    --sage-text-on-soft: #4C684B;
+
+    --shadow-sm: 0 1px 2px rgba(30,28,24,.04), 0 1px 1px rgba(30,28,24,.03);
+    --shadow-md: 0 8px 24px rgba(30,28,24,.08);
+    --radius: 14px;
+    --radius-sm: 9px;
+
+    /* палитра тегов/ячеек — отдельная, для пользовательского выбора */
+    --tag-wine-fg:#873443; --tag-wine-bg:#F0E1E4;        /* розовый */
+    --tag-sage-fg:#4C684B; --tag-sage-bg:#E2EADC;         /* светло-зелёный */
+    --tag-blue-fg:#3F6080; --tag-blue-bg:#E2E9EE;         /* голубой */
+    --tag-mustard-fg:#8A6B2E; --tag-mustard-bg:#F4DDBC;   /* персиковый */
+    --tag-terracotta-fg:#6B5640; --tag-terracotta-bg:#E8E1DC; /* бежевый */
+    --tag-plum-fg:#6B4F82; --tag-plum-bg:#E0CBE7;         /* лаванда */
+    --tag-teal-fg:#8C8878; --tag-teal-bg:#F8F4F1;         /* светло-кремовый */
+    --tag-grey-fg:#1F201E; --tag-grey-bg:#FFFFFF;         /* белый/нейтральный */
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg-page);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  h1,h2,h3{ font-family:'Source Serif Pro', serif; font-weight:700; margin:0; }
+
+  .app{
+    display:flex;
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    gap: 0;
+    padding: 0;
+  }
+
+  /* ===== САЙДБАР ===== */
+  .sidebar{
+    width: 220px; flex-shrink:0;
+    display:flex; flex-direction:column;
+    padding: 22px 16px;
+    border-right: 1px solid var(--border);
+    transition: width .22s ease;
+    position:relative;
+  }
+  .sidebar.collapsed{ width: 60px; }
+  .sidebar.collapsed .masthead-by,
+  .sidebar.collapsed .masthead-name,
+  .sidebar.collapsed .back-link span,
+  .sidebar.collapsed .edit-mode-row span,
+  .sidebar.collapsed .switch,
+  .sidebar.collapsed .nav-label,
+  .sidebar.collapsed .nav-item span:not(.nav-ic):not(.beacon-dot),
+  .sidebar.collapsed .nav-badge,
+  .sidebar.collapsed .pill-status,
+  .sidebar.collapsed .deadline-chip,
+  .sidebar.collapsed .mini-cal,
+  .sidebar.collapsed .account-name,
+  .sidebar.collapsed .account-role,
+  .sidebar.collapsed .account-chevron,
+  .sidebar.collapsed .masthead-rule{ display:none; }
+  .sidebar.collapsed .masthead{ padding: 6px 0 14px; text-align:center; }
+  .sidebar.collapsed .nav-item{ justify-content:center; padding:9px 0; }
+  .sidebar.collapsed .edit-mode-row,
+  .sidebar.collapsed .account-row{ justify-content:center; }
+
+  .collapse-btn{
+    width:30px; height:30px; border-radius:9px;
+    background:#E8E1DC; border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px;
+    color:var(--ink-soft); flex-shrink:0; transition: all .15s;
+  }
+  .collapse-btn:hover{ color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+  .sidebar.collapsed .collapse-btn{ transform: rotate(180deg); }
+  .masthead-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; padding: 6px 10px 0; }
+  .sidebar.collapsed .masthead-row{ justify-content:center; padding: 6px 0 0; }
+
+  .sb-top{ flex:1 1 auto; }
+
+  .masthead{ padding: 6px 10px 14px; }
+  .masthead-name{ font-size:15px; line-height:1.25; font-family:'Source Serif Pro', serif; }
+  .masthead-by{ font-family:'Source Serif Pro', serif; font-style:normal; font-size:12px; color:var(--ink-faint); display:block; margin-top:1px; }
+  .masthead-rule{ height:1px; width:100%; background:#E8E1DC; margin-top:10px; }
+
+  .back-link{
+    display:flex; align-items:center; gap:6px; padding: 4px 10px 14px;
+    font-size:12.5px; color:var(--ink-faint); text-decoration:none; cursor:pointer;
+  }
+  .back-link:hover{ color:var(--accent); }
+
+  .edit-mode-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 10px; margin-bottom:10px; background:#FFFFFF; border-radius:var(--radius-sm);
+    font-size:12.5px; color:var(--ink-soft);
+  }
+  .switch{ width:30px; height:17px; border-radius:9px; background:var(--border); position:relative; cursor:pointer; flex-shrink:0; }
+  .switch::after{ content:''; position:absolute; width:13px; height:13px; border-radius:50%; background:#fff; top:2px; left:2px; box-shadow:var(--shadow-sm); transition:left .15s; }
+  .switch.on{ background:var(--accent); }
+  .switch.on::after{ left:15px; }
+
+  .nav-group{ margin-bottom: 14px; }
+  .nav-label{
+    font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--ink-faint); padding: 4px 10px 6px;
+  }
+  .nav-item{
+    display:flex; align-items:center; gap:10px; padding:9px 10px;
+    border-radius:var(--radius-sm); cursor:pointer; color:var(--ink-soft);
+    font-size:13.5px; position:relative; transition: background .15s, color .15s;
+  }
+  .nav-item:hover{ background:var(--bg-surface-2); color:var(--ink); }
+  .nav-item.active{ background:#E8E1DC; color:var(--ink); font-weight:600; }
+  .nav-ic{
+    width:18px; height:18px; display:flex; align-items:center; justify-content:center;
+    font-size:14px; flex-shrink:0; opacity:.85;
+  }
+  .nav-ic svg{ width:17px; height:17px; }
+  .nav-badge{
+    margin-left:auto; font-family:'JetBrains Mono', monospace; font-size:9.5px;
+    background:var(--sage-soft); color:var(--sage-text-on-soft); padding:2px 6px; border-radius:8px;
+  }
+
+  /* маячок — индикатор новой правки наставника */
+  .beacon-dot{
+    width:7px; height:7px; border-radius:50%; background:var(--accent); margin-left:auto; flex-shrink:0;
+    position:relative;
+  }
+  .beacon-dot::after{
+    content:''; position:absolute; inset:-4px; border-radius:50%; background:var(--accent);
+    opacity:.5; animation: beacon-pulse 1.8s ease-out infinite;
+  }
+  @keyframes beacon-pulse{
+    0%{ transform:scale(0.5); opacity:.6; }
+    80%{ transform:scale(1.8); opacity:0; }
+    100%{ opacity:0; }
+  }
+  .sidebar.collapsed .beacon-dot{ position:absolute; top:6px; right:6px; margin-left:0; }
+
+  /* плавающая кнопка заметок */
+  .notes-fab{
+    position:fixed; right:28px; bottom:28px; width:52px; height:52px; border-radius:50%;
+    background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:20px; cursor:pointer; box-shadow:var(--shadow-md); z-index:50; transition: transform .15s;
+  }
+  .notes-fab:hover{ transform: translateY(-2px); }
+  .notes-fab .fab-badge{
+    position:absolute; top:-4px; right:-4px; width:20px; height:20px; border-radius:50%;
+    background:var(--accent); color:#fff; font-family:'JetBrains Mono', monospace; font-size:10px;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 2px var(--bg-card);
+  }
+  .notes-fab .fab-badge::before{
+    content:''; position:absolute; inset:-3px; border-radius:50%; background:var(--accent);
+    opacity:.5; animation: beacon-pulse 1.8s ease-out infinite;
+  }
+
+  .pill-status{
+    display:inline-flex; align-items:center; gap:5px; font-size:11.5px; padding:4px 10px;
+    border-radius:20px; font-weight:500;
+  }
+  .pill-status.open{ background:var(--sage-soft); color:var(--sage-text-on-soft); }
+  .pill-status.open::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--sage); }
+
+  .mini-cal{
+    margin-top:12px; background:#FFFFFF; border-radius:var(--radius); padding:12px 10px 8px;
+  }
+  .mini-cal-head{ display:flex; align-items:center; justify-content:space-between; padding:0 4px 8px; font-size:12px; font-weight:600; color:var(--ink-soft); }
+  .mini-cal-head .arrow{ cursor:pointer; color:var(--ink-faint); font-size:11px; }
+  .mini-cal-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap:2px; text-align:center; }
+  .mini-cal-grid .dow{ font-family:'JetBrains Mono', monospace; font-size:8.5px; color:var(--ink-faint); padding-bottom:4px; }
+  .mini-cal-day{
+    font-size:11px; color:var(--ink-soft); padding:4px 0; border-radius:7px; position:relative; cursor:pointer;
+  }
+  .mini-cal-day:hover{ background:#fff; }
+  .mini-cal-day.today{ background:var(--ink); color:#fff; font-weight:600; }
+  .mini-cal-day.has-deadline::after{
+    content:''; position:absolute; bottom:1px; left:50%; transform:translateX(-50%);
+    width:4px; height:4px; border-radius:50%; background:var(--accent);
+  }
+  .mini-cal-day.today.has-deadline::after{ background:#fff; }
+
+  .sb-bottom{ margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+  .account-row{ display:flex; align-items:center; gap:10px; padding:6px 8px; border-radius:var(--radius-sm); cursor:pointer; }
+  .account-row:hover{ background:var(--bg-surface-2); }
+  .avatar{
+    width:32px; height:32px; border-radius:50%; background:var(--accent-soft); color:var(--accent-text-on-soft);
+    display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; flex-shrink:0;
+  }
+  .account-name{ font-size:13px; font-weight:500; }
+  .account-role{ font-size:11px; color:var(--ink-faint); }
+  .account-chevron{ margin-left:auto; color:var(--ink-faint); font-size:12px; }
+
+  /* ===== ОСНОВНАЯ КАРТОЧКА ===== */
+  .main-card{
+    flex:1; background:var(--bg-card);
+    padding: 36px 44px 50px; min-height: 100vh;
+  }
+  .page-title{ font-size:24px; margin-bottom:18px; }
+
+  .kpi-row{ display:flex; gap:12px; margin-bottom:26px; flex-wrap:wrap; }
+  .kpi{
+    flex:1; min-width:140px; background:var(--bg-surface-2); border-radius:var(--radius);
+    padding:14px 16px; display:flex; align-items:center; gap:12px;
+  }
+  .kpi-icon{
+    width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-size:16px; flex-shrink:0;
+  }
+  .kpi-icon svg{ width:18px; height:18px; }
+  .kpi-icon.wine{ background:var(--accent-soft); color:var(--accent-text-on-soft); }
+  .kpi-icon.sage{ background:var(--sage-soft); color:var(--sage-text-on-soft); }
+  .kpi-icon.blue{ background:var(--tag-blue-bg); color:var(--tag-blue-fg); }
+  .kpi-num{ font-family:'Source Serif Pro', serif; font-weight:700; font-size:19px; line-height:1; }
+  .kpi-label{ font-size:11.5px; color:var(--ink-faint); margin-top:2px; }
+
+  .task-list{ display:flex; flex-direction:column; gap:10px; }
+  .task-card{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; display:grid; grid-template-columns: 1fr 110px 110px 110px 130px; gap:14px; align-items:center;
+    transition: box-shadow .15s, border-color .15s;
+  }
+  .task-card:hover{ box-shadow:var(--shadow-sm); border-color:transparent; }
+  .task-title{ font-size:13.5px; }
+  .task-meta-label{ font-family:'JetBrains Mono', monospace; font-size:9px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; display:block; margin-bottom:3px; }
+  .task-link{ font-size:12px; color:var(--accent); cursor:pointer; }
+  .task-deadline{ font-size:12.5px; color:var(--ink-soft); }
+
+  .status-pill{
+    font-family:'JetBrains Mono', monospace; font-size:10px; padding:5px 10px; border-radius:20px;
+    text-transform:uppercase; letter-spacing:.03em; display:inline-block; text-align:center;
+  }
+  .status-pill.accepted{ background:var(--ink); color:#fff; }
+  .status-pill.progress{ background:var(--bg-surface-2); color:var(--ink-faint); border:1px dashed var(--border); }
+  .status-pill.review{ background:var(--tag-blue-bg); color:var(--tag-blue-fg); }
+  .status-pill.revise{ background:var(--accent-soft); color:var(--accent-text-on-soft); }
+
+  .add-task-btn{
+    margin-top:14px; display:inline-flex; align-items:center; gap:6px; padding:10px 16px;
+    border:1px dashed var(--accent); border-radius:20px; color:var(--accent); font-size:13px; cursor:pointer;
+    background:transparent; transition: all .15s;
+  }
+  .add-task-btn:hover{ background:var(--accent); color:#fff; border-style:solid; }
+
+
+  /* панель заметок */
+  .notes-overlay{
+    position:fixed; inset:0; background:rgba(30,28,24,.32);
+    opacity:0; visibility:hidden; transition:opacity .25s ease, visibility .25s ease;
+    z-index:90; display:flex; justify-content:flex-end;
+  }
+  .notes-overlay.open{ opacity:1; visibility:visible; }
+  .notes-panel{
+    width:min(380px, 90vw); height:100%; background:var(--bg-card); overflow-y:auto;
+    padding:24px 20px; transform:translateX(100%); transition:transform .3s cubic-bezier(.22,.9,.32,1);
+    box-shadow:-8px 0 28px rgba(0,0,0,.12);
+  }
+  .notes-overlay.open .notes-panel{ transform:translateX(0); }
+  .notes-panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .notes-panel-head h2{ font-size:18px; }
+  .notes-close{ width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-faint); font-size:16px; }
+  .notes-close:hover{ background:var(--bg-surface-2); color:var(--ink); }
+  .note-card{
+    background:var(--bg-surface-2); border-radius:var(--radius); padding:13px 14px; margin-bottom:10px;
+    cursor:pointer; transition: background .15s; border-left:3px solid var(--accent);
+  }
+  .note-card:hover{ background:#F1ECE6; }
+  .note-card.unread{ background:var(--accent-soft); }
+  .note-card-top{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .note-avatar{
+    width:22px; height:22px; border-radius:50%; background:var(--accent); color:#fff;
+    font-size:9.5px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .note-author{ font-size:12px; font-weight:600; }
+  .note-date{ font-size:11px; color:var(--ink-faint); margin-left:auto; }
+  .note-context{
+    font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); margin-bottom:5px;
+    display:flex; align-items:center; gap:4px;
+  }
+  .note-text{ font-size:13px; line-height:1.5; color:var(--ink); }
+  .note-unread-dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="sidebar" id="sidebar">
+    <div class="sb-top">
+    <div class="masthead-row">
+      <div class="masthead">
+        <div class="masthead-name"><b>Студия художественной прозы</b></div>
+        <span class="masthead-by">Лизы Ликийской</span>
+        <div class="masthead-rule"></div>
+      </div>
+      <div class="collapse-btn" onclick="document.getElementById('sidebar').classList.toggle('collapsed')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+      </div>
+    </div>
+
+      <div class="back-link"><span>← к ученикам · Yannie_E</span></div>
+
+      <div class="edit-mode-row">
+        <span>Режим правок</span>
+        <div class="switch"></div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-item active"><span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span>Задания</span></div>
+        <div class="nav-item"><span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></span><span>Материалы</span></div>
+        <div class="nav-item"><span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span><span>Рукописи</span></div>
+        <div class="nav-item" style="position:relative;"><span class="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></span><span>Упражнения</span><span class="beacon-dot" aria-hidden="true"></span></div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Мастерская рассказов</div>
+        <div class="nav-item"><span class="nav-ic">01</span><span>Циклы рассказов</span></div>
+        <div class="nav-item"><span class="nav-ic">02</span><span>Отдельные рассказы</span></div>
+        <span class="pill-status open" style="margin:8px 10px 0;">доступ открыт</span>
+      </div>
+
+      <div class="mini-cal">
+        <div class="mini-cal-head"><span class="arrow">‹</span> Июнь 2026 <span class="arrow">›</span></div>
+        <div class="mini-cal-grid">
+          <div class="dow">пн</div><div class="dow">вт</div><div class="dow">ср</div><div class="dow">чт</div><div class="dow">пт</div><div class="dow">сб</div><div class="dow">вс</div>
+          <div></div><div></div><div class="mini-cal-day has-deadline">3</div><div class="mini-cal-day">4</div><div class="mini-cal-day">5</div><div class="mini-cal-day">6</div><div class="mini-cal-day">7</div>
+          <div class="mini-cal-day has-deadline">8</div><div class="mini-cal-day">9</div><div class="mini-cal-day">10</div><div class="mini-cal-day">11</div><div class="mini-cal-day">12</div><div class="mini-cal-day">13</div><div class="mini-cal-day">14</div>
+          <div class="mini-cal-day">15</div><div class="mini-cal-day has-deadline">16</div><div class="mini-cal-day">17</div><div class="mini-cal-day">18</div><div class="mini-cal-day has-deadline">19</div><div class="mini-cal-day">20</div><div class="mini-cal-day">21</div>
+          <div class="mini-cal-day">22</div><div class="mini-cal-day">23</div><div class="mini-cal-day">24</div><div class="mini-cal-day">25</div><div class="mini-cal-day today">26</div><div class="mini-cal-day">27</div><div class="mini-cal-day">28</div>
+          <div class="mini-cal-day">29</div><div class="mini-cal-day">30</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb-bottom">
+      <div class="account-row">
+        <div class="avatar">YE</div>
+        <div>
+          <div class="account-name">Yannie_E</div>
+          <div class="account-role">ученик</div>
+        </div>
+        <span class="account-chevron">⌄</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-card">
+    <h1 class="page-title">Задания</h1>
+
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-icon wine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div>
+        <div><div class="kpi-num">4</div><div class="kpi-label">всего заданий</div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-icon sage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <div><div class="kpi-num">2</div><div class="kpi-label">принято</div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <div><div class="kpi-num">1</div><div class="kpi-label">в процессе</div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-icon" style="background:var(--accent-soft);color:var(--accent-text-on-soft);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></div>
+        <div><div class="kpi-num">1</div><div class="kpi-label">на доработке</div></div>
+      </div>
+    </div>
+
+    <div class="task-list">
+      <div class="task-card">
+        <div>
+          <span class="task-meta-label">задание</span>
+          <div class="task-title">Прочитать «С первой фразы» Л. Крон</div>
+        </div>
+        <div><span class="task-meta-label">дедлайн</span><div class="task-deadline">15 июня</div></div>
+        <div><span class="task-meta-label">работа</span><span class="task-link">+ ссылка</span></div>
+        <div><span class="task-meta-label">отзыв</span><span class="task-link">+ ссылка</span></div>
+        <span class="status-pill accepted">принято</span>
+      </div>
+
+      <div class="task-card">
+        <div>
+          <span class="task-meta-label">задание</span>
+          <div class="task-title">Выполнить письменные задания по трансформации героев</div>
+        </div>
+        <div><span class="task-meta-label">дедлайн</span><div class="task-deadline">23 июня</div></div>
+        <div><span class="task-meta-label">работа</span><span class="task-link" style="color:var(--ink-soft)">docs.google...</span></div>
+        <div><span class="task-meta-label">отзыв</span><span class="task-link" style="color:var(--ink-soft)">share.descript...</span></div>
+        <span class="status-pill accepted">принято</span>
+      </div>
+
+      <div class="task-card">
+        <div>
+          <span class="task-meta-label">задание</span>
+          <div class="task-title">Прочитать «Создание арки персонажа» К. Уэйланд</div>
+        </div>
+        <div><span class="task-meta-label">дедлайн</span><div class="task-deadline">26 июня</div></div>
+        <div><span class="task-meta-label">работа</span><span class="task-link">+ ссылка</span></div>
+        <div><span class="task-meta-label">отзыв</span><span class="task-link">+ ссылка</span></div>
+        <span class="status-pill progress">в процессе</span>
+      </div>
+
+      <div class="task-card">
+        <div>
+          <span class="task-meta-label">задание</span>
+          <div class="task-title">Сократить главу 3 на 20%, убрать экспозицию</div>
+        </div>
+        <div><span class="task-meta-label">дедлайн</span><div class="task-deadline">28 июня</div></div>
+        <div><span class="task-meta-label">работа</span><span class="task-link" style="color:var(--ink-soft)">docs.google...</span></div>
+        <div><span class="task-meta-label">отзыв</span><span class="task-link">+ ссылка</span></div>
+        <span class="status-pill revise">на доработке</span>
+      </div>
+    </div>
+
+    <div class="add-task-btn">+ задание</div>
+  </div>
+
+</div>
+
+<div class="notes-fab" onclick="document.getElementById('notesOverlay').classList.add('open')">
+  ✎
+  <span class="fab-badge">2</span>
+</div>
+
+<div class="notes-overlay" id="notesOverlay" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="notes-panel">
+    <div class="notes-panel-head">
+      <h2>Заметки</h2>
+      <div class="notes-close" onclick="document.getElementById('notesOverlay').classList.remove('open')">×</div>
+    </div>
+
+    <div class="note-card unread">
+      <div class="note-card-top">
+        <div class="note-avatar">ЛЛ</div>
+        <span class="note-author">Лиза</span>
+        <span class="note-date">26 июня</span>
+        <div class="note-unread-dot"></div>
+      </div>
+      <div class="note-context">→ Задания · «Сократить главу 3»</div>
+      <div class="note-text">Экспозиция в начале всё ещё длинная — попробуй убрать первый абзац целиком, он не несёт сюжетной нагрузки.</div>
+    </div>
+
+    <div class="note-card unread">
+      <div class="note-card-top">
+        <div class="note-avatar">ЛЛ</div>
+        <span class="note-author">Лиза</span>
+        <span class="note-date">24 июня</span>
+        <div class="note-unread-dot"></div>
+      </div>
+      <div class="note-context">→ Мастерская книги · Досье · «Анна»</div>
+      <div class="note-text">Хорошо, что добавила страх перед молчанием — но он пока не появляется в плане книги. Свяжи это с главой 2.</div>
+    </div>
+
+    <div class="note-card">
+      <div class="note-card-top">
+        <div class="note-avatar">ЛЛ</div>
+        <span class="note-author">Лиза</span>
+        <span class="note-date">18 июня</span>
+      </div>
+      <div class="note-context">→ Упражнения · Творческие</div>
+      <div class="note-text">Хорошо держишь голос персонажа, но добавь его собственный мотив в эту сцену.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.switch').forEach(s => s.addEventListener('click', () => s.classList.toggle('on')));
+</script>
+
+</body>
+</html>

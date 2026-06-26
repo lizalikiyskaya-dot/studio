@@ -289,11 +289,13 @@ export default function MaterialsList({
   const handouts = initialMaterials.filter((m) => m.category === "HANDOUT");
 
   return (
-    <Subtabs
-      tabs={[
-        { label: "Книги", content: <BooksList studentId={studentId} materials={books} canManage={canManage} /> },
-        { label: "Методички", content: <HandoutsList studentId={studentId} materials={handouts} canManage={canManage} /> },
-      ]}
-    />
+    <div style={{ maxWidth: 720 }}>
+      <Subtabs
+        tabs={[
+          { label: "Книги", content: <BooksList studentId={studentId} materials={books} canManage={canManage} /> },
+          { label: "Методички", content: <HandoutsList studentId={studentId} materials={handouts} canManage={canManage} /> },
+        ]}
+      />
+    </div>
   );
 }

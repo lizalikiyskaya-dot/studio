@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { X } from "lucide-react";
 import type { Comment } from "@/generated/prisma/client";
 import { addComment, updateComment, deleteComment, type CommentableModel } from "./actions";
 
@@ -53,8 +54,8 @@ function ChatInput({
         ↵
       </button>
       {onCancel && (
-        <button onClick={onCancel} className="text-[11px] px-1 flex-shrink-0" style={{ color: "var(--faded)" }}>
-          ✕
+        <button onClick={onCancel} className="px-1 flex-shrink-0" style={{ color: "var(--faded)" }}>
+          <X size={13} />
         </button>
       )}
     </div>

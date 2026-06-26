@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 export default function CollapsibleCharacterShell({
   name,
@@ -37,10 +38,10 @@ export default function CollapsibleCharacterShell({
         <span className="heading flex-1 font-semibold text-[14.5px]">{name || "Без имени"}</span>
         {headerExtra}
         <span
-          className="text-[12px] flex-shrink-0"
+          className="flex-shrink-0"
           style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}
         >
-          ▾
+          <ChevronDown size={15} />
         </span>
       </div>
       <div

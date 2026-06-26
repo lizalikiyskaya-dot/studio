@@ -32,24 +32,22 @@ export default async function StudentViewLayout({
 
   return (
     <SuggestionProvider canSuggest={student.reviewModeEnabled}>
-      <div className="flex min-h-screen gap-5 p-5 mx-auto" style={{ maxWidth: 1320 }}>
-        <div style={{ width: 250, flexShrink: 0 }}>
-          <Sidebar
-            basePath={`/student-view/${studentId}`}
-            userName={student.name}
-            isMentor
-            mentorViewLabel={student.name}
-            studentId={student.id}
-            bookWorkshopUnlocked={student.bookWorkshopUnlocked}
-            storyWorkshopUnlocked={student.storyWorkshopUnlocked}
-            calendar={{
-              tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
-              paymentDay: student.paymentDay,
-              paymentStatus: student.paymentStatus,
-            }}
-          />
-        </div>
-        <div className="page-card px-[46px] py-10" style={{ flex: 1, minHeight: "calc(100vh - 40px)" }}>
+      <div className="flex min-h-screen">
+        <Sidebar
+          basePath={`/student-view/${studentId}`}
+          userName={student.name}
+          isMentor
+          mentorViewLabel={student.name}
+          studentId={student.id}
+          bookWorkshopUnlocked={student.bookWorkshopUnlocked}
+          storyWorkshopUnlocked={student.storyWorkshopUnlocked}
+          calendar={{
+            tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
+            paymentDay: student.paymentDay,
+            paymentStatus: student.paymentStatus,
+          }}
+        />
+        <div className="px-11 py-9" style={{ flex: 1, background: "var(--paper-light)", minHeight: "100vh" }}>
           {children}
         </div>
         <NotesPanel studentId={student.id} initialNotes={notes} initialComments={noteComments} />

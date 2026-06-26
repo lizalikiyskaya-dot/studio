@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { ChevronDown } from "lucide-react";
 import type { Character, ArcType, Comment } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import CardSaveButton from "@/components/CardSaveButton";
@@ -161,10 +162,10 @@ export default function ArcCharacterCard({
           </span>
         )}
         <span
-          className="text-[12px] flex-shrink-0"
+          className="flex-shrink-0"
           style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}
         >
-          ▾
+          <ChevronDown size={15} />
         </span>
       </div>
 

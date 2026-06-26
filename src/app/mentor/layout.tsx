@@ -16,9 +16,9 @@ export default async function MentorLayout({
   if (!user) redirect("/login");
 
   return (
-    <div className="grid min-h-screen gap-5 p-5 mx-auto" style={{ gridTemplateColumns: "250px 1fr", maxWidth: 1320 }}>
+    <div className="flex min-h-screen">
       <Sidebar basePath="/mentor" userName={user.name} isMentor mentorMenuOnly />
-      <div className="page-card px-[46px] py-10 max-w-[860px]" style={{ minHeight: "calc(100vh - 40px)" }}>
+      <div className="px-11 py-9" style={{ flex: 1, background: "var(--paper-light)", minHeight: "100vh" }}>
         {children}
       </div>
     </div>

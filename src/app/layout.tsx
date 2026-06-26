@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import { Golos_Text, JetBrains_Mono, Old_Standard_TT } from "next/font/google";
+import { Inter, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 
-const golosText = Golos_Text({
+const inter = Inter({
   subsets: ["latin", "cyrillic"],
-  variable: "--font-golos",
+  variable: "--font-sans",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin", "cyrillic"],
-  variable: "--font-jetbrains",
+  variable: "--font-mono",
 });
 
-const oldStandard = Old_Standard_TT({
+const sourceSerif = Source_Serif_4({
   subsets: ["latin", "cyrillic"],
-  weight: ["400", "700"],
-  variable: "--font-old-standard",
+  weight: ["400", "600", "700"],
+  variable: "--font-serif",
 });
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="ru"
-      className={`${golosText.variable} ${jetbrainsMono.variable} ${oldStandard.variable} min-h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${sourceSerif.variable} min-h-full antialiased`}
     >
       <body className="min-h-full">{children}</body>
     </html>

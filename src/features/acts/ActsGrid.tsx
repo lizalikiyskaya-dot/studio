@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { X } from "lucide-react";
 import type { Act, ActChapter, StorylineBlock, Comment } from "@/generated/prisma/client";
 import {
   createAct,
@@ -61,8 +62,8 @@ function StorylineBlockCard({
           placeholder="Название линии"
           className="heading flex-1 min-w-0 outline-none bg-transparent text-[13.5px] font-semibold"
         />
-        <button onClick={onDelete} className="text-[10px] flex-shrink-0" style={{ color: "var(--ink-soft)" }}>
-          ✕
+        <button onClick={onDelete} className="flex-shrink-0" style={{ color: "var(--ink-soft)" }}>
+          <X size={12} />
         </button>
       </div>
       <AutoGrowTextarea
@@ -123,8 +124,8 @@ function ChapterRow({
           onKeyDown={blurOnEnter}
           className="heading flex-1 min-w-0 outline-none bg-transparent text-[14px] font-semibold"
         />
-        <button onClick={onDelete} className="text-[10px] flex-shrink-0" style={{ color: "var(--wine)" }}>
-          ✕
+        <button onClick={onDelete} className="flex-shrink-0" style={{ color: "var(--wine)" }}>
+          <X size={12} />
         </button>
       </div>
       <AutoGrowTextarea

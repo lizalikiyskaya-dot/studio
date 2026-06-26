@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Check } from "lucide-react";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { saveFieldOrSuggest, acceptFieldSuggestion } from "./actions";
 import type { SuggestableModel } from "@/lib/suggestionRegistry";
@@ -96,10 +97,10 @@ export default function SuggestableField({
         <div className="mt-1.5">
           <button
             onClick={handleAccept}
-            className="text-[12px] px-2 py-0.5 rounded-sm"
+            className="flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-sm"
             style={{ color: "#fff", background: "var(--sage)" }}
           >
-            ✓ принять правку
+            <Check size={12} /> принять правку
           </button>
         </div>
       </div>

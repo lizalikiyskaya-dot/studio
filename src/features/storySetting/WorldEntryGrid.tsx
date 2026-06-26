@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { X, Check } from "lucide-react";
 import type { WorldCategory } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import { uploadFile } from "@/lib/uploadFile";
@@ -128,10 +129,10 @@ export default function WorldEntryGrid({
           <div className="bg-white w-full max-w-[520px] h-full overflow-y-auto p-9 relative" style={{ boxShadow: "-8px 0 28px rgba(0,0,0,0.18)" }}>
             <button
               onClick={() => setOpenEntryId(null)}
-              className="absolute top-[18px] right-[22px] text-[24px] leading-none cursor-pointer"
+              className="absolute top-[18px] right-[22px] cursor-pointer"
               style={{ color: "var(--faded)", border: "none", background: "transparent" }}
             >
-              ×
+              <X size={20} />
             </button>
 
             <ImageUploadBox
@@ -173,8 +174,8 @@ export default function WorldEntryGrid({
                 Сохранить
               </button>
               {justSaved && (
-                <span className="text-[12.5px]" style={{ color: "var(--sage)" }}>
-                  ✓ сохранено
+                <span className="flex items-center gap-1 text-[12.5px]" style={{ color: "var(--sage)" }}>
+                  <Check size={13} /> сохранено
                 </span>
               )}
               <button

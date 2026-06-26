@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 export default function Accordion({
   title,
@@ -27,10 +28,10 @@ export default function Accordion({
         <span className="flex-1 min-w-0">{title}</span>
         {headerExtra}
         <span
-          className="text-[12px] flex-shrink-0"
+          className="flex-shrink-0"
           style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}
         >
-          ▾
+          <ChevronDown size={15} />
         </span>
       </div>
       <div

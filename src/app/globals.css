@@ -1,24 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f3f4f7;
+  --paper: #f8f4f1;
   --paper-light: #ffffff;
-  --ink: #15161c;
-  --ink-soft: #4a4d58;
-  --wine: #8c2f39;
-  --wine-soft: #b5616a;
-  --sage: #2f9e6e;
-  --faded: #8b8e99;
-  --rule: #e6e7ec;
-  --radius: 16px;
-  --shadow-sm: 0 1px 2px rgba(20, 20, 30, 0.05), 0 1px 1px rgba(20, 20, 30, 0.04);
-  --shadow-md: 0 10px 30px rgba(20, 20, 30, 0.1);
+  --bg-surface-2: #faf8f4;
+  --ink: #1f201e;
+  --ink-soft: #5c5b56;
+  --wine: #873443;
+  /* dashed "+ add" borders use this — matches accent, per the mockup's
+     .add-task-btn convention (border: 1px dashed var(--accent)) */
+  --wine-soft: #873443;
+  --accent-soft: #f0e1e4;
+  --sage: #4c684b;
+  --sage-soft: #e2eadc;
+  --faded: #8e8b84;
+  --rule: #e7e4dc;
+  --neutral-active: #e8e1dc;
+  --radius: 14px;
+  --shadow-sm: 0 1px 2px rgba(30, 28, 24, 0.04), 0 1px 1px rgba(30, 28, 24, 0.03);
+  --shadow-md: 0 8px 24px rgba(30, 28, 24, 0.08);
   --ease: cubic-bezier(0.22, 0.9, 0.32, 1);
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 0.35; }
   50% { opacity: 0.7; }
+}
+
+@keyframes beacon-pulse {
+  0% { transform: scale(0.5); opacity: 0.6; }
+  80% { transform: scale(1.8); opacity: 0; }
+  100% { opacity: 0; }
 }
 
 @theme inline {
@@ -33,19 +45,19 @@
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-golos), system-ui, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 14.5px;
   line-height: 1.55;
 }
 
-/* long-form text fields (manuscripts, student answers, plan/synopsis text, notes) —
-   read like literary prose, so they keep the serif used for headings */
+/* long-form text fields used to force serif here; under the new system
+   they read the same as the rest of the interface, so this is a no-op
+   kept only so existing className references don't need to change */
 .field-literary {
-  font-family: var(--font-old-standard), serif;
 }
 
 .font-mono-label {
-  font-family: var(--font-jetbrains), monospace;
+  font-family: var(--font-mono), monospace;
   font-weight: 500;
   letter-spacing: 0.04em;
 }
@@ -56,14 +68,15 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-old-standard), serif;
+  font-family: var(--font-serif), serif;
+  font-weight: 700;
   font-style: normal;
   text-transform: none;
   letter-spacing: normal;
 }
 
 .page-title {
-  font-family: var(--font-old-standard), serif !important;
+  font-family: var(--font-serif), serif !important;
   font-weight: 700 !important;
   text-transform: none !important;
   letter-spacing: normal !important;
@@ -74,54 +87,37 @@ h4 {
 }
 
 .masthead-rule-line {
-  height: 3px;
-  width: 36px;
-  border-radius: 10px;
-  background: linear-gradient(90deg, var(--wine), var(--wine-soft));
+  height: 1px;
+  width: 100%;
+  border-radius: 0;
+  background: var(--neutral-active);
 }
 
 .masthead-rule-line + .masthead-rule-line {
   display: none;
 }
 
-/* sidebar nav — typewriter-key press */
-.nav-featured {
-  border-radius: 12px;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
-  transition: transform 0.12s var(--ease), box-shadow 0.12s var(--ease), background 0.2s var(--ease);
+/* flat sidebar nav row — icon + label */
+.nav-item {
+  border-radius: 9px;
+  transition: background 0.12s var(--ease), color 0.12s var(--ease);
 }
-.nav-featured:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+.nav-item:hover {
+  background: var(--bg-surface-2);
+  color: var(--ink);
 }
-.nav-featured:active {
-  transform: translateY(2px);
-  box-shadow: 0 0 0 rgba(0, 0, 0, 0.25);
-}
-.nav-featured.active {
-  background: var(--ink) !important;
-  box-shadow: 0 0 0 rgba(0, 0, 0, 0.25);
-  transform: translateY(2px);
+.nav-item.active {
+  background: var(--neutral-active);
+  color: var(--ink);
+  font-weight: 600;
 }
 
-.nav-index-item {
-  border-radius: 10px;
-  transition: background 0.12s var(--ease), color 0.12s var(--ease), transform 0.12s var(--ease);
-}
-.nav-index-item:hover {
-  color: var(--wine);
-  background: #fff;
-  transform: translateX(2px);
-}
-.nav-index-item:active {
-  background: var(--rule);
-  transform: translateX(2px) scale(0.97);
-}
-.nav-index-item.active {
-  color: var(--wine);
-  font-weight: 700;
-  background: #fff;
-  box-shadow: var(--shadow-sm);
+.nav-label {
+  font-family: var(--font-mono), monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faded);
 }
 
 .btn-pill {
@@ -133,10 +129,4 @@ h4 {
   color: var(--wine);
   box-shadow: var(--shadow-sm);
   transform: translateY(-1px);
-}
-
-.page-card {
-  background: var(--paper-light);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
 }
