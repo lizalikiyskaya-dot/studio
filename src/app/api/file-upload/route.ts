@@ -28,7 +28,16 @@ export async function POST(req: Request) {
   ) {
     return Response.json({ error: "Bad request" }, { status: 400 });
   }
-  const isImage = target === "book-cover" || target === "character-photo" || target === "popArc-photo" || target === "world-entry-photo";
+  const isImage =
+    target === "book-cover" ||
+    target === "character-photo" ||
+    target === "popArc-photo" ||
+    target === "world-entry-photo" ||
+    target === "cycle-cover" ||
+    target === "cycle-character-photo" ||
+    target === "story-character-photo" ||
+    target === "cycle-world-entry-photo" ||
+    target === "story-world-entry-photo";
   const sizeLimit = isImage ? MAX_IMAGE_SIZE : MAX_SIZE;
   if (file.size > sizeLimit) {
     const mb = sizeLimit / (1024 * 1024);
@@ -69,6 +78,32 @@ export async function POST(req: Request) {
     const book = await prisma.book.findUniqueOrThrow({ where: { id: entry.bookId } });
     await requireCabinetAccess(book.studentId);
     await prisma.worldEntry.update({ where: { id }, data: { photoUrl: dataUrl } });
+  } else if (target === "cycle-cover") {
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycle.update({ where: { id }, data: { coverUrl: dataUrl } });
+  } else if (target === "cycle-character-photo") {
+    const character = await prisma.cycleCharacter.findUniqueOrThrow({ where: { id } });
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: character.cycleId } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycleCharacter.update({ where: { id }, data: { photoUrl: dataUrl } });
+  } else if (target === "story-character-photo") {
+    const character = await prisma.storyCharacter.findUniqueOrThrow({ where: { id } });
+    const story = await prisma.story.findUniqueOrThrow({ where: { id: character.storyId } });
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.storyCharacter.update({ where: { id }, data: { photoUrl: dataUrl } });
+  } else if (target === "cycle-world-entry-photo") {
+    const entry = await prisma.cycleWorldEntry.findUniqueOrThrow({ where: { id } });
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: entry.cycleId } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycleWorldEntry.update({ where: { id }, data: { photoUrl: dataUrl } });
+  } else if (target === "story-world-entry-photo") {
+    const entry = await prisma.storyWorldEntry.findUniqueOrThrow({ where: { id } });
+    const story = await prisma.story.findUniqueOrThrow({ where: { id: entry.storyId } });
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.storyWorldEntry.update({ where: { id }, data: { photoUrl: dataUrl } });
   } else {
     return Response.json({ error: "Unknown target" }, { status: 400 });
   }

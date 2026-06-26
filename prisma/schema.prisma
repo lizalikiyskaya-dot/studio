@@ -75,6 +75,16 @@ enum WorldCategory {
   LANGUAGES
 }
 
+enum CharacterSource {
+  SHARED
+  OWN
+}
+
+enum SettingSource {
+  SHARED
+  OWN
+}
+
 // Generic comment thread attachable to any record (used in Упражнения).
 model Comment {
   id        String   @id @default(cuid())
@@ -111,6 +121,7 @@ model User {
   paymentDay    Int?
   paymentStatus PaymentStatus @default(PENDING)
   reviewModeEnabled Boolean   @default(true)
+  storyWorkshopUnlocked Boolean @default(false)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   books        Book[]
@@ -123,6 +134,7 @@ model User {
   customExercises   CustomExercise[]
   freeSections      FreeSection[]
   notes             Note[]
+  cycles            Cycle[]
 }
 
 model Note {
@@ -353,4 +365,89 @@ model StorylineBlock {
   color       String     @default("pink")
   name        String     @default("")
   description String     @default("")
+}
+
+model Cycle {
+  id        String   @id @default(cuid())
+  title     String   @default("")
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  genre      String  @default("")
+  concept    String  @default("")
+  annotation String  @default("")
+  coverUrl   String?
+
+  stories      Story[]
+  characters   CycleCharacter[]
+  worldEntries CycleWorldEntry[]
+}
+
+model Story {
+  id        String   @id @default(cuid())
+  cycleId   String
+  cycle     Cycle    @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  order     Int      @default(0)
+  title     String   @default("Новый рассказ")
+  createdAt DateTime @default(now())
+
+  setupText         String @default("")
+  climaxText        String @default("")
+  resolutionText    String @default("")
+  characterPathText String @default("")
+
+  characterSource CharacterSource @default(SHARED)
+  settingSource   SettingSource   @default(SHARED)
+
+  characters   StoryCharacter[]
+  worldEntries StoryWorldEntry[]
+}
+
+model CycleCharacter {
+  id        String   @id @default(cuid())
+  cycleId   String
+  cycle     Cycle    @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  order     Int      @default(0)
+  name      String   @default("")
+  photoUrl  String?
+  data      Json     @default("{}")
+  arcType   ArcType?
+  createdAt DateTime @default(now())
+}
+
+model StoryCharacter {
+  id        String   @id @default(cuid())
+  storyId   String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  order     Int      @default(0)
+  name      String   @default("")
+  photoUrl  String?
+  data      Json     @default("{}")
+  arcType   ArcType?
+  createdAt DateTime @default(now())
+}
+
+model CycleWorldEntry {
+  id        String        @id @default(cuid())
+  cycleId   String
+  cycle     Cycle         @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  category  WorldCategory
+  order     Int           @default(0)
+  title     String        @default("Новая запись")
+  body      String        @default("")
+  photoUrl  String?
+  createdAt DateTime      @default(now())
+}
+
+model StoryWorldEntry {
+  id        String        @id @default(cuid())
+  storyId   String
+  story     Story         @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  category  WorldCategory
+  order     Int           @default(0)
+  title     String        @default("Новая запись")
+  body      String        @default("")
+  photoUrl  String?
+  createdAt DateTime      @default(now())
 }

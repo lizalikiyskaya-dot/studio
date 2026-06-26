@@ -25,6 +25,8 @@ const WORKSHOP_ITEMS = [
   { path: "setting", n: "06", label: "Сеттинг" },
 ];
 
+const STORY_WORKSHOP_ITEMS = [{ path: "cycles", n: "01", label: "Циклы и рассказы" }];
+
 export default function Sidebar({
   basePath,
   userName,
@@ -33,6 +35,7 @@ export default function Sidebar({
   mentorMenuOnly,
   calendar,
   studentId,
+  storyWorkshopUnlocked,
 }: {
   basePath: string;
   userName: string;
@@ -45,6 +48,7 @@ export default function Sidebar({
     paymentStatus: "PAID" | "PENDING";
   };
   studentId?: string;
+  storyWorkshopUnlocked?: boolean;
 }) {
   const pathname = usePathname();
   const reviewMode = useCanSuggest();
@@ -150,6 +154,33 @@ export default function Sidebar({
                 </Link>
               );
             })}
+
+            {(storyWorkshopUnlocked || isMentor) && (
+              <>
+                <div className="h-px my-[18px]" style={{ background: "var(--rule)" }} />
+                <div className="text-[12.5px] mb-2.5" style={{ color: "var(--faded)" }}>
+                  Мастерская рассказов
+                </div>
+
+                {STORY_WORKSHOP_ITEMS.map((item) => {
+                  const href = `${basePath}/${item.path}`;
+                  const active = pathname?.startsWith(href);
+                  return (
+                    <Link
+                      key={item.path}
+                      href={href}
+                      className={`nav-index-item flex items-baseline gap-2.5 px-2.5 py-2.5 text-[13.5px] mb-px${active ? " active" : ""}`}
+                      style={{ color: active ? "var(--wine)" : "var(--ink-soft)" }}
+                    >
+                      <span className="font-mono-label text-[10px] font-semibold" style={{ color: active ? "var(--wine)" : "var(--ink)" }}>
+                        {item.n}
+                      </span>
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </>
+            )}
           </>
         )}
 

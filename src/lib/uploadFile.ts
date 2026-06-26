@@ -1,5 +1,16 @@
 export async function uploadFile(
-  target: "material" | "draft" | "book-cover" | "character-photo" | "popArc-photo" | "world-entry-photo",
+  target:
+    | "material"
+    | "draft"
+    | "book-cover"
+    | "character-photo"
+    | "popArc-photo"
+    | "world-entry-photo"
+    | "cycle-cover"
+    | "cycle-character-photo"
+    | "story-character-photo"
+    | "cycle-world-entry-photo"
+    | "story-world-entry-photo",
   id: string,
   field: string,
   file: File
