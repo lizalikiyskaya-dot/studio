@@ -60,9 +60,9 @@ export default function AutoGrowTextarea({
       }}
       className={`field-literary${className ? ` ${className}` : ""}`}
       style={{
-        resize: resizable ? "horizontal" : "none",
-        overflowY: "hidden",
-        overflowX: resizable ? "auto" : "hidden",
+        resize: resizable ? "vertical" : "none",
+        overflowY: resizable ? "auto" : "hidden",
+        overflowX: "hidden",
         display: "block",
         ...style,
       }}

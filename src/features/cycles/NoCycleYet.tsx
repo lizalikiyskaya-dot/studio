@@ -12,6 +12,7 @@ export default function NoCycleYet({ studentId }: { studentId: string }) {
     startTransition(async () => {
       const cycle = await createCycle(studentId);
       router.push(`?cycle=${cycle.id}`);
+      router.refresh();
     });
   }
 

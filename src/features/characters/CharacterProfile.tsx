@@ -1,8 +1,10 @@
 "use client";
 
+import { useRef } from "react";
 import Accordion from "@/components/Accordion";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
+import CardSaveButton from "@/components/CardSaveButton";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import type { SuggestableModel } from "@/lib/suggestionRegistry";
 import { blurOnEnter } from "@/lib/blurOnEnter";
@@ -45,6 +47,7 @@ function FieldBlock({
           field={fieldKey}
           value={value}
           suggestion={suggestion}
+          onSaved={onBlur}
           className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
           style={{ borderColor: "var(--rule)" }}
         />
@@ -87,13 +90,15 @@ export default function CharacterProfile({
   nameSuggestion?: string;
   fieldSuggestions?: Record<string, string>;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+
   function handleDelete() {
     if (!window.confirm(`Удалить «${name || "без имени"}»?`)) return;
     onDelete();
   }
 
   return (
-    <div>
+    <div ref={rootRef}>
       <div className="flex gap-5 items-center mb-6">
         {readOnly ? (
           <div
@@ -130,6 +135,7 @@ export default function CharacterProfile({
               value={name}
               suggestion={nameSuggestion}
               as="input"
+              onSaved={onNameBlur}
               className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
               style={{ borderColor: "var(--rule)" }}
             />
@@ -144,13 +150,16 @@ export default function CharacterProfile({
           )}
         </div>
         {!readOnly && (
-          <button
-            onClick={handleDelete}
-            className="text-[12.5px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
-            style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-          >
-            Удалить
-          </button>
+          <div className="flex gap-1.5 flex-shrink-0">
+            <CardSaveButton scopeRef={rootRef} />
+            <button
+              onClick={handleDelete}
+              className="text-[12.5px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
+              style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
+            >
+              Удалить
+            </button>
+          </div>
         )}
       </div>
 

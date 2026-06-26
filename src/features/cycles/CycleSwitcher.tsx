@@ -19,12 +19,14 @@ export default function CycleSwitcher({
 
   function handleChange(cycleId: string) {
     router.push(`${pathname}?cycle=${cycleId}`);
+    router.refresh();
   }
 
   function handleAddCycle() {
     startTransition(async () => {
       const cycle = await createCycle(studentId);
       router.push(`${pathname}?cycle=${cycle.id}`);
+      router.refresh();
     });
   }
 

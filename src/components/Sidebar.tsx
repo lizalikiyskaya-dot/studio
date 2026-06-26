@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import LogoutButton from "./LogoutButton";
 import CalendarWidget from "./CalendarWidget";
 import ToggleSwitch from "./ToggleSwitch";
@@ -53,6 +53,9 @@ export default function Sidebar({
   storyWorkshopUnlocked?: boolean;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const bookParam = searchParams.get("book");
+  const cycleParam = searchParams.get("cycle");
   const reviewMode = useCanSuggest();
   const setReviewModeState = useSetCanSuggest();
   const [, startTransition] = useTransition();
@@ -142,8 +145,8 @@ export default function Sidebar({
                 </div>
 
                 {WORKSHOP_ITEMS.map((item) => {
-                  const href = `${basePath}/${item.path}`;
-                  const active = pathname?.startsWith(href);
+                  const href = `${basePath}/${item.path}${bookParam ? `?book=${bookParam}` : ""}`;
+                  const active = pathname?.startsWith(`${basePath}/${item.path}`);
                   return (
                     <Link
                       key={item.path}
@@ -169,8 +172,8 @@ export default function Sidebar({
                 </div>
 
                 {STORY_WORKSHOP_ITEMS.map((item) => {
-                  const href = `${basePath}/${item.path}`;
-                  const active = pathname?.startsWith(href);
+                  const href = `${basePath}/${item.path}${cycleParam ? `?cycle=${cycleParam}` : ""}`;
+                  const active = pathname?.startsWith(`${basePath}/${item.path}`);
                   return (
                     <Link
                       key={item.path}

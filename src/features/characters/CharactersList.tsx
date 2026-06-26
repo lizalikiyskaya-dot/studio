@@ -48,6 +48,18 @@ export default function CharactersList({
     startTransition(() => { void uploadFile("character-photo", id, "photoUrl", file); });
   }
 
+  function handleNameSaved(id: string, name: string) {
+    setCharacters((prev) => prev.map((c) => (c.id === id ? { ...c, name } : c)));
+  }
+
+  function handleFieldSaved(id: string, field: string, value: string) {
+    setCharacters((prev) =>
+      prev.map((c) =>
+        c.id === id ? { ...c, data: { ...((c.data as Record<string, string>) ?? {}), [field]: value } } : c
+      )
+    );
+  }
+
   return (
     <div>
       {characters.map((character) => {
@@ -62,8 +74,8 @@ export default function CharactersList({
                   photoUrl={character.photoUrl}
                   data={(character.data as Record<string, string>) ?? {}}
                   groups={groups}
-                  onNameBlur={() => {}}
-                  onFieldBlur={() => {}}
+                  onNameBlur={(name) => handleNameSaved(character.id, name)}
+                  onFieldBlur={(field, value) => handleFieldSaved(character.id, field, value)}
                   onPhotoUpload={(file) => handlePhotoUpload(character.id, file)}
                   onDelete={() => handleDelete(character.id)}
                   suggestable={{ model: "Character", recordId: character.id }}

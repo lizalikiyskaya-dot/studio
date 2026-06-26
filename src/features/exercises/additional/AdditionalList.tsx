@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import type { FreeSection, Comment, TaskStatus } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
+import CardSaveButton from "@/components/CardSaveButton";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { blurOnEnter } from "@/lib/blurOnEnter";
@@ -105,6 +106,74 @@ function TableSection({
   );
 }
 
+function SectionBody({
+  section,
+  isMentorViewer,
+  suggestions,
+  comments,
+  onTitle,
+  onDelete,
+}: {
+  section: FreeSection;
+  isMentorViewer: boolean;
+  suggestions: Record<string, Record<string, string>>;
+  comments: Record<string, Comment[]>;
+  onTitle: (id: string, value: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <div ref={rootRef}>
+      {isMentorViewer ? (
+        <input
+          defaultValue={section.title}
+          onBlur={(e) => onTitle(section.id, e.target.value)}
+          onKeyDown={blurOnEnter}
+          placeholder={section.type === "TABLE" ? "Название таблицы" : "Вопрос"}
+          className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
+          style={{ borderColor: "var(--rule)" }}
+        />
+      ) : (
+        section.type === "TEXT" && (
+          <p className="heading text-[14px] font-semibold mb-3">{section.title}</p>
+        )
+      )}
+
+      {section.type === "TEXT" ? (
+        <SuggestableField
+          model="FreeSection"
+          recordId={section.id}
+          field="content"
+          value={section.content}
+          suggestion={suggestions[section.id]?.content}
+          placeholder="Ответ..."
+          className="outline-none bg-transparent text-[13.5px] leading-relaxed"
+          style={{ width: "100%", minWidth: 220 }}
+          resizable
+        />
+      ) : (
+        <TableSection section={section} onResize={() => {}} />
+      )}
+
+      <div className="flex gap-1.5 mt-3">
+        <CardSaveButton scopeRef={rootRef} />
+        {isMentorViewer && (
+          <button
+            onClick={() => onDelete(section.id)}
+            className="text-[12.5px] px-2.5 py-1 rounded-sm"
+            style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
+          >
+            Удалить раздел
+          </button>
+        )}
+      </div>
+
+      <CommentsBlock model="FreeSection" recordId={section.id} initialComments={comments[section.id] ?? []} />
+    </div>
+  );
+}
+
 export default function AdditionalList({
   studentId,
   initialSections,
@@ -173,48 +242,14 @@ export default function AdditionalList({
             </span>
           }
         >
-          {isMentorViewer ? (
-            <input
-              defaultValue={section.title}
-              onBlur={(e) => handleTitle(section.id, e.target.value)}
-              onKeyDown={blurOnEnter}
-              placeholder={section.type === "TABLE" ? "Название таблицы" : "Вопрос"}
-              className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
-              style={{ borderColor: "var(--rule)" }}
-            />
-          ) : (
-            section.type === "TEXT" && (
-              <p className="heading text-[14px] font-semibold mb-3">{section.title}</p>
-            )
-          )}
-
-          {section.type === "TEXT" ? (
-            <SuggestableField
-              model="FreeSection"
-              recordId={section.id}
-              field="content"
-              value={section.content}
-              suggestion={suggestions[section.id]?.content}
-              placeholder="Ответ..."
-              className="outline-none bg-transparent text-[13.5px] leading-relaxed"
-              style={{ width: "100%", minWidth: 220 }}
-              resizable
-            />
-          ) : (
-            <TableSection section={section} onResize={() => {}} />
-          )}
-
-          {isMentorViewer && (
-            <button
-              onClick={() => handleDelete(section.id)}
-              className="text-[12.5px] px-2.5 py-1 rounded-sm mt-3"
-              style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-            >
-              Удалить раздел
-            </button>
-          )}
-
-          <CommentsBlock model="FreeSection" recordId={section.id} initialComments={comments[section.id] ?? []} />
+          <SectionBody
+            section={section}
+            isMentorViewer={isMentorViewer}
+            suggestions={suggestions}
+            comments={comments}
+            onTitle={handleTitle}
+            onDelete={handleDelete}
+          />
         </Accordion>
       ))}
 

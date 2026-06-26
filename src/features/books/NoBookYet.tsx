@@ -12,6 +12,7 @@ export default function NoBookYet({ studentId }: { studentId: string }) {
     startTransition(async () => {
       const book = await createBook(studentId);
       router.push(`?book=${book.id}`);
+      router.refresh();
     });
   }
 

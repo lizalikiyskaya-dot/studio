@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import type { BeliefCard, Comment } from "@/generated/prisma/client";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
+import CardSaveButton from "@/components/CardSaveButton";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { createBeliefCard, deleteBeliefCard, reorderBeliefCards } from "./actions";
@@ -14,11 +15,13 @@ function CardBody({
   readOnly,
   suggestable,
   suggestions,
+  onHeroSaved,
 }: {
   card: BeliefCard;
   readOnly: boolean;
   suggestable: boolean;
   suggestions: Record<string, string>;
+  onHeroSaved: (value: string) => void;
 }) {
   return (
     <div>
@@ -36,6 +39,7 @@ function CardBody({
             value={card.hero}
             suggestion={suggestions.hero}
             as="input"
+            onSaved={onHeroSaved}
             className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1"
             style={{ borderColor: "var(--rule)" }}
           />
@@ -92,6 +96,7 @@ function CardShell({
   suggestions,
   initialComments,
   onDelete,
+  onHeroSaved,
   dropTarget,
   dragHandle,
 }: {
@@ -101,23 +106,28 @@ function CardShell({
   suggestions: Record<string, string>;
   initialComments: Comment[];
   onDelete: (id: string) => void;
+  onHeroSaved: (value: string) => void;
   dropTarget?: DropTargetHandlers;
   dragHandle?: DragHandleHandlers;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
   return (
     <div {...dropTarget} className="flex items-start gap-1.5">
       {dragHandle && <DragHandle handlers={dragHandle} />}
-      <div className="flex-1 min-w-0">
+      <div ref={rootRef} className="flex-1 min-w-0">
         <CollapsibleCharacterShell name={card.hero} photoUrl={null}>
-          <CardBody card={card} readOnly={readOnly} suggestable={suggestable} suggestions={suggestions} />
+          <CardBody card={card} readOnly={readOnly} suggestable={suggestable} suggestions={suggestions} onHeroSaved={onHeroSaved} />
           {!readOnly && (
-            <button
-              onClick={() => onDelete(card.id)}
-              className="text-[12.5px] px-2.5 py-1.5 rounded-sm mt-4"
-              style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-            >
-              Удалить
-            </button>
+            <div className="flex gap-1.5 mt-4">
+              <CardSaveButton scopeRef={rootRef} />
+              <button
+                onClick={() => onDelete(card.id)}
+                className="text-[12.5px] px-2.5 py-1.5 rounded-sm"
+                style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
+              >
+                Удалить
+              </button>
+            </div>
           )}
           <CommentsBlock model="BeliefCard" recordId={card.id} initialComments={initialComments} />
         </CollapsibleCharacterShell>
@@ -155,6 +165,10 @@ export function BeliefExamplesList({
     startTransition(() => deleteBeliefCard(id));
   }
 
+  function handleHeroSaved(id: string, hero: string) {
+    setCards((prev) => prev.map((c) => (c.id === id ? { ...c, hero } : c)));
+  }
+
   return (
     <div>
       {cards.map((card) => (
@@ -166,6 +180,7 @@ export function BeliefExamplesList({
           suggestions={{}}
           initialComments={comments[card.id] ?? []}
           onDelete={handleDelete}
+          onHeroSaved={(hero) => handleHeroSaved(card.id, hero)}
           dropTarget={dropTarget(card.id)}
           dragHandle={isMentorViewer ? dragHandle(card.id) : undefined}
         />
@@ -212,6 +227,10 @@ export function BeliefOwnList({
     startTransition(() => deleteBeliefCard(id));
   }
 
+  function handleHeroSaved(id: string, hero: string) {
+    setCards((prev) => prev.map((c) => (c.id === id ? { ...c, hero } : c)));
+  }
+
   return (
     <div>
       {cards.map((card) => (
@@ -223,6 +242,7 @@ export function BeliefOwnList({
           suggestions={suggestions[card.id] ?? {}}
           initialComments={comments[card.id] ?? []}
           onDelete={handleDelete}
+          onHeroSaved={(hero) => handleHeroSaved(card.id, hero)}
           dropTarget={dropTarget(card.id)}
           dragHandle={dragHandle(card.id)}
         />

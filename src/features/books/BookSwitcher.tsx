@@ -19,12 +19,14 @@ export default function BookSwitcher({
 
   function handleChange(bookId: string) {
     router.push(`${pathname}?book=${bookId}`);
+    router.refresh();
   }
 
   function handleAddBook() {
     startTransition(async () => {
       const book = await createBook(studentId);
       router.push(`${pathname}?book=${book.id}`);
+      router.refresh();
     });
   }
 

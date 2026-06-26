@@ -17,6 +17,7 @@ export default function SuggestableField({
   style,
   placeholder,
   resizable,
+  onSaved,
 }: {
   model: SuggestableModel;
   recordId: string;
@@ -28,6 +29,12 @@ export default function SuggestableField({
   style?: React.CSSProperties;
   placeholder?: string;
   resizable?: boolean;
+  // Fires once a value is actually persisted (not just queued as a
+  // mentor suggestion) — lets parent list/card components keep their
+  // own copy of the record (e.g. a collapsed card's header name) in
+  // sync, since this component otherwise tracks the saved value only
+  // in its own local state.
+  onSaved?: (value: string) => void;
 }) {
   const [value, setValue] = useState(initialValue);
   const [suggestion, setSuggestion] = useState(initialSuggestion ?? null);
@@ -46,6 +53,7 @@ export default function SuggestableField({
       } else {
         setValue(newValue);
         setSuggestion(null);
+        onSaved?.(newValue);
       }
     });
   }
@@ -54,7 +62,10 @@ export default function SuggestableField({
     if (!suggestion) return;
     setValue(suggestion);
     setSuggestion(null);
-    startTransition(() => acceptFieldSuggestion(model, recordId, field));
+    startTransition(async () => {
+      await acceptFieldSuggestion(model, recordId, field);
+      onSaved?.(suggestion);
+    });
   }
 
   if (suggestion) {

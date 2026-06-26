@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import type { PopArcCharacter, ArcType, Comment } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
+import CardSaveButton from "@/components/CardSaveButton";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { ARC_GROUPS } from "@/features/characters/fields";
@@ -41,6 +42,7 @@ function FieldColumn({
   fieldKey,
   readOnly,
   placeholder,
+  onSaved,
 }: {
   caption: string;
   captionColor: string;
@@ -50,6 +52,7 @@ function FieldColumn({
   fieldKey: string;
   readOnly: boolean;
   placeholder?: string;
+  onSaved: (value: string) => void;
 }) {
   return (
     <div>
@@ -68,6 +71,7 @@ function FieldColumn({
           value={value}
           suggestion={suggestion}
           placeholder={placeholder}
+          onSaved={onSaved}
           className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
           style={{ borderColor: "var(--rule)" }}
         />
@@ -86,6 +90,7 @@ function FieldBlock({
   sceneSuggestion,
   sceneFieldKey,
   readOnly,
+  onFieldSaved,
 }: {
   label?: string;
   value: string;
@@ -96,6 +101,7 @@ function FieldBlock({
   sceneSuggestion?: string;
   sceneFieldKey?: string;
   readOnly: boolean;
+  onFieldSaved: (field: string, value: string) => void;
 }) {
   return (
     <div className="mb-4">
@@ -113,6 +119,7 @@ function FieldBlock({
           recordId={recordId}
           fieldKey={fieldKey}
           readOnly={readOnly}
+          onSaved={(v) => onFieldSaved(fieldKey, v)}
         />
         {sceneFieldKey && (
           <FieldColumn
@@ -124,6 +131,7 @@ function FieldBlock({
             fieldKey={sceneFieldKey}
             readOnly={readOnly}
             placeholder="в какой сцене и как это проявляется"
+            onSaved={(v) => onFieldSaved(sceneFieldKey, v)}
           />
         )}
       </div>
@@ -145,13 +153,19 @@ export default function PopArcCard({
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [name, setName] = useState(character.name);
   const [photoUrl, setPhotoUrl] = useState(character.photoUrl);
   const [arcType, setArcType] = useState(character.arcType);
+  const [data, setData] = useState((character.data as Record<string, string>) ?? {});
   const [, startTransition] = useTransition();
-  const data = (character.data as Record<string, string>) ?? {};
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  function handleFieldSaved(field: string, value: string) {
+    setData((prev) => ({ ...prev, [field]: value }));
+  }
 
   function handleDelete() {
-    if (!window.confirm(`Удалить «${character.name || "без имени"}»?`)) return;
+    if (!window.confirm(`Удалить «${name || "без имени"}»?`)) return;
     onDelete();
   }
 
@@ -161,7 +175,7 @@ export default function PopArcCard({
   }
 
   return (
-    <div className="rounded-md mb-4 overflow-hidden max-w-[760px]" style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "#FAFAF9" }}>
+    <div ref={rootRef} className="rounded-md mb-4 overflow-hidden max-w-[760px]" style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "#FAFAF9" }}>
       <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3 cursor-pointer">
         <div
           className="rounded-sm flex-shrink-0"
@@ -174,7 +188,7 @@ export default function PopArcCard({
             backgroundPosition: "center",
           }}
         />
-        <span className="heading flex-1 font-semibold text-[14.5px]">{character.name || "Без имени"}</span>
+        <span className="heading flex-1 font-semibold text-[14.5px]">{name || "Без имени"}</span>
         {arcType && (
           <span
             className="font-mono-label text-[9.5px] uppercase px-2 py-1 rounded-full"
@@ -225,28 +239,32 @@ export default function PopArcCard({
                 Имя
               </label>
               {readOnly ? (
-                <p className="heading font-semibold text-[18px] pb-1">{character.name}</p>
+                <p className="heading font-semibold text-[18px] pb-1">{name}</p>
               ) : (
                 <SuggestableField
                   model="PopArcCharacter"
                   recordId={character.id}
                   field="name"
-                  value={character.name}
+                  value={name}
                   suggestion={suggestions.name}
                   as="input"
+                  onSaved={setName}
                   className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
                   style={{ borderColor: "var(--rule)" }}
                 />
               )}
             </div>
             {!readOnly && (
-              <button
-                onClick={handleDelete}
-                className="text-[12.5px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
-                style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-              >
-                Удалить
-              </button>
+              <div className="flex gap-1.5 flex-shrink-0">
+                <CardSaveButton scopeRef={rootRef} />
+                <button
+                  onClick={handleDelete}
+                  className="text-[12.5px] px-2.5 py-1.5 rounded-sm"
+                  style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
+                >
+                  Удалить
+                </button>
+              </div>
             )}
           </div>
 
@@ -286,6 +304,7 @@ export default function PopArcCard({
                   sceneSuggestion={f.sceneKey ? suggestions[f.sceneKey] : undefined}
                   sceneFieldKey={f.sceneKey}
                   readOnly={readOnly}
+                  onFieldSaved={handleFieldSaved}
                 />
               ))}
             </div>

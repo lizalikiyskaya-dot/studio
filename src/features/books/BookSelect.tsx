@@ -14,6 +14,7 @@ export default function BookSelect({
 
   function handleChange(bookId: string) {
     router.push(`${pathname}?book=${bookId}`);
+    router.refresh();
   }
 
   return (
