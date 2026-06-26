@@ -40,6 +40,7 @@ export default async function StudentViewLayout({
             isMentor
             mentorViewLabel={student.name}
             studentId={student.id}
+            bookWorkshopUnlocked={student.bookWorkshopUnlocked}
             storyWorkshopUnlocked={student.storyWorkshopUnlocked}
             calendar={{
               tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),

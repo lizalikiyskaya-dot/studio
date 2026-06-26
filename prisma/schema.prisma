@@ -121,6 +121,7 @@ model User {
   paymentDay    Int?
   paymentStatus PaymentStatus @default(PENDING)
   reviewModeEnabled Boolean   @default(true)
+  bookWorkshopUnlocked Boolean @default(true)
   storyWorkshopUnlocked Boolean @default(false)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt

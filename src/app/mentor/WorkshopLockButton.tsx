@@ -1,21 +1,24 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { toggleStoryWorkshopLock } from "@/features/storyWorkshopLock/actions";
 
-export default function StoryWorkshopControls({
-  userId,
+export default function WorkshopLockButton({
   unlocked: initialUnlocked,
+  onToggle,
+  labelOn,
+  labelOff,
 }: {
-  userId: string;
   unlocked: boolean;
+  onToggle: () => Promise<boolean>;
+  labelOn: string;
+  labelOff: string;
 }) {
   const [unlocked, setUnlocked] = useState(initialUnlocked);
   const [, startTransition] = useTransition();
 
   function handleToggle() {
     setUnlocked((v) => !v);
-    startTransition(() => void toggleStoryWorkshopLock(userId));
+    startTransition(() => void onToggle());
   }
 
   return (
@@ -27,9 +30,8 @@ export default function StoryWorkshopControls({
         color: unlocked ? "#fff" : "var(--wine)",
         border: `1px solid ${unlocked ? "var(--sage)" : "var(--wine)"}`,
       }}
-      title="Мастерская рассказов"
     >
-      {unlocked ? "🔓 рассказы открыты" : "🔒 рассказы закрыты"}
+      {unlocked ? `🔓 ${labelOn}` : `🔒 ${labelOff}`}
     </button>
   );
 }

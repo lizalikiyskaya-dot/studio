@@ -4,7 +4,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { approveUser, rejectUser } from "./actions";
 import PaymentControls from "./PaymentControls";
-import StoryWorkshopControls from "./StoryWorkshopControls";
+import WorkshopLockControls from "./WorkshopLockControls";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -96,7 +96,11 @@ export default async function MentorPage() {
                 <PaymentControls userId={s.id} paymentDay={s.paymentDay} paymentStatus={s.paymentStatus} />
               </td>
               <td className="py-2.5 pl-3 align-top">
-                <StoryWorkshopControls userId={s.id} unlocked={s.storyWorkshopUnlocked} />
+                <WorkshopLockControls
+                  userId={s.id}
+                  bookUnlocked={s.bookWorkshopUnlocked}
+                  storyUnlocked={s.storyWorkshopUnlocked}
+                />
               </td>
               <td className="py-2.5 pl-3 text-right align-top">
                 <Link

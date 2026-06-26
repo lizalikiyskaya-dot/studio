@@ -35,6 +35,7 @@ export default function Sidebar({
   mentorMenuOnly,
   calendar,
   studentId,
+  bookWorkshopUnlocked,
   storyWorkshopUnlocked,
 }: {
   basePath: string;
@@ -48,6 +49,7 @@ export default function Sidebar({
     paymentStatus: "PAID" | "PENDING";
   };
   studentId?: string;
+  bookWorkshopUnlocked?: boolean;
   storyWorkshopUnlocked?: boolean;
 }) {
   const pathname = usePathname();
@@ -132,28 +134,32 @@ export default function Sidebar({
               );
             })}
 
-            <div className="h-px my-[18px]" style={{ background: "var(--rule)" }} />
-            <div className="text-[12.5px] mb-2.5" style={{ color: "var(--faded)" }}>
-              Мастерская книги
-            </div>
+            {(bookWorkshopUnlocked || isMentor) && (
+              <>
+                <div className="h-px my-[18px]" style={{ background: "var(--rule)" }} />
+                <div className="text-[12.5px] mb-2.5" style={{ color: "var(--faded)" }}>
+                  Мастерская книги
+                </div>
 
-            {WORKSHOP_ITEMS.map((item) => {
-              const href = `${basePath}/${item.path}`;
-              const active = pathname?.startsWith(href);
-              return (
-                <Link
-                  key={item.path}
-                  href={href}
-                  className={`nav-index-item flex items-baseline gap-2.5 px-2.5 py-2.5 text-[13.5px] mb-px${active ? " active" : ""}`}
-                  style={{ color: active ? "var(--wine)" : "var(--ink-soft)" }}
-                >
-                  <span className="font-mono-label text-[10px] font-semibold" style={{ color: active ? "var(--wine)" : "var(--ink)" }}>
-                    {item.n}
-                  </span>
-                  {item.label}
-                </Link>
-              );
-            })}
+                {WORKSHOP_ITEMS.map((item) => {
+                  const href = `${basePath}/${item.path}`;
+                  const active = pathname?.startsWith(href);
+                  return (
+                    <Link
+                      key={item.path}
+                      href={href}
+                      className={`nav-index-item flex items-baseline gap-2.5 px-2.5 py-2.5 text-[13.5px] mb-px${active ? " active" : ""}`}
+                      style={{ color: active ? "var(--wine)" : "var(--ink-soft)" }}
+                    >
+                      <span className="font-mono-label text-[10px] font-semibold" style={{ color: active ? "var(--wine)" : "var(--ink)" }}>
+                        {item.n}
+                      </span>
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </>
+            )}
 
             {(storyWorkshopUnlocked || isMentor) && (
               <>
