@@ -33,9 +33,15 @@
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-golos), system-ui, sans-serif;
   font-size: 14.5px;
   line-height: 1.55;
+}
+
+/* long-form text fields (manuscripts, student answers, plan/synopsis text, notes) —
+   read like literary prose, so they keep the serif used for headings */
+.field-literary {
+  font-family: var(--font-old-standard), serif;
 }
 
 .font-mono-label {

@@ -58,7 +58,7 @@ export default function AutoGrowTextarea({
           e.currentTarget.blur();
         }
       }}
-      className={className}
+      className={`field-literary${className ? ` ${className}` : ""}`}
       style={{
         resize: resizable ? "horizontal" : "none",
         overflowY: "hidden",

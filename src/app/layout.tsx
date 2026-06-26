@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Bitter, JetBrains_Mono, Literata } from "next/font/google";
+import { Golos_Text, JetBrains_Mono, Old_Standard_TT } from "next/font/google";
 import "./globals.css";
 
-const literata = Literata({
+const golosText = Golos_Text({
   subsets: ["latin", "cyrillic"],
-  variable: "--font-inter",
+  variable: "--font-golos",
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -12,7 +12,7 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
 });
 
-const bitter = Bitter({
+const oldStandard = Old_Standard_TT({
   subsets: ["latin", "cyrillic"],
   weight: ["400", "700"],
   variable: "--font-old-standard",
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="ru"
-      className={`${literata.variable} ${jetbrainsMono.variable} ${bitter.variable} min-h-full antialiased`}
+      className={`${golosText.variable} ${jetbrainsMono.variable} ${oldStandard.variable} min-h-full antialiased`}
     >
       <body className="min-h-full">{children}</body>
     </html>
