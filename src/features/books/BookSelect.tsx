@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export default function BookSelect({
   books,
@@ -9,12 +9,10 @@ export default function BookSelect({
   books: { id: string; title: string }[];
   activeBookId: string;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
 
   function handleChange(bookId: string) {
-    router.push(`${pathname}?book=${bookId}`);
-    router.refresh();
+    window.location.href = `${pathname}?book=${bookId}`;
   }
 
   return (

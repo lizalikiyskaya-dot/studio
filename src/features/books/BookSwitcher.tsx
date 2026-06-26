@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { createBook, deleteBook } from "./actions";
 
@@ -13,20 +13,17 @@ export default function BookSwitcher({
   books: { id: string; title: string }[];
   activeBookId: string;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const [, startTransition] = useTransition();
 
   function handleChange(bookId: string) {
-    router.push(`${pathname}?book=${bookId}`);
-    router.refresh();
+    window.location.href = `${pathname}?book=${bookId}`;
   }
 
   function handleAddBook() {
     startTransition(async () => {
       const book = await createBook(studentId);
-      router.push(`${pathname}?book=${book.id}`);
-      router.refresh();
+      window.location.href = `${pathname}?book=${book.id}`;
     });
   }
 
@@ -38,12 +35,7 @@ export default function BookSwitcher({
     startTransition(async () => {
       await deleteBook(activeBookId);
       const remaining = books.filter((b) => b.id !== activeBookId);
-      if (remaining.length > 0) {
-        router.push(`${pathname}?book=${remaining[0].id}`);
-      } else {
-        router.push(pathname);
-      }
-      router.refresh();
+      window.location.href = remaining.length > 0 ? `${pathname}?book=${remaining[0].id}` : pathname;
     });
   }
 

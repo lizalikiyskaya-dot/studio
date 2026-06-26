@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { createCycle, deleteCycle } from "./actions";
 
@@ -13,20 +13,17 @@ export default function CycleSwitcher({
   cycles: { id: string; title: string }[];
   activeCycleId: string;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const [, startTransition] = useTransition();
 
   function handleChange(cycleId: string) {
-    router.push(`${pathname}?cycle=${cycleId}`);
-    router.refresh();
+    window.location.href = `${pathname}?cycle=${cycleId}`;
   }
 
   function handleAddCycle() {
     startTransition(async () => {
       const cycle = await createCycle(studentId);
-      router.push(`${pathname}?cycle=${cycle.id}`);
-      router.refresh();
+      window.location.href = `${pathname}?cycle=${cycle.id}`;
     });
   }
 
@@ -38,12 +35,7 @@ export default function CycleSwitcher({
     startTransition(async () => {
       await deleteCycle(activeCycleId);
       const remaining = cycles.filter((c) => c.id !== activeCycleId);
-      if (remaining.length > 0) {
-        router.push(`${pathname}?cycle=${remaining[0].id}`);
-      } else {
-        router.push(pathname);
-      }
-      router.refresh();
+      window.location.href = remaining.length > 0 ? `${pathname}?cycle=${remaining[0].id}` : pathname;
     });
   }
 

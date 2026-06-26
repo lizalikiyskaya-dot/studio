@@ -1,18 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { createCycle } from "./actions";
 
 export default function NoCycleYet({ studentId }: { studentId: string }) {
-  const router = useRouter();
   const [, startTransition] = useTransition();
 
   function handleCreate() {
     startTransition(async () => {
       const cycle = await createCycle(studentId);
-      router.push(`?cycle=${cycle.id}`);
-      router.refresh();
+      window.location.href = `?cycle=${cycle.id}`;
     });
   }
 
