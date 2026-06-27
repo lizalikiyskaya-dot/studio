@@ -15,6 +15,8 @@ import {
 import { nextTaskStatus } from "./status";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { shortenUrl } from "@/lib/shortenUrl";
+import { Button } from "@/components/ui/Button";
+import { Kpi } from "@/components/ui/Card";
 
 const GRID_COLUMNS = "1fr 100px 110px 110px 130px";
 
@@ -40,40 +42,6 @@ function MetaLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Kpi({
-  icon: Icon,
-  iconBg,
-  iconColor,
-  num,
-  label,
-}: {
-  icon: typeof Bookmark;
-  iconBg: string;
-  iconColor: string;
-  num: number;
-  label: string;
-}) {
-  return (
-    <div
-      className="flex items-center gap-3 rounded-[14px] px-4 py-3.5"
-      style={{ background: "var(--bg-surface-2)", flex: 1, minWidth: 140 }}
-    >
-      <div
-        className="flex items-center justify-center rounded-[10px] flex-shrink-0"
-        style={{ width: 36, height: 36, background: iconBg, color: iconColor }}
-      >
-        <Icon size={17} />
-      </div>
-      <div>
-        <div className="heading text-[19px] leading-none">{num}</div>
-        <div className="text-[11.5px]" style={{ color: "var(--faded)" }}>
-          {label}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function LinkCell({
   value,
   onSave,
@@ -96,16 +64,16 @@ function LinkCell({
     );
   }
   return (
-    <button
+    <Button
       onClick={() => {
         const url = window.prompt("Ссылка");
         if (url) onSave(url);
       }}
-      className="text-[12.5px] px-2.5 py-1 rounded-sm"
-      style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
+      variant="success-outline"
+      size="sm"
     >
       + ссылка
-    </button>
+    </Button>
   );
 }
 
@@ -258,13 +226,9 @@ export default function TasksTable({
         ))}
       </div>
 
-      <button
-        onClick={handleAdd}
-        className="text-[12.5px] px-3 py-1.5 rounded-sm"
-        style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-      >
+      <Button onClick={handleAdd} variant="secondary" size="sm">
         + задание
-      </button>
+      </Button>
     </div>
   );
 }

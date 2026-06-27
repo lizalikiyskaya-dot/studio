@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { createCycle, deleteCycle } from "./actions";
+import { Button } from "@/components/ui/Button";
 
 export default function CycleSwitcher({
   studentId,
@@ -56,20 +57,12 @@ export default function CycleSwitcher({
           </option>
         ))}
       </select>
-      <button
-        onClick={handleAddCycle}
-        className="text-[12.5px] px-2.5 py-1 rounded-sm"
-        style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
-      >
+      <Button onClick={handleAddCycle} variant="success-outline" size="sm">
         + новый цикл
-      </button>
-      <button
-        onClick={handleDeleteCycle}
-        className="text-[12.5px] px-2.5 py-1 rounded-sm"
-        style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-      >
+      </Button>
+      <Button onClick={handleDeleteCycle} variant="secondary" size="sm">
         Удалить цикл
-      </button>
+      </Button>
     </div>
   );
 }

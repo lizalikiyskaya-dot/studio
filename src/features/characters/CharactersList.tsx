@@ -10,6 +10,7 @@ import { createCharacter, deleteCharacter, reorderCharacters } from "./actions";
 import { uploadFile } from "@/lib/uploadFile";
 import { useDragReorder } from "@/lib/useDragReorder";
 import type { FieldGroup } from "./fields";
+import { Button } from "@/components/ui/Button";
 
 export default function CharactersList({
   bookId,
@@ -89,13 +90,9 @@ export default function CharactersList({
         );
       })}
 
-      <button
-        onClick={handleAdd}
-        className="text-[12.5px] px-3 py-1.5 rounded-sm"
-        style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-      >
+      <Button onClick={handleAdd} variant="secondary" size="sm">
         + добавить персонажа
-      </button>
+      </Button>
     </div>
   );
 }

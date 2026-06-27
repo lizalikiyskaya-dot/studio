@@ -11,6 +11,7 @@ import { STORY_CIRCLE_STEPS } from "./steps";
 import { createStoryCircleCard, deleteStoryCircleCard, reorderStoryCircleCards } from "./actions";
 import DragHandle from "@/components/DragHandle";
 import { useDragReorder, type DropTargetHandlers, type DragHandleHandlers } from "@/lib/useDragReorder";
+import { Button } from "@/components/ui/Button";
 
 function CardBody({
   card,
@@ -114,13 +115,9 @@ function CardShell({
           {!readOnly && (
             <div className="flex gap-1.5 mt-4">
               <CardSaveButton scopeRef={rootRef} />
-              <button
-                onClick={() => onDelete(card.id)}
-                className="text-[12.5px] px-2.5 py-1.5 rounded-sm"
-                style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-              >
+              <Button onClick={() => onDelete(card.id)} variant="secondary" size="sm">
                 Удалить
-              </button>
+              </Button>
             </div>
           )}
           <CommentsBlock model="StoryCircleCard" recordId={card.id} initialComments={initialComments} />
@@ -179,13 +176,9 @@ export function StoryCircleExamplesList({
         />
       ))}
       {isMentorViewer && (
-        <button
-          onClick={handleAdd}
-          className="text-[12.5px] px-3 py-1.5 rounded-sm"
-          style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-        >
+        <Button onClick={handleAdd} variant="secondary" size="sm">
           + добавить пример
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -239,13 +232,9 @@ export function StoryCircleOwnList({
           dragHandle={dragHandle(card.id)}
         />
       ))}
-      <button
-        onClick={handleAdd}
-        className="text-[12.5px] px-3 py-1.5 rounded-sm"
-        style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-      >
+      <Button onClick={handleAdd} variant="secondary" size="sm">
         + добавить героя
-      </button>
+      </Button>
     </div>
   );
 }

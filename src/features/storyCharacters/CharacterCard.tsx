@@ -7,6 +7,7 @@ import ImageUploadBox from "@/components/ImageUploadBox";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { uploadFile } from "@/lib/uploadFile";
 import { ARC_GROUPS, type CharacterFieldKey } from "@/features/characters/fields";
+import { Button } from "@/components/ui/Button";
 
 const ARC_TYPE_INDEX: Record<ArcType, number> = {
   POSITIVE: 0,
@@ -121,13 +122,9 @@ export default function CharacterCard({
               style={{ borderColor: "var(--rule)" }}
             />
           </div>
-          <button
-            onClick={handleDelete}
-            className="text-[12.5px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
-            style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-          >
+          <Button onClick={handleDelete} variant="secondary" size="sm" className="flex-shrink-0">
             Удалить
-          </button>
+          </Button>
         </div>
 
         <p className="text-[12.5px] mb-3" style={{ color: "var(--faded)" }}>

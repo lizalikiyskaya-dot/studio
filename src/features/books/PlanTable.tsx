@@ -5,6 +5,7 @@ import type { PlanChapter } from "@/generated/prisma/client";
 import { createPlanChapter, updatePlanChapterNumber } from "./actions";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import { blurOnEnter } from "@/lib/blurOnEnter";
+import { Button } from "@/components/ui/Button";
 
 const GRID_COLUMNS = "40px 2fr 2fr 1.6fr 1.4fr 90px 90px 60px";
 
@@ -147,13 +148,9 @@ export default function PlanTable({
         </div>
       </div>
 
-      <button
-        onClick={handleAdd}
-        className="text-[12.5px] px-3 py-1.5 rounded-sm"
-        style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-      >
+      <Button onClick={handleAdd} variant="secondary" size="sm">
         + глава
-      </button>
+      </Button>
     </div>
   );
 }

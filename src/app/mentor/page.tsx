@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { approveUser, rejectUser } from "./actions";
 import PaymentControls from "./PaymentControls";
 import WorkshopLockControls from "./WorkshopLockControls";
+import { Button, LinkButton } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -53,20 +54,12 @@ export default async function MentorPage() {
               </td>
               <td className="py-2.5 text-right">
                 <form action={approveUser.bind(null, u.id)} className="inline">
-                  <button
-                    className="text-[13px] px-3 py-1.5 rounded-sm mr-2"
-                    style={{ background: "var(--sage)", color: "#fff" }}
-                  >
+                  <Button variant="success" className="mr-2">
                     Одобрить
-                  </button>
+                  </Button>
                 </form>
                 <form action={rejectUser.bind(null, u.id)} className="inline">
-                  <button
-                    className="text-[13px] px-3 py-1.5 rounded-sm"
-                    style={{ border: "1px solid var(--wine)", color: "var(--wine)" }}
-                  >
-                    Отклонить
-                  </button>
+                  <Button variant="secondary">Отклонить</Button>
                 </form>
               </td>
             </tr>
@@ -103,13 +96,7 @@ export default async function MentorPage() {
                 />
               </td>
               <td className="py-2.5 pl-3 text-right align-top">
-                <Link
-                  href={`/student-view/${s.id}/tasks`}
-                  className="text-[13px] px-3 py-1.5 rounded-sm inline-block whitespace-nowrap"
-                  style={{ background: "var(--wine)", color: "#fff" }}
-                >
-                  Открыть кабинет
-                </Link>
+                <LinkButton href={`/student-view/${s.id}/tasks`}>Открыть кабинет</LinkButton>
               </td>
             </tr>
           ))}
@@ -128,15 +115,9 @@ export default async function MentorPage() {
                 {u.email}
               </td>
               <td className="py-2.5 text-right">
-                <span
-                  className="font-mono-label text-[10.5px] px-2.5 py-1 rounded-full"
-                  style={{
-                    color: u.status === "APPROVED" ? "var(--sage)" : "var(--wine)",
-                    border: `1px solid ${u.status === "APPROVED" ? "var(--sage)" : "var(--wine)"}`,
-                  }}
-                >
+                <Badge tone={u.status === "APPROVED" ? "success" : "danger"}>
                   {u.status === "APPROVED" ? "одобрено" : "отклонено"}
-                </span>
+                </Badge>
               </td>
             </tr>
           ))}

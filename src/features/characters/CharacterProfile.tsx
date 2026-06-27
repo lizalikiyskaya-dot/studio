@@ -9,6 +9,7 @@ import SuggestableField from "@/features/suggestions/SuggestableField";
 import type { SuggestableModel } from "@/lib/suggestionRegistry";
 import { blurOnEnter } from "@/lib/blurOnEnter";
 import type { FieldGroup } from "./fields";
+import { Button } from "@/components/ui/Button";
 
 type Suggestable = { model: SuggestableModel; recordId: string };
 
@@ -152,13 +153,9 @@ export default function CharacterProfile({
         {!readOnly && (
           <div className="flex gap-1.5 flex-shrink-0">
             <CardSaveButton scopeRef={rootRef} />
-            <button
-              onClick={handleDelete}
-              className="text-[12.5px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
-              style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-            >
+            <Button onClick={handleDelete} variant="secondary" size="sm" className="flex-shrink-0">
               Удалить
-            </button>
+            </Button>
           </div>
         )}
       </div>

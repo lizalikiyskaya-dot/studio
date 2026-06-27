@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Story, CycleCharacter, CycleWorldEntry, StoryCharacter, StoryWorldEntry } from "@/generated/prisma/client";
 import { createStory, deleteStory } from "./actions";
 import StoryDetail from "./StoryDetail";
+import { Button } from "@/components/ui/Button";
 
 export default function StoriesList({
   cycleId,
@@ -59,13 +60,9 @@ export default function StoriesList({
             {story.title || "Без названия"}
           </button>
         ))}
-        <button
-          onClick={handleAdd}
-          className="text-[12.5px] px-2.5 py-1.5 rounded-sm"
-          style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
-        >
+        <Button onClick={handleAdd} variant="success" size="sm">
           + новый рассказ
-        </button>
+        </Button>
       </div>
 
       {stories

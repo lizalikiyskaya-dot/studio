@@ -15,6 +15,7 @@ import {
   deleteAdditionalSection,
   cycleSectionStatus,
 } from "./actions";
+import { Button } from "@/components/ui/Button";
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
   IN_PROGRESS: "в процессе",
@@ -159,13 +160,9 @@ function SectionBody({
       <div className="flex gap-1.5 mt-3">
         <CardSaveButton scopeRef={rootRef} />
         {isMentorViewer && (
-          <button
-            onClick={() => onDelete(section.id)}
-            className="text-[12.5px] px-2.5 py-1 rounded-sm"
-            style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-          >
+          <Button onClick={() => onDelete(section.id)} variant="secondary" size="sm">
             Удалить раздел
-          </button>
+          </Button>
         )}
       </div>
 
@@ -255,20 +252,12 @@ export default function AdditionalList({
 
       {isMentorViewer && (
         <div className="flex gap-2.5">
-          <button
-            onClick={() => handleAdd("TEXT")}
-            className="text-[12.5px] px-3 py-1.5 rounded-sm"
-            style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-          >
+          <Button onClick={() => handleAdd("TEXT")} variant="secondary" size="sm">
             + текст (вопрос-ответ)
-          </button>
-          <button
-            onClick={() => handleAdd("TABLE")}
-            className="text-[12.5px] px-3 py-1.5 rounded-sm"
-            style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-          >
+          </Button>
+          <Button onClick={() => handleAdd("TABLE")} variant="secondary" size="sm">
             + таблица
-          </button>
+          </Button>
         </div>
       )}
     </div>

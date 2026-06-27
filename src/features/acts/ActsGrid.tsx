@@ -18,6 +18,7 @@ import {
 } from "./actions";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import { Button } from "@/components/ui/Button";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { blurOnEnter } from "@/lib/blurOnEnter";
 
@@ -400,13 +401,14 @@ export default function ActsGrid({
               />
             ))}
 
-            <button
+            <Button
               onClick={() => handleAddChapter(act.id)}
-              className="text-[12.5px] px-3 py-1.5 rounded-sm"
-              style={{ color: "var(--sage)", border: "1px dashed var(--sage)" }}
+              variant="success-outline"
+              size="sm"
+              style={{ borderStyle: "dashed" }}
             >
               + глава
-            </button>
+            </Button>
             <CommentsBlock model="Act" recordId={act.id} initialComments={comments[act.id] ?? []} />
           </div>
         );

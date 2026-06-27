@@ -14,6 +14,7 @@ import {
   deleteMaterial,
 } from "./actions";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
+import { Button } from "@/components/ui/Button";
 
 function DownloadOrUpload({
   label,
@@ -148,26 +149,18 @@ function BooksList({
               onUpload={(file) => handleFile(material.id, "epub", file)}
             />
             {canManage && (
-              <button
-                onClick={() => handleDelete(material.id)}
-                className="text-[12.5px] px-2.5 py-1 rounded-sm ml-auto"
-                style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-              >
+              <Button onClick={() => handleDelete(material.id)} variant="secondary" size="sm" className="ml-auto">
                 Удалить
-              </button>
+              </Button>
             )}
           </div>
         </Accordion>
       ))}
 
       {canManage && (
-        <button
-          onClick={handleAdd}
-          className="text-[12.5px] px-3 py-1.5 rounded-sm"
-          style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-        >
+        <Button onClick={handleAdd} variant="secondary" size="sm">
           + книга
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -252,25 +245,17 @@ function HandoutsList({
             onUpload={(file) => handleFile(material.id, file)}
           />
           {canManage && (
-            <button
-              onClick={() => handleDelete(material.id)}
-              className="text-[12.5px] px-2.5 py-1 rounded-sm"
-              style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-            >
+            <Button onClick={() => handleDelete(material.id)} variant="secondary" size="sm">
               Удалить
-            </button>
+            </Button>
           )}
         </div>
       ))}
 
       {canManage && (
-        <button
-          onClick={handleAdd}
-          className="text-[12.5px] px-3 py-1.5 rounded-sm mt-3"
-          style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-        >
+        <Button onClick={handleAdd} variant="secondary" size="sm" className="mt-3">
           + методичка
-        </button>
+        </Button>
       )}
     </div>
   );

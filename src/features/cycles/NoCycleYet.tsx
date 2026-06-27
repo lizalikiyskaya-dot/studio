@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { createCycle } from "./actions";
+import { Button } from "@/components/ui/Button";
 
 export default function NoCycleYet({ studentId }: { studentId: string }) {
   const [, startTransition] = useTransition();
@@ -18,13 +19,9 @@ export default function NoCycleYet({ studentId }: { studentId: string }) {
       <p className="text-[14px] mb-4" style={{ color: "var(--faded)" }}>
         У ученика пока нет ни одного цикла рассказов.
       </p>
-      <button
-        onClick={handleCreate}
-        className="text-[13px] px-3 py-2 rounded-sm"
-        style={{ background: "var(--wine)", color: "#fff" }}
-      >
+      <Button onClick={handleCreate} variant="primary">
         + новый цикл
-      </button>
+      </Button>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import CommentsBlock from "@/features/comments/CommentsBlock";
 import { ARC_GROUPS } from "@/features/characters/fields";
 import { uploadFile } from "@/lib/uploadFile";
 import { updatePopArcType } from "./actions";
+import { Button } from "@/components/ui/Button";
 
 const ARC_TYPE_INDEX: Record<ArcType, number> = {
   POSITIVE: 0,
@@ -258,13 +259,9 @@ export default function PopArcCard({
             {!readOnly && (
               <div className="flex gap-1.5 flex-shrink-0">
                 <CardSaveButton scopeRef={rootRef} />
-                <button
-                  onClick={handleDelete}
-                  className="text-[12.5px] px-2.5 py-1.5 rounded-sm"
-                  style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-                >
+                <Button onClick={handleDelete} variant="secondary" size="sm">
                   Удалить
-                </button>
+                </Button>
               </div>
             )}
           </div>

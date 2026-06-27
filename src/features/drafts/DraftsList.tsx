@@ -7,6 +7,7 @@ import { uploadFile } from "@/lib/uploadFile";
 import { blurOnEnter } from "@/lib/blurOnEnter";
 import { shortenUrl } from "@/lib/shortenUrl";
 import { createDraft, updateDraftField, deleteDraft } from "./actions";
+import { Button } from "@/components/ui/Button";
 
 export default function DraftsList({
   studentId,
@@ -69,36 +70,28 @@ export default function DraftsList({
                 {shortenUrl(draft.link)}
               </a>
             ) : (
-              <button
+              <Button
                 onClick={() => {
                   const url = window.prompt("Ссылка");
                   if (url) handleField(draft.id, "link", url);
                 }}
-                className="text-[12.5px] px-2.5 py-1 rounded-sm"
-                style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
+                variant="success-outline"
+                size="sm"
               >
                 + ссылка
-              </button>
+              </Button>
             )}
             <FileAttachBox fileName={draft.fileName} onUpload={(file) => handleFile(draft.id, file)} />
-            <button
-              onClick={() => handleDelete(draft.id)}
-              className="text-[12.5px] px-2.5 py-1 rounded-sm ml-auto"
-              style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-            >
+            <Button onClick={() => handleDelete(draft.id)} variant="secondary" size="sm" className="ml-auto">
               Удалить
-            </button>
+            </Button>
           </div>
         </div>
       ))}
 
-      <button
-        onClick={handleAdd}
-        className="text-[12.5px] px-3 py-1.5 rounded-sm"
-        style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-      >
+      <Button onClick={handleAdd} variant="secondary" size="sm">
         + черновик
-      </button>
+      </Button>
     </div>
   );
 }

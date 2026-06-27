@@ -6,6 +6,7 @@ import ArcCharacterCard from "./ArcCharacterCard";
 import DragHandle from "@/components/DragHandle";
 import { createCharacter, reorderCharacters } from "../actions";
 import { useDragReorder } from "@/lib/useDragReorder";
+import { Button } from "@/components/ui/Button";
 
 export default function ArcCharactersList({
   bookId,
@@ -51,13 +52,9 @@ export default function ArcCharactersList({
         </div>
       ))}
 
-      <button
-        onClick={handleAdd}
-        className="text-[12.5px] px-3 py-1.5 rounded-sm"
-        style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-      >
+      <Button onClick={handleAdd} variant="secondary" size="sm">
         + добавить персонажа
-      </button>
+      </Button>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Lock, Unlock } from "lucide-react";
+import { BadgeButton } from "@/components/ui/Badge";
 
 export default function WorkshopLockButton({
   unlocked: initialUnlocked,
@@ -23,17 +24,9 @@ export default function WorkshopLockButton({
   }
 
   return (
-    <button
-      onClick={handleToggle}
-      className="font-mono-label flex items-center gap-1.5 text-[10.5px] px-2.5 py-1 rounded-full whitespace-nowrap"
-      style={{
-        background: unlocked ? "var(--sage)" : "#fff",
-        color: unlocked ? "#fff" : "var(--wine)",
-        border: `1px solid ${unlocked ? "var(--sage)" : "var(--wine)"}`,
-      }}
-    >
+    <BadgeButton onClick={handleToggle} tone={unlocked ? "success" : "danger"} fill={unlocked ? "solid" : "outline"}>
       {unlocked ? <Unlock size={11} /> : <Lock size={11} />}
       {unlocked ? labelOn : labelOff}
-    </button>
+    </BadgeButton>
   );
 }

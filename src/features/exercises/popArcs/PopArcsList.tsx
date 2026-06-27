@@ -6,6 +6,7 @@ import PopArcCard from "./PopArcCard";
 import { createPopArcCharacter, deletePopArcCharacter, reorderPopArcCharacters } from "./actions";
 import DragHandle from "@/components/DragHandle";
 import { useDragReorder } from "@/lib/useDragReorder";
+import { Button } from "@/components/ui/Button";
 
 export function ExamplesList({
   studentId,
@@ -54,13 +55,9 @@ export function ExamplesList({
       ))}
 
       {isMentorViewer && (
-        <button
-          onClick={handleAdd}
-          className="text-[12.5px] px-3 py-1.5 rounded-sm"
-          style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-        >
+        <Button onClick={handleAdd} variant="secondary" size="sm">
           + добавить пример
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -112,13 +109,9 @@ export function OwnHeroesList({
         </div>
       ))}
 
-      <button
-        onClick={handleAdd}
-        className="text-[12.5px] px-3 py-1.5 rounded-sm"
-        style={{ color: "var(--wine)", border: "1px dashed var(--wine-soft)" }}
-      >
+      <Button onClick={handleAdd} variant="secondary" size="sm">
         + добавить героя
-      </button>
+      </Button>
     </div>
   );
 }

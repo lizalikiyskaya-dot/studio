@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { createBook, deleteBook } from "./actions";
+import { Button } from "@/components/ui/Button";
 
 export default function BookSwitcher({
   studentId,
@@ -56,20 +57,12 @@ export default function BookSwitcher({
           </option>
         ))}
       </select>
-      <button
-        onClick={handleAddBook}
-        className="text-[12.5px] px-2.5 py-1 rounded-sm"
-        style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
-      >
+      <Button onClick={handleAddBook} variant="success-outline" size="sm">
         + новая книга
-      </button>
-      <button
-        onClick={handleDeleteBook}
-        className="text-[12.5px] px-2.5 py-1 rounded-sm"
-        style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-      >
+      </Button>
+      <Button onClick={handleDeleteBook} variant="secondary" size="sm">
         Удалить книгу
-      </button>
+      </Button>
     </div>
   );
 }

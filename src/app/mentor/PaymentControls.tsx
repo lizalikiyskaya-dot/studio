@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import type { PaymentStatus } from "@/generated/prisma/client";
 import { updatePaymentDay, togglePaymentStatus } from "./actions";
+import { BadgeButton } from "@/components/ui/Badge";
 
 export default function PaymentControls({
   userId,
@@ -49,17 +50,9 @@ export default function PaymentControls({
           </option>
         ))}
       </select>
-      <button
-        onClick={handleToggle}
-        className="font-mono-label text-[10.5px] px-2.5 py-1 rounded-full"
-        style={{
-          background: status === "PAID" ? "var(--sage)" : "#fff",
-          color: status === "PAID" ? "#fff" : "var(--wine)",
-          border: `1px solid ${status === "PAID" ? "var(--sage)" : "var(--wine)"}`,
-        }}
-      >
+      <BadgeButton onClick={handleToggle} tone={status === "PAID" ? "success" : "danger"} fill={status === "PAID" ? "solid" : "outline"}>
         {status === "PAID" ? "оплачено" : "ожидает оплаты"}
-      </button>
+      </BadgeButton>
     </div>
   );
 }

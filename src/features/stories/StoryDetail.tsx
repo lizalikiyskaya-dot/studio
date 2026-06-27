@@ -13,6 +13,7 @@ import { updateStoryTitle, updateStoryStructureField, type StoryStructureField }
 import StorySourceToggle from "./StorySourceToggle";
 import StoryCharactersSection from "@/features/storyCharacters/StoryCharactersSection";
 import StorySettingSection from "@/features/storySetting/StorySettingSection";
+import { Button } from "@/components/ui/Button";
 
 function StructureField({
   label,
@@ -66,13 +67,9 @@ export default function StoryDetail({
           onBlur={(e) => startTransition(() => updateStoryTitle(story.id, e.target.value))}
           className="text-[18px] font-semibold outline-none bg-transparent flex-1"
         />
-        <button
-          onClick={onDelete}
-          className="text-[12px] px-2.5 py-1 rounded-sm whitespace-nowrap"
-          style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
-        >
+        <Button onClick={onDelete} variant="secondary" size="sm" className="whitespace-nowrap">
           Удалить рассказ
-        </button>
+        </Button>
       </div>
 
       <StorySourceToggle

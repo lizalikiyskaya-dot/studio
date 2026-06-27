@@ -12,6 +12,7 @@ import {
   updateCycleCharacterArcType,
   updateCycleCharacterField,
 } from "./actions";
+import { Button } from "@/components/ui/Button";
 
 export default function CycleCharactersView({
   cycleId,
@@ -69,13 +70,9 @@ export default function CycleCharactersView({
           onDelete={handleDelete}
         />
       ))}
-      <button
-        onClick={handleAdd}
-        className="text-[12.5px] px-3 py-1.5 rounded-sm"
-        style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
-      >
+      <Button onClick={handleAdd} variant="success" size="sm">
         + новый персонаж цикла
-      </button>
+      </Button>
     </div>
   );
 }
