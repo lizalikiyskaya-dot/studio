@@ -29,12 +29,12 @@ const ARC_TYPE_LABEL: Record<ArcType, string> = {
   CORRUPTION: "Арка порчи",
   FLAT: "Плоская арка",
 };
-const ARC_TYPE_COLOR: Record<ArcType, string> = {
-  POSITIVE: "var(--sage)",
-  DISILLUSIONMENT: "#9B8AC4",
-  FALL: "#C98A56",
-  CORRUPTION: "#D9779A",
-  FLAT: "#6FA8C9",
+const ARC_TYPE_COLOR: Record<ArcType, { bg: string; fg: string }> = {
+  POSITIVE: { bg: "var(--sage-soft)", fg: "var(--sage)" },
+  CORRUPTION: { bg: "var(--accent-soft)", fg: "var(--wine)" },
+  FLAT: { bg: "#E2E9EE", fg: "#3F6080" },
+  DISILLUSIONMENT: { bg: "#E0CBE7", fg: "#6B4F82" },
+  FALL: { bg: "#F4DDBC", fg: "#8A6B2E" },
 };
 const ARC_TYPES: ArcType[] = ["POSITIVE", "DISILLUSIONMENT", "FALL", "CORRUPTION", "FLAT"];
 
@@ -143,7 +143,7 @@ export default function ArcCharacterCard({
     <div ref={rootRef} className="rounded-md mb-4 overflow-hidden max-w-[760px]" style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "#FAFAF9" }}>
       <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3 cursor-pointer">
         <div
-          className="rounded-sm flex-shrink-0"
+          className="rounded-full flex-shrink-0"
           style={{
             width: 32,
             height: 32,
@@ -157,7 +157,7 @@ export default function ArcCharacterCard({
         {arcType && (
           <span
             className="font-mono-label text-[9.5px] uppercase px-2 py-1 rounded-full"
-            style={{ background: ARC_TYPE_COLOR[arcType], color: "#fff" }}
+            style={{ background: ARC_TYPE_COLOR[arcType].bg, color: ARC_TYPE_COLOR[arcType].fg }}
           >
             {ARC_TYPE_LABEL[arcType]}
           </span>
@@ -215,11 +215,11 @@ export default function ArcCharacterCard({
               <button
                 key={type}
                 onClick={() => handleSelectType(type)}
-                className="text-[12.5px] px-3.5 py-1.5 rounded-sm"
+                className="text-[12.5px] px-3.5 py-1.5 rounded-full"
                 style={{
-                  border: `1px solid ${arcType === type ? ARC_TYPE_COLOR[type] : "var(--rule)"}`,
-                  background: arcType === type ? ARC_TYPE_COLOR[type] : "transparent",
-                  color: arcType === type ? "#fff" : "var(--ink-soft)",
+                  border: `1px solid ${arcType === type ? ARC_TYPE_COLOR[type].bg : "var(--rule)"}`,
+                  background: arcType === type ? ARC_TYPE_COLOR[type].bg : "transparent",
+                  color: arcType === type ? ARC_TYPE_COLOR[type].fg : "var(--ink-soft)",
                 }}
               >
                 {ARC_TYPE_LABEL[type]}

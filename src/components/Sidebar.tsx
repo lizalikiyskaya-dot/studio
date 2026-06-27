@@ -177,7 +177,6 @@ export default function Sidebar({
                     href={href}
                     title={collapsed ? item.label : undefined}
                     className={`nav-item flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
-                    style={{ color: "var(--ink-soft)" }}
                   >
                     <Icon size={17} style={{ flexShrink: 0, opacity: 0.85 }} />
                     {!collapsed && <span>{item.label}</span>}
@@ -198,7 +197,6 @@ export default function Sidebar({
                       href={href}
                       title={collapsed ? item.label : undefined}
                       className={`nav-item flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
-                      style={{ color: "var(--ink-soft)" }}
                     >
                       <span className="font-mono-label text-[12px] flex-shrink-0" style={{ width: 18, opacity: 0.85 }}>
                         {item.n}
@@ -222,7 +220,6 @@ export default function Sidebar({
                       href={href}
                       title={collapsed ? item.label : undefined}
                       className={`nav-item flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
-                      style={{ color: "var(--ink-soft)" }}
                     >
                       <span className="font-mono-label text-[12px] flex-shrink-0" style={{ width: 18, opacity: 0.85 }}>
                         {item.n}

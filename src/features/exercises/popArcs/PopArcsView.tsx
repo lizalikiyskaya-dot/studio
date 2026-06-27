@@ -44,6 +44,7 @@ export default async function PopArcsView({
 
   return (
     <Subtabs
+      variant="toggle"
       tabs={[
         {
           label: "Примеры",

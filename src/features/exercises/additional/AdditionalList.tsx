@@ -150,7 +150,7 @@ function SectionBody({
           suggestion={suggestions[section.id]?.content}
           placeholder="Ответ..."
           className="outline-none bg-transparent text-[13.5px] leading-relaxed"
-          style={{ width: "100%", maxWidth: 560, minWidth: 220 }}
+          style={{ width: "100%" }}
           resizable
         />
       ) : (

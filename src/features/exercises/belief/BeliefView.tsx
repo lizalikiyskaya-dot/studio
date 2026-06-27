@@ -39,6 +39,7 @@ export default async function BeliefView({
 
   return (
     <Subtabs
+      variant="toggle"
       tabs={[
         {
           label: "Примеры",

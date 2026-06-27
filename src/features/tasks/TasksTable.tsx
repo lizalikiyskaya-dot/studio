@@ -15,10 +15,9 @@ import {
 import { nextTaskStatus } from "./status";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { shortenUrl } from "@/lib/shortenUrl";
-import { Button } from "@/components/ui/Button";
 import { Kpi } from "@/components/ui/Card";
 
-const GRID_COLUMNS = "1fr 100px 110px 110px 130px";
+const GRID_COLUMNS = "1fr 110px 110px 110px 130px";
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
   IN_PROGRESS: "в процессе",
@@ -29,7 +28,7 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
 
 const STATUS_STYLE: Record<TaskStatus, React.CSSProperties> = {
   IN_PROGRESS: { background: "var(--bg-surface-2)", color: "var(--faded)", border: "1px dashed var(--rule)" },
-  SUBMITTED: { background: "var(--sage-soft)", color: "var(--sage)", border: "none" },
+  SUBMITTED: { background: "#E2E9EE", color: "#3F6080", border: "none" },
   NEEDS_REVISION: { background: "var(--accent-soft)", color: "var(--wine)", border: "none" },
   ACCEPTED: { background: "var(--ink)", color: "#fff", border: "none" },
 };
@@ -64,16 +63,16 @@ function LinkCell({
     );
   }
   return (
-    <Button
+    <button
       onClick={() => {
         const url = window.prompt("Ссылка");
         if (url) onSave(url);
       }}
-      variant="success-outline"
-      size="sm"
+      className="text-[12px]"
+      style={{ color: "var(--wine)" }}
     >
       + ссылка
-    </Button>
+    </button>
   );
 }
 
@@ -226,9 +225,13 @@ export default function TasksTable({
         ))}
       </div>
 
-      <Button onClick={handleAdd} variant="secondary" size="sm">
+      <button
+        onClick={handleAdd}
+        className="mt-3.5 inline-flex items-center gap-1.5 text-[13px] px-4 py-2.5 rounded-full transition-colors"
+        style={{ border: "1px dashed var(--wine)", color: "var(--wine)", background: "transparent" }}
+      >
         + задание
-      </Button>
+      </button>
     </div>
   );
 }

@@ -43,6 +43,7 @@ export default async function StoryCircleView({
 
   return (
     <Subtabs
+      variant="toggle"
       tabs={[
         {
           label: "Примеры",
