@@ -2,18 +2,18 @@
 
 import { useRef, useState, useTransition } from "react";
 import { Lock, Unlock, Check, X } from "lucide-react";
-import type { Book, WorldEntry, WorldCategory } from "@/generated/prisma/client";
+import type { Cycle, CycleWorldEntry, WorldCategory } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import {
-  toggleFantasyLock,
-  updateFantasyText,
-  createWorldEntry,
-  deleteWorldEntry,
-  updateWorldEntryTitle,
-  updateWorldEntryBody,
+  toggleCycleFantasyLock,
+  updateCycleFantasyText,
+  createCycleWorldEntry,
+  deleteCycleWorldEntry,
+  updateCycleWorldEntryTitle,
+  updateCycleWorldEntryBody,
 } from "./actions";
 import {
   MapIcon,
@@ -26,7 +26,7 @@ import {
   LanguageIcon,
   QuillIcon,
   GeneralIcon,
-} from "./FantasyIcons";
+} from "@/features/setting/FantasyIcons";
 
 function CategoryTitle({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
@@ -50,18 +50,18 @@ const CATEGORY_LABELS: Record<WorldCategory, React.ReactNode> = {
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as WorldCategory[];
 
-export default function FantasySection({
-  bookId,
-  book,
+export default function CycleFantasySection({
+  cycleId,
+  cycle,
   initialEntries,
   isMentor,
 }: {
-  bookId: string;
-  book: Book;
-  initialEntries: WorldEntry[];
+  cycleId: string;
+  cycle: Cycle;
+  initialEntries: CycleWorldEntry[];
   isMentor: boolean;
 }) {
-  const [unlocked, setUnlocked] = useState(book.fantasyUnlocked);
+  const [unlocked, setUnlocked] = useState(cycle.fantasyUnlocked);
   const [entries, setEntries] = useState(initialEntries);
   const [openEntryId, setOpenEntryId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -72,13 +72,13 @@ export default function FantasySection({
   function handleToggleLock() {
     setUnlocked((v) => !v);
     startTransition(() => {
-      void toggleFantasyLock(bookId);
+      void toggleCycleFantasyLock(cycleId);
     });
   }
 
   function handleAddEntry(category: WorldCategory) {
     startTransition(async () => {
-      const entry = await createWorldEntry(bookId, category);
+      const entry = await createCycleWorldEntry(cycleId, category);
       setEntries((prev) => [...prev, entry]);
       setOpenEntryId(entry.id);
     });
@@ -87,10 +87,10 @@ export default function FantasySection({
   function handleDeleteEntry(id: string) {
     setEntries((prev) => prev.filter((e) => e.id !== id));
     if (openEntryId === id) setOpenEntryId(null);
-    startTransition(() => deleteWorldEntry(id));
+    startTransition(() => deleteCycleWorldEntry(id));
   }
 
-  function patchEntry(id: string, patch: Partial<WorldEntry>) {
+  function patchEntry(id: string, patch: Partial<CycleWorldEntry>) {
     setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
   }
 
@@ -99,8 +99,8 @@ export default function FantasySection({
     const body = bodyRef.current?.value ?? "";
     patchEntry(id, { title, body });
     startTransition(() => {
-      void updateWorldEntryTitle(id, title);
-      void updateWorldEntryBody(id, body);
+      void updateCycleWorldEntryTitle(id, title);
+      void updateCycleWorldEntryBody(id, body);
     });
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 1800);
@@ -147,11 +147,11 @@ export default function FantasySection({
 
       <Accordion title={<CategoryTitle icon={<QuillIcon />} label="Все заметки" />} defaultOpen>
         <AutoGrowTextarea
-          defaultValue={book.fantasyNotes}
+          defaultValue={cycle.fantasyNotes}
           placeholder="общий черновик по миру..."
           className="w-full text-[13.5px] leading-relaxed rounded-md p-2.5"
           style={{ border: "1px solid var(--rule)" }}
-          onBlur={(value) => startTransition(() => updateFantasyText(bookId, "fantasyNotes", value))}
+          onBlur={(value) => startTransition(() => updateCycleFantasyText(cycleId, "fantasyNotes", value))}
         />
       </Accordion>
 
@@ -193,11 +193,11 @@ export default function FantasySection({
 
       <Accordion title={<CategoryTitle icon={<GeneralIcon />} label="Общее" />}>
         <AutoGrowTextarea
-          defaultValue={book.fantasyGeneral}
+          defaultValue={cycle.fantasyGeneral}
           placeholder="всё остальное..."
           className="w-full text-[13.5px] leading-relaxed rounded-md p-2.5"
           style={{ border: "1px solid var(--rule)" }}
-          onBlur={(value) => startTransition(() => updateFantasyText(bookId, "fantasyGeneral", value))}
+          onBlur={(value) => startTransition(() => updateCycleFantasyText(cycleId, "fantasyGeneral", value))}
         />
       </Accordion>
 
@@ -222,11 +222,11 @@ export default function FantasySection({
               value={openEntry.photoUrl}
               onUpload={(file) => {
                 patchEntry(openEntry.id, { photoUrl: URL.createObjectURL(file) });
-                startTransition(() => { void uploadFile("world-entry-photo", openEntry.id, "photoUrl", file); });
+                startTransition(() => { void uploadFile("cycle-world-entry-photo", openEntry.id, "photoUrl", file); });
               }}
               onDelete={() => {
                 patchEntry(openEntry.id, { photoUrl: null });
-                startTransition(() => { void deletePhoto("world-entry-photo", openEntry.id, "photoUrl"); });
+                startTransition(() => { void deletePhoto("cycle-world-entry-photo", openEntry.id, "photoUrl"); });
               }}
               placeholder="нажмите, чтобы добавить изображение"
               className="w-full h-[200px] rounded-md mb-5 mt-3.5"

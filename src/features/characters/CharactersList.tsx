@@ -7,7 +7,7 @@ import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import DragHandle from "@/components/DragHandle";
 import { createCharacter, deleteCharacter, reorderCharacters } from "./actions";
-import { uploadFile } from "@/lib/uploadFile";
+import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import { useDragReorder } from "@/lib/useDragReorder";
 import type { FieldGroup } from "./fields";
 import { Button } from "@/components/ui/Button";
@@ -49,6 +49,11 @@ export default function CharactersList({
     startTransition(() => { void uploadFile("character-photo", id, "photoUrl", file); });
   }
 
+  function handlePhotoDelete(id: string) {
+    setCharacters((prev) => prev.map((c) => (c.id === id ? { ...c, photoUrl: null } : c)));
+    startTransition(() => { void deletePhoto("character-photo", id, "photoUrl"); });
+  }
+
   function handleNameSaved(id: string, name: string) {
     setCharacters((prev) => prev.map((c) => (c.id === id ? { ...c, name } : c)));
   }
@@ -78,6 +83,7 @@ export default function CharactersList({
                   onNameBlur={(name) => handleNameSaved(character.id, name)}
                   onFieldBlur={(field, value) => handleFieldSaved(character.id, field, value)}
                   onPhotoUpload={(file) => handlePhotoUpload(character.id, file)}
+                  onPhotoDelete={() => handlePhotoDelete(character.id)}
                   onDelete={() => handleDelete(character.id)}
                   suggestable={{ model: "Character", recordId: character.id }}
                   nameSuggestion={charSuggestions.name}

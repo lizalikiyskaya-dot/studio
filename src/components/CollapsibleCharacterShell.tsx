@@ -25,7 +25,7 @@ export default function CollapsibleCharacterShell({
     >
       <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3 cursor-pointer">
         <div
-          className="rounded-sm flex-shrink-0"
+          className="rounded-full flex-shrink-0"
           style={{
             width: 32,
             height: 32,

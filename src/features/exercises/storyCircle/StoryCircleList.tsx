@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import type { StoryCircleCard, Comment } from "@/generated/prisma/client";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
 import CardSaveButton from "@/components/CardSaveButton";
+import ImageUploadBox from "@/components/ImageUploadBox";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import StoryCircleDiagram from "./StoryCircleDiagram";
@@ -11,6 +12,7 @@ import { STORY_CIRCLE_STEPS } from "./steps";
 import { createStoryCircleCard, deleteStoryCircleCard, reorderStoryCircleCards } from "./actions";
 import DragHandle from "@/components/DragHandle";
 import { useDragReorder, type DropTargetHandlers, type DragHandleHandlers } from "@/lib/useDragReorder";
+import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import { Button } from "@/components/ui/Button";
 
 function CardBody({
@@ -18,36 +20,57 @@ function CardBody({
   readOnly,
   suggestions,
   onHeroSaved,
+  photoUrl,
+  onPhotoChange,
 }: {
   card: StoryCircleCard;
   readOnly: boolean;
   suggestions: Record<string, string>;
   onHeroSaved: (value: string) => void;
+  photoUrl: string | null;
+  onPhotoChange: (url: string | null) => void;
 }) {
   const data = (card.data as Record<string, string>) ?? {};
   const [hoverStep, setHoverStep] = useState<number | undefined>(undefined);
 
   return (
     <div>
-      <div className="mb-4">
-        <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
-          Герой / история
-        </label>
-        {readOnly ? (
-          <p className="heading text-[15px] font-semibold pb-1">{card.hero}</p>
-        ) : (
-          <SuggestableField
-            model="StoryCircleCard"
-            recordId={card.id}
-            field="hero"
-            value={card.hero}
-            suggestion={suggestions.hero}
-            as="input"
-            onSaved={onHeroSaved}
-            className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1"
-            style={{ borderColor: "var(--rule)" }}
-          />
-        )}
+      <div className="flex gap-4 items-start mb-4">
+        <ImageUploadBox
+          value={photoUrl}
+          shape="circle"
+          placeholder="фото"
+          className="rounded-full flex-shrink-0"
+          style={{ width: 64, height: 64 }}
+          onUpload={(file) => {
+            onPhotoChange(URL.createObjectURL(file));
+            void uploadFile("storycircle-photo", card.id, "photoUrl", file);
+          }}
+          onDelete={() => {
+            onPhotoChange(null);
+            void deletePhoto("storycircle-photo", card.id, "photoUrl");
+          }}
+        />
+        <div className="flex-1">
+          <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
+            Герой / история
+          </label>
+          {readOnly ? (
+            <p className="heading text-[15px] font-semibold pb-1">{card.hero}</p>
+          ) : (
+            <SuggestableField
+              model="StoryCircleCard"
+              recordId={card.id}
+              field="hero"
+              value={card.hero}
+              suggestion={suggestions.hero}
+              as="input"
+              onSaved={onHeroSaved}
+              className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1"
+              style={{ borderColor: "var(--rule)" }}
+            />
+          )}
+        </div>
       </div>
       <div className="mb-5">
         <StoryCircleDiagram activeStep={hoverStep} />
@@ -106,12 +129,20 @@ function CardShell({
   dragHandle?: DragHandleHandlers;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const [photoUrl, setPhotoUrl] = useState(card.photoUrl);
   return (
     <div {...dropTarget} className="flex items-start gap-1.5">
       {dragHandle && <DragHandle handlers={dragHandle} />}
       <div ref={rootRef} className="flex-1 min-w-0">
-        <CollapsibleCharacterShell name={card.hero} photoUrl={null}>
-          <CardBody card={card} readOnly={readOnly} suggestions={suggestions} onHeroSaved={onHeroSaved} />
+        <CollapsibleCharacterShell name={card.hero} photoUrl={photoUrl}>
+          <CardBody
+            card={card}
+            readOnly={readOnly}
+            suggestions={suggestions}
+            onHeroSaved={onHeroSaved}
+            photoUrl={photoUrl}
+            onPhotoChange={setPhotoUrl}
+          />
           {!readOnly && (
             <div className="flex gap-1.5 mt-4">
               <CardSaveButton scopeRef={rootRef} />

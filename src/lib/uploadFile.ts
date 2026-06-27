@@ -10,7 +10,11 @@ export async function uploadFile(
     | "cycle-character-photo"
     | "story-character-photo"
     | "cycle-world-entry-photo"
-    | "story-world-entry-photo",
+    | "story-world-entry-photo"
+    | "belief-photo"
+    | "storycircle-photo"
+    | "setting-photo"
+    | "cycle-setting-photo",
   id: string,
   field: string,
   file: File
@@ -25,4 +29,33 @@ export async function uploadFile(
   const data = await res.json();
   if (!res.ok) throw new Error(data.error ?? "Ошибка загрузки файла");
   return data;
+}
+
+export async function deletePhoto(
+  target:
+    | "book-cover"
+    | "character-photo"
+    | "popArc-photo"
+    | "world-entry-photo"
+    | "cycle-cover"
+    | "cycle-character-photo"
+    | "story-character-photo"
+    | "cycle-world-entry-photo"
+    | "story-world-entry-photo"
+    | "belief-photo"
+    | "storycircle-photo"
+    | "setting-photo"
+    | "cycle-setting-photo",
+  id: string,
+  field: string
+): Promise<void> {
+  const res = await fetch("/api/file-upload", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ target, id, field }),
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error ?? "Ошибка удаления фото");
+  }
 }

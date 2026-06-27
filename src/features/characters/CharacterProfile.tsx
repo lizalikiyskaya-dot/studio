@@ -72,6 +72,7 @@ export default function CharacterProfile({
   onNameBlur,
   onFieldBlur,
   onPhotoUpload,
+  onPhotoDelete,
   onDelete,
   readOnly,
   suggestable,
@@ -85,6 +86,7 @@ export default function CharacterProfile({
   onNameBlur: (value: string) => void;
   onFieldBlur: (field: string, value: string) => void;
   onPhotoUpload: (file: File) => void;
+  onPhotoDelete?: () => void;
   onDelete: () => void;
   readOnly?: boolean;
   suggestable?: Suggestable;
@@ -103,7 +105,7 @@ export default function CharacterProfile({
       <div className="flex gap-5 items-center mb-6">
         {readOnly ? (
           <div
-            className="rounded-sm flex-shrink-0"
+            className="rounded-full flex-shrink-0"
             style={{
               width: 90,
               height: 90,
@@ -116,9 +118,11 @@ export default function CharacterProfile({
         ) : (
           <ImageUploadBox
             value={photoUrl}
+            shape="circle"
             onUpload={onPhotoUpload}
+            onDelete={onPhotoDelete}
             placeholder="фото"
-            className="rounded-sm flex-shrink-0"
+            className="rounded-full flex-shrink-0"
             style={{ width: 90, height: 90, minWidth: 90 }}
           />
         )}

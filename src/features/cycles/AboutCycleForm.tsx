@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import type { Cycle } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
-import { uploadFile } from "@/lib/uploadFile";
+import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import { updateCycleField, type CycleField } from "./actions";
 
 function Field({ label, value, field, cycleId }: { label: string; value: string; field: CycleField; cycleId: string }) {
@@ -61,6 +61,7 @@ export default function AboutCycleForm({ cycle }: { cycle: Cycle }) {
       <ImageUploadBox
         value={cycle.coverUrl}
         onUpload={(file) => startTransition(() => { void uploadFile("cycle-cover", cycle.id, "coverUrl", file); })}
+        onDelete={() => startTransition(() => { void deletePhoto("cycle-cover", cycle.id, "coverUrl"); })}
         placeholder="нажмите, чтобы добавить обложку"
         className="rounded-sm mb-6"
         style={{ width: 140, height: 200 }}

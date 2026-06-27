@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { X, Check } from "lucide-react";
 import type { WorldCategory } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
-import { uploadFile } from "@/lib/uploadFile";
+import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 
 export type WorldEntryLike = {
   id: string;
@@ -140,6 +140,10 @@ export default function WorldEntryGrid({
               onUpload={(file) => {
                 patchEntry(openEntry.id, { photoUrl: URL.createObjectURL(file) });
                 startTransition(() => { void uploadFile(uploadTarget, openEntry.id, "photoUrl", file); });
+              }}
+              onDelete={() => {
+                patchEntry(openEntry.id, { photoUrl: null });
+                startTransition(() => { void deletePhoto(uploadTarget, openEntry.id, "photoUrl"); });
               }}
               placeholder="нажмите, чтобы добавить изображение"
               className="w-full h-[200px] rounded-md mb-5 mt-3.5"

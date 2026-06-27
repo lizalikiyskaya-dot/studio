@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 import type { ArcType } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
-import { uploadFile } from "@/lib/uploadFile";
+import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import { ARC_GROUPS, type CharacterFieldKey } from "@/features/characters/fields";
 import { Button } from "@/components/ui/Button";
 
@@ -103,12 +103,17 @@ export default function CharacterCard({
         <div className="flex gap-5 items-center my-4">
           <ImageUploadBox
             value={photoUrl}
+            shape="circle"
             onUpload={(file) => {
               setPhotoUrl(URL.createObjectURL(file));
               startTransition(() => { void uploadFile(uploadTarget, character.id, "photoUrl", file); });
             }}
+            onDelete={() => {
+              setPhotoUrl(null);
+              startTransition(() => { void deletePhoto(uploadTarget, character.id, "photoUrl"); });
+            }}
             placeholder="фото"
-            className="rounded-sm flex-shrink-0"
+            className="rounded-full flex-shrink-0"
             style={{ width: 90, height: 90, minWidth: 90 }}
           />
           <div className="flex-1 min-w-0">

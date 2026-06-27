@@ -197,6 +197,7 @@ model BeliefCard {
   hero         String  @default("")
   startBelief  String  @default("")
   endBelief    String  @default("")
+  photoUrl     String?
   isExample    Boolean @default(false)
 }
 
@@ -207,6 +208,7 @@ model StoryCircleCard {
   order     Int     @default(0)
   hero      String  @default("")
   data      Json    @default("{}")
+  photoUrl  String?
   isExample Boolean @default(false)
 }
 
@@ -379,6 +381,19 @@ model Cycle {
   concept    String  @default("")
   annotation String  @default("")
   coverUrl   String?
+
+  grapesGeography    String @default("")
+  grapesReligion     String @default("")
+  grapesAchievements String @default("")
+  grapesPolitics     String @default("")
+  grapesEconomy      String @default("")
+  grapesSocial       String @default("")
+  settingPhotoUrl    String?
+  settingChips       String[] @default([])
+
+  fantasyUnlocked Boolean @default(false)
+  fantasyNotes    String  @default("")
+  fantasyGeneral  String  @default("")
 
   stories      Story[]
   characters   CycleCharacter[]

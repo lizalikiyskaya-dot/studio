@@ -8,7 +8,7 @@ import CardSaveButton from "@/components/CardSaveButton";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { ARC_GROUPS } from "@/features/characters/fields";
-import { uploadFile } from "@/lib/uploadFile";
+import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import { updatePopArcType } from "./actions";
 import { Button } from "@/components/ui/Button";
 
@@ -214,7 +214,7 @@ export default function PopArcCard({
           <div className="flex gap-5 items-center my-4">
             {readOnly ? (
               <div
-                className="rounded-sm flex-shrink-0"
+                className="rounded-full flex-shrink-0"
                 style={{
                   width: 90,
                   height: 90,
@@ -227,12 +227,17 @@ export default function PopArcCard({
             ) : (
               <ImageUploadBox
                 value={photoUrl}
+                shape="circle"
                 onUpload={(file) => {
                   setPhotoUrl(URL.createObjectURL(file));
                   startTransition(() => { void uploadFile("popArc-photo", character.id, "photoUrl", file); });
                 }}
+                onDelete={() => {
+                  setPhotoUrl(null);
+                  startTransition(() => { void deletePhoto("popArc-photo", character.id, "photoUrl"); });
+                }}
                 placeholder="фото"
-                className="rounded-sm flex-shrink-0"
+                className="rounded-full flex-shrink-0"
                 style={{ width: 90, height: 90, minWidth: 90 }}
               />
             )}

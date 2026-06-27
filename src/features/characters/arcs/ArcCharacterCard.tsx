@@ -8,7 +8,7 @@ import CardSaveButton from "@/components/CardSaveButton";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { ARC_GROUPS } from "../fields";
-import { uploadFile } from "@/lib/uploadFile";
+import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import {
   updateCharacterArcType,
   deleteCharacter,
@@ -177,12 +177,17 @@ export default function ArcCharacterCard({
           <div className="flex gap-5 items-center my-4">
             <ImageUploadBox
               value={photoUrl}
+              shape="circle"
               onUpload={(file) => {
                 setPhotoUrl(URL.createObjectURL(file));
                 startTransition(() => { void uploadFile("character-photo", character.id, "photoUrl", file); });
               }}
+              onDelete={() => {
+                setPhotoUrl(null);
+                startTransition(() => { void deletePhoto("character-photo", character.id, "photoUrl"); });
+              }}
               placeholder="фото"
-              className="rounded-sm flex-shrink-0"
+              className="rounded-full flex-shrink-0"
               style={{ width: 90, height: 90, minWidth: 90 }}
             />
             <div className="flex-1 min-w-0">

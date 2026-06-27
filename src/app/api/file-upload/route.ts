@@ -13,6 +13,14 @@ async function requireAccessForPopArcCharacter(id: string) {
   }
 }
 
+async function requireAccessForExampleCard(studentId: string, isExample: boolean) {
+  if (isExample) {
+    await requireMentor(studentId);
+  } else {
+    await requireCabinetAccess(studentId);
+  }
+}
+
 export async function POST(req: Request) {
   const formData = await req.formData();
   const target = formData.get("target");
@@ -37,7 +45,11 @@ export async function POST(req: Request) {
     target === "cycle-character-photo" ||
     target === "story-character-photo" ||
     target === "cycle-world-entry-photo" ||
-    target === "story-world-entry-photo";
+    target === "story-world-entry-photo" ||
+    target === "belief-photo" ||
+    target === "storycircle-photo" ||
+    target === "setting-photo" ||
+    target === "cycle-setting-photo";
   const sizeLimit = isImage ? MAX_IMAGE_SIZE : MAX_SIZE;
   if (file.size > sizeLimit) {
     const mb = sizeLimit / (1024 * 1024);
@@ -104,9 +116,116 @@ export async function POST(req: Request) {
     const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
     await requireCabinetAccess(cycle.studentId);
     await prisma.storyWorldEntry.update({ where: { id }, data: { photoUrl: dataUrl } });
+  } else if (target === "belief-photo") {
+    const card = await prisma.beliefCard.findUniqueOrThrow({ where: { id } });
+    await requireAccessForExampleCard(card.studentId, card.isExample);
+    await prisma.beliefCard.update({ where: { id }, data: { photoUrl: dataUrl } });
+  } else if (target === "storycircle-photo") {
+    const card = await prisma.storyCircleCard.findUniqueOrThrow({ where: { id } });
+    await requireAccessForExampleCard(card.studentId, card.isExample);
+    await prisma.storyCircleCard.update({ where: { id }, data: { photoUrl: dataUrl } });
+  } else if (target === "setting-photo") {
+    const book = await prisma.book.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(book.studentId);
+    await prisma.book.update({ where: { id }, data: { settingPhotoUrl: dataUrl } });
+  } else if (target === "cycle-setting-photo") {
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycle.update({ where: { id }, data: { settingPhotoUrl: dataUrl } });
   } else {
     return Response.json({ error: "Unknown target" }, { status: 400 });
   }
 
   return Response.json({ ok: true, fileName: file.name, dataUrl });
+}
+
+const PHOTO_FIELD_TARGETS = [
+  "book-cover",
+  "character-photo",
+  "popArc-photo",
+  "world-entry-photo",
+  "cycle-cover",
+  "cycle-character-photo",
+  "story-character-photo",
+  "cycle-world-entry-photo",
+  "story-world-entry-photo",
+  "belief-photo",
+  "storycircle-photo",
+  "setting-photo",
+  "cycle-setting-photo",
+] as const;
+
+export async function DELETE(req: Request) {
+  const body = await req.json();
+  const { target, id, field } = body as { target?: string; id?: string; field?: string };
+
+  if (typeof target !== "string" || typeof id !== "string" || typeof field !== "string") {
+    return Response.json({ error: "Bad request" }, { status: 400 });
+  }
+  if (!PHOTO_FIELD_TARGETS.includes(target as (typeof PHOTO_FIELD_TARGETS)[number])) {
+    return Response.json({ error: "Unknown target" }, { status: 400 });
+  }
+
+  if (target === "book-cover") {
+    const book = await prisma.book.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(book.studentId);
+    await prisma.book.update({ where: { id }, data: { coverUrl: null } });
+  } else if (target === "character-photo") {
+    const character = await prisma.character.findUniqueOrThrow({ where: { id } });
+    const book = await prisma.book.findUniqueOrThrow({ where: { id: character.bookId } });
+    await requireCabinetAccess(book.studentId);
+    await prisma.character.update({ where: { id }, data: { photoUrl: null } });
+  } else if (target === "popArc-photo") {
+    await requireAccessForPopArcCharacter(id);
+    await prisma.popArcCharacter.update({ where: { id }, data: { photoUrl: null } });
+  } else if (target === "world-entry-photo") {
+    const entry = await prisma.worldEntry.findUniqueOrThrow({ where: { id } });
+    const book = await prisma.book.findUniqueOrThrow({ where: { id: entry.bookId } });
+    await requireCabinetAccess(book.studentId);
+    await prisma.worldEntry.update({ where: { id }, data: { photoUrl: null } });
+  } else if (target === "cycle-cover") {
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycle.update({ where: { id }, data: { coverUrl: null } });
+  } else if (target === "cycle-character-photo") {
+    const character = await prisma.cycleCharacter.findUniqueOrThrow({ where: { id } });
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: character.cycleId } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycleCharacter.update({ where: { id }, data: { photoUrl: null } });
+  } else if (target === "story-character-photo") {
+    const character = await prisma.storyCharacter.findUniqueOrThrow({ where: { id } });
+    const story = await prisma.story.findUniqueOrThrow({ where: { id: character.storyId } });
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.storyCharacter.update({ where: { id }, data: { photoUrl: null } });
+  } else if (target === "cycle-world-entry-photo") {
+    const entry = await prisma.cycleWorldEntry.findUniqueOrThrow({ where: { id } });
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: entry.cycleId } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycleWorldEntry.update({ where: { id }, data: { photoUrl: null } });
+  } else if (target === "story-world-entry-photo") {
+    const entry = await prisma.storyWorldEntry.findUniqueOrThrow({ where: { id } });
+    const story = await prisma.story.findUniqueOrThrow({ where: { id: entry.storyId } });
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.storyWorldEntry.update({ where: { id }, data: { photoUrl: null } });
+  } else if (target === "belief-photo") {
+    const card = await prisma.beliefCard.findUniqueOrThrow({ where: { id } });
+    await requireAccessForExampleCard(card.studentId, card.isExample);
+    await prisma.beliefCard.update({ where: { id }, data: { photoUrl: null } });
+  } else if (target === "storycircle-photo") {
+    const card = await prisma.storyCircleCard.findUniqueOrThrow({ where: { id } });
+    await requireAccessForExampleCard(card.studentId, card.isExample);
+    await prisma.storyCircleCard.update({ where: { id }, data: { photoUrl: null } });
+  } else if (target === "setting-photo") {
+    const book = await prisma.book.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(book.studentId);
+    await prisma.book.update({ where: { id }, data: { settingPhotoUrl: null } });
+  } else if (target === "cycle-setting-photo") {
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycle.update({ where: { id }, data: { settingPhotoUrl: null } });
+  }
+
+  return Response.json({ ok: true });
 }

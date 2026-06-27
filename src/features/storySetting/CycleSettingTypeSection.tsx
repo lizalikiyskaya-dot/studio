@@ -1,25 +1,23 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Book } from "@/generated/prisma/client";
+import type { Cycle } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
-import { toggleSettingChip } from "./actions";
+import { toggleCycleSettingChip } from "./actions";
 
 const CHIPS = ["Магнит", "Манифест", "Фильтр"];
 
-export default function SettingTypeSection({ bookId, book }: { bookId: string; book: Book }) {
-  const [photoUrl, setPhotoUrl] = useState(book.settingPhotoUrl);
-  const [chips, setChips] = useState<string[]>(book.settingChips);
+export default function CycleSettingTypeSection({ cycleId, cycle }: { cycleId: string; cycle: Cycle }) {
+  const [photoUrl, setPhotoUrl] = useState(cycle.settingPhotoUrl);
+  const [chips, setChips] = useState<string[]>(cycle.settingChips);
   const [, startTransition] = useTransition();
 
   function handleChipClick(chip: string) {
-    const optimistic = chips.includes(chip)
-      ? chips.filter((c) => c !== chip)
-      : [...chips, chip];
+    const optimistic = chips.includes(chip) ? chips.filter((c) => c !== chip) : [...chips, chip];
     setChips(optimistic);
     startTransition(() => {
-      toggleSettingChip(bookId, chip);
+      toggleCycleSettingChip(cycleId, chip);
     });
   }
 
@@ -29,11 +27,11 @@ export default function SettingTypeSection({ bookId, book }: { bookId: string; b
         value={photoUrl}
         onUpload={(file) => {
           setPhotoUrl(URL.createObjectURL(file));
-          startTransition(() => { void uploadFile("setting-photo", bookId, "settingPhotoUrl", file); });
+          startTransition(() => { void uploadFile("cycle-setting-photo", cycleId, "settingPhotoUrl", file); });
         }}
         onDelete={() => {
           setPhotoUrl(null);
-          startTransition(() => { void deletePhoto("setting-photo", bookId, "settingPhotoUrl"); });
+          startTransition(() => { void deletePhoto("cycle-setting-photo", cycleId, "settingPhotoUrl"); });
         }}
         placeholder="нажмите, чтобы добавить фото настроения"
         className="w-full max-w-[420px] h-[170px] rounded-md mb-5"

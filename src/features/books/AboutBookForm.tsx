@@ -5,7 +5,7 @@ import type { Book, Comment } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
-import { uploadFile } from "@/lib/uploadFile";
+import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import { updateSynopsisMode } from "./actions";
 
 function Field({
@@ -97,6 +97,7 @@ export default function AboutBookForm({
       <ImageUploadBox
         value={book.coverUrl}
         onUpload={(file) => startTransition(() => { void uploadFile("book-cover", book.id, "coverUrl", file); })}
+        onDelete={() => startTransition(() => { void deletePhoto("book-cover", book.id, "coverUrl"); })}
         placeholder="нажмите, чтобы добавить обложку"
         className="rounded-sm mb-6"
         style={{ width: 140, height: 200 }}

@@ -22,12 +22,6 @@ export async function updateGrapesField(bookId: string, field: GrapesField, valu
   await prisma.book.update({ where: { id: bookId }, data: { [field]: value } });
 }
 
-export async function updateSettingPhoto(bookId: string, photoUrl: string) {
-  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
-  await requireCabinetAccess(book.studentId);
-  await prisma.book.update({ where: { id: bookId }, data: { settingPhotoUrl: photoUrl } });
-}
-
 const SETTING_TYPE_CHIPS = ["Магнит", "Манифест", "Фильтр"] as const;
 
 export async function toggleSettingChip(bookId: string, chip: string) {

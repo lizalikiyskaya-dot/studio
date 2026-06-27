@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 export type SuggestableModel =
   | "Book"
+  | "Cycle"
   | "PlanChapter"
   | "Character"
   | "PopArcCharacter"
@@ -35,6 +36,17 @@ export const SUGGESTION_REGISTRY: Record<SuggestableModel, RegistryEntry> = {
     },
     apply: async (id, field, value) => {
       await prisma.book.update({ where: { id }, data: { [field]: value } });
+    },
+  },
+  Cycle: {
+    getStudentId: async (id) => (await prisma.cycle.findUniqueOrThrow({ where: { id } })).studentId,
+    getCurrentValue: async (id, field) => {
+      const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
+      const value = (cycle as unknown as Record<string, unknown>)[field];
+      return typeof value === "string" ? value : "";
+    },
+    apply: async (id, field, value) => {
+      await prisma.cycle.update({ where: { id }, data: { [field]: value } });
     },
   },
   PlanChapter: {

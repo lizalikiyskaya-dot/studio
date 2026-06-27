@@ -65,7 +65,7 @@ export default async function CyclesView({
           },
           {
             label: "Сеттинг цикла",
-            content: <CycleSettingView cycleId={activeCycle.id} entries={cycleWorldEntries} />,
+            content: <CycleSettingView cycle={activeCycle} />,
           },
         ]}
       />
