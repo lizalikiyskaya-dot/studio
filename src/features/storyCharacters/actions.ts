@@ -64,8 +64,7 @@ export async function reorderCycleCharacters(cycleId: string, orderedIds: string
 
 export async function createStoryCharacter(storyId: string) {
   const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
-  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-  await requireCabinetAccess(cycle.studentId);
+  await requireCabinetAccess(story.studentId);
   const count = await prisma.storyCharacter.count({ where: { storyId } });
   return prisma.storyCharacter.create({
     data: { storyId, order: count, name: "Новый персонаж" },
@@ -75,24 +74,21 @@ export async function createStoryCharacter(storyId: string) {
 export async function deleteStoryCharacter(characterId: string) {
   const character = await prisma.storyCharacter.findUniqueOrThrow({ where: { id: characterId } });
   const story = await prisma.story.findUniqueOrThrow({ where: { id: character.storyId } });
-  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-  await requireCabinetAccess(cycle.studentId);
+  await requireCabinetAccess(story.studentId);
   await prisma.storyCharacter.delete({ where: { id: characterId } });
 }
 
 export async function updateStoryCharacterName(characterId: string, name: string) {
   const character = await prisma.storyCharacter.findUniqueOrThrow({ where: { id: characterId } });
   const story = await prisma.story.findUniqueOrThrow({ where: { id: character.storyId } });
-  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-  await requireCabinetAccess(cycle.studentId);
+  await requireCabinetAccess(story.studentId);
   await prisma.storyCharacter.update({ where: { id: characterId }, data: { name } });
 }
 
 export async function updateStoryCharacterArcType(characterId: string, arcType: ArcType) {
   const character = await prisma.storyCharacter.findUniqueOrThrow({ where: { id: characterId } });
   const story = await prisma.story.findUniqueOrThrow({ where: { id: character.storyId } });
-  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-  await requireCabinetAccess(cycle.studentId);
+  await requireCabinetAccess(story.studentId);
   await prisma.storyCharacter.update({ where: { id: characterId }, data: { arcType } });
 }
 
@@ -104,8 +100,7 @@ export async function updateStoryCharacterField(
   if (!ALL_CHARACTER_FIELD_KEYS.includes(field)) throw new Error("Недопустимое поле");
   const character = await prisma.storyCharacter.findUniqueOrThrow({ where: { id: characterId } });
   const story = await prisma.story.findUniqueOrThrow({ where: { id: character.storyId } });
-  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-  await requireCabinetAccess(cycle.studentId);
+  await requireCabinetAccess(story.studentId);
 
   const data = (character.data as Record<string, string>) ?? {};
   data[field] = value;
@@ -114,8 +109,7 @@ export async function updateStoryCharacterField(
 
 export async function reorderStoryCharacters(storyId: string, orderedIds: string[]) {
   const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
-  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-  await requireCabinetAccess(cycle.studentId);
+  await requireCabinetAccess(story.studentId);
   await prisma.$transaction(
     orderedIds.map((id, index) => prisma.storyCharacter.update({ where: { id }, data: { order: index } }))
   );

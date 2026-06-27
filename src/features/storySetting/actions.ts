@@ -93,8 +93,7 @@ export async function updateCycleWorldEntryBody(entryId: string, body: string) {
 
 export async function createStoryWorldEntry(storyId: string, category: WorldCategory) {
   const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
-  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-  await requireCabinetAccess(cycle.studentId);
+  await requireCabinetAccess(story.studentId);
   const count = await prisma.storyWorldEntry.count({ where: { storyId, category } });
   return prisma.storyWorldEntry.create({
     data: { storyId, category, order: count },
@@ -104,23 +103,20 @@ export async function createStoryWorldEntry(storyId: string, category: WorldCate
 export async function deleteStoryWorldEntry(entryId: string) {
   const entry = await prisma.storyWorldEntry.findUniqueOrThrow({ where: { id: entryId } });
   const story = await prisma.story.findUniqueOrThrow({ where: { id: entry.storyId } });
-  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-  await requireCabinetAccess(cycle.studentId);
+  await requireCabinetAccess(story.studentId);
   await prisma.storyWorldEntry.delete({ where: { id: entryId } });
 }
 
 export async function updateStoryWorldEntryTitle(entryId: string, title: string) {
   const entry = await prisma.storyWorldEntry.findUniqueOrThrow({ where: { id: entryId } });
   const story = await prisma.story.findUniqueOrThrow({ where: { id: entry.storyId } });
-  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-  await requireCabinetAccess(cycle.studentId);
+  await requireCabinetAccess(story.studentId);
   await prisma.storyWorldEntry.update({ where: { id: entryId }, data: { title } });
 }
 
 export async function updateStoryWorldEntryBody(entryId: string, body: string) {
   const entry = await prisma.storyWorldEntry.findUniqueOrThrow({ where: { id: entryId } });
   const story = await prisma.story.findUniqueOrThrow({ where: { id: entry.storyId } });
-  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-  await requireCabinetAccess(cycle.studentId);
+  await requireCabinetAccess(story.studentId);
   await prisma.storyWorldEntry.update({ where: { id: entryId }, data: { body } });
 }

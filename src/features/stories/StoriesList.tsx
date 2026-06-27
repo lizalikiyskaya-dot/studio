@@ -3,19 +3,21 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Story, CycleCharacter, CycleWorldEntry, StoryCharacter, StoryWorldEntry } from "@/generated/prisma/client";
-import { createStory, deleteStory } from "./actions";
+import { createStory, createStandaloneStory, deleteStory } from "./actions";
 import StoryDetail from "./StoryDetail";
 import { Button } from "@/components/ui/Button";
 
 export default function StoriesList({
   cycleId,
+  studentId,
   stories,
   cycleCharacters,
   cycleWorldEntries,
   storyCharacters,
   storyWorldEntries,
 }: {
-  cycleId: string;
+  cycleId: string | null;
+  studentId: string;
   stories: Story[];
   cycleCharacters: CycleCharacter[];
   cycleWorldEntries: CycleWorldEntry[];
@@ -28,7 +30,7 @@ export default function StoriesList({
 
   function handleAdd() {
     startTransition(async () => {
-      const story = await createStory(cycleId);
+      const story = cycleId ? await createStory(cycleId) : await createStandaloneStory(studentId);
       setOpenId(story.id);
       router.refresh();
     });

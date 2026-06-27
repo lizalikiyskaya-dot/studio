@@ -51,6 +51,7 @@ export default async function CyclesView({
             content: (
               <StoriesList
                 cycleId={activeCycle.id}
+                studentId={studentId}
                 stories={stories}
                 cycleCharacters={cycleCharacters}
                 cycleWorldEntries={cycleWorldEntries}

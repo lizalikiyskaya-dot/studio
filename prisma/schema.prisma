@@ -136,6 +136,7 @@ model User {
   freeSections      FreeSection[]
   notes             Note[]
   cycles            Cycle[]
+  stories           Story[]
 }
 
 model Note {
@@ -402,8 +403,10 @@ model Cycle {
 
 model Story {
   id        String   @id @default(cuid())
-  cycleId   String
-  cycle     Cycle    @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  cycleId   String?
+  cycle     Cycle?   @relation(fields: [cycleId], references: [id], onDelete: Cascade)
   order     Int      @default(0)
   title     String   @default("Новый рассказ")
   createdAt DateTime @default(now())

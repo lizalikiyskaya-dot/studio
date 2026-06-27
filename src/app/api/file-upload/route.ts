@@ -102,8 +102,7 @@ export async function POST(req: Request) {
   } else if (target === "story-character-photo") {
     const character = await prisma.storyCharacter.findUniqueOrThrow({ where: { id } });
     const story = await prisma.story.findUniqueOrThrow({ where: { id: character.storyId } });
-    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-    await requireCabinetAccess(cycle.studentId);
+    await requireCabinetAccess(story.studentId);
     await prisma.storyCharacter.update({ where: { id }, data: { photoUrl: dataUrl } });
   } else if (target === "cycle-world-entry-photo") {
     const entry = await prisma.cycleWorldEntry.findUniqueOrThrow({ where: { id } });
@@ -113,8 +112,7 @@ export async function POST(req: Request) {
   } else if (target === "story-world-entry-photo") {
     const entry = await prisma.storyWorldEntry.findUniqueOrThrow({ where: { id } });
     const story = await prisma.story.findUniqueOrThrow({ where: { id: entry.storyId } });
-    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-    await requireCabinetAccess(cycle.studentId);
+    await requireCabinetAccess(story.studentId);
     await prisma.storyWorldEntry.update({ where: { id }, data: { photoUrl: dataUrl } });
   } else if (target === "belief-photo") {
     const card = await prisma.beliefCard.findUniqueOrThrow({ where: { id } });
@@ -195,8 +193,7 @@ export async function DELETE(req: Request) {
   } else if (target === "story-character-photo") {
     const character = await prisma.storyCharacter.findUniqueOrThrow({ where: { id } });
     const story = await prisma.story.findUniqueOrThrow({ where: { id: character.storyId } });
-    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-    await requireCabinetAccess(cycle.studentId);
+    await requireCabinetAccess(story.studentId);
     await prisma.storyCharacter.update({ where: { id }, data: { photoUrl: null } });
   } else if (target === "cycle-world-entry-photo") {
     const entry = await prisma.cycleWorldEntry.findUniqueOrThrow({ where: { id } });
@@ -206,8 +203,7 @@ export async function DELETE(req: Request) {
   } else if (target === "story-world-entry-photo") {
     const entry = await prisma.storyWorldEntry.findUniqueOrThrow({ where: { id } });
     const story = await prisma.story.findUniqueOrThrow({ where: { id: entry.storyId } });
-    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: story.cycleId } });
-    await requireCabinetAccess(cycle.studentId);
+    await requireCabinetAccess(story.studentId);
     await prisma.storyWorldEntry.update({ where: { id }, data: { photoUrl: null } });
   } else if (target === "belief-photo") {
     const card = await prisma.beliefCard.findUniqueOrThrow({ where: { id } });

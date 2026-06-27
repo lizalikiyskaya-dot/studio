@@ -72,11 +72,13 @@ export default function StoryDetail({
         </Button>
       </div>
 
-      <StorySourceToggle
-        storyId={story.id}
-        characterSource={story.characterSource}
-        settingSource={story.settingSource}
-      />
+      {story.cycleId && (
+        <StorySourceToggle
+          storyId={story.id}
+          characterSource={story.characterSource}
+          settingSource={story.settingSource}
+        />
+      )}
 
       <StructureField label="Завязка" value={story.setupText} field="setupText" storyId={story.id} />
       <StructureField label="Кульминация" value={story.climaxText} field="climaxText" storyId={story.id} />

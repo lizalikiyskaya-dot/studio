@@ -26,7 +26,10 @@ const WORKSHOP_ITEMS = [
   { path: "setting", n: "06", label: "Сеттинг" },
 ];
 
-const STORY_WORKSHOP_ITEMS = [{ path: "cycles", n: "01", label: "Циклы и рассказы" }];
+const STORY_WORKSHOP_ITEMS = [
+  { path: "cycles", n: "01", label: "Циклы рассказов" },
+  { path: "stories", n: "02", label: "Отдельные рассказы" },
+];
 
 const COLLAPSE_KEY = "sidebar-collapsed";
 
