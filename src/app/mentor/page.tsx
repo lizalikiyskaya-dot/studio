@@ -96,7 +96,9 @@ export default async function MentorPage() {
                 />
               </td>
               <td className="py-2.5 pl-3 text-right align-top">
-                <LinkButton href={`/student-view/${s.id}/tasks`}>Открыть кабинет</LinkButton>
+                <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" pill>
+                  Открыть кабинет
+                </LinkButton>
               </td>
             </tr>
           ))}

@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import Link, { type LinkProps } from "next/link";
 
-type Variant = "primary" | "secondary" | "success" | "success-outline" | "ghost";
+type Variant = "primary" | "secondary" | "success" | "success-outline" | "neutral" | "ghost";
 type Size = "sm" | "md";
 
 const VARIANT_STYLE: Record<Variant, React.CSSProperties> = {
@@ -9,6 +9,7 @@ const VARIANT_STYLE: Record<Variant, React.CSSProperties> = {
   secondary: { background: "transparent", color: "var(--wine)", border: "1px solid var(--wine)" },
   success: { background: "var(--sage)", color: "#fff", border: "1px solid var(--sage)" },
   "success-outline": { background: "transparent", color: "var(--sage)", border: "1px solid var(--sage)" },
+  neutral: { background: "var(--neutral-active)", color: "var(--ink)", border: "1px solid var(--neutral-active)" },
   ghost: { background: "transparent", color: "var(--faded)", border: "1px solid var(--rule)" },
 };
 
@@ -21,16 +22,21 @@ function buttonStyle(variant: Variant) {
   return VARIANT_STYLE[variant];
 }
 
+function shapeClass(pill?: boolean) {
+  return pill ? "rounded-full" : "rounded-[10px]";
+}
+
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  pill?: boolean;
   children: ReactNode;
 }
 
-export function Button({ variant = "primary", size = "md", className = "", style, children, ...props }: ButtonProps) {
+export function Button({ variant = "primary", size = "md", pill, className = "", style, children, ...props }: ButtonProps) {
   return (
     <button
-      className={`rounded-[10px] inline-flex items-center gap-1.5 whitespace-nowrap transition-colors ${SIZE_CLASS[size]} ${className}`}
+      className={`${shapeClass(pill)} inline-flex items-center gap-1.5 whitespace-nowrap transition-colors ${SIZE_CLASS[size]} ${className}`}
       style={{ ...buttonStyle(variant), ...style }}
       {...props}
     >
@@ -42,15 +48,16 @@ export function Button({ variant = "primary", size = "md", className = "", style
 interface LinkButtonProps extends LinkProps {
   variant?: Variant;
   size?: Size;
+  pill?: boolean;
   className?: string;
   style?: React.CSSProperties;
   children: ReactNode;
 }
 
-export function LinkButton({ variant = "primary", size = "md", className = "", style, children, ...props }: LinkButtonProps) {
+export function LinkButton({ variant = "primary", size = "md", pill, className = "", style, children, ...props }: LinkButtonProps) {
   return (
     <Link
-      className={`rounded-[10px] inline-flex items-center gap-1.5 whitespace-nowrap transition-colors ${SIZE_CLASS[size]} ${className}`}
+      className={`${shapeClass(pill)} inline-flex items-center gap-1.5 whitespace-nowrap transition-colors ${SIZE_CLASS[size]} ${className}`}
       style={{ ...buttonStyle(variant), ...style }}
       {...props}
     >

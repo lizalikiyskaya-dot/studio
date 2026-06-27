@@ -50,7 +50,7 @@ export default function PaymentControls({
           </option>
         ))}
       </select>
-      <BadgeButton onClick={handleToggle} tone={status === "PAID" ? "success" : "danger"} fill={status === "PAID" ? "solid" : "outline"}>
+      <BadgeButton onClick={handleToggle} tone={status === "PAID" ? "success" : "danger"} fill={status === "PAID" ? "soft" : "outline"}>
         {status === "PAID" ? "оплачено" : "ожидает оплаты"}
       </BadgeButton>
     </div>

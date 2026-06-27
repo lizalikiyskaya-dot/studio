@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type Tone = "neutral" | "success" | "danger" | "warning";
-type Fill = "outline" | "solid";
+type Fill = "outline" | "solid" | "soft";
 
 const TONE_COLOR: Record<Tone, string> = {
   neutral: "var(--faded)",
@@ -10,10 +10,20 @@ const TONE_COLOR: Record<Tone, string> = {
   warning: "var(--wine)",
 };
 
+const TONE_SOFT_BG: Record<Tone, string> = {
+  neutral: "var(--neutral-active)",
+  success: "var(--sage-soft)",
+  danger: "var(--accent-soft)",
+  warning: "var(--accent-soft)",
+};
+
 function badgeStyle(tone: Tone, fill: Fill): React.CSSProperties {
   const color = TONE_COLOR[tone];
   if (fill === "solid") {
     return { background: color, color: "#fff", border: `1px solid ${color}` };
+  }
+  if (fill === "soft") {
+    return { background: TONE_SOFT_BG[tone], color, border: "none" };
   }
   return { background: "#fff", color, border: `1px solid ${color}` };
 }
