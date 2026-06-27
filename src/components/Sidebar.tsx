@@ -231,14 +231,6 @@ export default function Sidebar({
                     </Link>
                   );
                 })}
-                {!collapsed && (
-                  <span
-                    className="font-mono-label inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full mt-1.5 ml-2.5"
-                    style={{ background: "var(--sage-soft)", color: "var(--sage)" }}
-                  >
-                    доступ открыт
-                  </span>
-                )}
               </div>
             )}
           </>

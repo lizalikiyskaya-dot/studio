@@ -70,10 +70,10 @@ export default function CalendarWidget({
   }
 
   return (
-    <div className="mt-3.5 rounded-[14px] px-2.5 pt-3 pb-2" style={{ background: "#fff" }}>
-      <div className="mb-4">
+    <div className="mt-3.5 rounded-[14px] px-2.5 pt-2.5 pb-2" style={{ background: "#fff" }}>
+      <div className="mb-2.5">
         <span
-          className="font-mono-label inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full"
+          className="font-mono-label inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full"
           style={{
             background: paymentStatus === "PAID" ? "var(--sage-soft)" : "var(--accent-soft)",
             color: paymentStatus === "PAID" ? "var(--sage)" : "var(--wine)",
@@ -81,8 +81,8 @@ export default function CalendarWidget({
         >
           <span
             style={{
-              width: 6,
-              height: 6,
+              width: 5,
+              height: 5,
               borderRadius: 999,
               background: paymentStatus === "PAID" ? "var(--sage)" : "var(--wine)",
             }}
@@ -131,6 +131,14 @@ export default function CalendarWidget({
                   background: selectedDay === day ? "var(--rule)" : "transparent",
                 }}
               >
+                <span className="flex gap-0.5 mb-0.5" style={{ height: 4 }}>
+                  {hasDeadline && (
+                    <span style={{ width: 4, height: 4, borderRadius: 999, background: "var(--ink)" }} />
+                  )}
+                  {isPaymentDay && (
+                    <span style={{ width: 4, height: 4, borderRadius: 999, background: "var(--wine)" }} />
+                  )}
+                </span>
                 <span
                   className="flex items-center justify-center"
                   style={{
@@ -144,17 +152,6 @@ export default function CalendarWidget({
                 >
                   {day}
                 </span>
-                {(hasDeadline || isPaymentDay) && (
-                  <span
-                    style={{
-                      width: 4,
-                      height: 4,
-                      borderRadius: 999,
-                      background: isToday ? "#fff" : "var(--wine)",
-                      marginTop: 1,
-                    }}
-                  />
-                )}
               </button>
             );
           })}
