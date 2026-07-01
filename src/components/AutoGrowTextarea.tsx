@@ -55,6 +55,8 @@ const AutoGrowTextarea = forwardRef<
       onKeyDown={(e) => {
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
+          const val = e.currentTarget.value;
+          onBlur(val);
           e.currentTarget.blur();
         }
       }}

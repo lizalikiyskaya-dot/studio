@@ -129,6 +129,8 @@ model User {
   reviewModeEnabled Boolean   @default(true)
   bookWorkshopUnlocked Boolean @default(true)
   storyWorkshopUnlocked Boolean @default(false)
+  lastSeenAt    DateTime?
+  lastActivityAt DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   books        Book[]

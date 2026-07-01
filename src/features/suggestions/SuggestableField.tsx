@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { Check } from "lucide-react";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { saveFieldOrSuggest, acceptFieldSuggestion } from "./actions";
@@ -40,9 +40,11 @@ export default function SuggestableField({
   const [value, setValue] = useState(initialValue);
   const [suggestion, setSuggestion] = useState(initialSuggestion ?? null);
   const [, startTransition] = useTransition();
+  const lastSentRef = useRef(initialValue);
 
   function handleBlur(newValue: string) {
-    if (newValue === value) return;
+    if (newValue === lastSentRef.current) return;
+    lastSentRef.current = newValue;
     // Wait for the server's actual decision rather than guessing
     // client-side whether this edit will become a suggestion — guessing
     // caused a one-frame flash of the accept-suggestion UI even when

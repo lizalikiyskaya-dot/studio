@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef, useEffect } from "react";
 import type { PlanChapter } from "@/generated/prisma/client";
-import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, toggleChapterActBreak } from "./actions";
+import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, toggleChapterActBreak, deletePlanChapter } from "./actions";
 import { updatePlanColumnColors } from "./actions";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import { blurOnEnter } from "@/lib/blurOnEnter";
@@ -173,6 +173,12 @@ export default function PlanTable({
     startTransition(() => updatePlanChapterColor(chapterId, color));
   }
 
+  function handleDelete(chapterId: string) {
+    if (!window.confirm("Удалить главу?")) return;
+    setChapters((prev) => prev.filter((c) => c.id !== chapterId));
+    startTransition(() => deletePlanChapter(chapterId));
+  }
+
   function handleActBreak(chapterId: string, value: boolean) {
     setChapters((prev) => prev.map((c) => (c.id === chapterId ? { ...c, actBreakAfter: value } : c)));
     startTransition(() => toggleChapterActBreak(chapterId, value));
@@ -200,11 +206,14 @@ export default function PlanTable({
             <col style={{ width: 80 }} />  {/* план */}
             <col style={{ width: 80 }} />  {/* написано */}
             <col style={{ width: 56 }} />  {/* % */}
+            <col style={{ width: 24 }} />  {/* delete */}
           </colgroup>
           <thead>
             <tr>
-              {/* act button header: empty */}
-              <th style={{ ...headerBase, padding: 0, width: 24 }} />
+              {/* act button header */}
+              <th style={{ ...headerBase, padding: 0, width: 24, fontSize: 9, color: "var(--ink-faint)", textAlign: "center", letterSpacing: "0.05em" }}>
+                Акты
+              </th>
               {/* row-color header: empty */}
               <th style={{ ...headerBase, borderRight: "1px solid var(--border)" }} />
               {/* № */}
@@ -227,9 +236,25 @@ export default function PlanTable({
               </th>
               <th style={{ ...headerBase, background: colColors["chars"] ?? "var(--bg-surface-2)" }}>Написано</th>
               <th style={{ ...headerBase, borderRight: "none", background: colColors["chars"] ?? "var(--bg-surface-2)" }}>%</th>
+              <th style={{ ...headerBase, padding: 0, width: 24, borderRight: "none" }} />
             </tr>
           </thead>
           <tbody>
+            {/* Static АКТ 1 divider at top */}
+            <tr>
+              <td colSpan={10} style={{ padding: "2px 0", borderBottom: "1px solid var(--border)" }}>
+                <div className="flex items-center gap-3 px-3" style={{ height: 26 }}>
+                  <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+                  <span
+                    className="font-mono-label uppercase tracking-widest select-none"
+                    style={{ fontSize: 9, color: "var(--ink-faint)", whiteSpace: "nowrap" }}
+                  >
+                    Акт 1
+                  </span>
+                  <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+                </div>
+              </td>
+            </tr>
             {chapters.map((chapter, idx) => {
               const percent =
                 chapter.plannedChars > 0
@@ -340,10 +365,21 @@ export default function PlanTable({
                   >
                     {chapter.plannedChars > 0 ? `${percent}%` : "—"}
                   </td>
+                  {/* delete row */}
+                  <td style={{ ...cellBase, borderBottom: "1px solid var(--border)", borderRight: "none", padding: 0, width: 24, verticalAlign: "middle" }}>
+                    <button
+                      onClick={() => handleDelete(chapter.id)}
+                      title="Удалить главу"
+                      className="flex items-center justify-center w-full h-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ color: "var(--ink-faint)" }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="1" y1="9" x2="9" y2="1"/><line x1="1" y1="1" x2="9" y2="9"/></svg>
+                    </button>
+                  </td>
                 </tr>
                 {chapter.actBreakAfter && (
                   <tr key={`act-${chapter.id}`}>
-                    <td colSpan={9} style={{ padding: "2px 0", borderBottom: "1px solid var(--border)" }}>
+                    <td colSpan={10} style={{ padding: "2px 0", borderBottom: "1px solid var(--border)" }}>
                       <div className="flex items-center gap-3 px-3" style={{ height: 26 }}>
                         <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
                         <span

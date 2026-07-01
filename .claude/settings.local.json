@@ -141,7 +141,26 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(grep -rn \"href=\\\\\"/mentor\\\\|href={\\\\`/mentor\\\\|/mentor/\" src/components/Sidebar.tsx)",
       "Bash(curl -sL --max-time 15 https://lizalikiyskaya-dot-studio-2171.twc1.net/)",
-      "Bash(curl -s -c /tmp/tw_cookies.txt -X POST https://lizalikiyskaya-dot-studio-2171.twc1.net/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"lizalikiyskaya@gmail.com\",\"password\":\"2NC-aqOL\"}' -w \"\\\\nHTTP:%{http_code}\\\\n\")"
+      "Bash(curl -s -c /tmp/tw_cookies.txt -X POST https://lizalikiyskaya-dot-studio-2171.twc1.net/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"lizalikiyskaya@gmail.com\",\"password\":\"2NC-aqOL\"}' -w \"\\\\nHTTP:%{http_code}\\\\n\")",
+      "Bash(unzip -l \"/Users/liz/Downloads/new ui/liza-studio-design.zip\")",
+      "Bash(git push *)",
+      "Bash(extract-text \"/Users/liz/Documents/Мои документы/Гострайтинг и литкоучинг/Литкоучинг/Персонаж/Второстепенные_персонажи.pptx\")",
+      "Bash(python \"/Users/liz/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/fc76260f-03fc-4e32-ba10-3bc98ebf3a49/6e11af25-28cf-43f7-b3f6-919f290c8133/skills/pptx/scripts/office/unpack.py\" \"/Users/liz/Documents/Мои документы/Гострайтинг и литкоучинг/Литкоучинг/Персонаж/Второстепенные_персонажи.pptx\" /tmp/pptx_unpacked/)",
+      "Bash(python3 \"/Users/liz/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/fc76260f-03fc-4e32-ba10-3bc98ebf3a49/6e11af25-28cf-43f7-b3f6-919f290c8133/skills/pptx/scripts/office/unpack.py\" \"/Users/liz/Documents/Мои документы/Гострайтинг и литкоучинг/Литкоучинг/Персонаж/Второстепенные_персонажи.pptx\" /tmp/pptx_unpacked/)",
+      "Bash(cp \"/Users/liz/Documents/Мои документы/Гострайтинг и литкоучинг/Литкоучинг/Персонаж/Второстепенные_персонажи.pptx\" pptx_file.zip)",
+      "Bash(unzip -o pptx_file.zip -d pptx_content/)",
+      "Bash(xargs '-I{}' python3 -c ' *)",
+      "Bash(DATABASE_URL=\"postgres://postgres:postgres@localhost:51214/template1?schema=public\" npx prisma db push)",
+      "Bash(unzip -l \"/Users/liz/Downloads/Картинки героев.zip\")",
+      "Bash(mkdir -p /private/tmp/claude-501/-Users-liz-Desktop-liza-studio/814b9366-4686-446b-8d0b-8c8aeb391280/scratchpad/heroes)",
+      "Bash(unzip -o \"/Users/liz/Downloads/Картинки героев.zip\")",
+      "Bash(mv \"Тони-старк.webp\" tony-stark.webp)",
+      "Bash(mv вейдер.jpg vader.jpg)",
+      "Bash(mv дарт-вейдер.jpg darth-vader.jpg)",
+      "Bash(mv джокер.jpg joker.jpg)",
+      "Bash(mv дороти.jpg dorothy.jpg)",
+      "Bash(node -e \"const l = require\\('/Users/liz/Desktop/liza_studio/node_modules/lucide-react'\\); console.log\\(['MapPin','Swords','Scroll','Settings2','Sparkles','History','PawPrint','Languages','ScrollText','Globe','Wand2','NotepadText'].filter\\(k => k in l\\).join\\(', '\\)\\)\")",
+      "Bash(mkdir -p /Users/liz/Desktop/liza_studio/src/app/student-view/\\\\[studentId\\\\]/work-plan && mkdir -p /Users/liz/Desktop/liza_studio/src/app/dashboard/work-plan)"
     ]
   }
 }

@@ -93,3 +93,10 @@ export async function updateBookPhotoPosition(
   await requireCabinetAccess(book.studentId);
   await prisma.book.update({ where: { id: bookId }, data: { [field]: position } });
 }
+
+export async function deletePlanChapter(chapterId: string) {
+  const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id: chapterId } });
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.planChapter.delete({ where: { id: chapterId } });
+}

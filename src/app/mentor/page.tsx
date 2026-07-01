@@ -6,6 +6,7 @@ import PaymentControls from "./PaymentControls";
 import WorkshopLockControls from "./WorkshopLockControls";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { OnlineBeacon, ActivityBeacon } from "./StudentBeacons";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -81,7 +82,13 @@ export default async function MentorPage() {
         <tbody>
           {students.map((s) => (
             <tr key={s.id} style={{ borderBottom: "1px solid var(--rule)" }}>
-              <td className="py-2.5 pr-3 text-[13.5px] align-top">{s.name}</td>
+              <td className="py-2.5 pr-3 text-[13.5px] align-top">
+                <span className="flex items-center gap-2">
+                  {s.name}
+                  <OnlineBeacon lastSeenAt={s.lastSeenAt} />
+                  <ActivityBeacon lastActivityAt={s.lastActivityAt} />
+                </span>
+              </td>
               <td className="py-2.5 pr-3 text-[13.5px] align-top" style={{ color: "var(--ink-soft)" }}>
                 {s.email}
               </td>

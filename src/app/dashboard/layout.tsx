@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import Sidebar from "@/components/Sidebar";
 import NotesPanel from "@/features/notes/NotesPanel";
+import PresencePing from "@/features/presence/PresencePing";
 import { getCommentsForRecords } from "@/features/comments/actions";
 
 export default async function DashboardLayout({
@@ -46,6 +47,7 @@ export default async function DashboardLayout({
         {children}
       </div>
       <NotesPanel studentId={user.id} initialNotes={notes} initialComments={noteComments} />
+      <PresencePing />
     </div>
   );
 }
