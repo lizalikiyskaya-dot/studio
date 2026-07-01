@@ -38,6 +38,9 @@ export async function POST(req: Request) {
   }
   const isImage =
     target === "book-cover" ||
+    target === "book-cover-2" ||
+    target === "book-cover-3" ||
+    target === "book-banner" ||
     target === "character-photo" ||
     target === "popArc-photo" ||
     target === "world-entry-photo" ||
@@ -78,6 +81,18 @@ export async function POST(req: Request) {
     const book = await prisma.book.findUniqueOrThrow({ where: { id } });
     await requireCabinetAccess(book.studentId);
     await prisma.book.update({ where: { id }, data: { coverUrl: dataUrl } });
+  } else if (target === "book-cover-2") {
+    const book = await prisma.book.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(book.studentId);
+    await prisma.book.update({ where: { id }, data: { coverUrl2: dataUrl } });
+  } else if (target === "book-cover-3") {
+    const book = await prisma.book.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(book.studentId);
+    await prisma.book.update({ where: { id }, data: { coverUrl3: dataUrl } });
+  } else if (target === "book-banner") {
+    const book = await prisma.book.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(book.studentId);
+    await prisma.book.update({ where: { id }, data: { bannerUrl: dataUrl } });
   } else if (target === "character-photo") {
     const character = await prisma.character.findUniqueOrThrow({ where: { id } });
     const book = await prisma.book.findUniqueOrThrow({ where: { id: character.bookId } });
@@ -144,6 +159,9 @@ export async function POST(req: Request) {
 
 const PHOTO_FIELD_TARGETS = [
   "book-cover",
+  "book-cover-2",
+  "book-cover-3",
+  "book-banner",
   "character-photo",
   "popArc-photo",
   "world-entry-photo",
@@ -174,6 +192,18 @@ export async function DELETE(req: Request) {
     const book = await prisma.book.findUniqueOrThrow({ where: { id } });
     await requireCabinetAccess(book.studentId);
     await prisma.book.update({ where: { id }, data: { coverUrl: null } });
+  } else if (target === "book-cover-2") {
+    const book = await prisma.book.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(book.studentId);
+    await prisma.book.update({ where: { id }, data: { coverUrl2: null } });
+  } else if (target === "book-cover-3") {
+    const book = await prisma.book.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(book.studentId);
+    await prisma.book.update({ where: { id }, data: { coverUrl3: null } });
+  } else if (target === "book-banner") {
+    const book = await prisma.book.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(book.studentId);
+    await prisma.book.update({ where: { id }, data: { bannerUrl: null } });
   } else if (target === "character-photo") {
     const character = await prisma.character.findUniqueOrThrow({ where: { id } });
     const book = await prisma.book.findUniqueOrThrow({ where: { id: character.bookId } });

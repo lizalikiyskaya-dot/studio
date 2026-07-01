@@ -279,6 +279,9 @@ model Book {
   concept          String @default("")
   annotation       String @default("")
   coverUrl         String?
+  coverUrl2        String?
+  coverUrl3        String?
+  bannerUrl        String?
 
   synopsisMode SynopsisMode @default(TEXT)
   synopsisText String       @default("")

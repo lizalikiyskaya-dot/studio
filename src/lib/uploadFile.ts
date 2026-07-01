@@ -3,6 +3,9 @@ export async function uploadFile(
     | "material"
     | "draft"
     | "book-cover"
+    | "book-cover-2"
+    | "book-cover-3"
+    | "book-banner"
     | "character-photo"
     | "popArc-photo"
     | "world-entry-photo"
@@ -35,6 +38,9 @@ export async function uploadFile(
 export async function deletePhoto(
   target:
     | "book-cover"
+    | "book-cover-2"
+    | "book-cover-3"
+    | "book-banner"
     | "character-photo"
     | "popArc-photo"
     | "world-entry-photo"
