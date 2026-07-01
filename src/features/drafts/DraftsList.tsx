@@ -75,21 +75,22 @@ export default function DraftsList({
                   const url = window.prompt("Ссылка");
                   if (url) handleField(draft.id, "link", url);
                 }}
-                variant="success-outline"
+                variant="dashed-sage"
                 size="sm"
+                pill
               >
                 + ссылка
               </Button>
             )}
             <FileAttachBox fileName={draft.fileName} onUpload={(file) => handleFile(draft.id, file)} />
-            <Button onClick={() => handleDelete(draft.id)} variant="secondary" size="sm" className="ml-auto">
-              Удалить
+            <Button onClick={() => handleDelete(draft.id)} variant="secondary" size="sm" pill className="ml-auto">
+              удалить
             </Button>
           </div>
         </div>
       ))}
 
-      <Button onClick={handleAdd} variant="secondary" size="sm">
+      <Button onClick={handleAdd} variant="dashed" size="sm" pill>
         + черновик
       </Button>
     </div>

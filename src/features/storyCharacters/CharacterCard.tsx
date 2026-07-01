@@ -127,8 +127,8 @@ export default function CharacterCard({
               style={{ borderColor: "var(--rule)" }}
             />
           </div>
-          <Button onClick={handleDelete} variant="secondary" size="sm" className="flex-shrink-0">
-            Удалить
+          <Button onClick={handleDelete} variant="secondary" size="sm" pill className="flex-shrink-0">
+            удалить
           </Button>
         </div>
 

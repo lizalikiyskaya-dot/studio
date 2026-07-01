@@ -148,7 +148,7 @@ export default function PlanTable({
         </div>
       </div>
 
-      <Button onClick={handleAdd} variant="secondary" size="sm">
+      <Button onClick={handleAdd} variant="dashed" size="sm" pill>
         + глава
       </Button>
     </div>

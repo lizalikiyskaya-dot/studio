@@ -160,8 +160,8 @@ function SectionBody({
       <div className="flex gap-1.5 mt-3">
         <CardSaveButton scopeRef={rootRef} />
         {isMentorViewer && (
-          <Button onClick={() => onDelete(section.id)} variant="secondary" size="sm">
-            Удалить раздел
+          <Button onClick={() => onDelete(section.id)} variant="secondary" size="sm" pill>
+            удалить раздел
           </Button>
         )}
       </div>
@@ -252,10 +252,10 @@ export default function AdditionalList({
 
       {isMentorViewer && (
         <div className="flex gap-2.5">
-          <Button onClick={() => handleAdd("TEXT")} variant="secondary" size="sm">
+          <Button onClick={() => handleAdd("TEXT")} variant="dashed" size="sm" pill>
             + текст (вопрос-ответ)
           </Button>
-          <Button onClick={() => handleAdd("TABLE")} variant="secondary" size="sm">
+          <Button onClick={() => handleAdd("TABLE")} variant="dashed" size="sm" pill>
             + таблица
           </Button>
         </div>

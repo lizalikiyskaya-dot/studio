@@ -146,8 +146,8 @@ function CardShell({
           {!readOnly && (
             <div className="flex gap-1.5 mt-4">
               <CardSaveButton scopeRef={rootRef} />
-              <Button onClick={() => onDelete(card.id)} variant="secondary" size="sm">
-                Удалить
+              <Button onClick={() => onDelete(card.id)} variant="secondary" size="sm" pill>
+                удалить
               </Button>
             </div>
           )}
@@ -207,7 +207,7 @@ export function StoryCircleExamplesList({
         />
       ))}
       {isMentorViewer && (
-        <Button onClick={handleAdd} variant="secondary" size="sm">
+        <Button onClick={handleAdd} variant="dashed" size="sm" pill>
           + добавить пример
         </Button>
       )}
@@ -263,7 +263,7 @@ export function StoryCircleOwnList({
           dragHandle={dragHandle(card.id)}
         />
       ))}
-      <Button onClick={handleAdd} variant="secondary" size="sm">
+      <Button onClick={handleAdd} variant="dashed" size="sm" pill>
         + добавить героя
       </Button>
     </div>

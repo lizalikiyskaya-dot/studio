@@ -264,8 +264,8 @@ export default function PopArcCard({
             {!readOnly && (
               <div className="flex gap-1.5 flex-shrink-0">
                 <CardSaveButton scopeRef={rootRef} />
-                <Button onClick={handleDelete} variant="secondary" size="sm">
-                  Удалить
+                <Button onClick={handleDelete} variant="secondary" size="sm" pill>
+                  удалить
                 </Button>
               </div>
             )}

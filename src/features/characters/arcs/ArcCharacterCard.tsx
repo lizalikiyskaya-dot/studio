@@ -207,7 +207,7 @@ export default function ArcCharacterCard({
               />
             </div>
             <CardSaveButton scopeRef={rootRef} />
-            <Button onClick={handleDelete} variant="secondary" size="sm" className="flex-shrink-0">
+            <Button onClick={handleDelete} variant="secondary" size="sm" pill className="flex-shrink-0">
               Удалить
             </Button>
           </div>

@@ -57,11 +57,11 @@ export default function CycleSwitcher({
           </option>
         ))}
       </select>
-      <Button onClick={handleAddCycle} variant="success-outline" size="sm">
+      <Button onClick={handleAddCycle} variant="dashed" size="sm" pill>
         + новый цикл
       </Button>
-      <Button onClick={handleDeleteCycle} variant="secondary" size="sm">
-        Удалить цикл
+      <Button onClick={handleDeleteCycle} variant="secondary" size="sm" pill>
+        удалить цикл
       </Button>
     </div>
   );

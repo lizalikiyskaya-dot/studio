@@ -96,8 +96,8 @@ export default function CharactersList({
         );
       })}
 
-      <Button onClick={handleAdd} variant="secondary" size="sm">
-        + добавить персонажа
+      <Button onClick={handleAdd} variant="dashed" size="sm" pill>
+        + новый персонаж
       </Button>
     </div>
   );

@@ -55,7 +55,7 @@ export function ExamplesList({
       ))}
 
       {isMentorViewer && (
-        <Button onClick={handleAdd} variant="secondary" size="sm">
+        <Button onClick={handleAdd} variant="dashed" size="sm" pill>
           + добавить пример
         </Button>
       )}
@@ -109,7 +109,7 @@ export function OwnHeroesList({
         </div>
       ))}
 
-      <Button onClick={handleAdd} variant="secondary" size="sm">
+      <Button onClick={handleAdd} variant="dashed" size="sm" pill>
         + добавить героя
       </Button>
     </div>

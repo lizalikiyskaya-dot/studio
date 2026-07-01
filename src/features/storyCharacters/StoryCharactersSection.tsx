@@ -97,7 +97,7 @@ export default function StoryCharactersSection({
           onDelete={handleDelete}
         />
       ))}
-      <Button onClick={handleAdd} variant="success-outline" size="sm">
+      <Button onClick={handleAdd} variant="dashed-sage" size="sm" pill>
         + новый персонаж рассказа
       </Button>
     </div>

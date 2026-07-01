@@ -19,7 +19,7 @@ export default function NoBookYet({ studentId }: { studentId: string }) {
       <p className="text-[14px] mb-4" style={{ color: "var(--faded)" }}>
         У ученика пока нет ни одной книги.
       </p>
-      <Button onClick={handleCreate} variant="primary">
+      <Button onClick={handleCreate} variant="dashed" pill>
         + новая книга
       </Button>
     </div>

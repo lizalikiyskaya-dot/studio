@@ -52,17 +52,17 @@ export default function StoriesList({
           <button
             key={story.id}
             onClick={() => setOpenId(story.id === openId ? null : story.id)}
-            className="text-[13px] px-3 py-1.5 rounded-sm"
+            className="text-[13px] px-4 py-1.5 rounded-full transition-colors"
             style={{
-              border: `1px solid ${openId === story.id ? "var(--wine)" : "var(--rule)"}`,
-              background: openId === story.id ? "var(--wine)" : "transparent",
-              color: openId === story.id ? "#fff" : "var(--ink-soft)",
+              border: `1px solid var(--gold)`,
+              background: openId === story.id ? "var(--gold)" : "transparent",
+              color: openId === story.id ? "#fff" : "var(--gold)",
             }}
           >
             {story.title || "Без названия"}
           </button>
         ))}
-        <Button onClick={handleAdd} variant="success" size="sm">
+        <Button onClick={handleAdd} variant="success" size="sm" pill>
           + новый рассказ
         </Button>
       </div>

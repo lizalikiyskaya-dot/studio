@@ -1,16 +1,31 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import Link, { type LinkProps } from "next/link";
 
-type Variant = "primary" | "secondary" | "success" | "success-outline" | "neutral" | "ghost";
+type Variant =
+  | "primary"
+  | "secondary"
+  | "success"
+  | "success-outline"
+  | "neutral"
+  | "ghost"
+  | "dashed"
+  | "dashed-sage"
+  | "gold"
+  | "gold-outline";
+
 type Size = "sm" | "md";
 
 const VARIANT_STYLE: Record<Variant, React.CSSProperties> = {
-  primary: { background: "var(--wine)", color: "#fff", border: "1px solid var(--wine)" },
-  secondary: { background: "transparent", color: "var(--wine)", border: "1px solid var(--wine)" },
-  success: { background: "var(--sage)", color: "#fff", border: "1px solid var(--sage)" },
+  primary:        { background: "var(--wine)", color: "#fff", border: "1px solid var(--wine)" },
+  secondary:      { background: "transparent", color: "var(--wine)", border: "1px solid var(--wine)" },
+  success:        { background: "var(--sage)", color: "#fff", border: "1px solid var(--sage)" },
   "success-outline": { background: "transparent", color: "var(--sage)", border: "1px solid var(--sage)" },
-  neutral: { background: "var(--neutral-active)", color: "var(--ink)", border: "1px solid var(--neutral-active)" },
-  ghost: { background: "transparent", color: "var(--faded)", border: "1px solid var(--rule)" },
+  neutral:        { background: "var(--neutral-active)", color: "var(--ink)", border: "1px solid var(--neutral-active)" },
+  ghost:          { background: "transparent", color: "var(--faded)", border: "1px solid var(--rule)" },
+  dashed:         { background: "transparent", color: "var(--wine)", border: "1px dashed var(--wine)" },
+  "dashed-sage":  { background: "transparent", color: "var(--sage)", border: "1px dashed var(--sage)" },
+  gold:           { background: "var(--gold)", color: "#fff", border: "1px solid var(--gold)" },
+  "gold-outline": { background: "transparent", color: "var(--gold)", border: "1px solid var(--gold)" },
 };
 
 const SIZE_CLASS: Record<Size, string> = {

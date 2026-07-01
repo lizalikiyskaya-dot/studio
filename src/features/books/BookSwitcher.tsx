@@ -57,11 +57,11 @@ export default function BookSwitcher({
           </option>
         ))}
       </select>
-      <Button onClick={handleAddBook} variant="success-outline" size="sm">
+      <Button onClick={handleAddBook} variant="dashed" size="sm" pill>
         + новая книга
       </Button>
-      <Button onClick={handleDeleteBook} variant="secondary" size="sm">
-        Удалить книгу
+      <Button onClick={handleDeleteBook} variant="secondary" size="sm" pill>
+        удалить книгу
       </Button>
     </div>
   );

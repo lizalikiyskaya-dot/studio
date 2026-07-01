@@ -67,8 +67,8 @@ export default function StoryDetail({
           onBlur={(e) => startTransition(() => updateStoryTitle(story.id, e.target.value))}
           className="text-[18px] font-semibold outline-none bg-transparent flex-1"
         />
-        <Button onClick={onDelete} variant="secondary" size="sm" className="whitespace-nowrap">
-          Удалить рассказ
+        <Button onClick={onDelete} variant="secondary" size="sm" pill className="whitespace-nowrap">
+          удалить рассказ
         </Button>
       </div>
 

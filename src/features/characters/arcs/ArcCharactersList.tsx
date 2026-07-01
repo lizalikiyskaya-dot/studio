@@ -52,7 +52,7 @@ export default function ArcCharactersList({
         </div>
       ))}
 
-      <Button onClick={handleAdd} variant="secondary" size="sm">
+      <Button onClick={handleAdd} variant="dashed" size="sm" pill>
         + добавить персонажа
       </Button>
     </div>

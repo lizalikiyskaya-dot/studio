@@ -34,10 +34,10 @@ function DownloadOrUpload({
       <a
         href={fileUrl}
         download={fileName ?? undefined}
-        className="text-[13px] px-2.5 py-1 rounded-sm inline-block"
-        style={{ color: "var(--wine)", border: "1px solid var(--wine)" }}
+        className="text-[13px] px-4 py-1.5 rounded-full inline-block transition-colors"
+        style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
       >
-        Скачать {label}
+        скачать {label}
       </a>
     );
   }
@@ -149,8 +149,8 @@ function BooksList({
               onUpload={(file) => handleFile(material.id, "epub", file)}
             />
             {canManage && (
-              <Button onClick={() => handleDelete(material.id)} variant="secondary" size="sm" className="ml-auto">
-                Удалить
+              <Button onClick={() => handleDelete(material.id)} variant="secondary" size="sm" pill className="ml-auto">
+                удалить
               </Button>
             )}
           </div>
@@ -158,7 +158,7 @@ function BooksList({
       ))}
 
       {canManage && (
-        <Button onClick={handleAdd} variant="secondary" size="sm">
+        <Button onClick={handleAdd} variant="dashed" size="sm" pill>
           + книга
         </Button>
       )}
@@ -245,15 +245,15 @@ function HandoutsList({
             onUpload={(file) => handleFile(material.id, file)}
           />
           {canManage && (
-            <Button onClick={() => handleDelete(material.id)} variant="secondary" size="sm">
-              Удалить
+            <Button onClick={() => handleDelete(material.id)} variant="secondary" size="sm" pill>
+              удалить
             </Button>
           )}
         </div>
       ))}
 
       {canManage && (
-        <Button onClick={handleAdd} variant="secondary" size="sm" className="mt-3">
+        <Button onClick={handleAdd} variant="dashed" size="sm" pill className="mt-3">
           + методичка
         </Button>
       )}
