@@ -41,8 +41,8 @@ export default function DraftsList({
 
   function handleFile(id: string, file: File) {
     startTransition(async () => {
-      const { fileName } = await uploadFile("draft", id, "file", file);
-      setDrafts((prev) => prev.map((d) => (d.id === id ? { ...d, fileName } : d)));
+      const { fileName, dataUrl } = await uploadFile("draft", id, "file", file);
+      setDrafts((prev) => prev.map((d) => (d.id === id ? { ...d, fileName, fileData: dataUrl } : d)));
     });
   }
 
@@ -50,6 +50,12 @@ export default function DraftsList({
     if (!window.confirm("Удалить черновик?")) return;
     setDrafts((prev) => prev.filter((d) => d.id !== id));
     startTransition(() => deleteDraft(id));
+  }
+
+  function handleEditLink(id: string, current: string | null) {
+    const url = window.prompt("Ссылка", current ?? "");
+    if (url === null) return; // cancelled
+    handleField(id, "link", url);
   }
 
   function handleDragStart(id: string) {
@@ -92,7 +98,7 @@ export default function DraftsList({
             className="rounded-[14px] mb-3 max-w-[680px] overflow-hidden"
             style={{ border: "1px solid var(--border)" }}
           >
-            {/* Header row — always visible */}
+            {/* Header — always visible */}
             <div
               className="flex items-center gap-2 px-4 py-3 cursor-pointer select-none"
               style={{ background: isCollapsed ? "transparent" : "var(--bg-surface-2)" }}
@@ -113,7 +119,7 @@ export default function DraftsList({
               }
             </div>
 
-            {/* Expandable body */}
+            {/* Body */}
             {!isCollapsed && (
               <div className="px-4 pb-4 pt-2">
                 <input
@@ -135,17 +141,19 @@ export default function DraftsList({
                   onClick={(e) => e.stopPropagation()}
                 />
                 <div className="flex items-center gap-2 flex-wrap">
+                  {/* Link */}
                   {draft.link ? (
-                    <a href={draft.link} target="_blank" rel="noopener noreferrer" title={draft.link} className="text-[12.5px]" style={{ color: "var(--accent)" }}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleEditLink(draft.id, draft.link); }}
+                      className="text-[12.5px] underline-offset-2 underline"
+                      style={{ color: "var(--accent)" }}
+                      title="Нажмите, чтобы изменить ссылку"
+                    >
                       {shortenUrl(draft.link)}
-                    </a>
+                    </button>
                   ) : (
                     <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const url = window.prompt("Ссылка");
-                        if (url) handleField(draft.id, "link", url);
-                      }}
+                      onClick={(e) => { e.stopPropagation(); handleEditLink(draft.id, null); }}
                       variant="dashed-sage"
                       size="sm"
                       pill
@@ -153,7 +161,22 @@ export default function DraftsList({
                       + ссылка
                     </Button>
                   )}
-                  <FileAttachBox fileName={draft.fileName} onUpload={(file) => handleFile(draft.id, file)} />
+
+                  {/* File */}
+                  {draft.fileData ? (
+                    <a
+                      href={draft.fileData}
+                      download={draft.fileName ?? "файл"}
+                      className="text-[13px] px-4 py-1.5 rounded-full inline-block"
+                      style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {draft.fileName ?? "скачать"}
+                    </a>
+                  ) : (
+                    <FileAttachBox fileName={null} onUpload={(file) => handleFile(draft.id, file)} />
+                  )}
+
                   <Button onClick={() => handleDelete(draft.id)} variant="secondary" size="sm" pill className="ml-auto">
                     удалить
                   </Button>
