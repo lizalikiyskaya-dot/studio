@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useCallback } from "react";
 import type { Book, Comment } from "@/generated/prisma/client";
-import { ChevronLeft, ChevronRight, Camera, X, ImageIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Camera, X, ImageIcon, Move } from "lucide-react";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
-import { updateSynopsisMode } from "./actions";
+import { updateSynopsisMode, updateBookPhotoPosition } from "./actions";
 
 function Field({ label, value, field, bookId, suggestion }: { label: string; value: string; field: string; bookId: string; suggestion?: string }) {
   return (
@@ -29,11 +29,71 @@ function TextAreaField({ label, value, field, bookId, suggestion, minHeight = 60
   );
 }
 
+// ── Drag-to-reposition hook ──────────────────────────────────────────────
+function useDragPosition(
+  initial: string,
+  onSave: (pos: string) => void
+) {
+  const [position, setPosition] = useState(initial);
+  const [dragging, setDragging] = useState(false);
+  const dragRef = useRef<{ startX: number; startY: number; startPx: number; startPy: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const parsePos = (pos: string): [number, number] => {
+    const parts = pos.split(" ");
+    return [parseFloat(parts[0]) || 50, parseFloat(parts[1]) || 50];
+  };
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const [px, py] = parsePos(position);
+    dragRef.current = { startX: e.clientX, startY: e.clientY, startPx: px, startPy: py };
+    setDragging(true);
+
+    const onMove = (me: MouseEvent) => {
+      if (!dragRef.current || !containerRef.current) return;
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      const dx = me.clientX - dragRef.current.startX;
+      const dy = me.clientY - dragRef.current.startY;
+      // invert: dragging right moves image left → decrease x%
+      const newPx = Math.max(0, Math.min(100, dragRef.current.startPx - (dx / width) * 100));
+      const newPy = Math.max(0, Math.min(100, dragRef.current.startPy - (dy / height) * 100));
+      const pos = `${Math.round(newPx)}% ${Math.round(newPy)}%`;
+      setPosition(pos);
+    };
+
+    const onUp = (me: MouseEvent) => {
+      if (!dragRef.current || !containerRef.current) return;
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      const dx = me.clientX - dragRef.current.startX;
+      const dy = me.clientY - dragRef.current.startY;
+      const newPx = Math.max(0, Math.min(100, dragRef.current.startPx - (dx / width) * 100));
+      const newPy = Math.max(0, Math.min(100, dragRef.current.startPy - (dy / height) * 100));
+      const pos = `${Math.round(newPx)}% ${Math.round(newPy)}%`;
+      setPosition(pos);
+      onSave(pos);
+      setDragging(false);
+      dragRef.current = null;
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }, [position, onSave]);
+
+  return { position, dragging, containerRef, onMouseDown };
+}
+
 // ── Баннер ──────────────────────────────────────────────────────────────
-function BannerSection({ bookId, initial }: { bookId: string; initial: string | null }) {
+function BannerSection({ bookId, initial, initialPosition }: { bookId: string; initial: string | null; initialPosition: string }) {
   const [url, setUrl] = useState(initial);
   const [, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
+  const { position, dragging, containerRef, onMouseDown } = useDragPosition(
+    initialPosition,
+    (pos) => startTransition(() => { void updateBookPhotoPosition(bookId, "bannerPosition", pos); })
+  );
 
   function handleFile(file: File) {
     const preview = URL.createObjectURL(file);
@@ -43,14 +103,23 @@ function BannerSection({ bookId, initial }: { bookId: string; initial: string | 
 
   return (
     <div
+      ref={containerRef}
       className="relative w-full mb-0 overflow-hidden"
-      style={{ height: 200, background: url ? undefined : "var(--bg-surface-2)", cursor: url ? "default" : "pointer", border: url ? "none" : "2px dashed var(--border)" }}
+      style={{ height: 200, background: url ? undefined : "var(--bg-surface-2)", cursor: url ? (dragging ? "grabbing" : "default") : "pointer", border: url ? "none" : "2px dashed var(--border)" }}
       onClick={() => !url && inputRef.current?.click()}
     >
       {url ? (
         <>
-          <img src={url} alt="" className="w-full h-full object-cover" />
+          <img src={url} alt="" className="w-full h-full object-cover" style={{ objectPosition: position }} />
           <div className="absolute inset-0 bg-black/10 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+            <button
+              onMouseDown={onMouseDown}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium"
+              style={{ background: "rgba(255,255,255,0.9)", color: "var(--ink)", cursor: "grab" }}
+              title="Зажмите и перетащите, чтобы переместить"
+            >
+              <Move size={13} /> переместить
+            </button>
             <button
               onClick={() => inputRef.current?.click()}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium"
@@ -80,16 +149,28 @@ function BannerSection({ bookId, initial }: { bookId: string; initial: string | 
 
 // ── Карусель обложек ─────────────────────────────────────────────────────
 const COVER_SLOTS = [
-  { target: "book-cover" as const, field: "coverUrl" },
-  { target: "book-cover-2" as const, field: "coverUrl2" },
-  { target: "book-cover-3" as const, field: "coverUrl3" },
+  { target: "book-cover" as const, field: "coverUrl", posField: "coverPosition" as const },
+  { target: "book-cover-2" as const, field: "coverUrl2", posField: "coverPosition2" as const },
+  { target: "book-cover-3" as const, field: "coverUrl3", posField: "coverPosition3" as const },
 ] as const;
 
-function CoverCarousel({ bookId, initial }: { bookId: string; initial: [string | null, string | null, string | null] }) {
+function CoverCarousel({ bookId, initial, initialPositions }: {
+  bookId: string;
+  initial: [string | null, string | null, string | null];
+  initialPositions: [string, string, string];
+}) {
   const [covers, setCovers] = useState<[string | null, string | null, string | null]>(initial);
+  const [positions, setPositions] = useState<[string, string, string]>(initialPositions);
   const [active, setActive] = useState(0);
   const [, startTransition] = useTransition();
   const inputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+  // Per-slot drag state
+  const dragRefs = [
+    useRef<{ startX: number; startY: number; startPx: number; startPy: number } | null>(null),
+    useRef<{ startX: number; startY: number; startPx: number; startPy: number } | null>(null),
+    useRef<{ startX: number; startY: number; startPx: number; startPy: number } | null>(null),
+  ];
+  const coverContainerRef = useRef<HTMLDivElement>(null);
 
   const filled = covers.filter(Boolean).length;
   // Which slot to show (navigate only among loaded + 1 empty if <3)
@@ -109,6 +190,41 @@ function CoverCarousel({ bookId, initial }: { bookId: string; initial: [string |
     setActive(Math.max(0, slotIdx - 1));
   }
 
+  function handleDragStart(slotIdx: number, e: React.MouseEvent) {
+    e.preventDefault();
+    const [px, py] = positions[slotIdx].split(" ").map(parseFloat);
+    dragRefs[slotIdx].current = { startX: e.clientX, startY: e.clientY, startPx: px || 50, startPy: py || 50 };
+
+    const onMove = (me: MouseEvent) => {
+      if (!dragRefs[slotIdx].current || !coverContainerRef.current) return;
+      const { width, height } = coverContainerRef.current.getBoundingClientRect();
+      const dx = me.clientX - dragRefs[slotIdx].current.startX;
+      const dy = me.clientY - dragRefs[slotIdx].current.startY;
+      const newPx = Math.max(0, Math.min(100, dragRefs[slotIdx].current.startPx - (dx / width) * 100));
+      const newPy = Math.max(0, Math.min(100, dragRefs[slotIdx].current.startPy - (dy / height) * 100));
+      const pos = `${Math.round(newPx)}% ${Math.round(newPy)}%`;
+      setPositions((prev) => { const next = [...prev] as typeof prev; next[slotIdx] = pos; return next; });
+    };
+
+    const onUp = (me: MouseEvent) => {
+      if (!dragRefs[slotIdx].current || !coverContainerRef.current) return;
+      const { width, height } = coverContainerRef.current.getBoundingClientRect();
+      const dx = me.clientX - dragRefs[slotIdx].current.startX;
+      const dy = me.clientY - dragRefs[slotIdx].current.startY;
+      const newPx = Math.max(0, Math.min(100, dragRefs[slotIdx].current.startPx - (dx / width) * 100));
+      const newPy = Math.max(0, Math.min(100, dragRefs[slotIdx].current.startPy - (dy / height) * 100));
+      const pos = `${Math.round(newPx)}% ${Math.round(newPy)}%`;
+      setPositions((prev) => { const next = [...prev] as typeof prev; next[slotIdx] = pos; return next; });
+      startTransition(() => { void updateBookPhotoPosition(bookId, COVER_SLOTS[slotIdx].posField, pos); });
+      dragRefs[slotIdx].current = null;
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }
+
   const displayIdx = active < visibleCount ? active : 0;
   const currentSlot = slots[displayIdx];
 
@@ -116,6 +232,7 @@ function CoverCarousel({ bookId, initial }: { bookId: string; initial: [string |
     <div className="relative" style={{ width: 180, height: 260 }}>
       {/* current cover */}
       <div
+        ref={coverContainerRef}
         className="w-full h-full rounded-[10px] overflow-hidden relative"
         style={{
           background: currentSlot?.url ? undefined : "var(--bg-surface-2)",
@@ -126,8 +243,21 @@ function CoverCarousel({ bookId, initial }: { bookId: string; initial: [string |
       >
         {currentSlot?.url ? (
           <>
-            <img src={currentSlot.url} alt="" className="w-full h-full object-cover" />
+            <img
+              src={currentSlot.url}
+              alt=""
+              className="w-full h-full object-cover"
+              style={{ objectPosition: positions[currentSlot.idx] }}
+            />
             <div className="absolute inset-0 bg-black/10 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+              <button
+                onMouseDown={(e) => handleDragStart(currentSlot.idx, e)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-medium"
+                style={{ background: "rgba(255,255,255,0.9)", color: "var(--ink)", cursor: "grab" }}
+                title="Зажмите и перетащите"
+              >
+                <Move size={11} /> переместить
+              </button>
               <button
                 onClick={() => inputRefs[currentSlot.idx].current?.click()}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-medium"
@@ -213,11 +343,12 @@ export default function AboutBookForm({ book, suggestions, comments }: { book: B
     <div>
       {/* Баннер + обложки */}
       <div className="mb-8 rounded-[14px] overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-        <BannerSection bookId={book.id} initial={book.bannerUrl ?? null} />
+        <BannerSection bookId={book.id} initial={book.bannerUrl ?? null} initialPosition={book.bannerPosition ?? "50% 50%"} />
         <div className="px-6 pb-6 pt-8 flex gap-8 items-start">
           <CoverCarousel
             bookId={book.id}
             initial={[book.coverUrl ?? null, book.coverUrl2 ?? null, book.coverUrl3 ?? null]}
+            initialPositions={[book.coverPosition ?? "50% 50%", book.coverPosition2 ?? "50% 50%", book.coverPosition3 ?? "50% 50%"]}
           />
           <div className="flex-1 min-w-0 pt-1">
             <Field label="Название (рабочее)" value={book.title} field="title" bookId={book.id} suggestion={suggestions.title} />

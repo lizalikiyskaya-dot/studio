@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Bookmark, BookOpen, FileText, Pencil, PanelLeft } from "lucide-react";
+import { Bookmark, BookOpen, FileText, Pencil, PanelLeft, CalendarDays } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import CalendarWidget from "./CalendarWidget";
 import ToggleSwitch from "./ToggleSwitch";
@@ -12,6 +12,7 @@ import { useCanSuggest, useSetCanSuggest } from "@/features/suggestions/Suggesti
 
 const TOP_ITEMS = [
   { path: "tasks", label: "Задания", icon: Bookmark },
+  { path: "work-plan", label: "План работы", icon: CalendarDays },
   { path: "materials", label: "Материалы", icon: BookOpen },
   { path: "drafts", label: "Рукописи", icon: FileText },
   { path: "exercises", label: "Упражнения", icon: Pencil },

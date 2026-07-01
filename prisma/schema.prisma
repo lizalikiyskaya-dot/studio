@@ -64,6 +64,12 @@ enum PaymentStatus {
   PENDING
 }
 
+enum WorkPlanStatus {
+  PLANNED
+  IN_PROGRESS
+  DONE
+}
+
 enum WorldCategory {
   LOCATIONS
   FACTIONS
@@ -137,6 +143,7 @@ model User {
   notes             Note[]
   cycles            Cycle[]
   stories           Story[]
+  workPlans         WorkPlan[]
 }
 
 model Note {
@@ -282,6 +289,10 @@ model Book {
   coverUrl2        String?
   coverUrl3        String?
   bannerUrl        String?
+  coverPosition    String  @default("50% 50%")
+  coverPosition2   String  @default("50% 50%")
+  coverPosition3   String  @default("50% 50%")
+  bannerPosition   String  @default("50% 50%")
 
   synopsisMode SynopsisMode @default(TEXT)
   synopsisText String       @default("")
@@ -376,6 +387,19 @@ model StorylineBlock {
   color       String     @default("pink")
   name        String     @default("")
   description String     @default("")
+}
+
+model WorkPlan {
+  id          String         @id @default(cuid())
+  studentId   String
+  student     User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order       Int            @default(0)
+  monthStart  String         @default("")
+  monthEnd    String         @default("")
+  description String         @default("")
+  note        String         @default("")
+  status      WorkPlanStatus @default(PLANNED)
+  createdAt   DateTime       @default(now())
 }
 
 model Cycle {

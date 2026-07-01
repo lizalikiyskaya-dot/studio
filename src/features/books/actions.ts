@@ -83,3 +83,13 @@ export async function toggleChapterActBreak(chapterId: string, value: boolean) {
   await requireCabinetAccess(book.studentId);
   await prisma.planChapter.update({ where: { id: chapterId }, data: { actBreakAfter: value } });
 }
+
+export async function updateBookPhotoPosition(
+  bookId: string,
+  field: "coverPosition" | "coverPosition2" | "coverPosition3" | "bannerPosition",
+  position: string
+) {
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.book.update({ where: { id: bookId }, data: { [field]: position } });
+}
