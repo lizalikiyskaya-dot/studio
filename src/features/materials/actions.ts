@@ -32,3 +32,8 @@ export async function deleteMaterial(materialId: string) {
   await requireMentor(material.studentId);
   await prisma.material.delete({ where: { id: materialId } });
 }
+
+export async function reorderMaterials(studentId: string, ids: string[]) {
+  await requireMentor(studentId);
+  await Promise.all(ids.map((id, order) => prisma.material.update({ where: { id }, data: { order } })));
+}

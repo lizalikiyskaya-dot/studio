@@ -24,3 +24,8 @@ export async function deleteDraft(draftId: string) {
   await requireCabinetAccess(draft.studentId);
   await prisma.draft.delete({ where: { id: draftId } });
 }
+
+export async function reorderDrafts(studentId: string, ids: string[]) {
+  await requireCabinetAccess(studentId);
+  await Promise.all(ids.map((id, order) => prisma.draft.update({ where: { id }, data: { order } })));
+}

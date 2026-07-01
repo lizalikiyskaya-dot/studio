@@ -7,11 +7,13 @@ export default function Accordion({
   title,
   defaultOpen,
   headerExtra,
+  headerPrefix,
   children,
 }: {
   title: React.ReactNode;
   defaultOpen?: boolean;
   headerExtra?: React.ReactNode;
+  headerPrefix?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(!!defaultOpen);
@@ -25,6 +27,7 @@ export default function Accordion({
         onClick={() => setOpen((v) => !v)}
         className="heading w-full flex items-center justify-between gap-3 px-4 py-3 text-left font-semibold text-[14.5px] cursor-pointer"
       >
+        {headerPrefix}
         <span className="flex-1 min-w-0">{title}</span>
         {headerExtra}
         <span

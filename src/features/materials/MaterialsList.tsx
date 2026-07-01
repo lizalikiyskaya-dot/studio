@@ -1,17 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import type { Material } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
 import FileAttachBox from "@/components/FileAttachBox";
 import Subtabs from "@/components/Subtabs";
 import { uploadFile } from "@/lib/uploadFile";
 import { blurOnEnter } from "@/lib/blurOnEnter";
+import { GripVertical } from "lucide-react";
 import {
   createMaterial,
   updateMaterialTitle,
   cycleMaterialStatus,
   deleteMaterial,
+  reorderMaterials,
 } from "./actions";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
 import { Button } from "@/components/ui/Button";
@@ -45,10 +47,47 @@ function DownloadOrUpload({
     return <FileAttachBox label={label === "файл" ? "+ файл" : `+ файл ${label}`} onUpload={onUpload} />;
   }
   return (
-    <span className="text-[13px]" style={{ color: "var(--faded)" }}>
+    <span className="text-[13px]" style={{ color: "var(--ink-faint)" }}>
       файл пока не загружен
     </span>
   );
+}
+
+function useDrag<T extends { id: string }>(
+  items: T[],
+  setItems: React.Dispatch<React.SetStateAction<T[]>>,
+  onReorder: (ids: string[]) => void
+) {
+  const dragId = useRef<string | null>(null);
+  const dragOverId = useRef<string | null>(null);
+
+  function onDragStart(id: string) {
+    dragId.current = id;
+  }
+
+  function onDragOver(e: React.DragEvent, id: string) {
+    e.preventDefault();
+    dragOverId.current = id;
+  }
+
+  function onDrop() {
+    const from = dragId.current;
+    const to = dragOverId.current;
+    if (!from || !to || from === to) return;
+    setItems((prev) => {
+      const next = [...prev];
+      const fromIdx = next.findIndex((i) => i.id === from);
+      const toIdx = next.findIndex((i) => i.id === to);
+      const [item] = next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, item);
+      onReorder(next.map((i) => i.id));
+      return next;
+    });
+    dragId.current = null;
+    dragOverId.current = null;
+  }
+
+  return { onDragStart, onDragOver, onDrop };
 }
 
 function BooksList({
@@ -62,6 +101,10 @@ function BooksList({
 }) {
   const [books, setBooks] = useState(materials);
   const [, startTransition] = useTransition();
+
+  const drag = useDrag(books, setBooks, (ids) =>
+    startTransition(() => reorderMaterials(studentId, ids))
+  );
 
   function handleAdd() {
     startTransition(async () => {
@@ -93,9 +136,7 @@ function BooksList({
   function handleStatus(id: string, current: Material["status"]) {
     const next = nextMaterialStatus(current);
     setBooks((prev) => prev.map((m) => (m.id === id ? { ...m, status: next } : m)));
-    startTransition(() => {
-      cycleMaterialStatus(id);
-    });
+    startTransition(async () => { await cycleMaterialStatus(id); });
   }
 
   function handleDelete(id: string) {
@@ -107,54 +148,72 @@ function BooksList({
   return (
     <div>
       {books.map((material) => (
-        <Accordion
+        <div
           key={material.id}
-          title={material.title || "Без названия"}
-          headerExtra={
-            <span
-              onClick={(e) => {
-                e.stopPropagation();
-                handleStatus(material.id, material.status);
-              }}
-              className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
-              style={MATERIAL_STATUS_STYLE[material.status]}
-            >
-              {MATERIAL_STATUS_LABEL[material.status]}
-            </span>
-          }
+          draggable={canManage}
+          onDragStart={() => drag.onDragStart(material.id)}
+          onDragOver={(e) => drag.onDragOver(e, material.id)}
+          onDrop={drag.onDrop}
+          className="group"
         >
-          {canManage && (
-            <input
-              defaultValue={material.title}
-              onBlur={(e) => handleTitle(material.id, e.target.value)}
-              onKeyDown={blurOnEnter}
-              placeholder="Название книги"
-              className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
-              style={{ borderColor: "var(--rule)" }}
-            />
-          )}
-          <div className="flex items-center gap-2 flex-wrap">
-            <DownloadOrUpload
-              label="PDF"
-              fileUrl={material.pdfUrl}
-              fileName={material.pdfName}
-              canManage={canManage}
-              onUpload={(file) => handleFile(material.id, "pdf", file)}
-            />
-            <DownloadOrUpload
-              label="EPUB"
-              fileUrl={material.epubUrl}
-              fileName={material.epubName}
-              canManage={canManage}
-              onUpload={(file) => handleFile(material.id, "epub", file)}
-            />
+          <Accordion
+            key={material.id}
+            title={material.title || "Без названия"}
+            headerPrefix={
+              canManage ? (
+                <GripVertical
+                  size={14}
+                  className="shrink-0 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ color: "var(--ink-faint)" }}
+                />
+              ) : undefined
+            }
+            headerExtra={
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatus(material.id, material.status);
+                }}
+                className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
+                style={MATERIAL_STATUS_STYLE[material.status]}
+              >
+                {MATERIAL_STATUS_LABEL[material.status]}
+              </span>
+            }
+          >
             {canManage && (
-              <Button onClick={() => handleDelete(material.id)} variant="secondary" size="sm" pill className="ml-auto">
-                удалить
-              </Button>
+              <input
+                defaultValue={material.title}
+                onBlur={(e) => handleTitle(material.id, e.target.value)}
+                onKeyDown={blurOnEnter}
+                placeholder="Название книги"
+                className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
+                style={{ borderColor: "var(--border)" }}
+              />
             )}
-          </div>
-        </Accordion>
+            <div className="flex items-center gap-2 flex-wrap">
+              <DownloadOrUpload
+                label="PDF"
+                fileUrl={material.pdfUrl}
+                fileName={material.pdfName}
+                canManage={canManage}
+                onUpload={(file) => handleFile(material.id, "pdf", file)}
+              />
+              <DownloadOrUpload
+                label="EPUB"
+                fileUrl={material.epubUrl}
+                fileName={material.epubName}
+                canManage={canManage}
+                onUpload={(file) => handleFile(material.id, "epub", file)}
+              />
+              {canManage && (
+                <Button onClick={() => handleDelete(material.id)} variant="secondary" size="sm" pill className="ml-auto">
+                  удалить
+                </Button>
+              )}
+            </div>
+          </Accordion>
+        </div>
       ))}
 
       {canManage && (
@@ -177,6 +236,10 @@ function HandoutsList({
 }) {
   const [handouts, setHandouts] = useState(materials);
   const [, startTransition] = useTransition();
+
+  const drag = useDrag(handouts, setHandouts, (ids) =>
+    startTransition(() => reorderMaterials(studentId, ids))
+  );
 
   function handleAdd() {
     startTransition(async () => {
@@ -206,9 +269,7 @@ function HandoutsList({
   function handleStatus(id: string, current: Material["status"]) {
     const next = nextMaterialStatus(current);
     setHandouts((prev) => prev.map((m) => (m.id === id ? { ...m, status: next } : m)));
-    startTransition(() => {
-      cycleMaterialStatus(id);
-    });
+    startTransition(async () => { await cycleMaterialStatus(id); });
   }
 
   return (
@@ -216,9 +277,20 @@ function HandoutsList({
       {handouts.map((material) => (
         <div
           key={material.id}
-          className="flex items-center gap-3 py-3 border-b flex-wrap"
-          style={{ borderColor: "var(--rule)" }}
+          draggable={canManage}
+          onDragStart={() => drag.onDragStart(material.id)}
+          onDragOver={(e) => drag.onDragOver(e, material.id)}
+          onDrop={drag.onDrop}
+          className="group flex items-center gap-3 py-3 border-b flex-wrap"
+          style={{ borderColor: "var(--border)" }}
         >
+          {canManage && (
+            <GripVertical
+              size={14}
+              className="shrink-0 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ color: "var(--ink-faint)" }}
+            />
+          )}
           {canManage ? (
             <input
               defaultValue={material.title}
