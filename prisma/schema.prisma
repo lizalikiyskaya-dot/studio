@@ -457,6 +457,7 @@ model StoryCharacter {
   storyId   String
   story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
   order     Int      @default(0)
+  type      String   @default("MAIN")
   name      String   @default("")
   photoUrl  String?
   data      Json     @default("{}")

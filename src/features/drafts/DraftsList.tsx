@@ -8,7 +8,7 @@ import { blurOnEnter } from "@/lib/blurOnEnter";
 import { shortenUrl } from "@/lib/shortenUrl";
 import { createDraft, updateDraftField, deleteDraft, reorderDrafts } from "./actions";
 import { Button } from "@/components/ui/Button";
-import { ChevronDown, ChevronRight, GripVertical } from "lucide-react";
+import { ChevronDown, ChevronRight, GripVertical, Pencil } from "lucide-react";
 
 export default function DraftsList({
   studentId,
@@ -143,14 +143,25 @@ export default function DraftsList({
                 <div className="flex items-center gap-2 flex-wrap">
                   {/* Link */}
                   {draft.link ? (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleEditLink(draft.id, draft.link); }}
-                      className="text-[12.5px] underline-offset-2 underline"
-                      style={{ color: "var(--accent)" }}
-                      title="Нажмите, чтобы изменить ссылку"
-                    >
-                      {shortenUrl(draft.link)}
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <a
+                        href={draft.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-[12.5px] underline-offset-2 underline"
+                        style={{ color: "var(--accent)" }}
+                      >
+                        {shortenUrl(draft.link)}
+                      </a>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleEditLink(draft.id, draft.link); }}
+                        title="Изменить ссылку"
+                        style={{ color: "var(--ink-faint)" }}
+                      >
+                        <Pencil size={11} />
+                      </button>
+                    </div>
                   ) : (
                     <Button
                       onClick={(e) => { e.stopPropagation(); handleEditLink(draft.id, null); }}

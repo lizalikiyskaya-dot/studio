@@ -62,12 +62,12 @@ export async function reorderCycleCharacters(cycleId: string, orderedIds: string
 
 // --- Story-level (own) characters ---
 
-export async function createStoryCharacter(storyId: string) {
+export async function createStoryCharacter(storyId: string, type: "MAIN" | "SECONDARY" = "MAIN") {
   const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
   await requireCabinetAccess(story.studentId);
   const count = await prisma.storyCharacter.count({ where: { storyId } });
   return prisma.storyCharacter.create({
-    data: { storyId, order: count, name: "Новый персонаж" },
+    data: { storyId, order: count, type, name: "Новый персонаж" },
   });
 }
 

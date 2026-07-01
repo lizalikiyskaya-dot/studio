@@ -244,7 +244,7 @@ export default function PlanTable({
                   {/* № */}
                   <td
                     className="font-mono-label text-center"
-                    style={{ ...cell("summary"), fontSize: 12, color: "var(--ink-faint)", verticalAlign: "middle" }}
+                    style={{ ...cellBase, borderBottom: "1px solid var(--border)", background: rowBg, fontSize: 12, color: "var(--ink-faint)", verticalAlign: "middle" }}
                   >
                     {idx + 1}
                   </td>
