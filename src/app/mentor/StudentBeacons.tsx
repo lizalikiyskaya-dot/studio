@@ -25,7 +25,7 @@ export function OnlineBeacon({ lastSeenAt }: { lastSeenAt: Date | null }) {
         width: 8,
         height: 8,
         borderRadius: "50%",
-        background: "#4C684B",
+        background: "var(--sage)",
         animation: "beacon-pulse 1.8s ease-in-out infinite",
       }}
     />
@@ -44,7 +44,7 @@ export function ActivityBeacon({ lastActivityAt }: { lastActivityAt: Date | null
         width: 8,
         height: 8,
         borderRadius: "50%",
-        background: "#873443",
+        background: "var(--accent)",
         animation: "beacon-pulse 2.4s ease-in-out infinite",
       }}
     />

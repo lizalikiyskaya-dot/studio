@@ -4,17 +4,21 @@
   --paper: #f8f4f1;
   --paper-light: #ffffff;
   --bg-surface-2: #faf8f4;
-  --ink: #1f201e;
+  --ink: #444444;
   --ink-soft: #5c5b56;
-  --wine: #873443;
+  /* primary bordo — --accent is the canonical name (design system),
+     --wine is a legacy alias; keep both pointing at the same value */
+  --accent: #8b5660;
+  --wine: #8b5660;
   /* dashed "+ add" borders use this — matches accent, per the mockup's
      .add-task-btn convention (border: 1px dashed var(--accent)) */
-  --wine-soft: #873443;
+  --wine-soft: #8b5660;
   --accent-soft: #f0e1e4;
-  --sage: #4c684b;
+  --sage: #799778;
   --sage-soft: #e2eadc;
-  --gold: #b8923a;
+  --gold: #b8944e;
   --gold-soft: #f4ddbc;
+  --gray: #7a7979;
   --blue-soft: #e2e9ee;
   --blue-ink: #3f6080;
   --faded: #8e8b84;
@@ -60,10 +64,13 @@ body {
 .field-literary {
 }
 
+/* Small labels (№, %, dates, status badges). The UI kit uses Montserrat
+   everywhere — no monospace — so this just adds subtle tracking/weight to
+   set these labels apart, in the same family as body text. */
 .font-mono-label {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .masthead-title,
@@ -73,7 +80,7 @@ h2,
 h3,
 h4 {
   font-family: var(--font-serif), serif;
-  font-weight: 700;
+  font-weight: 600;
   font-style: normal;
   text-transform: none;
   letter-spacing: normal;
@@ -81,7 +88,7 @@ h4 {
 
 .page-title {
   font-family: var(--font-serif), serif !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   text-transform: none !important;
   letter-spacing: normal !important;
 }
@@ -117,7 +124,7 @@ h4 {
 }
 
 .nav-label {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 9.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;

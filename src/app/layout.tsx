@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
+import { Montserrat, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const montserrat = Montserrat({
   subsets: ["latin", "cyrillic"],
   variable: "--font-sans",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const playfair = Playfair_Display({
   subsets: ["latin", "cyrillic"],
-  variable: "--font-mono",
-});
-
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-serif",
 });
 
@@ -31,7 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="ru"
-      className={`${inter.variable} ${jetbrainsMono.variable} ${sourceSerif.variable} min-h-full antialiased`}
+      className={`${montserrat.variable} ${playfair.variable} min-h-full antialiased`}
     >
       <body className="min-h-full">{children}</body>
     </html>

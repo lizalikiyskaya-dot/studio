@@ -16,17 +16,23 @@ export default function Subtabs({
       <div className="flex gap-2 mb-6">
         {tabs.map((tab, i) => {
           const isActive = active === i;
-          const activeBg = variant === "toggle" ? "var(--gold)" : "#E8E1DC";
-          const activeColor = variant === "toggle" ? "#fff" : "var(--ink)";
+          const toggle = variant === "toggle";
+          // Subsections (toggle) use gold — solid gold when active, gold
+          // outline + gold text when inactive. Sections (page) use the
+          // neutral beige active fill.
+          const activeBg = toggle ? "var(--gold)" : "#E8E1DC";
+          const activeColor = toggle ? "#fff" : "var(--ink)";
+          const inactiveBorder = toggle ? "var(--gold)" : "var(--rule)";
+          const inactiveColor = toggle ? "var(--gold)" : "var(--ink-soft)";
           return (
             <button
               key={tab.label}
               onClick={() => setActive(i)}
-              className={variant === "toggle" ? "text-[13px] px-4 py-1.5 rounded-full" : "text-[13px] px-4 py-2 rounded-full"}
+              className={toggle ? "text-[13px] px-4 py-1.5 rounded-full" : "text-[13px] px-4 py-2 rounded-full"}
               style={{
-                border: `1px solid ${isActive ? activeBg : "var(--rule)"}`,
+                border: `1px solid ${isActive ? activeBg : inactiveBorder}`,
                 background: isActive ? activeBg : "var(--paper-light)",
-                color: isActive ? activeColor : "var(--ink-soft)",
+                color: isActive ? activeColor : inactiveColor,
                 fontWeight: isActive ? 600 : 400,
               }}
             >
