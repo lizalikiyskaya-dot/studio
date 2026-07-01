@@ -16,7 +16,7 @@ export default function Subtabs({
       <div className="flex gap-2 mb-6">
         {tabs.map((tab, i) => {
           const isActive = active === i;
-          const activeBg = variant === "toggle" ? "var(--wine)" : "#E8E1DC";
+          const activeBg = variant === "toggle" ? "var(--gold)" : "#E8E1DC";
           const activeColor = variant === "toggle" ? "#fff" : "var(--ink)";
           return (
             <button

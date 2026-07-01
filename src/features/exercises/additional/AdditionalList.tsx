@@ -25,10 +25,10 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
 };
 
 const STATUS_STYLE: Record<TaskStatus, React.CSSProperties> = {
-  IN_PROGRESS: { background: "#fff", color: "var(--faded)", border: "1px dashed var(--rule)" },
-  SUBMITTED: { background: "#fff", color: "var(--sage)", border: "1px solid var(--sage)" },
-  NEEDS_REVISION: { background: "#fff", color: "var(--wine)", border: "1px solid var(--wine)" },
-  ACCEPTED: { background: "var(--ink)", color: "#fff", border: "1px solid var(--ink)" },
+  IN_PROGRESS: { background: "var(--bg-surface-2)", color: "var(--faded)", border: "1px dashed var(--rule)" },
+  SUBMITTED: { background: "#E2E9EE", color: "#3F6080", border: "none" },
+  NEEDS_REVISION: { background: "var(--accent-soft)", color: "var(--wine)", border: "none" },
+  ACCEPTED: { background: "var(--ink)", color: "#fff", border: "none" },
 };
 
 function TableSection({

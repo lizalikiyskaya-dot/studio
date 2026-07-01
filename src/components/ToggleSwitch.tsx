@@ -15,7 +15,7 @@ export default function ToggleSwitch({
       className="flex items-center justify-between gap-2 w-full"
       style={{ background: "transparent", border: "none", cursor: "pointer" }}
     >
-      {label && <span className="text-[12.5px]" style={{ color: "var(--ink-soft)" }}>{label}</span>}
+      {label && <span className="text-[13px]" style={{ color: "var(--ink)" }}>{label}</span>}
       <span
         className="relative inline-block rounded-full flex-shrink-0"
         style={{

@@ -37,9 +37,13 @@ export default function StorySourceToggle({
   }
 
   return (
-    <div className="flex flex-wrap gap-6 mb-6">
-      <ToggleSwitch checked={chars} onChange={handleCharsToggle} label={chars ? "Персонажи: свои для рассказа" : "Персонажи: общие цикла"} />
-      <ToggleSwitch checked={setting} onChange={handleSettingToggle} label={setting ? "Сеттинг: свой для рассказа" : "Сеттинг: общий цикла"} />
+    <div className="flex flex-wrap gap-2 mb-6">
+      <div className="px-3 py-2 rounded-full" style={{ background: "#fff", border: "1px solid var(--rule)" }}>
+        <ToggleSwitch checked={chars} onChange={handleCharsToggle} label="Общие персонажи" />
+      </div>
+      <div className="px-3 py-2 rounded-full" style={{ background: "#fff", border: "1px solid var(--rule)" }}>
+        <ToggleSwitch checked={setting} onChange={handleSettingToggle} label="Общий сеттинг" />
+      </div>
     </div>
   );
 }
