@@ -1,4 +1,15 @@
 export type CharacterFieldKey =
+  | "sec_role"
+  | "sec_function"
+  | "sec_indispensable"
+  | "sec_appearance"
+  | "sec_habits"
+  | "sec_contrast"
+  | "sec_theme"
+  | "sec_mood"
+  | "sec_arcStart"
+  | "sec_arcMove"
+  | "sec_arcEnd"
   | "habits"
   | "patterns"
   | "speech"
@@ -91,6 +102,17 @@ export type CharacterFieldKey =
   | "flatResultScene";
 
 export const ALL_CHARACTER_FIELD_KEYS: CharacterFieldKey[] = [
+  "sec_role",
+  "sec_function",
+  "sec_indispensable",
+  "sec_appearance",
+  "sec_habits",
+  "sec_contrast",
+  "sec_theme",
+  "sec_mood",
+  "sec_arcStart",
+  "sec_arcMove",
+  "sec_arcEnd",
   "habits",
   "patterns",
   "speech",
@@ -309,6 +331,41 @@ export const ARC_GROUPS: FieldGroup[] = [
       { key: "flatInfluence", sceneKey: "flatInfluenceScene", label: "Влияние героя на других / мир" },
       { key: "flatClimax", sceneKey: "flatClimaxScene", label: "Кульминация — истина побеждает сопротивление мира" },
       { key: "flatResult", sceneKey: "flatResultScene", label: "Результат — меняется мир, а не герой" },
+    ],
+  },
+];
+
+export const SECONDARY_CHARACTER_GROUPS: FieldGroup[] = [
+  {
+    title: "1. Роль в истории",
+    defaultOpen: true,
+    fields: [
+      { key: "sec_role", label: "Роль (наставник, спутник, антагонист...)" },
+      { key: "sec_function", label: "Функция: катализатор / контраст / голос темы / ритм и масштаб" },
+      { key: "sec_indispensable", label: "Что сломается в сюжете, если убрать этого персонажа?" },
+    ],
+  },
+  {
+    title: "2. Характер",
+    fields: [
+      { key: "sec_appearance", label: "Внешность" },
+      { key: "sec_habits", label: "Привычки и речь" },
+    ],
+  },
+  {
+    title: "3. Как работает",
+    fields: [
+      { key: "sec_contrast", label: "Контраст — какую черту протагониста проявляет" },
+      { key: "sec_theme", label: "Голос темы — какую идею несёт" },
+      { key: "sec_mood", label: "Эмоции и ритм — как меняет настроение или темп сцены" },
+    ],
+  },
+  {
+    title: "4. Арка",
+    fields: [
+      { key: "sec_arcStart", label: "Точка А — исходное состояние" },
+      { key: "sec_arcMove", label: "Движение — духовное, моральное, эмоциональное" },
+      { key: "sec_arcEnd", label: "Точка Б — новое понимание (или намеренная статичность)" },
     ],
   },
 ];

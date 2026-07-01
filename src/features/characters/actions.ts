@@ -12,12 +12,12 @@ export async function updateCharacterArcType(characterId: string, arcType: ArcTy
   await prisma.character.update({ where: { id: characterId }, data: { arcType } });
 }
 
-export async function createCharacter(bookId: string) {
+export async function createCharacter(bookId: string, type: "MAIN" | "SECONDARY" = "MAIN") {
   const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
   await requireCabinetAccess(book.studentId);
-  const count = await prisma.character.count({ where: { bookId } });
+  const count = await prisma.character.count({ where: { bookId, type } });
   return prisma.character.create({
-    data: { bookId, order: count, name: "Новый персонаж" },
+    data: { bookId, type, order: count, name: type === "SECONDARY" ? "Новый второстепенный" : "Новый персонаж" },
   });
 }
 

@@ -6,6 +6,7 @@ import CharactersList from "./CharactersList";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
 import type { FieldGroup } from "./fields";
+import { SECONDARY_CHARACTER_GROUPS } from "./fields";
 
 export default async function CharactersView({
   studentId,
@@ -45,7 +46,8 @@ export default async function CharactersView({
       <CharactersList
         bookId={activeBook.id}
         initialCharacters={characters}
-        groups={groups}
+        mainGroups={groups}
+        secondaryGroups={SECONDARY_CHARACTER_GROUPS}
         suggestions={suggestions}
         comments={comments}
       />

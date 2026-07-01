@@ -322,6 +322,7 @@ model Character {
   bookId    String
   book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   order     Int      @default(0)
+  type      String   @default("MAIN")
   name      String   @default("")
   photoUrl  String?
   data      Json     @default("{}")

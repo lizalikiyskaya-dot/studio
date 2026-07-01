@@ -12,54 +12,59 @@ import { useDragReorder } from "@/lib/useDragReorder";
 import type { FieldGroup } from "./fields";
 import { Button } from "@/components/ui/Button";
 
-export default function CharactersList({
+function CharacterSection({
   bookId,
-  initialCharacters,
+  characters,
   groups,
   suggestions,
   comments,
+  type,
+  onAdd,
 }: {
   bookId: string;
-  initialCharacters: Character[];
+  characters: Character[];
   groups: FieldGroup[];
   suggestions: Record<string, Record<string, string>>;
   comments: Record<string, Comment[]>;
+  type: "MAIN" | "SECONDARY";
+  onAdd: (c: Character) => void;
 }) {
-  const [characters, setCharacters] = useState(initialCharacters);
+  const [items, setItems] = useState(characters);
   const [, startTransition] = useTransition();
-  const { dropTarget, dragHandle } = useDragReorder(characters, setCharacters, (orderedIds) =>
+  const { dropTarget, dragHandle } = useDragReorder(items, setItems, (orderedIds) =>
     startTransition(() => reorderCharacters(bookId, orderedIds))
   );
 
   function handleAdd() {
     startTransition(async () => {
-      const character = await createCharacter(bookId);
-      setCharacters((prev) => [...prev, character]);
+      const character = await createCharacter(bookId, type);
+      setItems((prev) => [...prev, character]);
+      onAdd(character);
     });
   }
 
   function handleDelete(id: string) {
-    setCharacters((prev) => prev.filter((c) => c.id !== id));
+    setItems((prev) => prev.filter((c) => c.id !== id));
     startTransition(() => deleteCharacter(id));
   }
 
   function handlePhotoUpload(id: string, file: File) {
     const objectUrl = URL.createObjectURL(file);
-    setCharacters((prev) => prev.map((c) => (c.id === id ? { ...c, photoUrl: objectUrl } : c)));
+    setItems((prev) => prev.map((c) => (c.id === id ? { ...c, photoUrl: objectUrl } : c)));
     startTransition(() => { void uploadFile("character-photo", id, "photoUrl", file); });
   }
 
   function handlePhotoDelete(id: string) {
-    setCharacters((prev) => prev.map((c) => (c.id === id ? { ...c, photoUrl: null } : c)));
+    setItems((prev) => prev.map((c) => (c.id === id ? { ...c, photoUrl: null } : c)));
     startTransition(() => { void deletePhoto("character-photo", id, "photoUrl"); });
   }
 
   function handleNameSaved(id: string, name: string) {
-    setCharacters((prev) => prev.map((c) => (c.id === id ? { ...c, name } : c)));
+    setItems((prev) => prev.map((c) => (c.id === id ? { ...c, name } : c)));
   }
 
   function handleFieldSaved(id: string, field: string, value: string) {
-    setCharacters((prev) =>
+    setItems((prev) =>
       prev.map((c) =>
         c.id === id ? { ...c, data: { ...((c.data as Record<string, string>) ?? {}), [field]: value } } : c
       )
@@ -68,7 +73,7 @@ export default function CharactersList({
 
   return (
     <div>
-      {characters.map((character) => {
+      {items.map((character) => {
         const charSuggestions = suggestions[character.id] ?? {};
         return (
           <div key={character.id} {...dropTarget(character.id)} className="flex items-start gap-1.5">
@@ -97,8 +102,70 @@ export default function CharactersList({
       })}
 
       <Button onClick={handleAdd} variant="dashed" size="sm" pill>
-        + новый персонаж
+        {type === "SECONDARY" ? "+ второстепенный персонаж" : "+ главный персонаж"}
       </Button>
+    </div>
+  );
+}
+
+export default function CharactersList({
+  bookId,
+  initialCharacters,
+  mainGroups,
+  secondaryGroups,
+  suggestions,
+  comments,
+}: {
+  bookId: string;
+  initialCharacters: Character[];
+  mainGroups: FieldGroup[];
+  secondaryGroups: FieldGroup[];
+  suggestions: Record<string, Record<string, string>>;
+  comments: Record<string, Comment[]>;
+}) {
+  const [allChars, setAllChars] = useState(initialCharacters);
+
+  const main = allChars.filter((c) => c.type === "MAIN");
+  const secondary = allChars.filter((c) => c.type === "SECONDARY");
+
+  function handleAdd(c: Character) {
+    setAllChars((prev) => [...prev, c]);
+  }
+
+  return (
+    <div className="space-y-10">
+      <section>
+        <h2 className="text-[16px] font-semibold mb-4" style={{ color: "var(--ink)" }}>
+          Главные персонажи
+        </h2>
+        <CharacterSection
+          bookId={bookId}
+          characters={main}
+          groups={mainGroups}
+          suggestions={suggestions}
+          comments={comments}
+          type="MAIN"
+          onAdd={handleAdd}
+        />
+      </section>
+
+      <section>
+        <h2 className="text-[16px] font-semibold mb-1" style={{ color: "var(--ink)" }}>
+          Второстепенные персонажи
+        </h2>
+        <p className="text-[12.5px] mb-4" style={{ color: "var(--ink-faint)" }}>
+          Катализатор · Контраст · Голос темы · Ритм и масштаб
+        </p>
+        <CharacterSection
+          bookId={bookId}
+          characters={secondary}
+          groups={secondaryGroups}
+          suggestions={suggestions}
+          comments={comments}
+          type="SECONDARY"
+          onAdd={handleAdd}
+        />
+      </section>
     </div>
   );
 }
