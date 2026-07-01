@@ -1,21 +1,18 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { PaymentStatus } from "@/generated/prisma/client";
-import { updatePaymentDay, togglePaymentStatus } from "./actions";
-import { BadgeButton } from "@/components/ui/Badge";
+import { updatePaymentDay } from "./actions";
 
+// Payment status (оплачено / ожидает оплаты) is controlled by the access
+// badge in StudentsList; here we only pick the monthly payment day.
 export default function PaymentControls({
   userId,
   paymentDay: initialDay,
-  paymentStatus: initialStatus,
 }: {
   userId: string;
   paymentDay: number | null;
-  paymentStatus: PaymentStatus;
 }) {
   const [day, setDay] = useState(initialDay);
-  const [status, setStatus] = useState(initialStatus);
   const [, startTransition] = useTransition();
 
   function handleDayChange(value: string) {
@@ -24,16 +21,8 @@ export default function PaymentControls({
     startTransition(() => updatePaymentDay(userId, num));
   }
 
-  function handleToggle() {
-    const next = status === "PAID" ? "PENDING" : "PAID";
-    setStatus(next);
-    startTransition(() => {
-      togglePaymentStatus(userId);
-    });
-  }
-
   return (
-    <div className="flex items-center gap-2 justify-end flex-wrap">
+    <div className="flex items-center gap-2 flex-wrap">
       <label className="text-[13px]" style={{ color: "var(--faded)" }}>
         День оплаты:
       </label>
@@ -50,9 +39,6 @@ export default function PaymentControls({
           </option>
         ))}
       </select>
-      <BadgeButton onClick={handleToggle} tone={status === "PAID" ? "success" : "danger"} fill={status === "PAID" ? "soft" : "outline"}>
-        {status === "PAID" ? "оплачено" : "ожидает оплаты"}
-      </BadgeButton>
     </div>
   );
 }

@@ -160,7 +160,12 @@
       "Bash(mv джокер.jpg joker.jpg)",
       "Bash(mv дороти.jpg dorothy.jpg)",
       "Bash(node -e \"const l = require\\('/Users/liz/Desktop/liza_studio/node_modules/lucide-react'\\); console.log\\(['MapPin','Swords','Scroll','Settings2','Sparkles','History','PawPrint','Languages','ScrollText','Globe','Wand2','NotepadText'].filter\\(k => k in l\\).join\\(', '\\)\\)\")",
-      "Bash(mkdir -p /Users/liz/Desktop/liza_studio/src/app/student-view/\\\\[studentId\\\\]/work-plan && mkdir -p /Users/liz/Desktop/liza_studio/src/app/dashboard/work-plan)"
+      "Bash(mkdir -p /Users/liz/Desktop/liza_studio/src/app/student-view/\\\\[studentId\\\\]/work-plan && mkdir -p /Users/liz/Desktop/liza_studio/src/app/dashboard/work-plan)",
+      "Bash(grep -E \"^tsx$|^ts-node$\")",
+      "Bash(node -e \"try{require.resolve\\('pg'\\);console.log\\('pg: yes'\\)}catch{console.log\\('pg: no'\\)}; try{require.resolve\\('bcryptjs'\\);console.log\\('bcryptjs: yes'\\)}catch{console.log\\('bcryptjs: no'\\)}\")",
+      "Bash(node /private/tmp/claude-501/-Users-liz-Desktop-liza-studio/814b9366-4686-446b-8d0b-8c8aeb391280/scratchpad/find-mentor.mjs)",
+      "Bash(node find-mentor.mjs)",
+      "Bash(node reset-pw.mjs)"
     ]
   }
 }

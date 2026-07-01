@@ -153,7 +153,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
 
               {/* payment day */}
               <td className="py-2.5 pr-2 align-top">
-                <PaymentControls userId={s.id} paymentDay={s.paymentDay} paymentStatus={s.paymentStatus as "PAID" | "PENDING"} />
+                <PaymentControls userId={s.id} paymentDay={s.paymentDay} />
               </td>
 
               {/* workshop locks */}
