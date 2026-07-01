@@ -99,7 +99,7 @@ export default function SuggestableField({
         <div className="mt-1.5">
           <button
             onClick={handleAccept}
-            className="flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-sm"
+            className="flex items-center gap-1 text-[12px] px-3.5 py-1 rounded-full"
             style={{ color: "#fff", background: "var(--sage)" }}
           >
             <Check size={12} /> принять правку

@@ -73,24 +73,36 @@ body {
   letter-spacing: 0.02em;
 }
 
+/* Serif (Playfair Display) is reserved for ONLY the biggest headings:
+   the masthead title "Студия художественной прозы" and page H1 titles
+   (.page-title). Everything else — card names, section headings,
+   character names in досье/арки/упражнения — is Montserrat. */
 .masthead-title,
-.heading,
-h1,
-h2,
-h3,
-h4 {
+.page-title {
   font-family: var(--font-serif), serif;
   font-weight: 600;
   font-style: normal;
   text-transform: none;
   letter-spacing: normal;
 }
-
 .page-title {
   font-family: var(--font-serif), serif !important;
   font-weight: 600 !important;
   text-transform: none !important;
   letter-spacing: normal !important;
+}
+
+/* Card titles / section headings — Montserrat semibold, not serif. */
+.heading,
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 600;
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .masthead-rule {
@@ -128,7 +140,7 @@ h4 {
   font-size: 9.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--faded);
+  color: var(--gold);
 }
 
 .btn-pill {

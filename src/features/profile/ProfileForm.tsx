@@ -149,8 +149,8 @@ export default function ProfileForm({
           />
           <button
             onClick={handleSaveName}
-            className="px-4 py-2 rounded-[9px] text-[13px] font-medium flex-shrink-0"
-            style={{ background: "var(--accent)", color: "#fff" }}
+            className="px-5 py-2 rounded-full text-[13px] font-medium flex-shrink-0"
+            style={{ background: "var(--sage)", color: "#fff", border: "1px solid var(--sage)" }}
           >
             Сохранить
           </button>
@@ -171,8 +171,8 @@ export default function ProfileForm({
           />
           <button
             onClick={handleSaveEmail}
-            className="px-4 py-2 rounded-[9px] text-[13px] font-medium flex-shrink-0"
-            style={{ background: "var(--accent)", color: "#fff" }}
+            className="px-5 py-2 rounded-full text-[13px] font-medium flex-shrink-0"
+            style={{ background: "var(--sage)", color: "#fff", border: "1px solid var(--sage)" }}
           >
             Сохранить
           </button>
@@ -201,8 +201,8 @@ export default function ProfileForm({
           />
           <button
             onClick={handleSavePassword}
-            className="px-4 py-2 rounded-[9px] text-[13px] font-medium flex-shrink-0"
-            style={{ background: "var(--accent)", color: "#fff" }}
+            className="px-5 py-2 rounded-full text-[13px] font-medium flex-shrink-0"
+            style={{ background: "var(--sage)", color: "#fff", border: "1px solid var(--sage)" }}
           >
             Сменить
           </button>

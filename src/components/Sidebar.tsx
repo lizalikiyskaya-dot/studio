@@ -115,7 +115,7 @@ export default function Sidebar({
           {!collapsed && (
             <div>
               <div className="masthead-title text-[15px] leading-tight font-bold">Студия художественной прозы</div>
-              <span className="masthead-title text-[12px] block mt-0.5" style={{ color: "var(--faded)", fontWeight: 400 }}>
+              <span className="text-[12px] block mt-0.5" style={{ color: "var(--gold)", fontWeight: 500 }}>
                 Лизы Ликийской
               </span>
               <div className="masthead-rule">
@@ -137,7 +137,7 @@ export default function Sidebar({
         {!collapsed && (
           <>
             {mentorViewLabel ? (
-              <Link href="/mentor" className="block text-[12.5px] mb-3.5 px-2.5" style={{ color: "var(--wine)" }}>
+              <Link href="/mentor" className="block text-[12.5px] mb-3.5 px-2.5" style={{ color: "var(--gold)" }}>
                 ← к ученикам · {mentorViewLabel}
               </Link>
             ) : (

@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="masthead-title font-semibold text-[19px] leading-tight">
             Студия художественной прозы
           </div>
-          <span className="masthead-title italic text-[13px] block mt-0.5" style={{ color: "var(--ink-soft)" }}>
+          <span className="text-[13px] block mt-0.5" style={{ color: "var(--gold)", fontWeight: 500 }}>
             Лизы Ликийской
           </span>
           <div className="masthead-rule">

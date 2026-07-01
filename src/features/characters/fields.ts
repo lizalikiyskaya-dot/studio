@@ -208,7 +208,7 @@ export const ALL_CHARACTER_FIELD_KEYS: CharacterFieldKey[] = [
 export type FieldGroup = {
   title: string;
   subhead?: string;
-  fields: { key: CharacterFieldKey; label: string; sceneKey?: CharacterFieldKey }[];
+  fields: { key: CharacterFieldKey; label: string; sceneKey?: CharacterFieldKey; subhead?: string }[];
   defaultOpen?: boolean;
 };
 
@@ -222,17 +222,9 @@ export const DOSSIER_GROUPS: FieldGroup[] = [
       { key: "patterns", label: "Паттерны" },
       { key: "speech", label: "Речь" },
       { key: "appearance", label: "Внешность" },
+      { key: "middleLayer", label: "", subhead: "Средний слой — быт и окружение" },
+      { key: "deepLayer", label: "", subhead: "Глубокий слой — страхи и травмы" },
     ],
-  },
-  {
-    title: "",
-    subhead: "Средний слой — быт и окружение",
-    fields: [{ key: "middleLayer", label: "" }],
-  },
-  {
-    title: "",
-    subhead: "Глубокий слой — страхи и травмы",
-    fields: [{ key: "deepLayer", label: "" }],
   },
   {
     title: "2. Исходная точка",

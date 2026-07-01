@@ -199,16 +199,22 @@ export default function CharacterProfile({
               </div>
             )}
             {group.fields.map((f) => (
-              <FieldBlock
-                key={f.key}
-                label={f.label}
-                value={data[f.key] ?? ""}
-                onBlur={(v) => onFieldBlur(f.key, v)}
-                readOnly={readOnly}
-                suggestable={suggestable}
-                fieldKey={f.key}
-                suggestion={fieldSuggestions?.[f.key]}
-              />
+              <div key={f.key}>
+                {f.subhead && (
+                  <div className="text-[13px] font-medium mb-2 mt-4" style={{ color: "var(--wine)" }}>
+                    {f.subhead}
+                  </div>
+                )}
+                <FieldBlock
+                  label={f.label}
+                  value={data[f.key] ?? ""}
+                  onBlur={(v) => onFieldBlur(f.key, v)}
+                  readOnly={readOnly}
+                  suggestable={suggestable}
+                  fieldKey={f.key}
+                  suggestion={fieldSuggestions?.[f.key]}
+                />
+              </div>
             ))}
           </Accordion>
         );

@@ -100,7 +100,7 @@ export default function RegisterPage() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 rounded-[2px] text-white text-[15px] disabled:opacity-60"
+        className="w-full py-2.5 rounded-full text-white text-[15px] disabled:opacity-60"
         style={{ background: "var(--wine)" }}
       >
         {loading ? "Отправка..." : "Зарегистрироваться"}
