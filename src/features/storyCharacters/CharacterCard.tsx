@@ -7,6 +7,7 @@ import ImageUploadBox from "@/components/ImageUploadBox";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import { ARC_GROUPS, type CharacterFieldKey } from "@/features/characters/fields";
+import { CHARACTER_DEFAULTS } from "@/lib/characterDefaults";
 import { Button } from "@/components/ui/Button";
 
 const ARC_TYPE_INDEX: Record<ArcType, number> = {
@@ -46,6 +47,7 @@ export default function CharacterCard({
   onUpdateName,
   onUpdateArcType,
   onUpdateField,
+  onUpdatePhotoUrl,
   onDelete,
 }: {
   character: CharacterLike;
@@ -53,6 +55,7 @@ export default function CharacterCard({
   onUpdateName: (id: string, name: string) => void;
   onUpdateArcType: (id: string, arcType: ArcType) => void;
   onUpdateField: (id: string, field: CharacterFieldKey, value: string) => void;
+  onUpdatePhotoUrl?: (id: string, url: string) => void;
   onDelete: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -112,6 +115,11 @@ export default function CharacterCard({
               setPhotoUrl(null);
               startTransition(() => { void deletePhoto(uploadTarget, character.id, "photoUrl"); });
             }}
+            onSelectUrl={(url) => {
+              setPhotoUrl(url);
+              onUpdatePhotoUrl?.(character.id, url);
+            }}
+            defaults={CHARACTER_DEFAULTS}
             placeholder="фото"
             className="rounded-full flex-shrink-0"
             style={{ width: 90, height: 90, minWidth: 90 }}

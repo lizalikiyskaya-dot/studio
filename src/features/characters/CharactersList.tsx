@@ -6,11 +6,12 @@ import CharacterProfile from "./CharacterProfile";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import DragHandle from "@/components/DragHandle";
-import { createCharacter, deleteCharacter, reorderCharacters } from "./actions";
+import { createCharacter, deleteCharacter, reorderCharacters, updateCharacterPhotoUrl } from "./actions";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import { useDragReorder } from "@/lib/useDragReorder";
 import type { FieldGroup } from "./fields";
 import { Button } from "@/components/ui/Button";
+import { CHARACTER_DEFAULTS } from "@/lib/characterDefaults";
 
 function CharacterSection({
   bookId,
@@ -89,6 +90,11 @@ function CharacterSection({
                   onFieldBlur={(field, value) => handleFieldSaved(character.id, field, value)}
                   onPhotoUpload={(file) => handlePhotoUpload(character.id, file)}
                   onPhotoDelete={() => handlePhotoDelete(character.id)}
+                  onPhotoSelectUrl={(url) => {
+                    setItems((prev) => prev.map((c) => (c.id === character.id ? { ...c, photoUrl: url } : c)));
+                    startTransition(() => { void updateCharacterPhotoUrl(character.id, url); });
+                  }}
+                  photoDefaults={CHARACTER_DEFAULTS}
                   onDelete={() => handleDelete(character.id)}
                   suggestable={{ model: "Character", recordId: character.id }}
                   nameSuggestion={charSuggestions.name}

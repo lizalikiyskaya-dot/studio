@@ -9,12 +9,14 @@ import ImageUploadBox from "@/components/ImageUploadBox";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import type { CharacterFieldKey } from "@/features/characters/fields";
 import { SECONDARY_CHARACTER_GROUPS } from "@/features/characters/fields";
+import { CHARACTER_DEFAULTS } from "@/lib/characterDefaults";
 import {
   createStoryCharacter,
   deleteStoryCharacter,
   updateStoryCharacterName,
   updateStoryCharacterArcType,
   updateStoryCharacterField,
+  updateStoryCharacterPhotoUrl,
 } from "./actions";
 import { Button } from "@/components/ui/Button";
 
@@ -70,6 +72,11 @@ function SecondaryCard({
                 setPhotoUrl(null);
                 startTransition(() => { void deletePhoto("story-character-photo", character.id, "photoUrl"); });
               }}
+              onSelectUrl={(url) => {
+                setPhotoUrl(url);
+                startTransition(() => { void updateStoryCharacterPhotoUrl(character.id, url); });
+              }}
+              defaults={CHARACTER_DEFAULTS}
               placeholder="фото"
               className="rounded-full flex-shrink-0"
               style={{ width: 90, height: 90, minWidth: 90 }}
@@ -188,6 +195,10 @@ export default function StoryCharactersSection({
             onUpdateName={handleUpdateName}
             onUpdateArcType={handleUpdateArcType}
             onUpdateField={handleUpdateField}
+            onUpdatePhotoUrl={(id, url) => {
+              setList((prev) => prev.map((c) => (c.id === id ? { ...c, photoUrl: url } : c)));
+              startTransition(() => { void updateStoryCharacterPhotoUrl(id, url); });
+            }}
             onDelete={handleDelete}
           />
         ))}

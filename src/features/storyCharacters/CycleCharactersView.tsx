@@ -11,6 +11,7 @@ import {
   updateCycleCharacterName,
   updateCycleCharacterArcType,
   updateCycleCharacterField,
+  updateCycleCharacterPhotoUrl,
 } from "./actions";
 import { Button } from "@/components/ui/Button";
 
@@ -67,6 +68,10 @@ export default function CycleCharactersView({
           onUpdateName={handleUpdateName}
           onUpdateArcType={handleUpdateArcType}
           onUpdateField={handleUpdateField}
+          onUpdatePhotoUrl={(id, url) => {
+            setList((prev) => prev.map((c) => (c.id === id ? { ...c, photoUrl: url } : c)));
+            startTransition(() => { void updateCycleCharacterPhotoUrl(id, url); });
+          }}
           onDelete={handleDelete}
         />
       ))}

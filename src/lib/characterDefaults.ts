@@ -1,0 +1,16 @@
+export const CHARACTER_DEFAULTS = [
+  "/character-defaults/tony-stark.webp",
+  "/character-defaults/captain-america.jpg",
+  "/character-defaults/corleone.jpeg",
+  "/character-defaults/darth-vader.jpg",
+  "/character-defaults/vader.jpg",
+  "/character-defaults/dorothy.jpg",
+  "/character-defaults/elsa.webp",
+  "/character-defaults/heathcliff.jpg",
+  "/character-defaults/joker.jpg",
+  "/character-defaults/sansa-stark.jpeg",
+  "/character-defaults/shrek.webp",
+  "/character-defaults/simba.webp",
+  "/character-defaults/walter-white.jpg",
+  "/character-defaults/anakin.webp",
+];

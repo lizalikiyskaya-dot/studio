@@ -73,6 +73,8 @@ export default function CharacterProfile({
   onFieldBlur,
   onPhotoUpload,
   onPhotoDelete,
+  onPhotoSelectUrl,
+  photoDefaults,
   onDelete,
   readOnly,
   suggestable,
@@ -87,6 +89,8 @@ export default function CharacterProfile({
   onFieldBlur: (field: string, value: string) => void;
   onPhotoUpload: (file: File) => void;
   onPhotoDelete?: () => void;
+  onPhotoSelectUrl?: (url: string) => void;
+  photoDefaults?: string[];
   onDelete: () => void;
   readOnly?: boolean;
   suggestable?: Suggestable;
@@ -121,6 +125,8 @@ export default function CharacterProfile({
             shape="circle"
             onUpload={onPhotoUpload}
             onDelete={onPhotoDelete}
+            onSelectUrl={onPhotoSelectUrl}
+            defaults={photoDefaults}
             placeholder="фото"
             className="rounded-full flex-shrink-0"
             style={{ width: 90, height: 90, minWidth: 90 }}

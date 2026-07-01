@@ -114,3 +114,17 @@ export async function reorderStoryCharacters(storyId: string, orderedIds: string
     orderedIds.map((id, index) => prisma.storyCharacter.update({ where: { id }, data: { order: index } }))
   );
 }
+
+export async function updateStoryCharacterPhotoUrl(characterId: string, photoUrl: string) {
+  const character = await prisma.storyCharacter.findUniqueOrThrow({ where: { id: characterId } });
+  const story = await prisma.story.findUniqueOrThrow({ where: { id: character.storyId } });
+  await requireCabinetAccess(story.studentId);
+  await prisma.storyCharacter.update({ where: { id: characterId }, data: { photoUrl } });
+}
+
+export async function updateCycleCharacterPhotoUrl(characterId: string, photoUrl: string) {
+  const character = await prisma.cycleCharacter.findUniqueOrThrow({ where: { id: characterId } });
+  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: character.cycleId } });
+  await requireCabinetAccess(cycle.studentId);
+  await prisma.cycleCharacter.update({ where: { id: characterId }, data: { photoUrl } });
+}

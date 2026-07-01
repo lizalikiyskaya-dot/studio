@@ -9,6 +9,8 @@ export default function ImageUploadBox({
   value,
   onUpload,
   onDelete,
+  onSelectUrl,
+  defaults,
   placeholder,
   className,
   style,
@@ -17,6 +19,8 @@ export default function ImageUploadBox({
   value?: string | null;
   onUpload: (file: File) => void;
   onDelete?: () => void;
+  onSelectUrl?: (url: string) => void;
+  defaults?: string[];
   placeholder: string;
   className?: string;
   style?: React.CSSProperties;
@@ -25,6 +29,7 @@ export default function ImageUploadBox({
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState(value ?? "");
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [showDefaults, setShowDefaults] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -65,8 +70,20 @@ export default function ImageUploadBox({
         }}
       >
         {!preview && (
-          <div onClick={() => inputRef.current?.click()} className="absolute inset-0 flex items-center justify-center">
-            <span className="text-[12px]">{placeholder}</span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
+            <button type="button" onClick={() => inputRef.current?.click()} className="text-[12px]" style={{ color: "var(--faded)" }}>
+              {placeholder}
+            </button>
+            {defaults && defaults.length > 0 && onSelectUrl && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setShowDefaults((v) => !v); }}
+                className="text-[10px] underline underline-offset-2"
+                style={{ color: "var(--accent)" }}
+              >
+                из галереи
+              </button>
+            )}
           </div>
         )}
         {preview && (
@@ -113,6 +130,52 @@ export default function ImageUploadBox({
         )}
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleChange} />
       </div>
+
+      {showDefaults && defaults && onSelectUrl && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(31,32,30,0.6)" }}
+          onClick={() => setShowDefaults(false)}
+        >
+          <div
+            className="rounded-[16px] p-5"
+            style={{ background: "#fff", maxWidth: 520, width: "90vw" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[14px] font-semibold">Выбрать портрет</span>
+              <button onClick={() => setShowDefaults(false)} style={{ color: "var(--faded)" }}><X size={16} /></button>
+            </div>
+            <div className="grid grid-cols-5 gap-3">
+              {defaults.map((url) => (
+                <button
+                  key={url}
+                  type="button"
+                  onClick={() => {
+                    setPreview(url);
+                    onSelectUrl(url);
+                    setShowDefaults(false);
+                  }}
+                  className="rounded-full overflow-hidden hover:ring-2 transition-all"
+                  style={{ aspectRatio: "1", width: "100%" }}
+                >
+                  <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
+              <button
+                type="button"
+                onClick={() => { setShowDefaults(false); inputRef.current?.click(); }}
+                className="text-[13px]"
+                style={{ color: "var(--accent)" }}
+              >
+                + загрузить своё фото
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {lightboxOpen && preview && (
         <div

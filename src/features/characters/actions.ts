@@ -57,3 +57,10 @@ export async function updateCharacterField(
   data[field] = value;
   await prisma.character.update({ where: { id: characterId }, data: { data } });
 }
+
+export async function updateCharacterPhotoUrl(characterId: string, photoUrl: string) {
+  const character = await prisma.character.findUniqueOrThrow({ where: { id: characterId } });
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: character.bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.character.update({ where: { id: characterId }, data: { photoUrl } });
+}
