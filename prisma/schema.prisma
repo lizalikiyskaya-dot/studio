@@ -308,17 +308,18 @@ model Book {
 }
 
 model PlanChapter {
-  id               String @id @default(cuid())
+  id               String  @id @default(cuid())
   bookId           String
-  book             Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  order             Int    @default(0)
-  summary          String @default("")
-  dramaticArgument String @default("")
-  images           String @default("")
-  note             String @default("")
-  plannedChars     Int    @default(0)
-  writtenChars     Int    @default(0)
+  book             Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order             Int     @default(0)
+  summary          String  @default("")
+  dramaticArgument String  @default("")
+  images           String  @default("")
+  note             String  @default("")
+  plannedChars     Int     @default(0)
+  writtenChars     Int     @default(0)
   color            String?
+  actBreakAfter    Boolean @default(false)
 }
 
 model Character {

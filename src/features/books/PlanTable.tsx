@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef, useEffect } from "react";
 import type { PlanChapter } from "@/generated/prisma/client";
-import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor } from "./actions";
+import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, toggleChapterActBreak } from "./actions";
 import { updatePlanColumnColors } from "./actions";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import { blurOnEnter } from "@/lib/blurOnEnter";
@@ -173,6 +173,11 @@ export default function PlanTable({
     startTransition(() => updatePlanChapterColor(chapterId, color));
   }
 
+  function handleActBreak(chapterId: string, value: boolean) {
+    setChapters((prev) => prev.map((c) => (c.id === chapterId ? { ...c, actBreakAfter: value } : c)));
+    startTransition(() => toggleChapterActBreak(chapterId, value));
+  }
+
   function handleColColor(col: string, color: string | null) {
     const next = { ...colColors };
     if (color) next[col] = color;
@@ -186,6 +191,7 @@ export default function PlanTable({
       <div className="overflow-x-auto mb-4 rounded-[14px]" style={{ border: "1px solid var(--border)" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 740 }}>
           <colgroup>
+            <col style={{ width: 24 }} /> {/* act button */}
             <col style={{ width: 26 }} /> {/* row color */}
             <col style={{ width: 32 }} /> {/* № */}
             <col style={{ width: "25%" }} /> {/* summary */}
@@ -197,6 +203,8 @@ export default function PlanTable({
           </colgroup>
           <thead>
             <tr>
+              {/* act button header: empty */}
+              <th style={{ ...headerBase, padding: 0, width: 24 }} />
               {/* row-color header: empty */}
               <th style={{ ...headerBase, borderRight: "1px solid var(--border)" }} />
               {/* № */}
@@ -229,6 +237,8 @@ export default function PlanTable({
                   : 0;
               const chapterSuggestions = suggestions[chapter.id] ?? {};
               const rowBg = chapter.color ?? undefined;
+              // count act number = number of actBreakAfter=true among chapters before and including this one's break
+              const actNum = chapters.slice(0, idx + 1).filter((c) => c.actBreakAfter).length;
 
               function cell(col: ColKey): React.CSSProperties {
                 const bg = rowBg ?? colColors[col] ?? undefined;
@@ -236,7 +246,30 @@ export default function PlanTable({
               }
 
               return (
-                <tr key={chapter.id}>
+                <>
+                <tr key={chapter.id} className="group">
+                  {/* act break button */}
+                  <td style={{ ...cellBase, borderBottom: "1px solid var(--border)", padding: 0, verticalAlign: "middle", background: rowBg, width: 24 }}>
+                    {chapter.actBreakAfter ? (
+                      <button
+                        onClick={() => handleActBreak(chapter.id, false)}
+                        title="Убрать границу акта"
+                        className="flex items-center justify-center w-full h-full"
+                        style={{ color: "var(--accent)", opacity: 0.7 }}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="1" y1="9" x2="9" y2="1"/><line x1="1" y1="1" x2="9" y2="9"/></svg>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleActBreak(chapter.id, true)}
+                        title="Добавить границу акта после этой главы"
+                        className="flex items-center justify-center w-full h-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ color: "var(--ink-faint)" }}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="5" y1="1" x2="5" y2="9"/><line x1="1" y1="5" x2="9" y2="5"/></svg>
+                      </button>
+                    )}
+                  </td>
                   {/* row color picker */}
                   <td style={{ ...cellBase, borderBottom: "1px solid var(--border)", padding: "0 4px", verticalAlign: "middle", background: rowBg }}>
                     <ColorPicker current={chapter.color ?? null} onChange={(c) => handleRowColor(chapter.id, c)} align="left" />
@@ -308,6 +341,23 @@ export default function PlanTable({
                     {chapter.plannedChars > 0 ? `${percent}%` : "—"}
                   </td>
                 </tr>
+                {chapter.actBreakAfter && (
+                  <tr key={`act-${chapter.id}`}>
+                    <td colSpan={9} style={{ padding: "2px 0", borderBottom: "1px solid var(--border)" }}>
+                      <div className="flex items-center gap-3 px-3" style={{ height: 26 }}>
+                        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+                        <span
+                          className="font-mono-label uppercase tracking-widest select-none"
+                          style={{ fontSize: 9, color: "var(--ink-faint)", whiteSpace: "nowrap" }}
+                        >
+                          Акт {actNum + 1}
+                        </span>
+                        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </>
               );
             })}
           </tbody>

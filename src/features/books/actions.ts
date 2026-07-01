@@ -76,3 +76,10 @@ export async function updatePlanColumnColors(bookId: string, colors: Record<stri
   await requireCabinetAccess(book.studentId);
   await prisma.book.update({ where: { id: bookId }, data: { planColumnColors: colors } });
 }
+
+export async function toggleChapterActBreak(chapterId: string, value: boolean) {
+  const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id: chapterId } });
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.planChapter.update({ where: { id: chapterId }, data: { actBreakAfter: value } });
+}
