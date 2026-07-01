@@ -57,6 +57,16 @@ export default async function CyclesView({
                 cycleWorldEntries={cycleWorldEntries}
                 storyCharacters={storyCharacters}
                 storyWorldEntries={storyWorldEntries}
+                cycleSetting={{
+                  grapesGeography: activeCycle.grapesGeography,
+                  grapesReligion: activeCycle.grapesReligion,
+                  grapesAchievements: activeCycle.grapesAchievements,
+                  grapesPolitics: activeCycle.grapesPolitics,
+                  grapesEconomy: activeCycle.grapesEconomy,
+                  grapesSocial: activeCycle.grapesSocial,
+                  settingPhotoUrl: activeCycle.settingPhotoUrl,
+                  settingChips: activeCycle.settingChips,
+                }}
               />
             ),
           },

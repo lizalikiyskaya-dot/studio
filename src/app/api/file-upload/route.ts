@@ -49,7 +49,8 @@ export async function POST(req: Request) {
     target === "belief-photo" ||
     target === "storycircle-photo" ||
     target === "setting-photo" ||
-    target === "cycle-setting-photo";
+    target === "cycle-setting-photo" ||
+    target === "story-setting-photo";
   const sizeLimit = isImage ? MAX_IMAGE_SIZE : MAX_SIZE;
   if (file.size > sizeLimit) {
     const mb = sizeLimit / (1024 * 1024);
@@ -130,6 +131,10 @@ export async function POST(req: Request) {
     const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
     await requireCabinetAccess(cycle.studentId);
     await prisma.cycle.update({ where: { id }, data: { settingPhotoUrl: dataUrl } });
+  } else if (target === "story-setting-photo") {
+    const story = await prisma.story.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(story.studentId);
+    await prisma.story.update({ where: { id }, data: { settingPhotoUrl: dataUrl } });
   } else {
     return Response.json({ error: "Unknown target" }, { status: 400 });
   }
@@ -151,6 +156,7 @@ const PHOTO_FIELD_TARGETS = [
   "storycircle-photo",
   "setting-photo",
   "cycle-setting-photo",
+  "story-setting-photo",
 ] as const;
 
 export async function DELETE(req: Request) {
@@ -221,6 +227,10 @@ export async function DELETE(req: Request) {
     const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
     await requireCabinetAccess(cycle.studentId);
     await prisma.cycle.update({ where: { id }, data: { settingPhotoUrl: null } });
+  } else if (target === "story-setting-photo") {
+    const story = await prisma.story.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(story.studentId);
+    await prisma.story.update({ where: { id }, data: { settingPhotoUrl: null } });
   }
 
   return Response.json({ ok: true });

@@ -421,6 +421,17 @@ model Story {
   characterSource CharacterSource @default(SHARED)
   settingSource   SettingSource   @default(SHARED)
 
+  grapesGeography    String   @default("")
+  grapesReligion     String   @default("")
+  grapesAchievements String   @default("")
+  grapesPolitics     String   @default("")
+  grapesEconomy      String   @default("")
+  grapesSocial       String   @default("")
+  settingPhotoUrl    String?
+  settingChips       String[] @default([])
+  fantasyNotes       String   @default("")
+  fantasyGeneral     String   @default("")
+
   characters   StoryCharacter[]
   worldEntries StoryWorldEntry[]
 }

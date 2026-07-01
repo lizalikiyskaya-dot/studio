@@ -42,12 +42,24 @@ function StructureField({
   );
 }
 
+type CycleSettingSnap = {
+  grapesGeography: string;
+  grapesReligion: string;
+  grapesAchievements: string;
+  grapesPolitics: string;
+  grapesEconomy: string;
+  grapesSocial: string;
+  settingPhotoUrl: string | null;
+  settingChips: string[];
+};
+
 export default function StoryDetail({
   story,
   cycleCharacters,
   cycleWorldEntries,
   storyCharacters,
   storyWorldEntries,
+  cycleSetting,
   onDelete,
 }: {
   story: Story;
@@ -55,6 +67,7 @@ export default function StoryDetail({
   cycleWorldEntries: CycleWorldEntry[];
   storyCharacters: StoryCharacter[];
   storyWorldEntries: StoryWorldEntry[];
+  cycleSetting?: CycleSettingSnap;
   onDelete: () => void;
 }) {
   const [, startTransition] = useTransition();
@@ -102,6 +115,7 @@ export default function StoryDetail({
         story={story}
         cycleWorldEntries={cycleWorldEntries}
         storyWorldEntries={storyWorldEntries}
+        cycleSetting={cycleSetting}
       />
     </div>
   );

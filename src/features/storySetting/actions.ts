@@ -89,6 +89,29 @@ export async function updateCycleWorldEntryBody(entryId: string, body: string) {
   await prisma.cycleWorldEntry.update({ where: { id: entryId }, data: { body } });
 }
 
+// --- Story-level GRAPES / setting type ---
+
+export type StoryGrapesField = (typeof GRAPES_FIELDS)[number];
+
+export async function updateStoryGrapesField(storyId: string, field: StoryGrapesField, value: string) {
+  if (!GRAPES_FIELDS.includes(field)) throw new Error("Недопустимое поле");
+  const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
+  await requireCabinetAccess(story.studentId);
+  await prisma.story.update({ where: { id: storyId }, data: { [field]: value } });
+}
+
+export async function toggleStorySettingChip(storyId: string, chip: string) {
+  if (!SETTING_TYPE_CHIPS.includes(chip as (typeof SETTING_TYPE_CHIPS)[number])) {
+    throw new Error("Недопустимый чип");
+  }
+  const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
+  await requireCabinetAccess(story.studentId);
+  const current = story.settingChips;
+  const next = current.includes(chip) ? current.filter((c) => c !== chip) : [...current, chip];
+  await prisma.story.update({ where: { id: storyId }, data: { settingChips: next } });
+  return next;
+}
+
 // --- Story-level (own) world entries ---
 
 export async function createStoryWorldEntry(storyId: string, category: WorldCategory) {

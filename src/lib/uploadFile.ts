@@ -14,7 +14,8 @@ export async function uploadFile(
     | "belief-photo"
     | "storycircle-photo"
     | "setting-photo"
-    | "cycle-setting-photo",
+    | "cycle-setting-photo"
+    | "story-setting-photo",
   id: string,
   field: string,
   file: File
@@ -45,7 +46,8 @@ export async function deletePhoto(
     | "belief-photo"
     | "storycircle-photo"
     | "setting-photo"
-    | "cycle-setting-photo",
+    | "cycle-setting-photo"
+    | "story-setting-photo",
   id: string,
   field: string
 ): Promise<void> {

@@ -7,6 +7,17 @@ import { createStory, createStandaloneStory, deleteStory } from "./actions";
 import StoryDetail from "./StoryDetail";
 import { Button } from "@/components/ui/Button";
 
+type CycleSettingSnap = {
+  grapesGeography: string;
+  grapesReligion: string;
+  grapesAchievements: string;
+  grapesPolitics: string;
+  grapesEconomy: string;
+  grapesSocial: string;
+  settingPhotoUrl: string | null;
+  settingChips: string[];
+};
+
 export default function StoriesList({
   cycleId,
   studentId,
@@ -15,6 +26,7 @@ export default function StoriesList({
   cycleWorldEntries,
   storyCharacters,
   storyWorldEntries,
+  cycleSetting,
 }: {
   cycleId: string | null;
   studentId: string;
@@ -23,6 +35,7 @@ export default function StoriesList({
   cycleWorldEntries: CycleWorldEntry[];
   storyCharacters: StoryCharacter[];
   storyWorldEntries: StoryWorldEntry[];
+  cycleSetting?: CycleSettingSnap;
 }) {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(stories[0]?.id ?? null);
@@ -77,6 +90,7 @@ export default function StoriesList({
             cycleWorldEntries={cycleWorldEntries}
             storyCharacters={storyCharacters.filter((c) => c.storyId === story.id)}
             storyWorldEntries={storyWorldEntries.filter((e) => e.storyId === story.id)}
+            cycleSetting={cycleSetting}
             onDelete={() => handleDelete(story.id)}
           />
         ))}
