@@ -63,3 +63,10 @@ export async function updatePlanChapterNumber(
     data: { [field]: Math.max(0, Math.round(value)) },
   });
 }
+
+export async function updatePlanChapterColor(chapterId: string, color: string | null) {
+  const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id: chapterId } });
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.planChapter.update({ where: { id: chapterId }, data: { color } });
+}
