@@ -16,14 +16,14 @@ export default function StorySourceToggle({
   settingSource: SettingSource;
 }) {
   const router = useRouter();
-  const [chars, setChars] = useState(characterSource === "OWN");
-  const [setting, setSetting] = useState(settingSource === "OWN");
+  const [chars, setChars] = useState(characterSource === "SHARED");
+  const [setting, setSetting] = useState(settingSource === "SHARED");
   const [, startTransition] = useTransition();
 
   function handleCharsToggle(checked: boolean) {
     setChars(checked);
     startTransition(async () => {
-      await setStoryCharacterSource(storyId, checked ? "OWN" : "SHARED");
+      await setStoryCharacterSource(storyId, checked ? "SHARED" : "OWN");
       router.refresh();
     });
   }
@@ -31,7 +31,7 @@ export default function StorySourceToggle({
   function handleSettingToggle(checked: boolean) {
     setSetting(checked);
     startTransition(async () => {
-      await setStorySettingSource(storyId, checked ? "OWN" : "SHARED");
+      await setStorySettingSource(storyId, checked ? "SHARED" : "OWN");
       router.refresh();
     });
   }
