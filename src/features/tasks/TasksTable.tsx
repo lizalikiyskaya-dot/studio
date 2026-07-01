@@ -126,12 +126,20 @@ function LinkCell({ value, onSave }: { value: string | null; onSave: (value: str
     if (url !== null) onSave(url);
   }
   if (value) {
+    let display: string;
+    try {
+      const u = new URL(value);
+      display = u.hostname.replace(/^www\./, "") + (u.pathname !== "/" ? u.pathname : "");
+      if (display.length > 40) display = display.slice(0, 38) + "…";
+    } catch {
+      display = value.length > 40 ? value.slice(0, 38) + "…" : value;
+    }
     return (
-      <div className="flex items-center gap-1.5">
-        <a href={value} target="_blank" rel="noopener noreferrer" title={value} className="text-[12.5px]" style={{ color: "var(--wine)" }}>
-          ссылка
+      <div className="flex items-center gap-1.5 min-w-0">
+        <a href={value} target="_blank" rel="noopener noreferrer" title={value} className="text-[12.5px] truncate" style={{ color: "var(--wine)" }}>
+          {display}
         </a>
-        <button onClick={promptEdit} title="Изменить ссылку" style={{ color: "var(--faded)" }}>
+        <button onClick={promptEdit} title="Изменить ссылку" style={{ color: "var(--faded)", flexShrink: 0 }}>
           <Pencil size={11} />
         </button>
       </div>
