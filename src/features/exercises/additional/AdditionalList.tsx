@@ -232,7 +232,7 @@ export default function AdditionalList({
                 e.stopPropagation();
                 handleStatus(section.id);
               }}
-              className="font-mono-label text-[10.5px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
+              className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
               style={STATUS_STYLE[section.status]}
             >
               {STATUS_LABEL[section.status]}

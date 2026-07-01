@@ -116,7 +116,7 @@ function BooksList({
                 e.stopPropagation();
                 handleStatus(material.id, material.status);
               }}
-              className="font-mono-label text-[10.5px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
+              className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
               style={MATERIAL_STATUS_STYLE[material.status]}
             >
               {MATERIAL_STATUS_LABEL[material.status]}
@@ -232,7 +232,7 @@ function HandoutsList({
           )}
           <span
             onClick={() => handleStatus(material.id, material.status)}
-            className="font-mono-label text-[10.5px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
+            className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
             style={MATERIAL_STATUS_STYLE[material.status]}
           >
             {MATERIAL_STATUS_LABEL[material.status]}

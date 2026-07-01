@@ -186,7 +186,7 @@ export default function TasksTable({
               <div className="flex items-center justify-end gap-2.5">
                 <button
                   onClick={() => handleStatus(task.id, task.status)}
-                  className="font-mono-label text-[10px] px-2.5 py-1.5 rounded-full whitespace-nowrap uppercase"
+                  className="text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap"
                   style={STATUS_STYLE[task.status]}
                 >
                   {STATUS_LABEL[task.status]}
