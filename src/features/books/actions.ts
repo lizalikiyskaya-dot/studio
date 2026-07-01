@@ -70,3 +70,9 @@ export async function updatePlanChapterColor(chapterId: string, color: string | 
   await requireCabinetAccess(book.studentId);
   await prisma.planChapter.update({ where: { id: chapterId }, data: { color } });
 }
+
+export async function updatePlanColumnColors(bookId: string, colors: Record<string, string | null>) {
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.book.update({ where: { id: bookId }, data: { planColumnColors: colors } });
+}

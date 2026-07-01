@@ -293,9 +293,10 @@ model Book {
   settingPhotoUrl     String?
   settingChips        String[] @default([])
 
-  fantasyUnlocked Boolean @default(false)
-  fantasyNotes    String  @default("")
-  fantasyGeneral  String  @default("")
+  fantasyUnlocked    Boolean @default(false)
+  fantasyNotes       String  @default("")
+  fantasyGeneral     String  @default("")
+  planColumnColors   Json    @default("{}")
 
   chapters     PlanChapter[]
   characters   Character[]
