@@ -158,6 +158,9 @@ model Note {
   author       String    @default("")
   authorRole   String    @default("STUDENT")
   text         String    @default("")
+  anchorQuote  String    @default("")
+  anchorLabel  String    @default("")
+  anchorUrl    String    @default("")
   resolved     Boolean   @default(false)
   resolvedAt   DateTime?
   resolvedBy   String    @default("")

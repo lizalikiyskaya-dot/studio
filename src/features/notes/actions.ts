@@ -3,10 +3,22 @@
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
 
-export async function createNote(studentId: string, text: string) {
+export type NoteAnchor = { quote: string; label: string; url: string };
+
+export async function createNote(studentId: string, text: string, anchor?: NoteAnchor) {
   const session = await requireCabinetAccess(studentId);
   const author = session.role === "MENTOR" ? "Наставник" : "Ученик";
-  return prisma.note.create({ data: { studentId, author, authorRole: session.role, text } });
+  return prisma.note.create({
+    data: {
+      studentId,
+      author,
+      authorRole: session.role,
+      text,
+      anchorQuote: anchor?.quote ?? "",
+      anchorLabel: anchor?.label ?? "",
+      anchorUrl: anchor?.url ?? "",
+    },
+  });
 }
 
 export async function updateNote(noteId: string, text: string) {

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
-import { Pencil, X, CheckCircle2, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Pencil, X, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, CornerDownRight, Quote } from "lucide-react";
 import type { Note, Comment } from "@/generated/prisma/client";
 import { createNote, updateNote, deleteNote, resolveNote, reopenNote } from "./actions";
 import CommentsBlock from "@/features/comments/CommentsBlock";
+import SelectionAnnotator, { type Anchor } from "./SelectionAnnotator";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -54,6 +56,7 @@ function NoteCard({
   onDelete,
   onResolve,
   onReopen,
+  onNavigate,
 }: {
   note: Note;
   comments: Comment[];
@@ -61,6 +64,7 @@ function NoteCard({
   onDelete: (id: string) => void;
   onResolve: (id: string) => void;
   onReopen: (id: string) => void;
+  onNavigate: (url: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [collapsed, setCollapsed] = useState(note.resolved);
@@ -135,6 +139,42 @@ function NoteCard({
       {/* body */}
       {!collapsed && (
         <div className="px-3.5 py-3">
+          {/* anchored quote → click navigates back to the source */}
+          {note.anchorQuote && (
+            <button
+              onClick={() => note.anchorUrl && onNavigate(note.anchorUrl)}
+              disabled={!note.anchorUrl}
+              className="w-full text-left rounded-[8px] px-2.5 py-2 mb-2.5 transition-colors"
+              style={{
+                background: "var(--bg-surface-2)",
+                borderLeft: "3px solid var(--accent)",
+                cursor: note.anchorUrl ? "pointer" : "default",
+              }}
+              title={note.anchorUrl ? "Перейти к месту" : undefined}
+            >
+              <div className="flex items-start gap-1.5">
+                <Quote size={11} style={{ color: "var(--accent)", marginTop: 3, flexShrink: 0 }} />
+                <span
+                  className="text-[12px] italic leading-snug"
+                  style={{
+                    color: "var(--ink-soft)",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {note.anchorQuote}
+                </span>
+              </div>
+              {note.anchorLabel && (
+                <div className="flex items-center gap-1 mt-1.5 text-[11px] font-medium" style={{ color: "var(--accent)" }}>
+                  <CornerDownRight size={10} />
+                  {note.anchorLabel}
+                </div>
+              )}
+            </button>
+          )}
           {editing ? (
             <NoteEditInput
               defaultValue={note.text}
@@ -189,9 +229,26 @@ function NoteCard({
 
 // ─── new note compose ───────────────────────────────────────────────────────
 
-function ComposeArea({ onSubmit }: { onSubmit: (text: string) => void }) {
+function ComposeArea({
+  onSubmit,
+  anchor,
+  onClearAnchor,
+}: {
+  onSubmit: (text: string) => void;
+  anchor: Anchor | null;
+  onClearAnchor: () => void;
+}) {
   const [draft, setDraft] = useState("");
   const ref = useRef<HTMLTextAreaElement>(null);
+  const hadAnchor = useRef(false);
+
+  // Focus the compose box the moment a text selection attaches an anchor.
+  if (anchor && !hadAnchor.current) {
+    hadAnchor.current = true;
+    setTimeout(() => ref.current?.focus(), 0);
+  } else if (!anchor) {
+    hadAnchor.current = false;
+  }
 
   function submit() {
     const text = draft.trim();
@@ -203,6 +260,26 @@ function ComposeArea({ onSubmit }: { onSubmit: (text: string) => void }) {
 
   return (
     <div className="px-3.5 py-3 flex-shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
+      {anchor && (
+        <div
+          className="flex items-start gap-1.5 rounded-[8px] px-2.5 py-1.5 mb-2"
+          style={{ background: "var(--bg-surface-2)", borderLeft: "3px solid var(--accent)" }}
+        >
+          <Quote size={11} style={{ color: "var(--accent)", marginTop: 3, flexShrink: 0 }} />
+          <div className="flex-1 min-w-0">
+            <div
+              className="text-[11.5px] italic leading-snug"
+              style={{ color: "var(--ink-soft)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+            >
+              {anchor.quote}
+            </div>
+            <div className="text-[10.5px] mt-0.5" style={{ color: "var(--accent)" }}>{anchor.label}</div>
+          </div>
+          <button onClick={onClearAnchor} style={{ color: "var(--ink-faint)", flexShrink: 0 }} title="Убрать привязку">
+            <X size={13} />
+          </button>
+        </div>
+      )}
       <textarea
         ref={ref}
         value={draft}
@@ -246,14 +323,31 @@ export default function NotesPanel({
   const [tab, setTab] = useState<"open" | "resolved">("open");
   const [notes, setNotes] = useState(initialNotes);
   const [comments, setComments] = useState(initialComments);
+  const [pendingAnchor, setPendingAnchor] = useState<Anchor | null>(null);
   const [, startTransition] = useTransition();
+  const router = useRouter();
 
   const openNotes = notes.filter((n) => !n.resolved);
   const resolvedNotes = notes.filter((n) => n.resolved);
 
+  // A text selection fired the "Заметка" button: open the panel and attach
+  // the quoted fragment to the compose box for the user to annotate.
+  function handleAnnotate(anchor: Anchor) {
+    setPendingAnchor(anchor);
+    setTab("open");
+    setOpen(true);
+  }
+
+  function handleNavigate(url: string) {
+    setOpen(false);
+    router.push(url);
+  }
+
   function handleAdd(text: string) {
+    const anchor = pendingAnchor;
+    setPendingAnchor(null);
     startTransition(async () => {
-      const note = await createNote(studentId, text);
+      const note = await createNote(studentId, text, anchor ?? undefined);
       setNotes((prev) => [note, ...prev]);
       setComments((prev) => ({ ...prev, [note.id]: [] }));
     });
@@ -295,6 +389,9 @@ export default function NotesPanel({
 
   return (
     <>
+      {/* Global: watch for text selection anywhere → floating "Заметка" button */}
+      <SelectionAnnotator onAnnotate={handleAnnotate} />
+
       {/* FAB */}
       <button
         onClick={() => setOpen(true)}
@@ -346,6 +443,7 @@ export default function NotesPanel({
         }}
       >
         <div
+          data-notes-ui="1"
           className="flex flex-col"
           style={{
             width: "min(400px, 92vw)",
@@ -433,12 +531,19 @@ export default function NotesPanel({
                 onDelete={handleDelete}
                 onResolve={handleResolve}
                 onReopen={handleReopen}
+                onNavigate={handleNavigate}
               />
             ))}
           </div>
 
           {/* compose (open tab only) */}
-          {tab === "open" && <ComposeArea onSubmit={handleAdd} />}
+          {tab === "open" && (
+            <ComposeArea
+              onSubmit={handleAdd}
+              anchor={pendingAnchor}
+              onClearAnchor={() => setPendingAnchor(null)}
+            />
+          )}
         </div>
       </div>
     </>
