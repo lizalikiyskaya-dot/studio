@@ -150,6 +150,9 @@ export async function POST(req: Request) {
     const story = await prisma.story.findUniqueOrThrow({ where: { id } });
     await requireCabinetAccess(story.studentId);
     await prisma.story.update({ where: { id }, data: { settingPhotoUrl: dataUrl } });
+  } else if (target === "avatar") {
+    await requireCabinetAccess(id);
+    await prisma.user.update({ where: { id }, data: { avatarUrl: dataUrl } });
   } else {
     return Response.json({ error: "Unknown target" }, { status: 400 });
   }

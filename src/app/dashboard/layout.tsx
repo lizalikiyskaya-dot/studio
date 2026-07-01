@@ -35,6 +35,7 @@ export default async function DashboardLayout({
         userName={user.name}
         isMentor={false}
         studentId={user.id}
+        avatarUrl={user.avatarUrl}
         bookWorkshopUnlocked={user.bookWorkshopUnlocked}
         storyWorkshopUnlocked={user.storyWorkshopUnlocked}
         calendar={{

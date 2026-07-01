@@ -21,6 +21,7 @@ enum UserStatus {
   PENDING
   APPROVED
   REJECTED
+  SUSPENDED
 }
 
 enum TaskStatus {
@@ -131,6 +132,8 @@ model User {
   storyWorkshopUnlocked Boolean @default(false)
   lastSeenAt    DateTime?
   lastActivityAt DateTime?
+  avatarUrl     String?
+  sortOrder     Int           @default(0)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   books        Book[]

@@ -50,6 +50,7 @@ export default function Sidebar({
   studentId,
   bookWorkshopUnlocked,
   storyWorkshopUnlocked,
+  avatarUrl,
 }: {
   basePath: string;
   userName: string;
@@ -64,6 +65,7 @@ export default function Sidebar({
   studentId?: string;
   bookWorkshopUnlocked?: boolean;
   storyWorkshopUnlocked?: boolean;
+  avatarUrl?: string | null;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -249,28 +251,43 @@ export default function Sidebar({
       <div className="mt-4 pt-3.5" style={{ borderTop: "1px solid var(--rule)" }}>
         {collapsed ? (
           <div className="flex justify-center">
-            <div
-              className="rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ width: 32, height: 32, background: "var(--accent-soft)", color: "var(--wine)", fontSize: 12.5, fontWeight: 700 }}
-            >
-              {getInitials(userName)}
-            </div>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={userName} className="rounded-full flex-shrink-0" style={{ width: 32, height: 32, objectFit: "cover" }} />
+            ) : (
+              <div
+                className="rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ width: 32, height: 32, background: "var(--accent-soft)", color: "var(--wine)", fontSize: 12.5, fontWeight: 700 }}
+              >
+                {getInitials(userName)}
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-2.5 px-1">
-            <div
-              className="rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ width: 32, height: 32, background: "var(--accent-soft)", color: "var(--wine)", fontSize: 12.5, fontWeight: 700 }}
-            >
-              {getInitials(userName)}
-            </div>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={userName} className="rounded-full flex-shrink-0" style={{ width: 32, height: 32, objectFit: "cover" }} />
+            ) : (
+              <div
+                className="rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ width: 32, height: 32, background: "var(--accent-soft)", color: "var(--wine)", fontSize: 12.5, fontWeight: 700 }}
+              >
+                {getInitials(userName)}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <div className="text-[13px] font-medium truncate" style={{ color: "var(--ink)" }}>
                 {userName}
               </div>
-              <div className="text-[11px]" style={{ color: "var(--faded)" }}>
-                {mentorViewLabel ? "ученик" : isMentor ? "наставник" : "ученик"}
-              </div>
+              {!isMentor && !mentorViewLabel && (
+                <Link href={`${basePath}/profile`} className="text-[11px] hover:underline underline-offset-2" style={{ color: "var(--faded)" }}>
+                  профиль
+                </Link>
+              )}
+              {(isMentor || mentorViewLabel) && (
+                <div className="text-[11px]" style={{ color: "var(--faded)" }}>
+                  {mentorViewLabel ? "ученик" : "наставник"}
+                </div>
+              )}
             </div>
             {!mentorViewLabel && <LogoutButton />}
           </div>

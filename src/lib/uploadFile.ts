@@ -18,7 +18,8 @@ export async function uploadFile(
     | "storycircle-photo"
     | "setting-photo"
     | "cycle-setting-photo"
-    | "story-setting-photo",
+    | "story-setting-photo"
+    | "avatar",
   id: string,
   field: string,
   file: File

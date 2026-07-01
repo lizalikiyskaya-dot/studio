@@ -2,11 +2,9 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { approveUser, rejectUser } from "./actions";
-import PaymentControls from "./PaymentControls";
-import WorkshopLockControls from "./WorkshopLockControls";
-import { Button, LinkButton } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { OnlineBeacon, ActivityBeacon } from "./StudentBeacons";
+import StudentsList from "./StudentsList";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -18,8 +16,8 @@ export default async function MentorPage() {
     orderBy: { createdAt: "asc" },
   });
   const students = await prisma.user.findMany({
-    where: { status: "APPROVED", role: "STUDENT" },
-    orderBy: { name: "asc" },
+    where: { status: { in: ["APPROVED", "SUSPENDED"] }, role: "STUDENT" },
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
   const decided = await prisma.user.findMany({
     where: { status: { in: ["APPROVED", "REJECTED"] }, role: "STUDENT" },
@@ -72,45 +70,7 @@ export default async function MentorPage() {
         Ученики ({students.length})
       </h2>
 
-      {students.length === 0 && (
-        <p className="text-[13.5px] mb-8" style={{ color: "var(--faded)" }}>
-          Пока нет одобренных учеников.
-        </p>
-      )}
-
-      <table className="w-full mb-10" style={{ borderCollapse: "collapse" }}>
-        <tbody>
-          {students.map((s) => (
-            <tr key={s.id} style={{ borderBottom: "1px solid var(--rule)" }}>
-              <td className="py-2.5 pr-3 text-[13.5px] align-top">
-                <span className="flex items-center gap-2">
-                  {s.name}
-                  <OnlineBeacon lastSeenAt={s.lastSeenAt} />
-                  <ActivityBeacon lastActivityAt={s.lastActivityAt} />
-                </span>
-              </td>
-              <td className="py-2.5 pr-3 text-[13.5px] align-top" style={{ color: "var(--ink-soft)" }}>
-                {s.email}
-              </td>
-              <td className="py-2.5 align-top">
-                <PaymentControls userId={s.id} paymentDay={s.paymentDay} paymentStatus={s.paymentStatus} />
-              </td>
-              <td className="py-2.5 pl-3 align-top">
-                <WorkshopLockControls
-                  userId={s.id}
-                  bookUnlocked={s.bookWorkshopUnlocked}
-                  storyUnlocked={s.storyWorkshopUnlocked}
-                />
-              </td>
-              <td className="py-2.5 pl-3 text-right align-top">
-                <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" pill>
-                  Открыть кабинет
-                </LinkButton>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <StudentsList initialStudents={students} />
 
       <h2 className="heading text-[15px] font-semibold mb-3" style={{ color: "var(--faded)" }}>
         Недавние решения

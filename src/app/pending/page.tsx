@@ -33,6 +33,15 @@ export default async function PendingPage() {
               откроет доступ в личный кабинет. Это может занять некоторое время.
             </p>
           </>
+        ) : user.status === "SUSPENDED" ? (
+          <>
+            <h1 className="text-[19px] font-semibold mb-3" style={{ color: "var(--wine)" }}>
+              Доступ закрыт
+            </h1>
+            <p className="text-[14px]" style={{ color: "var(--ink-soft)" }}>
+              Свяжитесь с наставником для возобновления доступа.
+            </p>
+          </>
         ) : (
           <>
             <h1 className="text-[19px] font-semibold mb-3" style={{ color: "var(--wine)" }}>
