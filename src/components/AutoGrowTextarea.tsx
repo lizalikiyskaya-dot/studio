@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, forwardRef } from "react";
 
 function resize(el: HTMLTextAreaElement) {
   if (el.offsetParent === null) return; // hidden (display:none) — scrollHeight would read 0
@@ -8,22 +8,22 @@ function resize(el: HTMLTextAreaElement) {
   el.style.height = `${el.scrollHeight}px`;
 }
 
-export default function AutoGrowTextarea({
-  defaultValue,
-  onBlur,
-  className,
-  placeholder,
-  style,
-  resizable,
-}: {
-  defaultValue: string;
-  onBlur: (value: string) => void;
-  className?: string;
-  placeholder?: string;
-  style?: React.CSSProperties;
-  resizable?: boolean;
-}) {
-  const ref = useRef<HTMLTextAreaElement>(null);
+const AutoGrowTextarea = forwardRef<
+  HTMLTextAreaElement,
+  {
+    defaultValue: string;
+    onBlur: (value: string) => void;
+    className?: string;
+    placeholder?: string;
+    style?: React.CSSProperties;
+    resizable?: boolean;
+  }
+>(function AutoGrowTextarea(
+  { defaultValue, onBlur, className, placeholder, style, resizable },
+  forwardedRef
+) {
+  const innerRef = useRef<HTMLTextAreaElement>(null);
+  const ref = (forwardedRef as React.RefObject<HTMLTextAreaElement>) ?? innerRef;
 
   useEffect(() => {
     const el = ref.current;
@@ -68,4 +68,6 @@ export default function AutoGrowTextarea({
       }}
     />
   );
-}
+});
+
+export default AutoGrowTextarea;

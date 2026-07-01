@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { X, Bookmark, Check, Clock, RotateCcw } from "lucide-react";
+import { useState, useTransition, useRef, useEffect } from "react";
+import { X, Bookmark, Check, Clock, RotateCcw, Pencil } from "lucide-react";
 import type { Task, TaskStatus } from "@/generated/prisma/client";
 import {
   createTask,
@@ -14,8 +14,87 @@ import {
 } from "./actions";
 import { nextTaskStatus } from "./status";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
-import { shortenUrl } from "@/lib/shortenUrl";
 import { Kpi } from "@/components/ui/Card";
+
+const URL_RE = /https?:\/\/[^\s]+/g;
+
+function linkifyParts(text: string): { type: "text" | "url"; value: string }[] {
+  const parts: { type: "text" | "url"; value: string }[] = [];
+  let last = 0;
+  URL_RE.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = URL_RE.exec(text)) !== null) {
+    if (m.index > last) parts.push({ type: "text", value: text.slice(last, m.index) });
+    parts.push({ type: "url", value: m[0] });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push({ type: "text", value: text.slice(last) });
+  return parts;
+}
+
+function LinkifiedText({ text, className, style }: { text: string; className?: string; style?: React.CSSProperties }) {
+  const parts = linkifyParts(text);
+  return (
+    <span className={className} style={style}>
+      {parts.map((p, i) =>
+        p.type === "url" ? (
+          <a key={i} href={p.value} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: "var(--wine)" }}>
+            ссылка
+          </a>
+        ) : (
+          <span key={i}>{p.value}</span>
+        )
+      )}
+    </span>
+  );
+}
+
+function EditableWithLinks({
+  defaultValue,
+  onSave,
+  placeholder,
+  className,
+  style,
+}: {
+  defaultValue: string;
+  onSave: (v: string) => void;
+  placeholder?: string;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(defaultValue);
+  const taRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (editing) taRef.current?.focus();
+  }, [editing]);
+
+  if (editing) {
+    return (
+      <AutoGrowTextarea
+        ref={taRef}
+        defaultValue={value}
+        onBlur={(v) => { setValue(v); setEditing(false); onSave(v); }}
+        placeholder={placeholder}
+        className={className}
+        style={style}
+      />
+    );
+  }
+
+  return (
+    <div
+      onClick={() => setEditing(true)}
+      className={`cursor-text whitespace-pre-wrap ${className ?? ""}`}
+      style={{ minHeight: "1.4em", ...style }}
+    >
+      {value
+        ? <LinkifiedText text={value} />
+        : <span style={{ color: "var(--faded)" }}>{placeholder}</span>}
+    </div>
+  );
+}
 
 const GRID_COLUMNS = "1fr 110px 110px 110px 130px";
 
@@ -41,36 +120,25 @@ function MetaLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function LinkCell({
-  value,
-  onSave,
-}: {
-  value: string | null;
-  onSave: (value: string) => void;
-}) {
+function LinkCell({ value, onSave }: { value: string | null; onSave: (value: string) => void }) {
+  function promptEdit() {
+    const url = window.prompt("Ссылка", value ?? "");
+    if (url !== null) onSave(url);
+  }
   if (value) {
     return (
-      <a
-        href={value}
-        target="_blank"
-        rel="noopener noreferrer"
-        title={value}
-        className="text-[12.5px] block"
-        style={{ color: "var(--wine)", overflowWrap: "anywhere" }}
-      >
-        {shortenUrl(value)}
-      </a>
+      <div className="flex items-center gap-1.5">
+        <a href={value} target="_blank" rel="noopener noreferrer" title={value} className="text-[12.5px]" style={{ color: "var(--wine)" }}>
+          ссылка
+        </a>
+        <button onClick={promptEdit} title="Изменить ссылку" style={{ color: "var(--faded)" }}>
+          <Pencil size={11} />
+        </button>
+      </div>
     );
   }
   return (
-    <button
-      onClick={() => {
-        const url = window.prompt("Ссылка");
-        if (url) onSave(url);
-      }}
-      className="text-[12px]"
-      style={{ color: "var(--wine)" }}
-    >
+    <button onClick={promptEdit} className="text-[12px]" style={{ color: "var(--wine)" }}>
       + ссылка
     </button>
   );
@@ -158,9 +226,9 @@ export default function TasksTable({
             <div className="grid gap-x-3.5 items-start" style={{ gridTemplateColumns: GRID_COLUMNS }}>
               <div className="min-w-0">
                 <MetaLabel>задание</MetaLabel>
-                <AutoGrowTextarea
+                <EditableWithLinks
                   defaultValue={task.title}
-                  onBlur={(v) => handleTitleBlur(task.id, v)}
+                  onSave={(v) => handleTitleBlur(task.id, v)}
                   placeholder="Описание задания"
                   className="w-full min-w-0 outline-none bg-transparent text-[13.5px] leading-snug"
                 />
@@ -204,9 +272,9 @@ export default function TasksTable({
             {task.notes || expandedNotes.has(task.id) ? (
               <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px solid var(--rule)" }}>
                 <MetaLabel>примечание</MetaLabel>
-                <AutoGrowTextarea
+                <EditableWithLinks
                   defaultValue={task.notes}
-                  onBlur={(v) => handleNotes(task.id, v)}
+                  onSave={(v) => handleNotes(task.id, v)}
                   placeholder="примечание..."
                   className="w-full min-w-0 outline-none bg-transparent text-[13px] leading-snug"
                   style={{ maxWidth: 560 }}
