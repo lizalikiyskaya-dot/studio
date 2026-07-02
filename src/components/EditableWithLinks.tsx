@@ -86,10 +86,7 @@ export default function EditableWithLinks({
 
   return (
     <div
-      // Enter edit mode on mousedown (not click) so the caret lands in the
-      // real textarea before the user selects — otherwise selecting text on
-      // this read-only display div lets you copy but not cut.
-      onMouseDown={() => setEditing(true)}
+      onClick={() => setEditing(true)}
       className={`cursor-text whitespace-pre-wrap ${className ?? ""}`}
       style={{ minHeight: "1.4em", ...style }}
     >
