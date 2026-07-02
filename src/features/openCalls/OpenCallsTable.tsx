@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { X, Check } from "lucide-react";
 import type { OpenCall } from "@/generated/prisma/client";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
-import { blurOnEnter } from "@/lib/blurOnEnter";
+import LinkCell from "@/components/LinkCell";
 import { Button } from "@/components/ui/Button";
 import { createOpenCall, deleteOpenCall, updateOpenCallField, toggleOpenCallSent } from "./actions";
 
@@ -31,7 +31,7 @@ export default function OpenCallsTable({
     startTransition(() => deleteOpenCall(id));
   }
 
-  function handleField(id: string, field: "target" | "deadline" | "note", value: string) {
+  function handleField(id: string, field: "target" | "deadline" | "note" | "link", value: string) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
     startTransition(() => updateOpenCallField(id, field, value));
   }
@@ -70,21 +70,21 @@ export default function OpenCallsTable({
               <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
 
               {/* deadline */}
-              <div className="flex-shrink-0" style={{ width: 120 }}>
+              <div className="flex-shrink-0" style={{ width: 128 }}>
                 <div className={labelCls} style={{ color: "var(--faded)" }}>Дедлайн</div>
                 <input
+                  type="date"
                   defaultValue={row.deadline}
-                  onBlur={(e) => handleField(row.id, "deadline", e.target.value)}
-                  onKeyDown={blurOnEnter}
-                  placeholder="дд.мм.гггг"
+                  onChange={(e) => handleField(row.id, "deadline", e.target.value)}
                   className="w-full outline-none bg-transparent text-[13px] font-mono-label"
+                  style={{ color: row.deadline ? "var(--ink)" : "var(--faded)" }}
                 />
               </div>
 
               <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
 
               {/* note */}
-              <div style={{ minWidth: 160, maxWidth: 220 }}>
+              <div style={{ minWidth: 140, maxWidth: 200 }}>
                 <div className={labelCls} style={{ color: "var(--faded)" }}>Примечание</div>
                 <AutoGrowTextarea
                   defaultValue={row.note}
@@ -93,6 +93,14 @@ export default function OpenCallsTable({
                   className="w-full outline-none bg-transparent text-[13px] leading-snug"
                   style={{ color: "var(--ink-soft)" }}
                 />
+              </div>
+
+              <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
+
+              {/* link */}
+              <div className="flex-shrink-0" style={{ width: 130 }}>
+                <div className={labelCls} style={{ color: "var(--faded)" }}>Ссылка</div>
+                <LinkCell value={row.link} onSave={(v) => handleField(row.id, "link", v)} />
               </div>
 
               {/* sent toggle + delete */}

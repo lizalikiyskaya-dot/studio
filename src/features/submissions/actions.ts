@@ -18,7 +18,7 @@ export async function deleteSubmission(id: string) {
 
 export async function updateSubmissionField(
   id: string,
-  field: "target" | "work" | "date" | "note",
+  field: "target" | "work" | "date" | "note" | "link",
   value: string
 ) {
   const row = await prisma.submission.findUniqueOrThrow({ where: { id } });

@@ -17,7 +17,7 @@ export async function deleteOpenCall(id: string) {
 
 export async function updateOpenCallField(
   id: string,
-  field: "target" | "deadline" | "note",
+  field: "target" | "deadline" | "note" | "link",
   value: string
 ) {
   const row = await prisma.openCall.findUniqueOrThrow({ where: { id } });
