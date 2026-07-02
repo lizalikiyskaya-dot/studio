@@ -280,15 +280,12 @@ export default function Sidebar({
               <div className="text-[13px] font-medium truncate" style={{ color: "var(--ink)" }}>
                 {userName}
               </div>
-              {!isMentor && !mentorViewLabel && (
+              {mentorViewLabel ? (
+                <div className="text-[11px]" style={{ color: "var(--faded)" }}>ученик</div>
+              ) : (
                 <Link href={`${basePath}/profile`} className="text-[11px] hover:underline underline-offset-2" style={{ color: "var(--faded)" }}>
                   профиль
                 </Link>
-              )}
-              {(isMentor || mentorViewLabel) && (
-                <div className="text-[11px]" style={{ color: "var(--faded)" }}>
-                  {mentorViewLabel ? "ученик" : "наставник"}
-                </div>
               )}
             </div>
             {!mentorViewLabel && <LogoutButton />}

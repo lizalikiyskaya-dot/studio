@@ -17,7 +17,7 @@ export default async function MentorLayout({
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar basePath="/mentor" userName={user.name} isMentor mentorMenuOnly />
+      <Sidebar basePath="/mentor" userName={user.name} isMentor mentorMenuOnly avatarUrl={user.avatarUrl} />
       <div className="px-11 py-9" style={{ flex: 1, background: "var(--paper-light)", minHeight: "100vh" }}>
         {children}
       </div>
