@@ -87,7 +87,7 @@ export default function DraftsList({
   return (
     <div>
       {drafts.map((draft) => {
-        const isCollapsed = collapsed[draft.id] ?? false;
+        const isCollapsed = collapsed[draft.id] ?? true;
         return (
           <div
             key={draft.id}
