@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { X } from "lucide-react";
 import type { WorkPlan, WorkPlanStatus } from "@/generated/prisma/client";
-import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import EditableWithLinks from "@/components/EditableWithLinks";
 import { Button } from "@/components/ui/Button";
 import { createWorkPlan, deleteWorkPlan, updateWorkPlanField, cycleWorkPlanStatus } from "./actions";
 
@@ -98,7 +98,7 @@ export default function WorkPlanTable({
     startTransition(() => deleteWorkPlan(id));
   }
 
-  function handleField(id: string, field: "monthStart" | "monthEnd" | "description" | "note", value: string) {
+  function handleField(id: string, field: "monthStart" | "monthEnd" | "description" | "literature" | "note", value: string) {
     setPlans((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
     startTransition(() => updateWorkPlanField(id, field, value));
   }
@@ -152,9 +152,9 @@ export default function WorkPlanTable({
                 <div className="text-[9px] font-mono-label uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
                   описание
                 </div>
-                <AutoGrowTextarea
+                <EditableWithLinks
                   defaultValue={plan.description}
-                  onBlur={(v) => handleField(plan.id, "description", v)}
+                  onSave={(v) => handleField(plan.id, "description", v)}
                   placeholder="Что планируется на этот период..."
                   className="w-full outline-none bg-transparent text-[13.5px] leading-snug"
                 />
@@ -163,14 +163,30 @@ export default function WorkPlanTable({
               {/* Divider */}
               <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
 
+              {/* Literature */}
+              <div style={{ minWidth: 150, maxWidth: 210 }}>
+                <div className="text-[9px] font-mono-label uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
+                  литература
+                </div>
+                <EditableWithLinks
+                  defaultValue={plan.literature}
+                  onSave={(v) => handleField(plan.id, "literature", v)}
+                  placeholder="что почитать..."
+                  className="w-full outline-none bg-transparent text-[13px] leading-snug"
+                />
+              </div>
+
+              {/* Divider */}
+              <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
+
               {/* Note */}
-              <div style={{ minWidth: 160, maxWidth: 220 }}>
+              <div style={{ minWidth: 150, maxWidth: 210 }}>
                 <div className="text-[9px] font-mono-label uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
                   примечание
                 </div>
-                <AutoGrowTextarea
+                <EditableWithLinks
                   defaultValue={plan.note}
-                  onBlur={(v) => handleField(plan.id, "note", v)}
+                  onSave={(v) => handleField(plan.id, "note", v)}
                   placeholder="примечание..."
                   className="w-full outline-none bg-transparent text-[13px] leading-snug"
                   style={{ color: "var(--ink-soft)" }}

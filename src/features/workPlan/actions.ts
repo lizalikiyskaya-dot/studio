@@ -20,7 +20,7 @@ export async function deleteWorkPlan(id: string) {
 
 export async function updateWorkPlanField(
   id: string,
-  field: "monthStart" | "monthEnd" | "description" | "note",
+  field: "monthStart" | "monthEnd" | "description" | "literature" | "note",
   value: string
 ) {
   const plan = await prisma.workPlan.findUniqueOrThrow({ where: { id } });

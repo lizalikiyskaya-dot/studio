@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { X } from "lucide-react";
 import type { Submission, SubmissionType, SubmissionStatus } from "@/generated/prisma/client";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import EditableWithLinks from "@/components/EditableWithLinks";
 import LinkCell from "@/components/LinkCell";
 import { Button } from "@/components/ui/Button";
 import { createSubmission, deleteSubmission, updateSubmissionField, cycleSubmissionStatus } from "./actions";
@@ -116,9 +117,9 @@ export default function SubmissionsTable({
               {/* note */}
               <div style={{ minWidth: 130, maxWidth: 180 }}>
                 <div className={labelCls} style={{ color: "var(--faded)" }}>Примечание</div>
-                <AutoGrowTextarea
+                <EditableWithLinks
                   defaultValue={row.note}
-                  onBlur={(v) => handleField(row.id, "note", v)}
+                  onSave={(v) => handleField(row.id, "note", v)}
                   placeholder="примечание..."
                   className="w-full outline-none bg-transparent text-[13px] leading-snug"
                   style={{ color: "var(--ink-soft)" }}

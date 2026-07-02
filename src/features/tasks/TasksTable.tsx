@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { X, Bookmark, Check, Clock, RotateCcw, Pencil } from "lucide-react";
 import type { Task, TaskStatus } from "@/generated/prisma/client";
 import {
@@ -13,88 +13,8 @@ import {
   deleteTask,
 } from "./actions";
 import { nextTaskStatus } from "./status";
-import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import EditableWithLinks from "@/components/EditableWithLinks";
 import { Kpi } from "@/components/ui/Card";
-
-const URL_RE = /https?:\/\/[^\s]+/g;
-
-function linkifyParts(text: string): { type: "text" | "url"; value: string }[] {
-  const parts: { type: "text" | "url"; value: string }[] = [];
-  let last = 0;
-  URL_RE.lastIndex = 0;
-  let m: RegExpExecArray | null;
-  while ((m = URL_RE.exec(text)) !== null) {
-    if (m.index > last) parts.push({ type: "text", value: text.slice(last, m.index) });
-    parts.push({ type: "url", value: m[0] });
-    last = m.index + m[0].length;
-  }
-  if (last < text.length) parts.push({ type: "text", value: text.slice(last) });
-  return parts;
-}
-
-function LinkifiedText({ text, className, style }: { text: string; className?: string; style?: React.CSSProperties }) {
-  const parts = linkifyParts(text);
-  return (
-    <span className={className} style={style}>
-      {parts.map((p, i) =>
-        p.type === "url" ? (
-          <a key={i} href={p.value} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: "var(--wine)" }}>
-            ссылка
-          </a>
-        ) : (
-          <span key={i}>{p.value}</span>
-        )
-      )}
-    </span>
-  );
-}
-
-function EditableWithLinks({
-  defaultValue,
-  onSave,
-  placeholder,
-  className,
-  style,
-}: {
-  defaultValue: string;
-  onSave: (v: string) => void;
-  placeholder?: string;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(defaultValue);
-  const taRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (editing) taRef.current?.focus();
-  }, [editing]);
-
-  if (editing) {
-    return (
-      <AutoGrowTextarea
-        ref={taRef}
-        defaultValue={value}
-        onBlur={(v) => { setValue(v); setEditing(false); onSave(v); }}
-        placeholder={placeholder}
-        className={className}
-        style={style}
-      />
-    );
-  }
-
-  return (
-    <div
-      onClick={() => setEditing(true)}
-      className={`cursor-text whitespace-pre-wrap ${className ?? ""}`}
-      style={{ minHeight: "1.4em", ...style }}
-    >
-      {value
-        ? <LinkifiedText text={value} />
-        : <span style={{ color: "var(--faded)" }}>{placeholder}</span>}
-    </div>
-  );
-}
 
 const GRID_COLUMNS = "1fr 110px 110px 110px 130px";
 

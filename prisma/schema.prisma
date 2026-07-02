@@ -422,6 +422,7 @@ model WorkPlan {
   monthStart  String         @default("")
   monthEnd    String         @default("")
   description String         @default("")
+  literature  String         @default("")
   note        String         @default("")
   status      WorkPlanStatus @default(PLANNED)
   createdAt   DateTime       @default(now())
