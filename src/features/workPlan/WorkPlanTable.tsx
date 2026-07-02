@@ -9,6 +9,9 @@ import { createWorkPlan, deleteWorkPlan, updateWorkPlanField, cycleWorkPlanStatu
 
 const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 
+const labelCls = "text-[9px] font-mono-label uppercase tracking-wide mb-1.5 text-[color:var(--faded)]";
+const colDivider: React.CSSProperties = { borderLeft: "1px solid var(--border)" };
+
 const STATUS_LABEL: Record<WorkPlanStatus, string> = {
   PLANNED: "запланировано",
   IN_PROGRESS: "в процессе",
@@ -119,12 +122,13 @@ export default function WorkPlanTable({
             className="rounded-[14px] px-5 py-4"
             style={{ border: "1px solid var(--rule)", background: "var(--paper-light)" }}
           >
-            <div className="flex items-start gap-4">
+            <div
+              className="grid"
+              style={{ gridTemplateColumns: "195px minmax(0,1fr) 210px 200px 130px" }}
+            >
               {/* Month column */}
-              <div className="flex-shrink-0" style={{ minWidth: 200 }}>
-                <div className="text-[9px] font-mono-label uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
-                  период
-                </div>
+              <div className="pr-4">
+                <div className={labelCls}>период</div>
                 <div className="flex flex-col gap-1">
                   <MonthSelect
                     value={plan.monthStart}
@@ -144,14 +148,9 @@ export default function WorkPlanTable({
                 </div>
               </div>
 
-              {/* Divider */}
-              <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
-
               {/* Description */}
-              <div className="flex-1 min-w-0">
-                <div className="text-[9px] font-mono-label uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
-                  описание
-                </div>
+              <div className="px-4" style={colDivider}>
+                <div className={labelCls}>описание</div>
                 <EditableWithLinks
                   defaultValue={plan.description}
                   onSave={(v) => handleField(plan.id, "description", v)}
@@ -160,14 +159,9 @@ export default function WorkPlanTable({
                 />
               </div>
 
-              {/* Divider */}
-              <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
-
               {/* Literature */}
-              <div style={{ minWidth: 150, maxWidth: 210 }}>
-                <div className="text-[9px] font-mono-label uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
-                  литература
-                </div>
+              <div className="px-4" style={colDivider}>
+                <div className={labelCls}>литература</div>
                 <EditableWithLinks
                   defaultValue={plan.literature}
                   onSave={(v) => handleField(plan.id, "literature", v)}
@@ -176,14 +170,9 @@ export default function WorkPlanTable({
                 />
               </div>
 
-              {/* Divider */}
-              <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
-
               {/* Note */}
-              <div style={{ minWidth: 150, maxWidth: 210 }}>
-                <div className="text-[9px] font-mono-label uppercase tracking-wide mb-1.5" style={{ color: "var(--faded)" }}>
-                  примечание
-                </div>
+              <div className="px-4" style={colDivider}>
+                <div className={labelCls}>примечание</div>
                 <EditableWithLinks
                   defaultValue={plan.note}
                   onSave={(v) => handleField(plan.id, "note", v)}
@@ -194,7 +183,7 @@ export default function WorkPlanTable({
               </div>
 
               {/* Status + delete */}
-              <div className="flex flex-col items-end gap-2 flex-shrink-0">
+              <div className="pl-4 flex flex-col items-end gap-2" style={colDivider}>
                 <button onClick={() => handleDelete(plan.id)} style={{ color: "var(--faded)" }}>
                   <X size={14} />
                 </button>
