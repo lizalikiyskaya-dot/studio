@@ -45,13 +45,18 @@ function StorylineBlockCard({
   onUpdateColor: (color: StorylineColor) => void;
   onDelete: () => void;
 }) {
+  // Disable dragging while editing so "cut" works in the fields (Chromium
+  // blocks cut inside draggable elements, though copy still works).
+  const [dragOn, setDragOn] = useState(true);
   return (
     <div
-      draggable
+      draggable={dragOn}
       onDragStart={(e) => {
         e.dataTransfer.setData("text/plain", block.id);
         e.dataTransfer.effectAllowed = "move";
       }}
+      onFocusCapture={() => setDragOn(false)}
+      onBlurCapture={() => setDragOn(true)}
       className="rounded-md p-3 cursor-grab"
       style={{ background: COLOR_BG[block.color] ?? COLOR_BG.pink, width: 200 }}
     >

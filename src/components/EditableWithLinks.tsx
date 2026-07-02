@@ -26,7 +26,15 @@ export function LinkifiedText({ text, className, style }: { text: string; classN
     <span className={className} style={style}>
       {parts.map((p, i) =>
         p.type === "url" ? (
-          <a key={i} href={p.value} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: "var(--accent)" }}>
+          <a
+            key={i}
+            href={p.value}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            style={{ color: "var(--accent)" }}
+          >
             ссылка
           </a>
         ) : (
@@ -78,7 +86,10 @@ export default function EditableWithLinks({
 
   return (
     <div
-      onClick={() => setEditing(true)}
+      // Enter edit mode on mousedown (not click) so the caret lands in the
+      // real textarea before the user selects — otherwise selecting text on
+      // this read-only display div lets you copy but not cut.
+      onMouseDown={() => setEditing(true)}
       className={`cursor-text whitespace-pre-wrap ${className ?? ""}`}
       style={{ minHeight: "1.4em", ...style }}
     >

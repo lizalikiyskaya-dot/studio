@@ -100,6 +100,7 @@ function BooksList({
   canManage: boolean;
 }) {
   const [books, setBooks] = useState(materials);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   const drag = useDrag(books, setBooks, (ids) =>
@@ -150,10 +151,12 @@ function BooksList({
       {books.map((material) => (
         <div
           key={material.id}
-          draggable={canManage}
+          draggable={canManage && editingId !== material.id}
           onDragStart={() => drag.onDragStart(material.id)}
           onDragOver={(e) => drag.onDragOver(e, material.id)}
           onDrop={drag.onDrop}
+          onFocusCapture={() => setEditingId(material.id)}
+          onBlurCapture={() => setEditingId((cur) => (cur === material.id ? null : cur))}
           className="group"
         >
           <Accordion
@@ -235,6 +238,7 @@ function HandoutsList({
   canManage: boolean;
 }) {
   const [handouts, setHandouts] = useState(materials);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   const drag = useDrag(handouts, setHandouts, (ids) =>
@@ -277,10 +281,12 @@ function HandoutsList({
       {handouts.map((material) => (
         <div
           key={material.id}
-          draggable={canManage}
+          draggable={canManage && editingId !== material.id}
           onDragStart={() => drag.onDragStart(material.id)}
           onDragOver={(e) => drag.onDragOver(e, material.id)}
           onDrop={drag.onDrop}
+          onFocusCapture={() => setEditingId(material.id)}
+          onBlurCapture={() => setEditingId((cur) => (cur === material.id ? null : cur))}
           className="group flex items-center gap-3 py-3 border-b flex-wrap"
           style={{ borderColor: "var(--border)" }}
         >

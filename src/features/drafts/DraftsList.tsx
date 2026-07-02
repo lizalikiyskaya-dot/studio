@@ -19,6 +19,9 @@ export default function DraftsList({
 }) {
   const [drafts, setDrafts] = useState(initialDrafts);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  // While a field inside a card is focused we turn off draggable — Chromium
+  // blocks "cut" (but not "copy") in inputs nested in a draggable element.
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const dragId = useRef<string | null>(null);
   const dragOverId = useRef<string | null>(null);
@@ -91,10 +94,12 @@ export default function DraftsList({
         return (
           <div
             key={draft.id}
-            draggable
+            draggable={editingId !== draft.id}
             onDragStart={() => handleDragStart(draft.id)}
             onDragOver={(e) => handleDragOver(e, draft.id)}
             onDrop={handleDrop}
+            onFocusCapture={() => setEditingId(draft.id)}
+            onBlurCapture={() => setEditingId((cur) => (cur === draft.id ? null : cur))}
             className="rounded-[14px] mb-3 max-w-[680px] overflow-hidden"
             style={{ border: "1px solid var(--border)" }}
           >
