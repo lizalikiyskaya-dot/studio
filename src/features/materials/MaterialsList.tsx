@@ -100,7 +100,9 @@ function BooksList({
   canManage: boolean;
 }) {
   const [books, setBooks] = useState(materials);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  // Card is draggable ONLY while its grip handle is held — otherwise the
+  // whole card grabs mousedown and hijacks text selection / cut.
+  const [armedId, setArmedId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   const drag = useDrag(books, setBooks, (ids) =>
@@ -151,12 +153,12 @@ function BooksList({
       {books.map((material) => (
         <div
           key={material.id}
-          draggable={canManage && editingId !== material.id}
+          draggable={canManage && armedId === material.id}
           onDragStart={() => drag.onDragStart(material.id)}
           onDragOver={(e) => drag.onDragOver(e, material.id)}
           onDrop={drag.onDrop}
-          onFocusCapture={() => setEditingId(material.id)}
-          onBlurCapture={() => setEditingId((cur) => (cur === material.id ? null : cur))}
+          onDragEnd={() => setArmedId(null)}
+          onMouseUp={() => setArmedId(null)}
           className="group"
         >
           <Accordion
@@ -166,6 +168,7 @@ function BooksList({
               canManage ? (
                 <GripVertical
                   size={14}
+                  onMouseDown={() => setArmedId(material.id)}
                   className="shrink-0 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
                   style={{ color: "var(--ink-faint)" }}
                 />
@@ -238,7 +241,7 @@ function HandoutsList({
   canManage: boolean;
 }) {
   const [handouts, setHandouts] = useState(materials);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [armedId, setArmedId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   const drag = useDrag(handouts, setHandouts, (ids) =>
@@ -281,18 +284,19 @@ function HandoutsList({
       {handouts.map((material) => (
         <div
           key={material.id}
-          draggable={canManage && editingId !== material.id}
+          draggable={canManage && armedId === material.id}
           onDragStart={() => drag.onDragStart(material.id)}
           onDragOver={(e) => drag.onDragOver(e, material.id)}
           onDrop={drag.onDrop}
-          onFocusCapture={() => setEditingId(material.id)}
-          onBlurCapture={() => setEditingId((cur) => (cur === material.id ? null : cur))}
+          onDragEnd={() => setArmedId(null)}
+          onMouseUp={() => setArmedId(null)}
           className="group flex items-center gap-3 py-3 border-b flex-wrap"
           style={{ borderColor: "var(--border)" }}
         >
           {canManage && (
             <GripVertical
               size={14}
+              onMouseDown={() => setArmedId(material.id)}
               className="shrink-0 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
               style={{ color: "var(--ink-faint)" }}
             />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { X } from "lucide-react";
+import { X, GripVertical } from "lucide-react";
 import type { Act, ActChapter, StorylineBlock, Comment } from "@/generated/prisma/client";
 import {
   createAct,
@@ -45,22 +45,28 @@ function StorylineBlockCard({
   onUpdateColor: (color: StorylineColor) => void;
   onDelete: () => void;
 }) {
-  // Disable dragging while editing so "cut" works in the fields (Chromium
-  // blocks cut inside draggable elements, though copy still works).
-  const [dragOn, setDragOn] = useState(true);
+  // Draggable only while the grip is held, so selecting/cutting text in the
+  // fields isn't hijacked into a drag.
+  const [armed, setArmed] = useState(false);
   return (
     <div
-      draggable={dragOn}
+      draggable={armed}
       onDragStart={(e) => {
         e.dataTransfer.setData("text/plain", block.id);
         e.dataTransfer.effectAllowed = "move";
       }}
-      onFocusCapture={() => setDragOn(false)}
-      onBlurCapture={() => setDragOn(true)}
-      className="rounded-md p-3 cursor-grab"
+      onDragEnd={() => setArmed(false)}
+      onMouseUp={() => setArmed(false)}
+      className="rounded-md p-3"
       style={{ background: COLOR_BG[block.color] ?? COLOR_BG.pink, width: 200 }}
     >
       <div className="flex justify-between items-start gap-1 mb-1.5">
+        <GripVertical
+          size={13}
+          onMouseDown={() => setArmed(true)}
+          className="shrink-0 mt-0.5 cursor-grab active:cursor-grabbing"
+          style={{ color: "var(--ink-faint)" }}
+        />
         <input
           defaultValue={block.name}
           onBlur={(e) => onUpdateField("name", e.target.value)}
