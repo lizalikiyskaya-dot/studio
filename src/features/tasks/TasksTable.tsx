@@ -14,6 +14,7 @@ import {
 } from "./actions";
 import { nextTaskStatus } from "./status";
 import EditableWithLinks from "@/components/EditableWithLinks";
+import DateField from "@/components/DateField";
 import { Kpi } from "@/components/ui/Card";
 
 const GRID_COLUMNS = "1fr 110px 110px 110px 130px";
@@ -163,11 +164,9 @@ export default function TasksTable({
               </div>
               <div>
                 <MetaLabel>дедлайн</MetaLabel>
-                <input
-                  type="date"
-                  defaultValue={toDateInputValue(task.deadline)}
-                  onChange={(e) => handleDeadline(task.id, e.target.value)}
-                  className="w-full outline-none bg-transparent text-[12.5px]"
+                <DateField
+                  value={toDateInputValue(task.deadline)}
+                  onChange={(v) => handleDeadline(task.id, v)}
                   style={{ border: "1px solid var(--rule)", borderRadius: 6, padding: "4px 6px" }}
                 />
               </div>

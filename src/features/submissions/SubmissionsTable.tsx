@@ -6,6 +6,7 @@ import type { Submission, SubmissionType, SubmissionStatus } from "@/generated/p
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import LinkCell from "@/components/LinkCell";
+import DateField from "@/components/DateField";
 import { Button } from "@/components/ui/Button";
 import { createSubmission, deleteSubmission, updateSubmissionField, cycleSubmissionStatus } from "./actions";
 
@@ -103,13 +104,7 @@ export default function SubmissionsTable({
               {/* date */}
               <div className="flex-shrink-0" style={{ width: 128 }}>
                 <div className={labelCls} style={{ color: "var(--faded)" }}>Дата подачи</div>
-                <input
-                  type="date"
-                  defaultValue={row.date}
-                  onChange={(e) => handleField(row.id, "date", e.target.value)}
-                  className="w-full outline-none bg-transparent text-[13px] font-mono-label"
-                  style={{ color: row.date ? "var(--ink)" : "var(--faded)" }}
-                />
+                <DateField value={row.date} onChange={(v) => handleField(row.id, "date", v)} />
               </div>
 
               <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
