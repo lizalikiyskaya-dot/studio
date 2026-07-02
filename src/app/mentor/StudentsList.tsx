@@ -6,7 +6,7 @@ import { cycleStudentAccess, deleteStudent, moveStudent } from "./actions";
 import PaymentControls from "./PaymentControls";
 import WorkshopLockControls from "./WorkshopLockControls";
 import { LinkButton } from "@/components/ui/Button";
-import { OnlineBeacon, ActivityBeacon } from "./StudentBeacons";
+import { PresenceIndicator } from "./StudentBeacons";
 
 type AccessStatus = "OPEN" | "AWAITING" | "SUSPENDED";
 
@@ -129,8 +129,6 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                     </span>
                   )}
                   <span>{s.name}</span>
-                  <OnlineBeacon lastSeenAt={s.lastSeenAt} />
-                  <ActivityBeacon lastActivityAt={s.lastActivityAt} />
                 </span>
               </td>
 
@@ -154,6 +152,11 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
               {/* payment day */}
               <td className="py-2.5 pr-2 align-top">
                 <PaymentControls userId={s.id} paymentDay={s.paymentDay} />
+              </td>
+
+              {/* presence — online / last seen */}
+              <td className="py-2.5 px-3 align-top">
+                <PresenceIndicator lastSeenAt={s.lastSeenAt} />
               </td>
 
               {/* workshop locks */}

@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Bookmark, BookOpen, FileText, Pencil, PanelLeft, CalendarDays } from "lucide-react";
+import { Bookmark, BookOpen, FileText, Pencil, PanelLeft, CalendarDays, Send, Megaphone } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import CalendarWidget from "./CalendarWidget";
 import ToggleSwitch from "./ToggleSwitch";
@@ -16,6 +16,8 @@ const TOP_ITEMS = [
   { path: "materials", label: "Материалы", icon: BookOpen },
   { path: "drafts", label: "Рукописи", icon: FileText },
   { path: "exercises", label: "Упражнения", icon: Pencil },
+  { path: "submissions", label: "Трекер заявок", icon: Send },
+  { path: "open-calls", label: "Опен-коллы", icon: Megaphone },
 ];
 
 const WORKSHOP_ITEMS = [

@@ -71,6 +71,17 @@ enum WorkPlanStatus {
   DONE
 }
 
+enum SubmissionType {
+  CONTEST
+  PUBLISHER
+}
+
+enum SubmissionStatus {
+  WAITING
+  ACCEPTED
+  REJECTED
+}
+
 enum WorldCategory {
   LOCATIONS
   FACTIONS
@@ -149,6 +160,8 @@ model User {
   cycles            Cycle[]
   stories           Story[]
   workPlans         WorkPlan[]
+  submissions       Submission[]
+  openCalls         OpenCall[]
 }
 
 model Note {
@@ -412,6 +425,32 @@ model WorkPlan {
   note        String         @default("")
   status      WorkPlanStatus @default(PLANNED)
   createdAt   DateTime       @default(now())
+}
+
+model Submission {
+  id        String           @id @default(cuid())
+  studentId String
+  student   User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type      SubmissionType   @default(CONTEST)
+  order     Int              @default(0)
+  target    String           @default("")
+  work      String           @default("")
+  date      String           @default("")
+  status    SubmissionStatus @default(WAITING)
+  note      String           @default("")
+  createdAt DateTime         @default(now())
+}
+
+model OpenCall {
+  id        String   @id @default(cuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  order     Int      @default(0)
+  target    String   @default("")
+  deadline  String   @default("")
+  note      String   @default("")
+  sent      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 model Cycle {
