@@ -81,20 +81,27 @@ export function OnlineBeacon({ lastSeenAt }: { lastSeenAt: Date | null }) {
   );
 }
 
+/**
+ * Red dot next to the student's name meaning "edited something recently"
+ * (lastActivityAt is stamped whenever the student mutates their cabinet).
+ * Shown for 24h after the last edit; the tooltip says how long ago.
+ */
 export function ActivityBeacon({ lastActivityAt }: { lastActivityAt: Date | null }) {
   const recent = lastActivityAt && Date.now() - new Date(lastActivityAt).getTime() < 24 * 60 * 60_000;
-  if (!recent) return null;
+  if (!recent || !lastActivityAt) return null;
 
   return (
     <span
-      title="Работал недавно"
+      title={`Редактировал(-а) ${relativeTime(new Date(lastActivityAt))}`}
       style={{
         display: "inline-block",
         width: 8,
         height: 8,
         borderRadius: "50%",
         background: "var(--accent)",
-        animation: "beacon-pulse 2.4s ease-in-out infinite",
+        boxShadow: "0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent)",
+        animation: "pulse 2s ease-in-out infinite",
+        flexShrink: 0,
       }}
     />
   );

@@ -6,7 +6,7 @@ import { cycleStudentAccess, deleteStudent, moveStudent } from "./actions";
 import PaymentControls from "./PaymentControls";
 import WorkshopLockControls from "./WorkshopLockControls";
 import { LinkButton } from "@/components/ui/Button";
-import { PresenceIndicator } from "./StudentBeacons";
+import { PresenceIndicator, ActivityBeacon } from "./StudentBeacons";
 
 type AccessStatus = "OPEN" | "AWAITING" | "SUSPENDED";
 
@@ -129,6 +129,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                     </span>
                   )}
                   <span>{s.name}</span>
+                  <ActivityBeacon lastActivityAt={s.lastActivityAt} />
                 </span>
               </td>
 
