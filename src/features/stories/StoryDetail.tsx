@@ -108,12 +108,13 @@ export default function StoryDetail({
         <StructureField label="Путь персонажа (кратко)" value={story.characterPathText} field="characterPathText" storyId={story.id} />
       </Accordion>
 
-      <div className="h-px my-6" style={{ background: "var(--rule)" }} />
-      <StoryCharactersSection
-        story={story}
-        cycleCharacters={cycleCharacters}
-        storyCharacters={storyCharacters}
-      />
+      <Accordion title="Персонажи рассказа">
+        <StoryCharactersSection
+          story={story}
+          cycleCharacters={cycleCharacters}
+          storyCharacters={storyCharacters}
+        />
+      </Accordion>
 
       <Accordion title="Сеттинг">
         <StorySettingSection
