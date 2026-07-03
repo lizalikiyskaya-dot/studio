@@ -41,7 +41,7 @@ export default function AboutBookForm({ book, suggestions, comments }: { book: B
   }
 
   return (
-    <div>
+    <div className="max-w-[880px]">
       {/* Баннер + обложки */}
       <div className="mb-8 rounded-[14px] overflow-hidden" style={{ border: "1px solid var(--border)" }}>
         <BannerSection

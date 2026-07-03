@@ -56,7 +56,7 @@ export default function AboutCycleForm({ cycle }: { cycle: Cycle }) {
   const [, startTransition] = useTransition();
 
   return (
-    <div>
+    <div className="max-w-[880px]">
       <div className="mb-8 rounded-[14px] overflow-hidden" style={{ border: "1px solid var(--border)" }}>
         <BannerSection
           recordId={cycle.id}
