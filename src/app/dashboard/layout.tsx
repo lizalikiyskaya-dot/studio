@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import Sidebar from "@/components/Sidebar";
 import NotesPanel from "@/features/notes/NotesPanel";
 import PresencePing from "@/features/presence/PresencePing";
+import SectionTracker from "@/features/sectionBeacons/SectionTracker";
+import { getSectionBeacons } from "@/features/sectionBeacons/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
 
 export default async function DashboardLayout({
@@ -27,15 +29,18 @@ export default async function DashboardLayout({
     prisma.note.findMany({ where: { studentId: user.id }, orderBy: { createdAt: "desc" } }),
   ]);
   const noteComments = await getCommentsForRecords("Note", notes.map((n) => n.id));
+  const beacons = await getSectionBeacons(user.id);
 
   return (
     <div className="flex min-h-screen">
+      <SectionTracker studentId={user.id} basePath="/dashboard" />
       <Sidebar
         basePath="/dashboard"
         userName={user.name}
         isMentor={false}
         studentId={user.id}
         avatarUrl={user.avatarUrl}
+        beacons={beacons}
         bookWorkshopUnlocked={user.bookWorkshopUnlocked}
         storyWorkshopUnlocked={user.storyWorkshopUnlocked}
         calendar={{

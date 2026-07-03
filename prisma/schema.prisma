@@ -428,6 +428,30 @@ model WorkPlan {
   createdAt   DateTime       @default(now())
 }
 
+// Last time any content in a given section changed, for a given student's
+// cabinet, and which role made the change. Used to light "new updates"
+// beacons next to sidebar sections for the OTHER party.
+model SectionActivity {
+  studentId String
+  section   String
+  at        DateTime @default(now()) @updatedAt
+  byRole    String   @default("STUDENT")
+
+  @@id([studentId, section])
+}
+
+// Last time a given viewer opened a given section of a given student's
+// cabinet. Beacon shows when SectionActivity.at (by the other role) is
+// newer than this.
+model SectionSeen {
+  userId    String
+  studentId String
+  section   String
+  seenAt    DateTime @default(now()) @updatedAt
+
+  @@id([userId, studentId, section])
+}
+
 model Submission {
   id        String           @id @default(cuid())
   studentId String

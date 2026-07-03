@@ -42,6 +42,27 @@ function getInitials(name: string) {
   return parts.slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
 }
 
+function NavBeacon({ show, collapsed }: { show: boolean; collapsed: boolean }) {
+  if (!show) return null;
+  return (
+    <span
+      title="Есть обновления"
+      style={{
+        width: 7,
+        height: 7,
+        borderRadius: "50%",
+        background: "var(--accent)",
+        boxShadow: "0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)",
+        animation: "pulse 2s ease-in-out infinite",
+        flexShrink: 0,
+        ...(collapsed
+          ? { position: "absolute" as const, top: 7, right: 7 }
+          : { marginLeft: "auto" as const }),
+      }}
+    />
+  );
+}
+
 export default function Sidebar({
   basePath,
   userName,
@@ -53,6 +74,7 @@ export default function Sidebar({
   bookWorkshopUnlocked,
   storyWorkshopUnlocked,
   avatarUrl,
+  beacons,
 }: {
   basePath: string;
   userName: string;
@@ -68,11 +90,13 @@ export default function Sidebar({
   bookWorkshopUnlocked?: boolean;
   storyWorkshopUnlocked?: boolean;
   avatarUrl?: string | null;
+  beacons?: string[];
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const bookParam = searchParams.get("book");
   const cycleParam = searchParams.get("cycle");
+  const beaconSet = new Set(beacons ?? []);
   const reviewMode = useCanSuggest();
   const setReviewModeState = useSetCanSuggest();
   const [, startTransition] = useTransition();
@@ -184,10 +208,11 @@ export default function Sidebar({
                     key={item.path}
                     href={href}
                     title={collapsed ? item.label : undefined}
-                    className={`nav-item flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
+                    className={`nav-item relative flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
                   >
                     <Icon size={17} style={{ flexShrink: 0, opacity: 0.85 }} />
                     {!collapsed && <span>{item.label}</span>}
+                    <NavBeacon show={beaconSet.has(item.path)} collapsed={collapsed} />
                   </Link>
                 );
               })}
@@ -204,12 +229,13 @@ export default function Sidebar({
                       key={item.path}
                       href={href}
                       title={collapsed ? item.label : undefined}
-                      className={`nav-item flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
+                      className={`nav-item relative flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
                     >
                       <span className="font-mono-label text-[12px] flex-shrink-0" style={{ width: 18, opacity: 0.85 }}>
                         {item.n}
                       </span>
                       {!collapsed && <span>{item.label}</span>}
+                      <NavBeacon show={beaconSet.has(item.path)} collapsed={collapsed} />
                     </Link>
                   );
                 })}
@@ -227,12 +253,13 @@ export default function Sidebar({
                       key={item.path}
                       href={href}
                       title={collapsed ? item.label : undefined}
-                      className={`nav-item flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
+                      className={`nav-item relative flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
                     >
                       <span className="font-mono-label text-[12px] flex-shrink-0" style={{ width: 18, opacity: 0.85 }}>
                         {item.n}
                       </span>
                       {!collapsed && <span>{item.label}</span>}
+                      <NavBeacon show={beaconSet.has(item.path)} collapsed={collapsed} />
                     </Link>
                   );
                 })}

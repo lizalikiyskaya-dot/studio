@@ -3,6 +3,8 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import Sidebar from "@/components/Sidebar";
 import NotesPanel from "@/features/notes/NotesPanel";
+import SectionTracker from "@/features/sectionBeacons/SectionTracker";
+import { getSectionBeacons } from "@/features/sectionBeacons/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
 import { SuggestionProvider } from "@/features/suggestions/SuggestionContext";
 
@@ -29,16 +31,19 @@ export default async function StudentViewLayout({
     prisma.note.findMany({ where: { studentId: student.id }, orderBy: { createdAt: "desc" } }),
   ]);
   const noteComments = await getCommentsForRecords("Note", notes.map((n) => n.id));
+  const beacons = await getSectionBeacons(student.id);
 
   return (
     <SuggestionProvider canSuggest={student.reviewModeEnabled}>
       <div className="flex min-h-screen">
+        <SectionTracker studentId={student.id} basePath={`/student-view/${studentId}`} />
         <Sidebar
           basePath={`/student-view/${studentId}`}
           userName={student.name}
           isMentor
           mentorViewLabel={student.name}
           studentId={student.id}
+          beacons={beacons}
           bookWorkshopUnlocked={student.bookWorkshopUnlocked}
           storyWorkshopUnlocked={student.storyWorkshopUnlocked}
           calendar={{
