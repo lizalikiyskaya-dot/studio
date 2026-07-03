@@ -45,6 +45,9 @@ export async function POST(req: Request) {
     target === "popArc-photo" ||
     target === "world-entry-photo" ||
     target === "cycle-cover" ||
+    target === "cycle-cover-2" ||
+    target === "cycle-cover-3" ||
+    target === "cycle-banner" ||
     target === "cycle-character-photo" ||
     target === "story-character-photo" ||
     target === "cycle-world-entry-photo" ||
@@ -110,6 +113,18 @@ export async function POST(req: Request) {
     const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
     await requireCabinetAccess(cycle.studentId);
     await prisma.cycle.update({ where: { id }, data: { coverUrl: dataUrl } });
+  } else if (target === "cycle-cover-2") {
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycle.update({ where: { id }, data: { coverUrl2: dataUrl } });
+  } else if (target === "cycle-cover-3") {
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycle.update({ where: { id }, data: { coverUrl3: dataUrl } });
+  } else if (target === "cycle-banner") {
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycle.update({ where: { id }, data: { bannerUrl: dataUrl } });
   } else if (target === "cycle-character-photo") {
     const character = await prisma.cycleCharacter.findUniqueOrThrow({ where: { id } });
     const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: character.cycleId } });
@@ -169,6 +184,9 @@ const PHOTO_FIELD_TARGETS = [
   "popArc-photo",
   "world-entry-photo",
   "cycle-cover",
+  "cycle-cover-2",
+  "cycle-cover-3",
+  "cycle-banner",
   "cycle-character-photo",
   "story-character-photo",
   "cycle-world-entry-photo",
@@ -224,6 +242,18 @@ export async function DELETE(req: Request) {
     const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
     await requireCabinetAccess(cycle.studentId);
     await prisma.cycle.update({ where: { id }, data: { coverUrl: null } });
+  } else if (target === "cycle-cover-2") {
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycle.update({ where: { id }, data: { coverUrl2: null } });
+  } else if (target === "cycle-cover-3") {
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycle.update({ where: { id }, data: { coverUrl3: null } });
+  } else if (target === "cycle-banner") {
+    const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id } });
+    await requireCabinetAccess(cycle.studentId);
+    await prisma.cycle.update({ where: { id }, data: { bannerUrl: null } });
   } else if (target === "cycle-character-photo") {
     const character = await prisma.cycleCharacter.findUniqueOrThrow({ where: { id } });
     const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: character.cycleId } });

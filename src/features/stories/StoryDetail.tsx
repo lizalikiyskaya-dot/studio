@@ -9,6 +9,7 @@ import type {
   StoryWorldEntry,
 } from "@/generated/prisma/client";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import Accordion from "@/components/Accordion";
 import { updateStoryTitle, updateStoryStructureField, type StoryStructureField } from "./actions";
 import StorySourceToggle from "./StorySourceToggle";
 import StoryCharactersSection from "@/features/storyCharacters/StoryCharactersSection";
@@ -93,15 +94,19 @@ export default function StoryDetail({
         />
       )}
 
-      <StructureField label="Завязка" value={story.setupText} field="setupText" storyId={story.id} />
-      <StructureField label="Кульминация" value={story.climaxText} field="climaxText" storyId={story.id} />
-      <StructureField label="Развязка" value={story.resolutionText} field="resolutionText" storyId={story.id} />
-      <StructureField
-        label="Путь персонажа (кратко)"
-        value={story.characterPathText}
-        field="characterPathText"
-        storyId={story.id}
-      />
+      <Accordion title="О рассказе" defaultOpen>
+        <StructureField label="Концепт" value={story.concept} field="concept" storyId={story.id} />
+        <StructureField label="Драматический аргумент" value={story.dramaticArgument} field="dramaticArgument" storyId={story.id} />
+        <StructureField label="Жанр" value={story.genre} field="genre" storyId={story.id} />
+        <StructureField label="Логлайн" value={story.logline} field="logline" storyId={story.id} />
+      </Accordion>
+
+      <Accordion title="Сюжет и арка">
+        <StructureField label="Завязка" value={story.setupText} field="setupText" storyId={story.id} />
+        <StructureField label="Кульминация" value={story.climaxText} field="climaxText" storyId={story.id} />
+        <StructureField label="Развязка" value={story.resolutionText} field="resolutionText" storyId={story.id} />
+        <StructureField label="Путь персонажа (кратко)" value={story.characterPathText} field="characterPathText" storyId={story.id} />
+      </Accordion>
 
       <div className="h-px my-6" style={{ background: "var(--rule)" }} />
       <StoryCharactersSection
@@ -110,13 +115,14 @@ export default function StoryDetail({
         storyCharacters={storyCharacters}
       />
 
-      <div className="h-px my-6" style={{ background: "var(--rule)" }} />
-      <StorySettingSection
-        story={story}
-        cycleWorldEntries={cycleWorldEntries}
-        storyWorldEntries={storyWorldEntries}
-        cycleSetting={cycleSetting}
-      />
+      <Accordion title="Сеттинг">
+        <StorySettingSection
+          story={story}
+          cycleWorldEntries={cycleWorldEntries}
+          storyWorldEntries={storyWorldEntries}
+          cycleSetting={cycleSetting}
+        />
+      </Accordion>
     </div>
   );
 }

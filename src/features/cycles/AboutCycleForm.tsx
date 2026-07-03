@@ -2,10 +2,9 @@
 
 import { useTransition } from "react";
 import type { Cycle } from "@/generated/prisma/client";
-import ImageUploadBox from "@/components/ImageUploadBox";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
-import { uploadFile, deletePhoto } from "@/lib/uploadFile";
-import { updateCycleField, type CycleField } from "./actions";
+import { BannerSection, CoverCarousel } from "@/components/ProfilePhotos";
+import { updateCycleField, updateCyclePhotoPosition, type CycleField } from "./actions";
 
 function Field({ label, value, field, cycleId }: { label: string; value: string; field: CycleField; cycleId: string }) {
   const [, startTransition] = useTransition();
@@ -58,18 +57,32 @@ export default function AboutCycleForm({ cycle }: { cycle: Cycle }) {
 
   return (
     <div>
-      <ImageUploadBox
-        value={cycle.coverUrl}
-        onUpload={(file) => startTransition(() => { void uploadFile("cycle-cover", cycle.id, "coverUrl", file); })}
-        onDelete={() => startTransition(() => { void deletePhoto("cycle-cover", cycle.id, "coverUrl"); })}
-        placeholder="нажмите, чтобы добавить обложку"
-        className="rounded-sm mb-6"
-        style={{ width: 140, height: 200 }}
-      />
-
-      <div className="grid grid-cols-2 gap-x-8">
-        <Field label="Название цикла" value={cycle.title} field="title" cycleId={cycle.id} />
-        <Field label="Жанр" value={cycle.genre} field="genre" cycleId={cycle.id} />
+      <div className="mb-8 rounded-[14px] overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+        <BannerSection
+          recordId={cycle.id}
+          target="cycle-banner"
+          field="bannerUrl"
+          initialUrl={cycle.bannerUrl ?? null}
+          initialPosition={cycle.bannerPosition ?? "50% 50%"}
+          onSavePosition={(pos) => startTransition(() => { void updateCyclePhotoPosition(cycle.id, "bannerPosition", pos); })}
+        />
+        <div className="px-6 pb-6 pt-8 flex gap-8 items-start">
+          <CoverCarousel
+            recordId={cycle.id}
+            slots={[
+              { target: "cycle-cover", field: "coverUrl", posField: "coverPosition" },
+              { target: "cycle-cover-2", field: "coverUrl2", posField: "coverPosition2" },
+              { target: "cycle-cover-3", field: "coverUrl3", posField: "coverPosition3" },
+            ]}
+            initialUrls={[cycle.coverUrl ?? null, cycle.coverUrl2 ?? null, cycle.coverUrl3 ?? null]}
+            initialPositions={[cycle.coverPosition ?? "50% 50%", cycle.coverPosition2 ?? "50% 50%", cycle.coverPosition3 ?? "50% 50%"]}
+            onSavePosition={(posField, pos) => startTransition(() => { void updateCyclePhotoPosition(cycle.id, posField as "coverPosition" | "coverPosition2" | "coverPosition3", pos); })}
+          />
+          <div className="flex-1 min-w-0 pt-1">
+            <Field label="Название цикла" value={cycle.title} field="title" cycleId={cycle.id} />
+            <Field label="Жанр" value={cycle.genre} field="genre" cycleId={cycle.id} />
+          </div>
+        </div>
       </div>
 
       <TextAreaField label="Концепт" value={cycle.concept} field="concept" cycleId={cycle.id} />

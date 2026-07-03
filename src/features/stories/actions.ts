@@ -38,6 +38,10 @@ const STORY_STRUCTURE_FIELDS = [
   "climaxText",
   "resolutionText",
   "characterPathText",
+  "concept",
+  "dramaticArgument",
+  "genre",
+  "logline",
 ] as const;
 export type StoryStructureField = (typeof STORY_STRUCTURE_FIELDS)[number];
 

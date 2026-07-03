@@ -491,6 +491,13 @@ model Cycle {
   concept    String  @default("")
   annotation String  @default("")
   coverUrl   String?
+  coverPosition  String  @default("50% 50%")
+  coverUrl2      String?
+  coverPosition2 String  @default("50% 50%")
+  coverUrl3      String?
+  coverPosition3 String  @default("50% 50%")
+  bannerUrl      String?
+  bannerPosition String  @default("50% 50%")
 
   grapesGeography    String @default("")
   grapesReligion     String @default("")
@@ -519,6 +526,11 @@ model Story {
   order     Int      @default(0)
   title     String   @default("Новый рассказ")
   createdAt DateTime @default(now())
+
+  concept          String @default("")
+  dramaticArgument String @default("")
+  genre            String @default("")
+  logline          String @default("")
 
   setupText         String @default("")
   climaxText        String @default("")

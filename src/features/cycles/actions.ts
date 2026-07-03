@@ -31,3 +31,13 @@ export async function updateCycleField(cycleId: string, field: CycleField, value
   await requireCabinetAccess(cycle.studentId);
   await prisma.cycle.update({ where: { id: cycleId }, data: { [field]: value } });
 }
+
+export async function updateCyclePhotoPosition(
+  cycleId: string,
+  field: "coverPosition" | "coverPosition2" | "coverPosition3" | "bannerPosition",
+  position: string
+) {
+  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: cycleId } });
+  await requireCabinetAccess(cycle.studentId);
+  await prisma.cycle.update({ where: { id: cycleId }, data: { [field]: position } });
+}
