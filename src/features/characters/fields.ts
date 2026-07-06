@@ -38,6 +38,8 @@ export type CharacterFieldKey =
   | "posFalseGoalAchievedScene"
   | "posTurningPoint"
   | "posTurningPointScene"
+  | "posTrueBelief"
+  | "posTrueBeliefScene"
   | "posTrueMotivation"
   | "posTrueMotivationScene"
   | "posTrueGoalAchieved"
@@ -141,6 +143,8 @@ export const ALL_CHARACTER_FIELD_KEYS: CharacterFieldKey[] = [
   "posFalseGoalAchievedScene",
   "posTurningPoint",
   "posTurningPointScene",
+  "posTrueBelief",
+  "posTrueBeliefScene",
   "posTrueMotivation",
   "posTrueMotivationScene",
   "posTrueGoalAchieved",
@@ -272,6 +276,7 @@ export const ARC_GROUPS: FieldGroup[] = [
       { key: "posFalseGoal", sceneKey: "posFalseGoalScene", label: "Ложная мотивация / цель" },
       { key: "posFalseGoalAchieved", sceneKey: "posFalseGoalAchievedScene", label: "Достижение ложной мотивации" },
       { key: "posTurningPoint", sceneKey: "posTurningPointScene", label: "Точка трансформации" },
+      { key: "posTrueBelief", sceneKey: "posTrueBeliefScene", label: "Истинное убеждение" },
       { key: "posTrueMotivation", sceneKey: "posTrueMotivationScene", label: "Истинная мотивация" },
       { key: "posTrueGoalAchieved", sceneKey: "posTrueGoalAchievedScene", label: "Достижение истинной мотивации" },
       { key: "posResult", sceneKey: "posResultScene", label: "Результат трансформации" },
