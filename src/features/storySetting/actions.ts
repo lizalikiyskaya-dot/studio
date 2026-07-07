@@ -57,6 +57,13 @@ export async function updateCycleFantasyText(cycleId: string, field: CycleFantas
   await prisma.cycle.update({ where: { id: cycleId }, data: { [field]: value } });
 }
 
+export async function updateStoryFantasyText(storyId: string, field: CycleFantasyTextField, value: string) {
+  if (!FANTASY_TEXT_FIELDS.includes(field)) throw new Error("Недопустимое поле");
+  const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
+  await requireCabinetAccess(story.studentId);
+  await prisma.story.update({ where: { id: storyId }, data: { [field]: value } });
+}
+
 // --- Cycle-level (shared) world entries ---
 
 export async function createCycleWorldEntry(cycleId: string, category: WorldCategory) {

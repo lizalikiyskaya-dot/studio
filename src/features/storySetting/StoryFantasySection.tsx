@@ -1,46 +1,62 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { X, Check } from "lucide-react";
-import type { WorldCategory } from "@/generated/prisma/client";
+import { Check, X } from "lucide-react";
+import type { Story, StoryWorldEntry, WorldCategory } from "@/generated/prisma/client";
+import Accordion from "@/components/Accordion";
+import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
+import {
+  updateStoryFantasyText,
+  createStoryWorldEntry,
+  deleteStoryWorldEntry,
+  updateStoryWorldEntryTitle,
+  updateStoryWorldEntryBody,
+} from "./actions";
+import {
+  MapIcon,
+  SwordsIcon,
+  ScrollIcon,
+  GearIcon,
+  SparkleIcon,
+  ColumnIcon,
+  DragonIcon,
+  LanguageIcon,
+  QuillIcon,
+  GeneralIcon,
+} from "@/features/setting/FantasyIcons";
 
-export type WorldEntryLike = {
-  id: string;
-  category: WorldCategory;
-  title: string;
-  body: string;
-  photoUrl: string | null;
-};
+function CategoryTitle({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <span className="flex items-center gap-2">
+      {icon}
+      {label}
+    </span>
+  );
+}
 
-const CATEGORY_LABELS: Record<WorldCategory, string> = {
-  LOCATIONS: "Локации",
-  FACTIONS: "Фракции",
-  LORE: "Лор",
-  TECHNOLOGY: "Технологии",
-  MAGIC: "Магия / Система",
-  HISTORY: "История",
-  CREATURES: "Существа",
-  LANGUAGES: "Языки",
+const CATEGORY_LABELS: Record<WorldCategory, React.ReactNode> = {
+  LOCATIONS: <CategoryTitle icon={<MapIcon />} label="Локации" />,
+  FACTIONS: <CategoryTitle icon={<SwordsIcon />} label="Фракции" />,
+  LORE: <CategoryTitle icon={<ScrollIcon />} label="Лор" />,
+  TECHNOLOGY: <CategoryTitle icon={<GearIcon />} label="Технологии" />,
+  MAGIC: <CategoryTitle icon={<SparkleIcon />} label="Магия / Система" />,
+  HISTORY: <CategoryTitle icon={<ColumnIcon />} label="История" />,
+  CREATURES: <CategoryTitle icon={<DragonIcon />} label="Существа" />,
+  LANGUAGES: <CategoryTitle icon={<LanguageIcon />} label="Языки" />,
 };
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as WorldCategory[];
 
-export default function WorldEntryGrid({
-  entries: initialEntries,
-  uploadTarget,
-  onCreate,
-  onDelete,
-  onUpdateTitle,
-  onUpdateBody,
+export default function StoryFantasySection({
+  storyId,
+  story,
+  initialEntries,
 }: {
-  entries: WorldEntryLike[];
-  uploadTarget: "cycle-world-entry-photo" | "story-world-entry-photo";
-  onCreate: (category: WorldCategory) => Promise<WorldEntryLike>;
-  onDelete: (id: string) => void;
-  onUpdateTitle: (id: string, title: string) => void;
-  onUpdateBody: (id: string, body: string) => void;
+  storyId: string;
+  story: Story;
+  initialEntries: StoryWorldEntry[];
 }) {
   const [entries, setEntries] = useState(initialEntries);
   const [openEntryId, setOpenEntryId] = useState<string | null>(null);
@@ -51,7 +67,7 @@ export default function WorldEntryGrid({
 
   function handleAddEntry(category: WorldCategory) {
     startTransition(async () => {
-      const entry = await onCreate(category);
+      const entry = await createStoryWorldEntry(storyId, category);
       setEntries((prev) => [...prev, entry]);
       setOpenEntryId(entry.id);
     });
@@ -60,10 +76,10 @@ export default function WorldEntryGrid({
   function handleDeleteEntry(id: string) {
     setEntries((prev) => prev.filter((e) => e.id !== id));
     if (openEntryId === id) setOpenEntryId(null);
-    onDelete(id);
+    startTransition(() => deleteStoryWorldEntry(id));
   }
 
-  function patchEntry(id: string, patch: Partial<WorldEntryLike>) {
+  function patchEntry(id: string, patch: Partial<StoryWorldEntry>) {
     setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
   }
 
@@ -71,8 +87,10 @@ export default function WorldEntryGrid({
     const title = titleRef.current?.textContent ?? "";
     const body = bodyRef.current?.value ?? "";
     patchEntry(id, { title, body });
-    onUpdateTitle(id, title);
-    onUpdateBody(id, body);
+    startTransition(() => {
+      void updateStoryWorldEntryTitle(id, title);
+      void updateStoryWorldEntryBody(id, body);
+    });
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 1800);
   }
@@ -81,11 +99,20 @@ export default function WorldEntryGrid({
 
   return (
     <div>
+      <Accordion title={<CategoryTitle icon={<QuillIcon />} label="Все заметки" />} defaultOpen>
+        <AutoGrowTextarea
+          defaultValue={story.fantasyNotes}
+          placeholder="общий черновик по миру..."
+          className="w-full text-[13.5px] leading-relaxed rounded-md p-2.5"
+          style={{ border: "1px solid var(--rule)" }}
+          onBlur={(value) => startTransition(() => updateStoryFantasyText(storyId, "fantasyNotes", value))}
+        />
+      </Accordion>
+
       {CATEGORIES.map((category) => {
         const categoryEntries = entries.filter((e) => e.category === category);
         return (
-          <div key={category} className="mb-6">
-            <div className="text-[13px] font-semibold mb-2.5">{CATEGORY_LABELS[category]}</div>
+          <Accordion key={category} title={CATEGORY_LABELS[category]}>
             <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px,1fr))" }}>
               {categoryEntries.map((entry) => (
                 <div
@@ -114,9 +141,19 @@ export default function WorldEntryGrid({
                 <span className="text-[12.5px]">+ добавить</span>
               </div>
             </div>
-          </div>
+          </Accordion>
         );
       })}
+
+      <Accordion title={<CategoryTitle icon={<GeneralIcon />} label="Общее" />}>
+        <AutoGrowTextarea
+          defaultValue={story.fantasyGeneral}
+          placeholder="всё остальное..."
+          className="w-full text-[13.5px] leading-relaxed rounded-md p-2.5"
+          style={{ border: "1px solid var(--rule)" }}
+          onBlur={(value) => startTransition(() => updateStoryFantasyText(storyId, "fantasyGeneral", value))}
+        />
+      </Accordion>
 
       {openEntry && (
         <div
@@ -139,11 +176,11 @@ export default function WorldEntryGrid({
               value={openEntry.photoUrl}
               onUpload={(file) => {
                 patchEntry(openEntry.id, { photoUrl: URL.createObjectURL(file) });
-                startTransition(() => { void uploadFile(uploadTarget, openEntry.id, "photoUrl", file); });
+                startTransition(() => { void uploadFile("story-world-entry-photo", openEntry.id, "photoUrl", file); });
               }}
               onDelete={() => {
                 patchEntry(openEntry.id, { photoUrl: null });
-                startTransition(() => { void deletePhoto(uploadTarget, openEntry.id, "photoUrl"); });
+                startTransition(() => { void deletePhoto("story-world-entry-photo", openEntry.id, "photoUrl"); });
               }}
               placeholder="нажмите, чтобы добавить изображение"
               className="w-full h-[200px] rounded-md mb-5 mt-3.5"

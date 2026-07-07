@@ -4,13 +4,7 @@ import type { Story, CycleWorldEntry, StoryWorldEntry } from "@/generated/prisma
 import Subtabs from "@/components/Subtabs";
 import StoryGrapesTable from "./StoryGrapesTable";
 import StorySettingTypeSection from "./StorySettingTypeSection";
-import WorldEntryGrid from "./WorldEntryGrid";
-import {
-  createStoryWorldEntry,
-  deleteStoryWorldEntry,
-  updateStoryWorldEntryTitle,
-  updateStoryWorldEntryBody,
-} from "./actions";
+import StoryFantasySection from "./StoryFantasySection";
 
 type CycleSettingSnap = {
   grapesGeography: string;
@@ -137,14 +131,7 @@ export default function StorySettingSection({
           </div>
         )
         : (
-          <WorldEntryGrid
-            entries={storyWorldEntries}
-            uploadTarget="story-world-entry-photo"
-            onCreate={(category) => createStoryWorldEntry(story.id, category)}
-            onDelete={deleteStoryWorldEntry}
-            onUpdateTitle={updateStoryWorldEntryTitle}
-            onUpdateBody={updateStoryWorldEntryBody}
-          />
+          <StoryFantasySection story={story} storyId={story.id} initialEntries={storyWorldEntries} />
         ),
     },
   ];
