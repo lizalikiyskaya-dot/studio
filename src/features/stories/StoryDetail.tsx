@@ -52,6 +52,8 @@ type CycleSettingSnap = {
   grapesSocial: string;
   settingPhotoUrl: string | null;
   settingChips: string[];
+  settingMapX: number | null;
+  settingMapY: number | null;
 };
 
 export default function StoryDetail({

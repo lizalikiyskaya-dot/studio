@@ -40,6 +40,12 @@ export async function toggleSettingChip(bookId: string, chip: string) {
   return next;
 }
 
+export async function updateBookSettingMap(bookId: string, x: number, y: number) {
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.book.update({ where: { id: bookId }, data: { settingMapX: x, settingMapY: y } });
+}
+
 export async function toggleFantasyLock(bookId: string) {
   const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
   await requireMentor(book.studentId);

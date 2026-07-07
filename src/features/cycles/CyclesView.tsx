@@ -66,6 +66,8 @@ export default async function CyclesView({
                   grapesSocial: activeCycle.grapesSocial,
                   settingPhotoUrl: activeCycle.settingPhotoUrl,
                   settingChips: activeCycle.settingChips,
+                  settingMapX: activeCycle.settingMapX,
+                  settingMapY: activeCycle.settingMapY,
                 }}
               />
             ),

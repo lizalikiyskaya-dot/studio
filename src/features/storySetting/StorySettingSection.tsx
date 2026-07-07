@@ -2,6 +2,7 @@
 
 import type { Story, CycleWorldEntry, StoryWorldEntry } from "@/generated/prisma/client";
 import Subtabs from "@/components/Subtabs";
+import SettingTypeMap from "@/components/SettingTypeMap";
 import StoryGrapesTable from "./StoryGrapesTable";
 import StorySettingTypeSection from "./StorySettingTypeSection";
 import StoryFantasySection from "./StoryFantasySection";
@@ -15,9 +16,11 @@ type CycleSettingSnap = {
   grapesSocial: string;
   settingPhotoUrl: string | null;
   settingChips: string[];
+  settingMapX: number | null;
+  settingMapY: number | null;
 };
 
-const GRAPES_LABELS: [keyof CycleSettingSnap, string, string][] = [
+const GRAPES_LABELS: [Exclude<keyof CycleSettingSnap, "settingMapX" | "settingMapY">, string, string][] = [
   ["grapesGeography", "G", "География"],
   ["grapesReligion", "R", "Религия / верования"],
   ["grapesAchievements", "A", "Достижения"],
@@ -48,7 +51,6 @@ function SharedGrapes({ cycle }: { cycle: CycleSettingSnap }) {
 }
 
 function SharedSettingType({ cycle }: { cycle: CycleSettingSnap }) {
-  const CHIPS = ["Магнит", "Манифест", "Фильтр"];
   return (
     <div>
       <p className="text-[12.5px] mb-4" style={{ color: "var(--ink-faint)" }}>
@@ -60,24 +62,7 @@ function SharedSettingType({ cycle }: { cycle: CycleSettingSnap }) {
           style={{ backgroundImage: `url(${cycle.settingPhotoUrl})`, border: "1px solid var(--border)" }}
         />
       )}
-      <div className="flex gap-2.5 flex-wrap">
-        {CHIPS.map((chip) => {
-          const selected = cycle.settingChips.includes(chip);
-          return (
-            <span
-              key={chip}
-              className="font-mono-label text-[12px] px-4 py-2 rounded-full"
-              style={{
-                border: `1px solid ${selected ? "var(--accent)" : "var(--border)"}`,
-                background: selected ? "var(--accent)" : "transparent",
-                color: selected ? "#fff" : "var(--ink-soft)",
-              }}
-            >
-              {chip}
-            </span>
-          );
-        })}
-      </div>
+      <SettingTypeMap x={cycle.settingMapX} y={cycle.settingMapY} readOnly />
     </div>
   );
 }

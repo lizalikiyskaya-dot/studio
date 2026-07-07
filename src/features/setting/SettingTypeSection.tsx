@@ -3,25 +3,13 @@
 import { useState, useTransition } from "react";
 import type { Book } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
+import SettingTypeMap from "@/components/SettingTypeMap";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
-import { toggleSettingChip } from "./actions";
-
-const CHIPS = ["Магнит", "Манифест", "Фильтр"];
+import { updateBookSettingMap } from "./actions";
 
 export default function SettingTypeSection({ bookId, book }: { bookId: string; book: Book }) {
   const [photoUrl, setPhotoUrl] = useState(book.settingPhotoUrl);
-  const [chips, setChips] = useState<string[]>(book.settingChips);
   const [, startTransition] = useTransition();
-
-  function handleChipClick(chip: string) {
-    const optimistic = chips.includes(chip)
-      ? chips.filter((c) => c !== chip)
-      : [...chips, chip];
-    setChips(optimistic);
-    startTransition(() => {
-      toggleSettingChip(bookId, chip);
-    });
-  }
 
   return (
     <div>
@@ -39,25 +27,11 @@ export default function SettingTypeSection({ bookId, book }: { bookId: string; b
         className="w-full max-w-[420px] h-[170px] rounded-md mb-5"
       />
 
-      <div className="flex gap-2.5 flex-wrap">
-        {CHIPS.map((chip) => {
-          const selected = chips.includes(chip);
-          return (
-            <button
-              key={chip}
-              onClick={() => handleChipClick(chip)}
-              className="font-mono-label text-[12px] px-4 py-2 rounded-full"
-              style={{
-                border: `1px solid ${selected ? "var(--wine)" : "var(--rule)"}`,
-                background: selected ? "var(--wine)" : "transparent",
-                color: selected ? "#fff" : "var(--ink-soft)",
-              }}
-            >
-              {chip}
-            </button>
-          );
-        })}
-      </div>
+      <SettingTypeMap
+        x={book.settingMapX}
+        y={book.settingMapY}
+        onSave={(x, y) => startTransition(() => updateBookSettingMap(bookId, x, y))}
+      />
     </div>
   );
 }

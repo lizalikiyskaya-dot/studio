@@ -331,6 +331,8 @@ model Book {
   grapesSocial        String @default("")
   settingPhotoUrl     String?
   settingChips        String[] @default([])
+  settingMapX        Float?
+  settingMapY        Float?
 
   fantasyUnlocked    Boolean @default(false)
   fantasyNotes       String  @default("")
@@ -507,6 +509,8 @@ model Cycle {
   grapesSocial       String @default("")
   settingPhotoUrl    String?
   settingChips       String[] @default([])
+  settingMapX        Float?
+  settingMapY        Float?
 
   fantasyUnlocked Boolean @default(false)
   fantasyNotes    String  @default("")
@@ -548,6 +552,8 @@ model Story {
   grapesSocial       String   @default("")
   settingPhotoUrl    String?
   settingChips       String[] @default([])
+  settingMapX        Float?
+  settingMapY        Float?
   fantasyNotes       String   @default("")
   fantasyGeneral     String   @default("")
 

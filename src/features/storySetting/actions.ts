@@ -64,6 +64,18 @@ export async function updateStoryFantasyText(storyId: string, field: CycleFantas
   await prisma.story.update({ where: { id: storyId }, data: { [field]: value } });
 }
 
+export async function updateCycleSettingMap(cycleId: string, x: number, y: number) {
+  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: cycleId } });
+  await requireCabinetAccess(cycle.studentId);
+  await prisma.cycle.update({ where: { id: cycleId }, data: { settingMapX: x, settingMapY: y } });
+}
+
+export async function updateStorySettingMap(storyId: string, x: number, y: number) {
+  const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
+  await requireCabinetAccess(story.studentId);
+  await prisma.story.update({ where: { id: storyId }, data: { settingMapX: x, settingMapY: y } });
+}
+
 // --- Cycle-level (shared) world entries ---
 
 export async function createCycleWorldEntry(cycleId: string, category: WorldCategory) {
