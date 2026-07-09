@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { X, GripVertical } from "lucide-react";
+import { X, GripVertical, ChevronDown } from "lucide-react";
 import type { Act, ActChapter, StorylineBlock, Comment } from "@/generated/prisma/client";
 import {
   createAct,
@@ -67,12 +67,11 @@ function StorylineBlockCard({
           className="shrink-0 mt-0.5 cursor-grab active:cursor-grabbing"
           style={{ color: "var(--ink-faint)" }}
         />
-        <input
+        <AutoGrowTextarea
           defaultValue={block.name}
-          onBlur={(e) => onUpdateField("name", e.target.value)}
-          onKeyDown={blurOnEnter}
+          onBlur={(v) => onUpdateField("name", v)}
           placeholder="Название линии"
-          className="heading flex-1 min-w-0 outline-none bg-transparent text-[13.5px] font-semibold"
+          className="heading flex-1 min-w-0 outline-none bg-transparent text-[13.5px] font-semibold leading-snug"
         />
         <button onClick={onDelete} className="flex-shrink-0" style={{ color: "var(--ink-soft)" }}>
           <X size={12} />
@@ -127,9 +126,18 @@ function ChapterRow({
   isDragOver: boolean;
   onDragOverChange: (over: boolean) => void;
 }) {
+  const [open, setOpen] = useState(true);
   return (
     <div className="rounded-md p-3 mb-2.5" style={{ border: "1px solid var(--rule)" }}>
-      <div className="flex justify-between items-start gap-2 mb-2">
+      <div className={`flex justify-between items-start gap-2 ${open ? "mb-2" : ""}`}>
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex-shrink-0 mt-0.5"
+          style={{ color: "var(--faded)", transform: open ? undefined : "rotate(-90deg)", transition: "transform .15s" }}
+          title={open ? "Свернуть главу" : "Развернуть главу"}
+        >
+          <ChevronDown size={15} />
+        </button>
         <input
           defaultValue={chapter.title}
           onBlur={(e) => onUpdateField("title", e.target.value)}
@@ -140,6 +148,8 @@ function ChapterRow({
           <X size={12} />
         </button>
       </div>
+      {open && (
+      <>
       <AutoGrowTextarea
         defaultValue={chapter.description}
         placeholder="О чём эта глава..."
@@ -182,6 +192,8 @@ function ChapterRow({
           + линия
         </button>
       </div>
+      </>
+      )}
     </div>
   );
 }
