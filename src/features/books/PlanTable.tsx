@@ -119,7 +119,7 @@ type ColKey = (typeof COLUMNS)[number];
 
 const COL_LABELS: Record<ColKey, string> = {
   summary: "Суть по сюжету",
-  dramaticArgument: "Драм. аргумент",
+  dramaticArgument: "Драматическое ядро",
   note: "Примечание",
   chars: "Знаки",
 };
