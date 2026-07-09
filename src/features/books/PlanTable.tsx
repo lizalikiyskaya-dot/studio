@@ -192,6 +192,10 @@ export default function PlanTable({
     startTransition(() => updatePlanColumnColors(bookId, next));
   }
 
+  const totalPlanned = chapters.reduce((s, c) => s + (c.plannedChars || 0), 0);
+  const totalWritten = chapters.reduce((s, c) => s + (c.writtenChars || 0), 0);
+  const totalPercent = totalPlanned > 0 ? Math.round((totalWritten / totalPlanned) * 100) : 0;
+
   return (
     <div>
       <div className="overflow-x-auto mb-4 rounded-[14px]" style={{ border: "1px solid var(--border)" }}>
@@ -398,6 +402,33 @@ export default function PlanTable({
             })}
           </tbody>
         </table>
+      </div>
+
+      <div
+        className="flex flex-wrap items-center gap-x-8 gap-y-2 rounded-[14px] px-5 py-3.5 mb-4"
+        style={{ border: "1px solid var(--border)", background: "var(--bg-surface-2)" }}
+      >
+        <span className="font-mono-label uppercase tracking-wide text-[10px]" style={{ color: "var(--faded)" }}>
+          Итого
+        </span>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-[12px]" style={{ color: "var(--ink-soft)" }}>Планируется:</span>
+          <span className="font-mono-label text-[14px] font-semibold" style={{ color: "var(--ink)" }}>
+            {totalPlanned.toLocaleString("ru-RU")}
+          </span>
+        </div>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-[12px]" style={{ color: "var(--ink-soft)" }}>Написано:</span>
+          <span className="font-mono-label text-[14px] font-semibold" style={{ color: "var(--ink)" }}>
+            {totalWritten.toLocaleString("ru-RU")}
+          </span>
+        </div>
+        <div
+          className="font-mono-label text-[13px] font-semibold px-3 py-1 rounded-full ml-auto"
+          style={{ background: percentCellBackground(totalPercent), color: "var(--ink)" }}
+        >
+          {totalPercent}%
+        </div>
       </div>
 
       <Button onClick={handleAdd} variant="dashed" size="sm" pill>
