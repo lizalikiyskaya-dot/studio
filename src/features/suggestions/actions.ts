@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireCabinetAccess } from "@/lib/access";
+import { requireAuthenticated, requireCabinetAccess } from "@/lib/access";
 import { SUGGESTION_REGISTRY, type SuggestableModel } from "@/lib/suggestionRegistry";
 
 /**
@@ -61,6 +61,9 @@ export async function acceptFieldSuggestion(model: SuggestableModel, recordId: s
 }
 
 export async function getSuggestionsForRecords(model: SuggestableModel, recordIds: string[]) {
+  // Серверное действие доступно из интернета напрямую — читать правки
+  // наставника должен только вошедший пользователь с открытым доступом.
+  await requireAuthenticated();
   if (recordIds.length === 0) return {};
   const rows = await prisma.fieldSuggestion.findMany({
     where: { model, recordId: { in: recordIds } },

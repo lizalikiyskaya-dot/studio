@@ -1,8 +1,61 @@
 import { prisma } from "@/lib/prisma";
-import { requireCabinetAccess, requireMentor } from "@/lib/access";
+import { AccessDeniedError, requireCabinetAccess, requireMentor } from "@/lib/access";
+import { getSession } from "@/lib/session";
 
 const MAX_SIZE = 8 * 1024 * 1024;
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
+
+/**
+ * Тип файла НИКОГДА не берём из запроса: `file.type` приходит от клиента и
+ * может быть любым, включая text/html или image/svg+xml — а всё содержимое
+ * потом уезжает в базу как data: URI и отдаётся обратно в браузер.
+ *
+ * Картинки: строгий белый список + проверка сигнатуры (первых байт) файла.
+ * SVG не поддерживается сознательно — это XML со скриптами внутри.
+ */
+const IMAGE_SIGNATURES: Record<string, (b: Buffer) => boolean> = {
+  "image/png": (b) =>
+    b.length > 8 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+  "image/jpeg": (b) => b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
+  "image/webp": (b) =>
+    b.length > 12 && b.subarray(0, 4).toString("ascii") === "RIFF" && b.subarray(8, 12).toString("ascii") === "WEBP",
+  "image/gif": (b) => b.length > 6 && b.subarray(0, 6).toString("ascii").startsWith("GIF8"),
+};
+
+/** Документы, которые браузеру безопасно отдавать с их родным типом. */
+const SAFE_DOC_TYPES = new Set([
+  "application/pdf",
+  "application/epub+zip",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/msword",
+  "application/vnd.oasis.opendocument.text",
+  "application/rtf",
+  "text/plain",
+]);
+
+/**
+ * Возвращает тип, под которым файл ляжет в базу, либо null — если это
+ * картинка неизвестного/подделанного формата.
+ * Для документов неизвестный тип не отвергаем (чтобы не ломать существующие
+ * сценарии), а понижаем до octet-stream: такой файл браузер только скачает,
+ * но никогда не отрисует как страницу.
+ */
+function resolveStoredMime(declared: string, buf: Buffer, isImage: boolean): string | null {
+  const type = declared.split(";")[0].trim().toLowerCase();
+  if (isImage) {
+    const check = IMAGE_SIGNATURES[type];
+    if (!check || !check(buf)) return null;
+    return type;
+  }
+  return SAFE_DOC_TYPES.has(type) ? type : "application/octet-stream";
+}
+
+/** Имя файла попадает в атрибут download — вычищаем пути и управляющие символы. */
+function safeFileName(name: string): string {
+  const base = name.split(/[\\/]/).pop() ?? "файл";
+  // eslint-disable-next-line no-control-regex
+  return base.replace(/[\x00-\x1f\x7f"]/g, "").trim().slice(0, 120) || "файл";
+}
 
 async function requireAccessForPopArcCharacter(id: string) {
   const character = await prisma.popArcCharacter.findUniqueOrThrow({ where: { id } });
@@ -22,6 +75,24 @@ async function requireAccessForExampleCard(studentId: string, isExample: boolean
 }
 
 export async function POST(req: Request) {
+  try {
+    return await handleUpload(req);
+  } catch (e) {
+    if (e instanceof AccessDeniedError) {
+      return Response.json({ error: e.message }, { status: 403 });
+    }
+    throw e;
+  }
+}
+
+async function handleUpload(req: Request) {
+  // Авторизацию проверяем ДО чтения тела запроса: иначе любой аноним мог
+  // заставить сервер прочитать в память 8 МБ и посчитать base64.
+  const session = await getSession();
+  if (!session) {
+    return Response.json({ error: "Не авторизован" }, { status: 401 });
+  }
+
   const formData = await req.formData();
   const target = formData.get("target");
   const id = formData.get("id");
@@ -64,22 +135,31 @@ export async function POST(req: Request) {
   }
 
   const buf = Buffer.from(await file.arrayBuffer());
-  const dataUrl = `data:${file.type || "application/octet-stream"};base64,${buf.toString("base64")}`;
+
+  const mime = resolveStoredMime(file.type || "", buf, isImage);
+  if (mime === null) {
+    return Response.json(
+      { error: "Поддерживаются изображения PNG, JPEG, WebP и GIF" },
+      { status: 415 }
+    );
+  }
+  const fileName = safeFileName(file.name);
+  const dataUrl = `data:${mime};base64,${buf.toString("base64")}`;
 
   if (target === "material") {
     const material = await prisma.material.findUniqueOrThrow({ where: { id } });
     await requireMentor(material.studentId);
     const data =
       field === "pdf"
-        ? { pdfUrl: dataUrl, pdfName: file.name }
+        ? { pdfUrl: dataUrl, pdfName: fileName }
         : field === "epub"
-          ? { epubUrl: dataUrl, epubName: file.name }
-          : { fileUrl: dataUrl, fileName: file.name };
+          ? { epubUrl: dataUrl, epubName: fileName }
+          : { fileUrl: dataUrl, fileName: fileName };
     await prisma.material.update({ where: { id }, data });
   } else if (target === "draft") {
     const draft = await prisma.draft.findUniqueOrThrow({ where: { id } });
     await requireCabinetAccess(draft.studentId);
-    await prisma.draft.update({ where: { id }, data: { fileName: file.name, fileData: dataUrl } });
+    await prisma.draft.update({ where: { id }, data: { fileName: fileName, fileData: dataUrl } });
   } else if (target === "book-cover") {
     const book = await prisma.book.findUniqueOrThrow({ where: { id } });
     await requireCabinetAccess(book.studentId);
@@ -172,7 +252,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "Unknown target" }, { status: 400 });
   }
 
-  return Response.json({ ok: true, fileName: file.name, dataUrl });
+  return Response.json({ ok: true, fileName: fileName, dataUrl });
 }
 
 const PHOTO_FIELD_TARGETS = [
@@ -199,6 +279,22 @@ const PHOTO_FIELD_TARGETS = [
 ] as const;
 
 export async function DELETE(req: Request) {
+  try {
+    return await handleDelete(req);
+  } catch (e) {
+    if (e instanceof AccessDeniedError) {
+      return Response.json({ error: e.message }, { status: 403 });
+    }
+    throw e;
+  }
+}
+
+async function handleDelete(req: Request) {
+  const session = await getSession();
+  if (!session) {
+    return Response.json({ error: "Не авторизован" }, { status: 401 });
+  }
+
   const body = await req.json();
   const { target, id, field } = body as { target?: string; id?: string; field?: string };
 

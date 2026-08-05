@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireCabinetAccess } from "@/lib/access";
+import { requireAuthenticated, requireCabinetAccess } from "@/lib/access";
 import { SUGGESTION_REGISTRY, type SuggestableModel } from "@/lib/suggestionRegistry";
 
 export type CommentableModel = SuggestableModel | "Note";
@@ -14,6 +14,9 @@ async function getStudentIdForRecord(model: CommentableModel, recordId: string):
 }
 
 export async function getCommentsForRecords(model: CommentableModel, recordIds: string[]) {
+  // Переписка ученика с наставником — не публичные данные. Действие вызывается
+  // по сети напрямую, поэтому требуем вошедшего пользователя.
+  await requireAuthenticated();
   if (recordIds.length === 0) return {};
   const rows = await prisma.comment.findMany({
     where: { model, recordId: { in: recordIds } },
