@@ -143,6 +143,12 @@ model User {
   storyWorkshopUnlocked Boolean @default(false)
   lastSeenAt    DateTime?
   lastActivityAt DateTime?
+  // Письма об изменениях в кабинете (см. lib/notify.ts). Троттлинг:
+  // mentorNotifiedAt — когда наставнику последний раз писали про ЭТОГО
+  // ученика, studentNotifiedAt — когда ученику писали про правки наставника.
+  emailNotifications Boolean  @default(true)
+  mentorNotifiedAt  DateTime?
+  studentNotifiedAt DateTime?
   avatarUrl     String?
   sortOrder     Int           @default(0)
   createdAt     DateTime      @default(now())
@@ -162,6 +168,21 @@ model User {
   workPlans         WorkPlan[]
   submissions       Submission[]
   openCalls         OpenCall[]
+  passwordResets    PasswordResetToken[]
+}
+
+// Одноразовая ссылка «Забыли пароль?». В базе лежит только SHA-256 от
+// токена: утечка дампа не даёт возможности сменить кому-то пароль.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model Note {

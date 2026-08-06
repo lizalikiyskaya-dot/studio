@@ -82,17 +82,19 @@ export function OnlineBeacon({ lastSeenAt }: { lastSeenAt: Date | null }) {
 }
 
 /**
- * Red dot next to the student's name meaning "edited something recently"
- * (lastActivityAt is stamped whenever the student mutates their cabinet).
- * Shown for 24h after the last edit; the tooltip says how long ago.
+ * Красная точка у имени ученика — «есть непросмотренные изменения».
+ *
+ * Раньше она горела фиксированные 24 часа от последней правки и не гасла
+ * после того, как наставник изменения посмотрел. Теперь источник — те же
+ * данные, что и у маячков разделов (SectionActivity/SectionSeen): точка
+ * пропадает, как только открыты все разделы, где ученик что-то менял.
  */
-export function ActivityBeacon({ lastActivityAt }: { lastActivityAt: Date | null }) {
-  const recent = lastActivityAt && Date.now() - new Date(lastActivityAt).getTime() < 24 * 60 * 60_000;
-  if (!recent || !lastActivityAt) return null;
+export function ActivityBeacon({ unseenAt }: { unseenAt: Date | null }) {
+  if (!unseenAt) return null;
 
   return (
     <span
-      title={`Редактировал(-а) ${relativeTime(new Date(lastActivityAt))}`}
+      title={`Непросмотренные изменения — ${relativeTime(new Date(unseenAt))}`}
       style={{
         display: "inline-block",
         width: 8,

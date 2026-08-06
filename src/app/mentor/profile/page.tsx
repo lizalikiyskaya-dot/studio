@@ -18,6 +18,8 @@ export default async function MentorProfilePage() {
         initialName={user.name}
         initialEmail={user.email}
         initialAvatarUrl={user.avatarUrl ?? null}
+        initialEmailNotifications={user.emailNotifications}
+        isMentor
       />
     </div>
   );

@@ -5,6 +5,7 @@ import { approveUser, rejectUser } from "./actions";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import StudentsList from "./StudentsList";
+import { getUnseenActivity } from "@/lib/unseenActivity";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -19,6 +20,16 @@ export default async function MentorPage() {
     where: { status: { in: ["APPROVED", "SUSPENDED"] }, role: "STUDENT" },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
+  // Маячок у имени = непросмотренные правки ученика (см. lib/unseenActivity).
+  const unseen = await getUnseenActivity(
+    session.userId,
+    students.map((s) => s.id)
+  );
+  const studentsWithBeacons = students.map((s) => ({
+    ...s,
+    unseenAt: unseen[s.id] ?? null,
+  }));
+
   const decided = await prisma.user.findMany({
     where: { status: { in: ["APPROVED", "REJECTED"] }, role: "STUDENT" },
     orderBy: { updatedAt: "desc" },
@@ -70,7 +81,7 @@ export default async function MentorPage() {
         Ученики ({students.length})
       </h2>
 
-      <StudentsList initialStudents={students} />
+      <StudentsList initialStudents={studentsWithBeacons} />
 
       <h2 className="heading text-[15px] font-semibold mb-3" style={{ color: "var(--faded)" }}>
         Недавние решения

@@ -17,6 +17,7 @@ export default async function ProfilePage() {
         initialName={user.name}
         initialEmail={user.email}
         initialAvatarUrl={user.avatarUrl ?? null}
+        initialEmailNotifications={user.emailNotifications}
       />
     </div>
   );
