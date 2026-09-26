@@ -297,6 +297,8 @@ model FreeSection {
   content   String          @default("")
   tableData Json?
   status    TaskStatus      @default(IN_PROGRESS)
+  // Карточку завёл сам ученик — ему можно её переименовать и удалить.
+  createdByStudent Boolean @default(false)
 }
 
 model Task {
@@ -364,6 +366,24 @@ model Book {
   characters   Character[]
   acts         Act[]
   worldEntries WorldEntry[]
+  extraGrapes  GrapesSetting[]
+}
+
+// Дополнительные таблицы GRAPES под кнопкой «добавить сеттинг».
+// Первая таблица по-прежнему живёт в полях Book.
+model GrapesSetting {
+  id                 String   @id @default(cuid())
+  bookId             String
+  book               Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order              Int      @default(0)
+  title              String   @default("")
+  grapesGeography    String   @default("")
+  grapesReligion     String   @default("")
+  grapesAchievements String   @default("")
+  grapesPolitics     String   @default("")
+  grapesEconomy      String   @default("")
+  grapesSocial       String   @default("")
+  createdAt          DateTime @default(now())
 }
 
 model PlanChapter {

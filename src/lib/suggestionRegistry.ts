@@ -9,7 +9,19 @@ export type SuggestableModel =
   | "Act"
   | "BeliefCard"
   | "FreeSection"
-  | "StoryCircleCard";
+  | "StoryCircleCard"
+  | "GrapesSetting";
+
+// Поля дополнительной таблицы GRAPES, которые разрешено писать через правки.
+const GRAPES_SETTING_FIELDS = new Set([
+  "title",
+  "grapesGeography",
+  "grapesReligion",
+  "grapesAchievements",
+  "grapesPolitics",
+  "grapesEconomy",
+  "grapesSocial",
+]);
 
 type RegistryEntry = {
   getStudentId: (recordId: string) => Promise<string>;
@@ -157,6 +169,22 @@ export const SUGGESTION_REGISTRY: Record<SuggestableModel, RegistryEntry> = {
       const data = (card.data as Record<string, string>) ?? {};
       data[field] = value;
       await prisma.storyCircleCard.update({ where: { id }, data: { data } });
+    },
+  },
+  GrapesSetting: {
+    getStudentId: async (id) => {
+      const setting = await prisma.grapesSetting.findUniqueOrThrow({ where: { id } });
+      const book = await prisma.book.findUniqueOrThrow({ where: { id: setting.bookId } });
+      return book.studentId;
+    },
+    getCurrentValue: async (id, field) => {
+      const setting = await prisma.grapesSetting.findUniqueOrThrow({ where: { id } });
+      const value = (setting as unknown as Record<string, unknown>)[field];
+      return typeof value === "string" ? value : "";
+    },
+    apply: async (id, field, value) => {
+      if (!GRAPES_SETTING_FIELDS.has(field)) throw new Error("Недопустимое поле");
+      await prisma.grapesSetting.update({ where: { id }, data: { [field]: value } });
     },
   },
 };
