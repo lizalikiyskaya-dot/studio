@@ -41,14 +41,14 @@ export default function CycleSwitcher({
   }
 
   return (
-    <div className="flex items-center gap-3 mb-6">
+    <div className="flex flex-wrap items-center gap-3 mb-6">
       <label className="text-[13px]" style={{ color: "var(--faded)" }}>
         Цикл:
       </label>
       <select
         value={activeCycleId}
         onChange={(e) => handleChange(e.target.value)}
-        className="text-[14px] bg-white rounded-sm px-2 py-1"
+        className="min-w-0 max-w-full text-[14px] bg-white rounded-sm px-2 py-1"
         style={{ border: "1px solid var(--rule)" }}
       >
         {cycles.map((c) => (

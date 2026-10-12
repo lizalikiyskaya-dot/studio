@@ -35,7 +35,7 @@ export default async function StudentViewLayout({
 
   return (
     <SuggestionProvider canSuggest={student.reviewModeEnabled}>
-      <div className="flex min-h-screen">
+      <div className="studio-shell flex min-h-screen">
         <SectionTracker studentId={student.id} basePath={`/student-view/${studentId}`} />
         <Sidebar
           basePath={`/student-view/${studentId}`}
@@ -52,7 +52,7 @@ export default async function StudentViewLayout({
             paymentStatus: student.paymentStatus,
           }}
         />
-        <div className="px-11 py-9" style={{ flex: 1, background: "var(--paper-light)", minHeight: "100vh" }}>
+        <div className="studio-content min-w-0 px-4 py-6 sm:px-6 lg:px-11 lg:py-9" style={{ flex: 1, background: "var(--paper-light)", minHeight: "100vh" }}>
           {children}
         </div>
         <NotesPanel studentId={student.id} initialNotes={notes} initialComments={noteComments} />

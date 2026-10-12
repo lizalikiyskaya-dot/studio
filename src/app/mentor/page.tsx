@@ -54,7 +54,7 @@ export default async function MentorPage() {
         </p>
       )}
 
-      <table className="w-full mb-10" style={{ borderCollapse: "collapse" }}>
+      <table className="mentor-table w-full mb-10" style={{ borderCollapse: "collapse" }}>
         <tbody>
           {pending.map((u) => (
             <tr key={u.id} style={{ borderBottom: "1px solid var(--rule)" }}>
@@ -86,7 +86,7 @@ export default async function MentorPage() {
       <h2 className="heading text-[15px] font-semibold mb-3" style={{ color: "var(--faded)" }}>
         Недавние решения
       </h2>
-      <table className="w-full">
+      <table className="mentor-table w-full">
         <tbody>
           {decided.map((u) => (
             <tr key={u.id} style={{ borderBottom: "1px solid var(--rule)" }}>

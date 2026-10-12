@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Bookmark, BookOpen, FileText, Pencil, PanelLeft, CalendarDays, Send, Megaphone } from "lucide-react";
+import { Bookmark, BookOpen, FileText, Pencil, PanelLeft, CalendarDays, Send, Megaphone, Menu, X } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import CalendarWidget from "./CalendarWidget";
 import ToggleSwitch from "./ToggleSwitch";
@@ -100,7 +100,18 @@ export default function Sidebar({
   const reviewMode = useCanSuggest();
   const setReviewModeState = useSetCanSuggest();
   const [, startTransition] = useTransition();
-  const [collapsed, setCollapsed] = useState(false);
+  const [desktopCollapsed, setCollapsed] = useState(false);
+  const [mobile, setMobile] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const collapsed = desktopCollapsed && !mobile;
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const sync = () => { setMobile(query.matches); setMobileOpen(false); };
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     // Reads localStorage to sync collapse state after mount — must stay
@@ -126,8 +137,23 @@ export default function Sidebar({
   }
 
   return (
+    <>
+    <header className="studio-mobile-header">
+      <span className="masthead-title">Студия Лизы Ликийской</span>
+      <button type="button" onClick={() => setMobileOpen((v) => !v)}
+        aria-expanded={mobileOpen} aria-controls="studio-navigation"
+        className="flex items-center gap-2 rounded-[9px] px-3 py-2"
+        style={{ background: "var(--neutral-active)" }}>
+        {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+        {mobileOpen ? "Закрыть" : "Меню"}
+      </button>
+    </header>
     <aside
-      className="px-3 py-[22px] flex flex-col flex-shrink-0"
+      id="studio-navigation"
+      onClick={(event) => {
+        if ((event.target as HTMLElement).closest("a")) setMobileOpen(false);
+      }}
+      className={`studio-sidebar px-3 py-[22px] flex flex-col flex-shrink-0${mobileOpen ? " mobile-open" : ""}`}
       style={{
         width: collapsed ? 60 : 220,
         minHeight: "100vh",
@@ -152,7 +178,7 @@ export default function Sidebar({
           )}
           <button
             onClick={toggleCollapsed}
-            className="flex items-center justify-center flex-shrink-0 rounded-[9px]"
+            className="studio-desktop-collapse flex items-center justify-center flex-shrink-0 rounded-[9px]"
             style={{ width: 30, height: 30, background: "var(--neutral-active)", border: "1px solid var(--rule)", color: "var(--ink-soft)" }}
             title={collapsed ? "Развернуть меню" : "Свернуть меню"}
           >
@@ -320,5 +346,6 @@ export default function Sidebar({
         )}
       </div>
     </aside>
+    </>
   );
 }

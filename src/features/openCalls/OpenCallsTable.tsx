@@ -57,7 +57,7 @@ export default function OpenCallsTable({
             className="rounded-[14px] px-5 py-4"
             style={{ border: "1px solid var(--rule)", background: "var(--paper-light)" }}
           >
-            <div className="flex items-start gap-4">
+            <div className="record-fields flex items-start gap-4">
               {/* target */}
               <div className="flex-1 min-w-0">
                 <div className={labelCls} style={{ color: "var(--faded)" }}>Куда</div>

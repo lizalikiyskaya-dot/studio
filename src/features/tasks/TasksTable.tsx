@@ -152,7 +152,7 @@ export default function TasksTable({
             className="rounded-[14px] px-4 py-3.5"
             style={{ border: "1px solid var(--rule)", background: "var(--paper-light)" }}
           >
-            <div className="grid gap-x-3.5 items-start" style={{ gridTemplateColumns: GRID_COLUMNS }}>
+            <div className="task-fields grid gap-x-3.5 items-start" style={{ gridTemplateColumns: GRID_COLUMNS }}>
               <div className="min-w-0">
                 <MetaLabel>задание</MetaLabel>
                 <EditableWithLinks

@@ -85,7 +85,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
   }
 
   return (
-    <table className="w-full mb-10" style={{ borderCollapse: "collapse" }}>
+    <table className="mentor-table w-full mb-10" style={{ borderCollapse: "collapse" }}>
       <tbody>
         {students.map((s, idx) => {
           const access = getAccessStatus(s.status, s.paymentStatus);

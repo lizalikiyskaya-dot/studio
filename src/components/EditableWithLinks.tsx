@@ -87,7 +87,7 @@ export default function EditableWithLinks({
   return (
     <div
       onClick={() => setEditing(true)}
-      className={`cursor-text whitespace-pre-wrap ${className ?? ""}`}
+      className={`cursor-text whitespace-pre-wrap break-words ${className ?? ""}`}
       style={{ minHeight: "1.4em", ...style }}
     >
       {value

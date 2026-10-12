@@ -74,7 +74,7 @@ export default function SubmissionsTable({
             className="rounded-[14px] px-5 py-4"
             style={{ border: "1px solid var(--rule)", background: "var(--paper-light)" }}
           >
-            <div className="flex items-start gap-4">
+            <div className="record-fields flex items-start gap-4">
               {/* target */}
               <div className="flex-shrink-0" style={{ minWidth: 180, maxWidth: 220 }}>
                 <div className={labelCls} style={{ color: "var(--faded)" }}>{targetLabel}</div>

@@ -153,3 +153,134 @@ h4 {
   box-shadow: var(--shadow-sm);
   transform: translateY(-1px);
 }
+
+/* Keep the workspace inside its flex track, even with long prose or URLs. */
+.studio-content {
+  overflow-wrap: anywhere;
+}
+.studio-content :where(input, textarea, select) {
+  max-width: 100%;
+}
+.studio-mobile-header {
+  display: none;
+}
+.task-fields > *, .work-plan-fields > * {
+  min-width: 0;
+}
+
+@media (max-width: 1199px) {
+  .task-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px;
+  }
+  .task-fields > :first-child, .task-fields > :last-child {
+    grid-column: 1 / -1;
+  }
+  .task-fields > :last-child {
+    justify-content: flex-start;
+  }
+  .work-plan-fields {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 16px;
+  }
+  .work-plan-fields > * {
+    padding: 0;
+    border-left: none !important;
+  }
+  .work-plan-fields > :last-child {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .record-fields {
+    flex-wrap: wrap;
+  }
+  .record-fields > :first-child {
+    flex-basis: 100%;
+    max-width: none !important;
+  }
+  .record-fields > div[style*="width: 1px"] {
+    display: none;
+  }
+  .mentor-table, .mentor-table tbody {
+    display: block;
+    width: 100%;
+  }
+  .mentor-table tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding: 16px 0;
+  }
+  .mentor-table td {
+    display: block;
+    max-width: 100%;
+    padding: 4px 0;
+    text-align: left;
+  }
+}
+
+@media (max-width: 767px) {
+  .studio-shell {
+    flex-direction: column;
+  }
+  .studio-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+  }
+  .studio-mobile-header .masthead-title {
+    font-size: 16px;
+  }
+  .studio-mobile-header button {
+    flex-shrink: 0;
+    min-height: 44px;
+  }
+  .studio-sidebar {
+    display: none;
+    width: 100% !important;
+    min-height: 0 !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--rule);
+  }
+  .studio-sidebar.mobile-open {
+    display: flex;
+  }
+  .studio-desktop-collapse {
+    display: none;
+  }
+  .studio-content {
+    width: 100%;
+  }
+  .studio-content .page-title {
+    font-size: 25px;
+  }
+  .record-fields {
+    flex-direction: column;
+  }
+  .record-fields > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  .studio-content .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .studio-content :where(.flex.items-center.justify-between, .flex.items-start.justify-between) {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .studio-content :where(input, textarea, select, [contenteditable="true"]) {
+    font-size: 16px;
+  }
+  .mentor-table td {
+    flex-basis: 100%;
+  }
+  .mentor-table td[style*="width: 24px"] {
+    flex-basis: auto;
+  }
+}

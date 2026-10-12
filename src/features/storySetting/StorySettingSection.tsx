@@ -36,8 +36,8 @@ function SharedGrapes({ cycle }: { cycle: CycleSettingSnap }) {
         Используется GRAPES цикла (только чтение).
       </p>
       {GRAPES_LABELS.map(([field, letter, label]) => (
-        <div key={field} className="flex gap-4 py-3 border-b" style={{ borderColor: "var(--border)" }}>
-          <div className="heading w-[180px] flex-shrink-0 font-semibold text-[15px] pr-4 border-r" style={{ color: "var(--accent)", borderColor: "var(--border)" }}>
+        <div key={field} className="flex flex-col sm:flex-row gap-4 py-3 border-b" style={{ borderColor: "var(--border)" }}>
+          <div className="heading w-full sm:w-[180px] flex-shrink-0 font-semibold text-[15px] pr-4 border-r" style={{ color: "var(--accent)", borderColor: "var(--border)" }}>
             <span className="font-bold mr-2" style={{ color: "var(--ink)" }}>{letter}</span>
             {label}
           </div>
