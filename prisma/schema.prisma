@@ -173,6 +173,8 @@ model User {
   submissions       Submission[]
   openCalls         OpenCall[]
   passwordResets    PasswordResetToken[]
+  guideAccess       GuideAccess[]
+  guideProgress     GuideProgress[]
 }
 
 // Одноразовая ссылка «Забыли пароль?». В базе лежит только SHA-256 от
@@ -651,6 +653,49 @@ model CycleWorldEntry {
   body      String        @default("")
   photoUrl  String?
   createdAt DateTime      @default(now())
+}
+
+// Общая библиотека методичек наставника. Одна запись — один файл на всех
+// учеников. Видимость и статус чтения живут отдельно (GuideAccess,
+// GuideProgress). Пока строки доступа нет, методичка скрыта.
+model Guide {
+  id           String   @id @default(cuid())
+  title        String   @default("")
+  description  String   @default("")
+  fileUrl      String?
+  fileName     String?
+  fileMime     String?
+  order        Int      @default(0)
+  // Письмо ученику в момент открытия. Выключено, пока наставник сам не отметит.
+  notifyOnOpen Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  access       GuideAccess[]
+  progress     GuideProgress[]
+}
+
+model GuideAccess {
+  guideId   String
+  guide     Guide    @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  visible   Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@id([guideId, studentId])
+  @@index([studentId])
+}
+
+model GuideProgress {
+  guideId   String
+  guide     Guide          @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status    MaterialStatus @default(UNREAD)
+  updatedAt DateTime       @updatedAt
+
+  @@id([guideId, studentId])
+  @@index([studentId])
 }
 
 model StoryWorldEntry {

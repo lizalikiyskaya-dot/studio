@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { AccessDeniedError, requireCabinetAccess, requireMentor } from "@/lib/access";
+import { AccessDeniedError, requireCabinetAccess, requireMentor, requireMentorSession } from "@/lib/access";
+import { guidesSchemaReady } from "@/lib/guides";
 import { getSession } from "@/lib/session";
 
 const MAX_SIZE = 8 * 1024 * 1024;
@@ -156,6 +157,18 @@ async function handleUpload(req: Request) {
           ? { epubUrl: dataUrl, epubName: fileName }
           : { fileUrl: dataUrl, fileName: fileName };
     await prisma.material.update({ where: { id }, data });
+  } else if (target === "guide") {
+    await requireMentorSession();
+    if (!(await guidesSchemaReady())) {
+      return Response.json({ error: "Библиотека методичек ещё не подключена к базе" }, { status: 503 });
+    }
+    const guide = await prisma.guide.findUnique({ where: { id }, select: { id: true } });
+    if (!guide) return Response.json({ error: "Методичка не найдена" }, { status: 404 });
+    await prisma.guide.update({
+      where: { id },
+      data: { fileUrl: dataUrl, fileName, fileMime: mime },
+    });
+    return Response.json({ ok: true, fileName, mime });
   } else if (target === "draft") {
     const draft = await prisma.draft.findUniqueOrThrow({ where: { id } });
     await requireCabinetAccess(draft.studentId);

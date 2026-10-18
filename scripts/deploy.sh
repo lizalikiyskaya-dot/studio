@@ -273,6 +273,11 @@ main() {
   npm run build
   assert_protected_files
 
+  # Backup first, then docs/sql. A failure here must not reach restart_app:
+  # the process that is already running keeps the previous code.
+  log "База: резервная копия и новые docs/sql (до перезапуска)"
+  bash ./scripts/apply-sql.sh
+
   restart_app
   log "Деплой завершён: $(git rev-parse --short HEAD)"
 }

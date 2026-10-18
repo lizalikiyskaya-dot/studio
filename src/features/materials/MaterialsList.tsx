@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
+import Link from "next/link";
 import type { Material } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
 import FileAttachBox from "@/components/FileAttachBox";
@@ -16,6 +17,8 @@ import {
 } from "./actions";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
 import { Button } from "@/components/ui/Button";
+import LibraryGuides from "./LibraryGuides";
+import type { CabinetGuide } from "@/features/guides/types";
 
 function DownloadOrUpload({
   label,
@@ -233,10 +236,12 @@ function BooksList({
 function HandoutsList({
   studentId,
   materials,
+  guides,
   canManage,
 }: {
   studentId: string;
   materials: Material[];
+  guides: CabinetGuide[];
   canManage: boolean;
 }) {
   const [handouts, setHandouts] = useState(materials);
@@ -278,8 +283,39 @@ function HandoutsList({
     startTransition(async () => { await cycleMaterialStatus(id); });
   }
 
+  const showLibrary = canManage || guides.length > 0;
+  const showPersonalHeading = guides.length > 0 && (handouts.length > 0 || canManage);
+
   return (
     <div>
+      {!canManage && guides.length === 0 && handouts.length === 0 ? (
+        <p className="text-[14px]" style={{ color: "var(--muted)" }}>
+          Методичек пока нет.
+        </p>
+      ) : null}
+      {showLibrary && (
+        <div className="mb-8">
+          <h2 className="heading text-[18px] mb-1">{canManage ? "Общая библиотека" : "Методички студии"}</h2>
+          {canManage ? (
+            <p className="text-[13px] mb-3" style={{ color: "var(--muted)" }}>
+              Скрытая методичка этому ученику не видна и не скачивается.{" "}
+              <Link href="/mentor/guides" className="lnk">
+                К библиотеке
+              </Link>
+            </p>
+          ) : null}
+          {guides.length === 0 ? (
+            <p className="text-[14px]" style={{ color: "var(--muted)" }}>
+              В библиотеке пока ничего нет.
+            </p>
+          ) : (
+            <LibraryGuides studentId={studentId} guides={guides} canManage={canManage} />
+          )}
+        </div>
+      )}
+
+      {showPersonalHeading ? <h2 className="heading text-[18px] mb-2">Личные методички</h2> : null}
+
       {handouts.map((material) => (
         <div
           key={material.id}
@@ -345,24 +381,28 @@ function HandoutsList({
 export default function MaterialsList({
   studentId,
   initialMaterials,
+  guides,
   canManage,
+  initialTab = 0,
 }: {
   studentId: string;
   initialMaterials: Material[];
+  guides: CabinetGuide[];
   canManage: boolean;
+  initialTab?: number;
 }) {
   const books = initialMaterials.filter((m) => m.category === "BOOK");
   const handouts = initialMaterials.filter((m) => m.category === "HANDOUT");
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[1.5fr_1fr]">
-      <section className="sheet px-5 pt-4 pb-3">
+      <section className="sheet px-5 pt-4 pb-3" style={{ order: initialTab === 1 ? 2 : 0 }}>
         <h2 className="serif mb-2 text-[18px] font-medium">Книги</h2>
         <BooksList studentId={studentId} materials={books} canManage={canManage} />
       </section>
-      <section className="sheet px-5 pt-4 pb-3">
+      <section className="sheet px-5 pt-4 pb-3" style={{ order: initialTab === 1 ? 0 : 1 }}>
         <h2 className="serif mb-2 text-[18px] font-medium">Методички</h2>
-        <HandoutsList studentId={studentId} materials={handouts} canManage={canManage} />
+        <HandoutsList studentId={studentId} materials={handouts} guides={guides} canManage={canManage} />
       </section>
     </div>
   );

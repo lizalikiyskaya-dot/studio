@@ -1,18 +1,24 @@
 import { prisma } from "@/lib/prisma";
+import { loadCabinetGuides } from "@/lib/guides";
 import MaterialsList from "./MaterialsList";
 import PageHeader from "@/components/PageHeader";
 
 export default async function MaterialsView({
   studentId,
   canManage,
+  initialTab = 0,
 }: {
   studentId: string;
   canManage: boolean;
+  initialTab?: number;
 }) {
-  const materials = await prisma.material.findMany({
-    where: { studentId },
-    orderBy: { order: "asc" },
-  });
+  const [materials, guides] = await Promise.all([
+    prisma.material.findMany({
+      where: { studentId },
+      orderBy: { order: "asc" },
+    }),
+    loadCabinetGuides(studentId, canManage),
+  ]);
 
   return (
     <div>
@@ -20,7 +26,13 @@ export default async function MaterialsView({
         title="Материалы"
         description="Книги и методички от Лизы. Отмечайте, что уже прочитано."
       />
-      <MaterialsList studentId={studentId} initialMaterials={materials} canManage={canManage} />
+      <MaterialsList
+        studentId={studentId}
+        initialMaterials={materials}
+        guides={guides}
+        canManage={canManage}
+        initialTab={initialTab}
+      />
     </div>
   );
 }

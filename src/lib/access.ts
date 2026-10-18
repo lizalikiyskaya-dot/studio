@@ -65,6 +65,13 @@ export async function requireMentor(studentId: string) {
   return session;
 }
 
+/** Действие наставника без привязки к одному кабинету (библиотека методичек). */
+export async function requireMentorSession() {
+  const session = await currentUser();
+  if (session.role !== "MENTOR") throw new AccessDeniedError("Только наставник");
+  return session;
+}
+
 /**
  * Любой пользователь с открытым доступом (без привязки к чужому кабинету).
  * Нужен там, где действие само по себе безобидно, но постороннему из
