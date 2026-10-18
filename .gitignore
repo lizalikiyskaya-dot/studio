@@ -32,8 +32,12 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
-# db certs
+# local agent permissions (may contain secrets and hostnames)
+.claude/settings.local.json
+
+# db certs (optional local CA referenced via sslrootcert= in DATABASE_URL)
 /certs
 
 # vercel
