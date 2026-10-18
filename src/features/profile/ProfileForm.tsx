@@ -36,7 +36,10 @@ export default function ProfileForm({
   const [notifications, setNotifications] = useState(initialEmailNotifications);
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [savingPw, setSavingPw] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [passwordMsg, setPasswordMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [, startTransition] = useTransition();
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,13 +82,42 @@ export default function ProfileForm({
   }
 
   function handleSavePassword() {
+    if (!currentPw || !newPw || !confirmPw) {
+      setPasswordMsg({ text: "Заполните все поля", ok: false });
+      return;
+    }
+    if (newPw.length < 8) {
+      setPasswordMsg({ text: "Пароль должен быть не короче 8 символов", ok: false });
+      return;
+    }
+    if (newPw !== confirmPw) {
+      setPasswordMsg({ text: "Новый пароль и повтор не совпадают", ok: false });
+      return;
+    }
+    if (newPw === currentPw) {
+      setPasswordMsg({ text: "Новый пароль должен отличаться от текущего", ok: false });
+      return;
+    }
+
+    setSavingPw(true);
     startTransition(async () => {
-      const res = await updateProfilePassword(currentPw, newPw);
-      if ("error" in res) flash(res.error ?? "Ошибка", false);
-      else {
-        flash("Пароль изменён", true);
-        setCurrentPw("");
-        setNewPw("");
+      try {
+        const res = await updateProfilePassword(currentPw, newPw, confirmPw);
+        if ("error" in res) {
+          setPasswordMsg({ text: res.error ?? "Не удалось сменить пароль", ok: false });
+        } else {
+          setPasswordMsg({
+            text: "Пароль изменён. Остальные сессии завершены, эта остаётся активной.",
+            ok: true,
+          });
+          setCurrentPw("");
+          setNewPw("");
+          setConfirmPw("");
+        }
+      } catch {
+        setPasswordMsg({ text: "Не удалось сменить пароль. Попробуйте ещё раз.", ok: false });
+      } finally {
+        setSavingPw(false);
       }
     });
   }
@@ -217,34 +249,72 @@ export default function ProfileForm({
       </div>
 
       {/* Password */}
-      <div className={sectionCls}>
-        <div className="text-[14px] font-semibold mb-3" style={{ color: "var(--ink)" }}>Пароль</div>
-        <label className={labelCls} style={labelStyle}>Текущий пароль</label>
+      <form
+        className={sectionCls}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!savingPw) handleSavePassword();
+        }}
+      >
+        <div className="text-[14px] font-semibold mb-1" style={{ color: "var(--ink)" }}>Пароль</div>
+        <p className="text-[12px] mb-3" style={{ color: "var(--ink-faint)" }}>
+          Не короче 8 символов. После смены остальные сессии завершатся.
+        </p>
+        {passwordMsg && (
+          <div
+            className="mb-3 px-4 py-2.5 rounded-[9px] text-[13px]"
+            style={{
+              background: passwordMsg.ok ? "var(--sage-soft)" : "var(--accent-soft)",
+              color: passwordMsg.ok ? "var(--sage)" : "var(--accent)",
+            }}
+          >
+            {passwordMsg.text}
+          </div>
+        )}
+        <label htmlFor="current-password" className={labelCls} style={labelStyle}>Текущий пароль</label>
         <input
+          id="current-password"
+          name="currentPassword"
           value={currentPw}
           onChange={(e) => setCurrentPw(e.target.value)}
           type="password"
+          autoComplete="current-password"
           className={`${fieldCls} mb-3`}
           style={fieldStyle}
         />
-        <label className={labelCls} style={labelStyle}>Новый пароль</label>
-        <div className="flex gap-2">
-          <input
-            value={newPw}
-            onChange={(e) => setNewPw(e.target.value)}
-            type="password"
-            className={fieldCls}
-            style={fieldStyle}
-          />
-          <button
-            onClick={handleSavePassword}
-            className="px-5 py-2 rounded-full text-[13px] font-medium flex-shrink-0"
-            style={{ background: "var(--sage)", color: "#fff", border: "1px solid var(--sage)" }}
-          >
-            Сменить
-          </button>
-        </div>
-      </div>
+        <label htmlFor="new-password" className={labelCls} style={labelStyle}>Новый пароль</label>
+        <input
+          id="new-password"
+          name="newPassword"
+          value={newPw}
+          onChange={(e) => setNewPw(e.target.value)}
+          type="password"
+          autoComplete="new-password"
+          minLength={8}
+          className={`${fieldCls} mb-3`}
+          style={fieldStyle}
+        />
+        <label htmlFor="confirm-password" className={labelCls} style={labelStyle}>Повторите новый пароль</label>
+        <input
+          id="confirm-password"
+          name="confirmPassword"
+          value={confirmPw}
+          onChange={(e) => setConfirmPw(e.target.value)}
+          type="password"
+          autoComplete="new-password"
+          minLength={8}
+          className={`${fieldCls} mb-3`}
+          style={fieldStyle}
+        />
+        <button
+          type="submit"
+          disabled={savingPw}
+          className="px-5 py-2 rounded-full text-[13px] font-medium disabled:opacity-60"
+          style={{ background: "var(--sage)", color: "#fff", border: "1px solid var(--sage)" }}
+        >
+          {savingPw ? "Меняем..." : "Сменить"}
+        </button>
+      </form>
     </div>
   );
 }

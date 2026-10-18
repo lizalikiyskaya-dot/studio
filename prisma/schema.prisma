@@ -134,6 +134,10 @@ model User {
   name          String
   email         String        @unique
   passwordHash  String
+  // Растёт при смене пароля. JWT сессии хранит то же число; более старые
+  // токены отклоняются. 0 по умолчанию оставляет уже выданные сессии
+  // рабочими до первой смены пароля.
+  tokenVersion  Int           @default(0)
   role          UserRole      @default(STUDENT)
   status        UserStatus    @default(PENDING)
   paymentDay    Int?
