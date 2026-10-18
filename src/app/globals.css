@@ -202,11 +202,12 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 
 .auth-title {
   margin-top: 34px;
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 34px;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(34px, 3vw, 42px);
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
 }
 .auth-sub { margin-top: 10px; font-size: 15px; color: var(--ink2); }
 
