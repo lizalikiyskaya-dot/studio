@@ -5,7 +5,6 @@ import Link from "next/link";
 import type { Material } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
 import FileAttachBox from "@/components/FileAttachBox";
-import Subtabs from "@/components/Subtabs";
 import { uploadFile } from "@/lib/uploadFile";
 import { blurOnEnter } from "@/lib/blurOnEnter";
 import { GripVertical } from "lucide-react";
@@ -396,19 +395,15 @@ export default function MaterialsList({
   const handouts = initialMaterials.filter((m) => m.category === "HANDOUT");
 
   return (
-    <div style={{ maxWidth: 720 }}>
-      <Subtabs
-        initial={initialTab}
-        tabs={[
-          { label: "Книги", content: <BooksList studentId={studentId} materials={books} canManage={canManage} /> },
-          {
-            label: "Методички",
-            content: (
-              <HandoutsList studentId={studentId} materials={handouts} guides={guides} canManage={canManage} />
-            ),
-          },
-        ]}
-      />
+    <div className="grid items-start gap-5 lg:grid-cols-[1.5fr_1fr]">
+      <section className="sheet px-5 pt-4 pb-3" style={{ order: initialTab === 1 ? 2 : 0 }}>
+        <h2 className="serif mb-2 text-[18px] font-medium">Книги</h2>
+        <BooksList studentId={studentId} materials={books} canManage={canManage} />
+      </section>
+      <section className="sheet px-5 pt-4 pb-3" style={{ order: initialTab === 1 ? 0 : 1 }}>
+        <h2 className="serif mb-2 text-[18px] font-medium">Методички</h2>
+        <HandoutsList studentId={studentId} materials={handouts} guides={guides} canManage={canManage} />
+      </section>
     </div>
   );
 }

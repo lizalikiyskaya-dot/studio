@@ -47,6 +47,8 @@ export const SUGGESTION_REGISTRY: Record<SuggestableModel, RegistryEntry> = {
       return typeof value === "string" ? value : "";
     },
     apply: async (id, field, value) => {
+      // Доли сеттинга — числа, их пишет saveSettingMix, не строковое поле.
+      if (field === "settingMix") return;
       await prisma.book.update({ where: { id }, data: { [field]: value } });
     },
   },

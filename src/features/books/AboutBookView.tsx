@@ -4,6 +4,7 @@ import NoBookYet from "./NoBookYet";
 import AboutBookForm from "./AboutBookForm";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
+import PageHeader from "@/components/PageHeader";
 
 export default async function AboutBookView({
   studentId,
@@ -17,7 +18,7 @@ export default async function AboutBookView({
   if (!activeBook) {
     return (
       <div>
-        <h1 className="page-title text-[24px] font-semibold mb-6">О книге</h1>
+        <PageHeader title="О книге" description="Замысел, жанр и рабочее название. Книгу можно сменить в любой момент." />
         <NoBookYet studentId={studentId} />
       </div>
     );
@@ -28,8 +29,11 @@ export default async function AboutBookView({
 
   return (
     <div>
-      <BookSwitcher studentId={studentId} books={books} activeBookId={activeBook.id} />
-      <h1 className="page-title text-[24px] font-semibold mb-6">О книге</h1>
+      <PageHeader
+        title="О книге"
+        description="Замысел, жанр и рабочее название. Отсюда же можно добавить ещё одну книгу."
+        actions={<BookSwitcher studentId={studentId} books={books} activeBookId={activeBook.id} inline />}
+      />
       <AboutBookForm
         book={activeBook}
         suggestions={suggestions[activeBook.id] ?? {}}

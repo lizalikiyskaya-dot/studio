@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import ProfileForm from "@/features/profile/ProfileForm";
+import PageHeader from "@/components/PageHeader";
 
 export default async function MentorProfilePage() {
   const session = await getSession();
@@ -12,7 +13,7 @@ export default async function MentorProfilePage() {
 
   return (
     <div>
-      <h1 className="page-title text-[28px] font-semibold mb-7">Мой профиль</h1>
+      <PageHeader title="Мой профиль" description="Фото, имя, почта и пароль. Наставник видит здесь те же блоки." />
       <ProfileForm
         userId={user.id}
         initialName={user.name}

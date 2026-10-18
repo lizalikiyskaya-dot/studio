@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { X, Bookmark, Check, Clock, RotateCcw, Pencil } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Plus, Trash2, Pencil } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 import type { Task, TaskStatus } from "@/generated/prisma/client";
 import {
   createTask,
@@ -15,10 +17,6 @@ import {
 import { nextTaskStatus } from "./status";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import DateField from "@/components/DateField";
-import { Kpi } from "@/components/ui/Card";
-
-const GRID_COLUMNS = "1fr 110px 110px 110px 130px";
-
 const STATUS_LABEL: Record<TaskStatus, string> = {
   IN_PROGRESS: "в процессе",
   SUBMITTED: "сдано на проверку",
@@ -32,14 +30,6 @@ const STATUS_STYLE: Record<TaskStatus, React.CSSProperties> = {
   NEEDS_REVISION: { background: "var(--pill-or-bg)", color: "var(--pill-or-fg)", border: "none" },
   ACCEPTED: { background: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)", border: "none" },
 };
-
-function MetaLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="font-mono-label block text-[12px] mb-0.5" style={{ color: "var(--muted)" }}>
-      {children}
-    </span>
-  );
-}
 
 function LinkCell({ value, onSave }: { value: string | null; onSave: (value: string) => void }) {
   function promptEdit() {
@@ -73,6 +63,14 @@ function LinkCell({ value, onSave }: { value: string | null; onSave: (value: str
   );
 }
 
+const TABS: { id: string; label: string; status: TaskStatus | null; bg: string; color: string }[] = [
+  { id: "progress", label: "В процессе", status: "IN_PROGRESS", bg: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)" },
+  { id: "all", label: "Все задания", status: null, bg: "var(--deep)", color: "#fff" },
+  { id: "submitted", label: "Сдано на проверку", status: "SUBMITTED", bg: "var(--pill-vio-bg)", color: "var(--pill-vio-fg)" },
+  { id: "revision", label: "На доработке", status: "NEEDS_REVISION", bg: "var(--pill-or-bg)", color: "var(--pill-or-fg)" },
+  { id: "accepted", label: "Принято", status: "ACCEPTED", bg: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)" },
+];
+
 function toDateInputValue(date: Date | string | null): string {
   if (!date) return "";
   const d = new Date(date);
@@ -82,13 +80,20 @@ function toDateInputValue(date: Date | string | null): string {
 export default function TasksTable({
   studentId,
   initialTasks,
+  banners,
 }: {
   studentId: string;
   initialTasks: Task[];
+  banners?: React.ReactNode;
 }) {
   const [tasks, setTasks] = useState(initialTasks);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const requested = searchParams.get("tab");
+  const activeTab = TABS.some((tab) => tab.id === requested) ? requested! : "progress";
 
   function handleAdd() {
     startTransition(async () => {
@@ -132,103 +137,130 @@ export default function TasksTable({
     startTransition(() => deleteTask(taskId));
   }
 
-  const accepted = tasks.filter((t) => t.status === "ACCEPTED").length;
-  const inProgress = tasks.filter((t) => t.status === "IN_PROGRESS").length;
-  const submitted = tasks.filter((t) => t.status === "SUBMITTED").length;
-  const needsRevision = tasks.filter((t) => t.status === "NEEDS_REVISION").length;
+  function selectTab(id: string) {
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("tab", id);
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  }
+
+  const visible = tasks.filter((task) => {
+    const tab = TABS.find((item) => item.id === activeTab) ?? TABS[0];
+    return tab.status == null || task.status === tab.status;
+  });
 
   return (
     <div>
-      <div className="flex gap-3 mb-6 flex-wrap">
-        <Kpi tone="deep" icon={Bookmark} iconBg="var(--deep)" iconColor="#fff" num={tasks.length} label="всего заданий" />
-        <Kpi icon={Clock} iconBg="var(--pill-blue-bg)" iconColor="var(--pill-blue-fg)" num={inProgress} label="в процессе" />
-        <Kpi icon={Pencil} iconBg="var(--pill-vio-bg)" iconColor="var(--pill-vio-fg)" num={submitted} label="сдано на проверку" />
-        <Kpi icon={RotateCcw} iconBg="var(--pill-or-bg)" iconColor="var(--pill-or-fg)" num={needsRevision} label="на доработке" />
-        <Kpi icon={Check} iconBg="var(--pill-mint-bg)" iconColor="var(--pill-mint-fg)" num={accepted} label="принято" />
+      <PageHeader
+        title="Задания"
+        description="Всё, что задала Лиза: дедлайны попадают в календарь, статус меняется по клику."
+        actions={
+          <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+            <Plus size={16} /> Добавить задание
+          </button>
+        }
+      />
+
+      <div className="flex gap-3 mb-5 flex-wrap" role="tablist" aria-label="Фильтр заданий">
+        {TABS.map((tab) => {
+          const count = tab.status == null ? tasks.length : tasks.filter((task) => task.status === tab.status).length;
+          const on = tab.id === activeTab;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              onClick={() => selectTab(tab.id)}
+              className="rounded-[18px] px-4 py-3 flex-1 min-w-[120px] text-left"
+              style={{
+                background: tab.bg,
+                color: tab.color,
+                boxShadow: on ? "0 0 0 2px #202020" : undefined,
+                opacity: on ? 1 : 0.72,
+              }}
+            >
+              <div className="text-[24px] font-semibold leading-none">{count}</div>
+              <div className="text-[12.5px] mt-1.5 opacity-80">{tab.label}</div>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex flex-col gap-2.5 mb-4">
-        {tasks.map((task) => (
-          <div
-            key={task.id}
-            className="rounded-[14px] px-4 py-3.5"
-            style={{ border: "1px solid var(--rule)", background: "var(--paper-light)" }}
-          >
-            <div className="task-fields grid gap-x-3.5 items-start" style={{ gridTemplateColumns: GRID_COLUMNS }}>
-              <div className="min-w-0">
-                <MetaLabel>задание</MetaLabel>
-                <EditableWithLinks
-                  defaultValue={task.title}
-                  onSave={(v) => handleTitleBlur(task.id, v)}
-                  placeholder="Описание задания"
-                  className="entry-title w-full min-w-0 outline-none bg-transparent text-[15px] leading-snug"
-                />
-              </div>
-              <div>
-                <MetaLabel>дедлайн</MetaLabel>
-                <DateField
-                  value={toDateInputValue(task.deadline)}
-                  onChange={(v) => handleDeadline(task.id, v)}
-                  style={{ border: "1px solid var(--rule)", borderRadius: 6, padding: "4px 6px" }}
-                />
-              </div>
-              <div className="min-w-0">
-                <MetaLabel>работа</MetaLabel>
-                <LinkCell value={task.workLink} onSave={(v) => handleLink(task.id, "workLink", v)} />
-              </div>
-              <div className="min-w-0">
-                <MetaLabel>отзыв</MetaLabel>
-                <LinkCell value={task.feedbackLink} onSave={(v) => handleLink(task.id, "feedbackLink", v)} />
-              </div>
-              <div className="flex items-center justify-end gap-2.5">
-                <button
-                  onClick={() => handleStatus(task.id, task.status)}
-                  className="text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap"
-                  style={STATUS_STYLE[task.status]}
-                >
-                  {STATUS_LABEL[task.status]}
-                </button>
-                <button
-                  onClick={() => handleDelete(task.id)}
-                  style={{ color: "var(--faded)" }}
-                  title="Удалить задание"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            </div>
-
-            {task.notes || expandedNotes.has(task.id) ? (
-              <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px solid var(--rule)" }}>
-                <MetaLabel>примечание</MetaLabel>
-                <EditableWithLinks
-                  defaultValue={task.notes}
-                  onSave={(v) => handleNotes(task.id, v)}
-                  placeholder="примечание..."
-                  className="w-full min-w-0 outline-none bg-transparent text-[13px] leading-snug"
-                  style={{ maxWidth: 560 }}
-                />
-              </div>
-            ) : (
-              <button
-                onClick={() => setExpandedNotes((prev) => new Set(prev).add(task.id))}
-                className="text-[11px] mt-2"
-                style={{ color: "var(--faded)" }}
-              >
-                + примечание
-              </button>
+      <div className="sheet px-3 pt-2 pb-1">
+        <table>
+          <thead>
+            <tr>
+              <th>№</th>
+              <th>Описание задания</th>
+              <th>Дедлайн</th>
+              <th>Работа</th>
+              <th>Отзыв</th>
+              <th>Примечание</th>
+              <th>Статус</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {visible.length === 0 && (
+              <tr>
+                <td colSpan={8} style={{ color: "var(--muted)" }}>
+                  {tasks.length === 0 ? "Заданий пока нет." : "В этой вкладке заданий нет."}
+                </td>
+              </tr>
             )}
-          </div>
-        ))}
+            {visible.map((task, index) => (
+              <tr key={task.id}>
+                <td className="whitespace-nowrap tabular-nums" style={{ color: "var(--muted)" }}>{String(index + 1).padStart(2, "0")}</td>
+                <td className="min-w-[180px]">
+                  <EditableWithLinks
+                    defaultValue={task.title}
+                    onSave={(v) => handleTitleBlur(task.id, v)}
+                    placeholder="Описание задания"
+                    className="entry-title w-full min-w-0 outline-none bg-transparent text-[15px] leading-snug"
+                  />
+                </td>
+                <td>
+                  <DateField
+                    value={toDateInputValue(task.deadline)}
+                    onChange={(v) => handleDeadline(task.id, v)}
+                  />
+                </td>
+                <td><LinkCell value={task.workLink} onSave={(v) => handleLink(task.id, "workLink", v)} /></td>
+                <td><LinkCell value={task.feedbackLink} onSave={(v) => handleLink(task.id, "feedbackLink", v)} /></td>
+                <td className="min-w-[140px]">
+                  {task.notes || expandedNotes.has(task.id) ? (
+                    <EditableWithLinks
+                      defaultValue={task.notes}
+                      onSave={(v) => handleNotes(task.id, v)}
+                      placeholder="примечание..."
+                      className="w-full outline-none bg-transparent text-[13px]"
+                    />
+                  ) : (
+                    <button type="button" className="text-[13px]" style={{ color: "var(--muted)" }} onClick={() => setExpandedNotes((prev) => new Set(prev).add(task.id))}>
+                      + примечание
+                    </button>
+                  )}
+                </td>
+                <td>
+                  <button
+                    onClick={() => handleStatus(task.id, task.status)}
+                    className="text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap"
+                    style={STATUS_STYLE[task.status]}
+                  >
+                    {STATUS_LABEL[task.status]}
+                  </button>
+                </td>
+                <td>
+                  <button onClick={() => handleDelete(task.id)} style={{ color: "var(--muted)" }} title="Удалить задание">
+                    <Trash2 size={15} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      <button
-        onClick={handleAdd}
-        className="mt-3.5 inline-flex items-center gap-1.5 text-[14.5px] font-semibold px-5 h-11 rounded-full"
-        style={{ background: "var(--y)", color: "var(--ink)" }}
-      >
-        + Добавить задание
-      </button>
+      {banners}
     </div>
   );
 }

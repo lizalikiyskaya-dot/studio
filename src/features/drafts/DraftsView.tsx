@@ -7,10 +7,5 @@ export default async function DraftsView({ studentId }: { studentId: string }) {
     orderBy: { order: "asc" },
   });
 
-  return (
-    <div>
-      <h1 className="page-title text-[24px] font-semibold mb-6">Рукописи</h1>
-      <DraftsList studentId={studentId} initialDrafts={drafts} />
-    </div>
-  );
+  return <DraftsList studentId={studentId} initialDrafts={drafts} />;
 }

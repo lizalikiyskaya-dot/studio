@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import type { WorldCategory } from "@/generated/prisma/client";
+import { resolveShares } from "./settingMix";
 
 const GRAPES_FIELDS = [
   "grapesGeography",
@@ -60,6 +61,79 @@ export async function updateBookSettingMap(bookId: string, x: number, y: number)
   const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
   await requireCabinetAccess(book.studentId);
   await prisma.book.update({ where: { id: bookId }, data: { settingMapX: x, settingMapY: y } });
+}
+
+export async function saveSettingMix(
+  bookId: string,
+  shares: { manifest: number; filter: number; conflict: number; magnet: number }
+) {
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
+  const session = await requireCabinetAccess(book.studentId);
+  const clean = {
+    manifest: clampMix(shares.manifest),
+    filter: clampMix(shares.filter),
+    conflict: clampMix(shares.conflict),
+    magnet: clampMix(shares.magnet),
+  };
+
+  if (session.role === "MENTOR") {
+    const student = await prisma.user.findUniqueOrThrow({ where: { id: book.studentId } });
+    const current = resolveShares(book);
+    const filled = current.manifest + current.filter + current.conflict + current.magnet > 0;
+    // Пустой сеттинг наставник заполняет сразу. Если доли уже есть — это правка.
+    if (student.reviewModeEnabled && filled) {
+      const value = JSON.stringify(clean);
+      await prisma.fieldSuggestion.upsert({
+        where: { model_recordId_field: { model: "Book", recordId: bookId, field: "settingMix" } },
+        update: { value },
+        create: { model: "Book", recordId: bookId, field: "settingMix", value },
+      });
+      return { suggested: true as const };
+    }
+  }
+
+  await prisma.book.update({
+    where: { id: bookId },
+    data: {
+      settingManifest: clean.manifest,
+      settingFilter: clean.filter,
+      settingConflict: clean.conflict,
+      settingMagnet: clean.magnet,
+    },
+  });
+  await prisma.fieldSuggestion.deleteMany({ where: { model: "Book", recordId: bookId, field: "settingMix" } });
+  return { suggested: false as const };
+}
+
+export async function acceptSettingMix(bookId: string) {
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
+  await requireCabinetAccess(book.studentId);
+  const suggestion = await prisma.fieldSuggestion.findUnique({
+    where: { model_recordId_field: { model: "Book", recordId: bookId, field: "settingMix" } },
+  });
+  if (!suggestion) return;
+  const data = JSON.parse(suggestion.value) as { manifest: number; filter: number; conflict: number; magnet: number };
+  await prisma.book.update({
+    where: { id: bookId },
+    data: {
+      settingManifest: clampMix(data.manifest),
+      settingFilter: clampMix(data.filter),
+      settingConflict: clampMix(data.conflict),
+      settingMagnet: clampMix(data.magnet),
+    },
+  });
+  await prisma.fieldSuggestion.delete({ where: { id: suggestion.id } });
+}
+
+export async function rejectSettingMix(bookId: string) {
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.fieldSuggestion.deleteMany({ where: { model: "Book", recordId: bookId, field: "settingMix" } });
+}
+
+function clampMix(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, Math.round(value)));
 }
 
 export async function toggleFantasyLock(bookId: string) {

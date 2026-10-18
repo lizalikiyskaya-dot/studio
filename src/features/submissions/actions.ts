@@ -4,6 +4,30 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
 import type { SubmissionType, SubmissionStatus } from "@/generated/prisma/client";
 
+export async function addOpenCallToTracker(openCallId: string) {
+  const call = await prisma.openCall.findUniqueOrThrow({ where: { id: openCallId } });
+  await requireCabinetAccess(call.studentId);
+  const target = call.target.trim();
+  if (target) {
+    const existing = await prisma.submission.findFirst({
+      where: { studentId: call.studentId, target: { equals: target, mode: "insensitive" } },
+    });
+    if (existing) return;
+  }
+  const count = await prisma.submission.count({ where: { studentId: call.studentId, type: "CONTEST" } });
+  await prisma.submission.create({
+    data: {
+      studentId: call.studentId,
+      type: "CONTEST",
+      order: count,
+      target: call.target,
+      date: call.deadline,
+      note: call.note,
+      link: call.link,
+    },
+  });
+}
+
 export async function createSubmission(studentId: string, type: SubmissionType) {
   await requireCabinetAccess(studentId);
   const count = await prisma.submission.count({ where: { studentId, type } });

@@ -9,10 +9,12 @@ export default function CycleSwitcher({
   studentId,
   cycles,
   activeCycleId,
+  inline = false,
 }: {
   studentId: string;
   cycles: { id: string; title: string }[];
   activeCycleId: string;
+  inline?: boolean;
 }) {
   const pathname = usePathname();
   const [, startTransition] = useTransition();
@@ -41,15 +43,17 @@ export default function CycleSwitcher({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3 mb-6">
-      <label className="text-[13px]" style={{ color: "var(--faded)" }}>
-        Цикл:
-      </label>
+    <div className={inline ? "flex flex-wrap items-center gap-2" : "flex flex-wrap items-center gap-3 mb-6"}>
+      {!inline && (
+        <label className="text-[13px]" style={{ color: "var(--faded)" }}>
+          Цикл:
+        </label>
+      )}
       <select
         value={activeCycleId}
         onChange={(e) => handleChange(e.target.value)}
-        className="min-w-0 max-w-full text-[14px] bg-white rounded-sm px-2 py-1"
-        style={{ border: "1px solid var(--rule)" }}
+        className="min-w-0 max-w-full text-[14px] bg-white rounded-full px-4 h-11"
+        style={{ border: "1px solid var(--border)" }}
       >
         {cycles.map((c) => (
           <option key={c.id} value={c.id}>

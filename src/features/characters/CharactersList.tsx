@@ -10,7 +10,7 @@ import { createCharacter, deleteCharacter, reorderCharacters, updateCharacterPho
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import { useDragReorder } from "@/lib/useDragReorder";
 import type { FieldGroup } from "./fields";
-import { Button } from "@/components/ui/Button";
+import { useHeaderAction } from "@/components/headerAction";
 import { CHARACTER_DEFAULTS } from "@/lib/characterDefaults";
 
 function CharacterSection({
@@ -43,6 +43,7 @@ function CharacterSection({
       onAdd(character);
     });
   }
+  useHeaderAction(type === "MAIN" ? "char-main" : "char-secondary", handleAdd);
 
   function handleDelete(id: string) {
     setItems((prev) => prev.filter((c) => c.id !== id));
@@ -107,9 +108,6 @@ function CharacterSection({
         );
       })}
 
-      <Button onClick={handleAdd} variant="dashed" size="sm" pill>
-        {type === "SECONDARY" ? "+ второстепенный персонаж" : "+ главный персонаж"}
-      </Button>
     </div>
   );
 }

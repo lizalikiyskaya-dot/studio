@@ -1,16 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { X } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import type { WorkPlan, WorkPlanStatus } from "@/generated/prisma/client";
 import EditableWithLinks from "@/components/EditableWithLinks";
-import { Button } from "@/components/ui/Button";
+import PageHeader from "@/components/PageHeader";
 import { createWorkPlan, deleteWorkPlan, updateWorkPlanField, cycleWorkPlanStatus } from "./actions";
 
 const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-
-const labelCls = "text-[9px] font-mono-label uppercase tracking-wide mb-1.5 text-[color:var(--faded)]";
-const colDivider: React.CSSProperties = { borderLeft: "1px solid var(--border)" };
 
 const STATUS_LABEL: Record<WorkPlanStatus, string> = {
   PLANNED: "запланировано",
@@ -107,7 +104,6 @@ export default function WorkPlanTable({
   }
 
   function handleStatus(id: string) {
-    const current = plans.find((p) => p.id === id)!.status;
     const next: Record<WorkPlanStatus, WorkPlanStatus> = { PLANNED: "IN_PROGRESS", IN_PROGRESS: "DONE", DONE: "PLANNED" };
     setPlans((prev) => prev.map((p) => (p.id === id ? { ...p, status: next[p.status] } : p)));
     startTransition(async () => { await cycleWorkPlanStatus(id); });
@@ -115,94 +111,64 @@ export default function WorkPlanTable({
 
   return (
     <div>
-      <div className="flex flex-col gap-3 mb-4">
-        {plans.map((plan) => (
-          <div
-            key={plan.id}
-            className="rounded-[14px] px-5 py-4"
-            style={{ border: "1px solid var(--rule)", background: "var(--paper-light)" }}
-          >
-            <div
-              className="work-plan-fields grid"
-              style={{ gridTemplateColumns: "195px minmax(0,1fr) 210px 200px 130px" }}
-            >
-              {/* Month column */}
-              <div className="pr-4">
-                <div className={labelCls}>период</div>
-                <div className="flex flex-col gap-1">
-                  <MonthSelect
-                    value={plan.monthStart}
-                    onChange={(v) => handleField(plan.id, "monthStart", v)}
-                    placeholder="Начало"
-                  />
-                  <MonthSelect
-                    value={plan.monthEnd}
-                    onChange={(v) => handleField(plan.id, "monthEnd", v)}
-                    placeholder="Конец (до 2 мес.)"
-                  />
+      <PageHeader
+        title="План работы"
+        description="Крупные этапы на полгода вперёд. Период — до двух месяцев."
+        actions={
+          <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+            <Plus size={16} /> Добавить период
+          </button>
+        }
+      />
+      <div className="sheet px-3 pt-2 pb-1">
+        <table>
+          <thead>
+            <tr>
+              <th>Период</th>
+              <th>Описание</th>
+              <th>Литература</th>
+              <th>Примечание</th>
+              <th>Статус</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {plans.length === 0 && (
+              <tr><td colSpan={6} style={{ color: "var(--muted)" }}>Периодов пока нет.</td></tr>
+            )}
+            {plans.map((plan) => (
+              <tr key={plan.id}>
+                <td className="align-top" style={{ minWidth: 160 }}>
+                  <MonthSelect value={plan.monthStart} onChange={(v) => handleField(plan.id, "monthStart", v)} placeholder="Начало" />
+                  <div className="mt-1">
+                    <MonthSelect value={plan.monthEnd} onChange={(v) => handleField(plan.id, "monthEnd", v)} placeholder="Конец" />
+                  </div>
                   {plan.monthStart && (
-                    <div className="text-[11px] mt-0.5 font-semibold" style={{ color: "var(--ink-soft)" }}>
-                      {formatMonthRange(plan.monthStart, plan.monthEnd)}
-                    </div>
+                    <div className="mt-1 whitespace-nowrap text-[12px]" style={{ color: "var(--muted)" }}>{formatMonthRange(plan.monthStart, plan.monthEnd)}</div>
                   )}
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="px-4" style={colDivider}>
-                <div className={labelCls}>описание</div>
-                <EditableWithLinks
-                  defaultValue={plan.description}
-                  onSave={(v) => handleField(plan.id, "description", v)}
-                  placeholder="Что планируется на этот период..."
-                  className="entry-title w-full outline-none bg-transparent text-[15px] leading-snug"
-                />
-              </div>
-
-              {/* Literature */}
-              <div className="px-4" style={colDivider}>
-                <div className={labelCls}>литература</div>
-                <EditableWithLinks
-                  defaultValue={plan.literature}
-                  onSave={(v) => handleField(plan.id, "literature", v)}
-                  placeholder="что почитать..."
-                  className="w-full outline-none bg-transparent text-[13px] leading-snug"
-                />
-              </div>
-
-              {/* Note */}
-              <div className="px-4" style={colDivider}>
-                <div className={labelCls}>примечание</div>
-                <EditableWithLinks
-                  defaultValue={plan.note}
-                  onSave={(v) => handleField(plan.id, "note", v)}
-                  placeholder="примечание..."
-                  className="w-full outline-none bg-transparent text-[13px] leading-snug"
-                  style={{ color: "var(--ink-soft)" }}
-                />
-              </div>
-
-              {/* Status + delete */}
-              <div className="pl-4 flex flex-col items-end gap-2" style={colDivider}>
-                <button onClick={() => handleDelete(plan.id)} style={{ color: "var(--faded)" }}>
-                  <X size={14} />
-                </button>
-                <button
-                  onClick={() => handleStatus(plan.id)}
-                  className="text-[11.5px] px-3 py-1.5 rounded-full whitespace-nowrap"
-                  style={STATUS_STYLE[plan.status]}
-                >
-                  {STATUS_LABEL[plan.status]}
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+                </td>
+                <td className="min-w-[180px]">
+                  <EditableWithLinks defaultValue={plan.description} onSave={(v) => handleField(plan.id, "description", v)} placeholder="Что планируется..." className="entry-title w-full outline-none bg-transparent text-[15px]" />
+                </td>
+                <td className="min-w-[140px]">
+                  <EditableWithLinks defaultValue={plan.literature} onSave={(v) => handleField(plan.id, "literature", v)} placeholder="что почитать..." className="w-full outline-none bg-transparent text-[13px]" />
+                </td>
+                <td className="min-w-[140px]">
+                  <EditableWithLinks defaultValue={plan.note} onSave={(v) => handleField(plan.id, "note", v)} placeholder="примечание..." className="w-full outline-none bg-transparent text-[13px]" />
+                </td>
+                <td>
+                  <button onClick={() => handleStatus(plan.id)} className="text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap" style={STATUS_STYLE[plan.status]}>
+                    {STATUS_LABEL[plan.status]}
+                  </button>
+                </td>
+                <td>
+                  <button onClick={() => handleDelete(plan.id)} style={{ color: "var(--muted)" }} title="Удалить период"><Trash2 size={15} /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      <Button onClick={handleAdd} variant="dashed" size="sm" pill>
-        + период
-      </Button>
     </div>
   );
 }

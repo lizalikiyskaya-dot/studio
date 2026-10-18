@@ -140,6 +140,18 @@ export default function Sidebar({
     setMobileOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    const chrome = document.querySelector<HTMLElement>(".studio-chrome");
+    if (!chrome) return;
+    const apply = () => {
+      document.documentElement.style.setProperty("--chrome-h", `${Math.ceil(chrome.getBoundingClientRect().height)}px`);
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(chrome);
+    return () => observer.disconnect();
+  }, []);
+
   function toggleCollapsed() {
     setCollapsed((v) => {
       const next = !v;
@@ -241,8 +253,27 @@ export default function Sidebar({
       ? STORY_WORKSHOP_ITEMS
       : null;
 
+  const mentorBar = mentorViewLabel ? (
+    <div className="mentor-bar">
+      <Link href="/mentor"><ArrowLeft size={16} /> к ученикам</Link>
+      <span style={{ color: "rgba(255,255,255,0.4)" }}>·</span>
+      <span>Вы в кабинете ученицы <b className="font-semibold">{mentorViewLabel}</b></span>
+      {studentId && isMentor && (
+        <span className="mentor-review">
+          <span style={{ color: "rgba(255,255,255,0.7)" }}>Режим правок</span>
+          <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
+          <span className="text-[13px]" style={{ color: "rgba(255,255,255,0.7)" }}>
+            {reviewMode ? "правки сохраняются как предложения" : "правки сохраняются сразу"}
+          </span>
+        </span>
+      )}
+    </div>
+  ) : null;
+
   return (
-    <div className="studio-shell">
+    <div className={`studio-shell${mentorViewLabel ? " has-mentor" : ""}`}>
+      <div className="studio-chrome">
+        {mentorBar}
       <header className="studio-topbar">
         <Link href={mentorMenuOnly ? "/mentor" : `${basePath}/tasks`} className="studio-logo">
           <Wordmark />
@@ -290,21 +321,7 @@ export default function Sidebar({
           </button>
         </div>
       </header>
-
-      {mentorViewLabel && (
-        <div className="mentor-bar">
-          <Link href="/mentor"><ArrowLeft size={16} /> к ученикам · {mentorViewLabel}</Link>
-          {studentId && isMentor && (
-            <span className="ml-auto flex items-center gap-3">
-              <span style={{ color: "rgba(255,255,255,0.7)" }}>Режим правок</span>
-              <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
-              <span className="text-[13px]" style={{ color: "rgba(255,255,255,0.7)" }}>
-                {reviewMode ? "правки сохраняются как предложения" : "правки сохраняются сразу"}
-              </span>
-            </span>
-          )}
-        </div>
-      )}
+      </div>
 
       <div className="studio-body">
         <aside id="studio-navigation" className={`studio-sidebar${mobileOpen ? " mobile-open" : ""}${desktopCollapsed && !mentorMenuOnly ? " is-collapsed" : ""}`}>
@@ -334,6 +351,18 @@ export default function Sidebar({
               >
                 <PanelLeft size={16} />
               </button>
+            </div>
+          )}
+
+          {studentId && isMentor && mentorViewLabel && (
+            <div className="side-card">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[14px] font-semibold">Режим правок</span>
+                <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
+              </div>
+              <p className="mt-1.5 text-[12.5px] leading-snug" style={{ color: "var(--muted)" }}>
+                {reviewMode ? "Правки сохраняются как предложения. Ученик принимает или отклоняет их." : "Правки сохраняются сразу, в текст ученика."}
+              </p>
             </div>
           )}
 
@@ -378,7 +407,7 @@ export default function Sidebar({
           {upcoming && (
             <div className="deadline-card">
               <span className="deadline-ribbon" aria-hidden="true" />
-              <div className="deadline-kicker">Ближайший дедлайн</div>
+              <div className="deadline-kicker">{onBook || onStory || section === "exercises" ? "Разбор в четверг" : "Ближайший дедлайн"}</div>
               <div className="serif deadline-title">{upcoming.title || "Задание"}</div>
               <div className="deadline-when">{formatDeadline(upcoming.deadline)}</div>
             </div>

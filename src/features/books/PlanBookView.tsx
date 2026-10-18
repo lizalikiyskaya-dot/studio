@@ -4,6 +4,9 @@ import BookSelect from "./BookSelect";
 import NoBookRedirect from "./NoBookRedirect";
 import PlanTable from "./PlanTable";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
+import PageHeader from "@/components/PageHeader";
+import { HeaderButton } from "@/components/headerAction";
+import { Plus } from "lucide-react";
 
 export default async function PlanBookView({
   studentId,
@@ -19,7 +22,7 @@ export default async function PlanBookView({
   if (!activeBook) {
     return (
       <div>
-        <h1 className="page-title text-[24px] font-semibold mb-6">Трекер по главам</h1>
+        <PageHeader title="Трекер по главам" description="Суть каждой главы, её драматическое ядро и объём в знаках." />
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -33,8 +36,16 @@ export default async function PlanBookView({
 
   return (
     <div>
-      <BookSelect books={books} activeBookId={activeBook.id} />
-      <h1 className="page-title text-[24px] font-semibold mb-6">Трекер по главам</h1>
+      <PageHeader
+        title="Трекер по главам"
+        description="Суть каждой главы, её драматическое ядро и объём в знаках."
+        actions={
+          <>
+            <BookSelect books={books} activeBookId={activeBook.id} compact />
+            <HeaderButton actionId="plan-chapter"><Plus size={16} /> Новая глава</HeaderButton>
+          </>
+        }
+      />
       <PlanTable
         bookId={activeBook.id}
         initialChapters={chapters}

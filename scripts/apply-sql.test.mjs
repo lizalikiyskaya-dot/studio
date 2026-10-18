@@ -599,6 +599,7 @@ CREATE TYPE "MaterialStatus" AS ENUM ('UNREAD', 'IN_PROGRESS', 'READ');
 CREATE TABLE "User" ("id" TEXT PRIMARY KEY);
 CREATE TABLE "Act" ("id" TEXT PRIMARY KEY);
 CREATE TABLE "StorylineBlock" ("id" TEXT PRIMARY KEY);
+CREATE TABLE "Book" ("id" TEXT PRIMARY KEY);
 INSERT INTO "User" ("id") VALUES ('student-1');
 `;
 
@@ -614,7 +615,8 @@ async function guideStats(databaseUrl) {
     `SELECT table_name, column_name FROM information_schema.columns
      WHERE table_schema = 'public' AND (
        (table_name = 'Act' AND column_name = 'status') OR
-       (table_name = 'StorylineBlock' AND column_name = 'span')
+       (table_name = 'StorylineBlock' AND column_name = 'span') OR
+       (table_name = 'Book' AND column_name IN ('settingManifest', 'settingFilter', 'settingConflict', 'settingMagnet'))
      )
      ORDER BY table_name, column_name`,
   );
@@ -652,7 +654,14 @@ test("PR #6 and PR #7 files apply once, are idempotent, and sort by name", { tim
       assert.ok(planAt >= 0 && guidesAt > planAt, first.stdout);
       const once = await guideStats(url);
       assert.deepEqual(once.tables, ["Guide", "GuideAccess", "GuideProgress"]);
-      assert.deepEqual(once.cols, ["Act.status", "StorylineBlock.span"]);
+      assert.deepEqual(once.cols, [
+        "Act.status",
+        "Book.settingConflict",
+        "Book.settingFilter",
+        "Book.settingMagnet",
+        "Book.settingManifest",
+        "StorylineBlock.span",
+      ]);
       assert.equal(once.constraints.length, 7);
 
       const second = await runScript(

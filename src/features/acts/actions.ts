@@ -14,7 +14,7 @@ export async function createAct(bookId: string) {
 
 export async function updateActField(
   actId: string,
-  field: "title" | "subtitle" | "content",
+  field: "title" | "subtitle" | "content" | "status",
   value: string
 ) {
   const act = await prisma.act.findUniqueOrThrow({ where: { id: actId } });
@@ -101,6 +101,12 @@ export async function updateStorylineBlockColor(blockId: string, color: Storylin
 export async function deleteStorylineBlock(blockId: string) {
   await requireAccessForBlock(blockId);
   await prisma.storylineBlock.delete({ where: { id: blockId } });
+}
+
+export async function updateStorylineBlockSpan(blockId: string, span: number) {
+  const next = Math.max(1, Math.min(8, Math.floor(span) || 1));
+  await requireAccessForBlock(blockId);
+  await prisma.storylineBlock.update({ where: { id: blockId }, data: { span: next } });
 }
 
 export async function moveStorylineBlock(blockId: string, targetChapterId: string) {

@@ -6,7 +6,7 @@ import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, tog
 import { updatePlanColumnColors } from "./actions";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import { blurOnEnter } from "@/lib/blurOnEnter";
-import { Button } from "@/components/ui/Button";
+import { useHeaderAction } from "@/components/headerAction";
 
 const PALETTE = ["#E0CBE7", "#E2E9EE", "#E2EADC", "#F0E1E4"];
 
@@ -162,6 +162,7 @@ export default function PlanTable({
       setChapters((prev) => [...prev, chapter]);
     });
   }
+  useHeaderAction("plan-chapter", handleAdd);
 
   function handleNumber(chapterId: string, field: "plannedChars" | "writtenChars", value: number) {
     setChapters((prev) => prev.map((c) => (c.id === chapterId ? { ...c, [field]: value } : c)));
@@ -306,7 +307,7 @@ export default function PlanTable({
                   {/* № */}
                   <td
                     className="font-mono-label text-center"
-                    style={{ ...cellBase, borderBottom: "1px solid var(--border)", background: rowBg, fontSize: 12, color: "var(--ink-faint)", verticalAlign: "middle" }}
+                    style={{ ...cellBase, borderBottom: "1px solid var(--border)", background: rowBg, fontSize: 12, color: "var(--ink-faint)", verticalAlign: "middle", whiteSpace: "nowrap" }}
                   >
                     {idx + 1}
                   </td>
@@ -365,6 +366,7 @@ export default function PlanTable({
                       borderRight: "none",
                       background: percentCellBackground(percent),
                       color: "var(--ink)",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {chapter.plannedChars > 0 ? `${percent}%` : "—"}
@@ -431,9 +433,6 @@ export default function PlanTable({
         </div>
       </div>
 
-      <Button onClick={handleAdd} variant="dashed" size="sm" pill>
-        + глава
-      </Button>
     </div>
   );
 }

@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import StoriesList from "./StoriesList";
+import PageHeader from "@/components/PageHeader";
+import { HeaderButton } from "@/components/headerAction";
+import { Plus } from "lucide-react";
 
 export default async function StandaloneStoriesView({ studentId }: { studentId: string }) {
   const stories = await prisma.story.findMany({
@@ -14,7 +17,11 @@ export default async function StandaloneStoriesView({ studentId }: { studentId: 
 
   return (
     <div>
-      <h1 className="page-title text-[24px] font-semibold mb-6">Отдельные рассказы</h1>
+      <PageHeader
+        title="Отдельные рассказы"
+        description="Рассказы вне циклов: у каждого свои персонажи и свой мир."
+        actions={<HeaderButton actionId="story-add"><Plus size={16} /> Новый рассказ</HeaderButton>}
+      />
       <StoriesList
         cycleId={null}
         studentId={studentId}
@@ -23,6 +30,7 @@ export default async function StandaloneStoriesView({ studentId }: { studentId: 
         cycleWorldEntries={[]}
         storyCharacters={storyCharacters}
         storyWorldEntries={storyWorldEntries}
+        headerAdd
       />
     </div>
   );

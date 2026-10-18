@@ -5,6 +5,7 @@ import NoBookRedirect from "@/features/books/NoBookRedirect";
 import ArcCharactersList from "./ArcCharactersList";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
+import PageHeader from "@/components/PageHeader";
 
 export default async function ArcsView({
   studentId,
@@ -20,7 +21,7 @@ export default async function ArcsView({
   if (!activeBook) {
     return (
       <div>
-        <h1 className="page-title text-[24px] font-semibold mb-6">Арки персонажей</h1>
+        <PageHeader title="Арки персонажей" description="Выберите тип арки — этапы подстроятся. Для каждого этапа укажите сцену." />
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -35,8 +36,11 @@ export default async function ArcsView({
 
   return (
     <div>
-      <BookSelect books={books} activeBookId={activeBook.id} />
-      <h1 className="page-title text-[24px] font-semibold mb-6">Арки персонажей</h1>
+      <PageHeader
+        title="Арки персонажей"
+        description="Выберите тип арки — этапы подстроятся. Для каждого этапа укажите сцену."
+        actions={<BookSelect books={books} activeBookId={activeBook.id} compact />}
+      />
       <ArcCharactersList
         bookId={activeBook.id}
         initialCharacters={characters}
