@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { Lock, Unlock, Check, X } from "lucide-react";
+import { Check, MapPin, Plus, ScrollText, Sparkles, Swords, Cog, Landmark, Bug, Languages, X } from "lucide-react";
+import ToggleSwitch from "@/components/ToggleSwitch";
 import type { Book, WorldEntry, WorldCategory } from "@/generated/prisma/client";
-import Accordion from "@/components/Accordion";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
@@ -15,40 +15,7 @@ import {
   updateWorldEntryTitle,
   updateWorldEntryBody,
 } from "./actions";
-import {
-  MapIcon,
-  SwordsIcon,
-  ScrollIcon,
-  GearIcon,
-  SparkleIcon,
-  ColumnIcon,
-  DragonIcon,
-  LanguageIcon,
-  QuillIcon,
-  GeneralIcon,
-} from "./FantasyIcons";
-
-function CategoryTitle({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <span className="flex items-center gap-2">
-      {icon}
-      {label}
-    </span>
-  );
-}
-
-const CATEGORY_LABELS: Record<WorldCategory, React.ReactNode> = {
-  LOCATIONS: <CategoryTitle icon={<MapIcon />} label="Локации" />,
-  FACTIONS: <CategoryTitle icon={<SwordsIcon />} label="Фракции" />,
-  LORE: <CategoryTitle icon={<ScrollIcon />} label="Лор" />,
-  TECHNOLOGY: <CategoryTitle icon={<GearIcon />} label="Технологии" />,
-  MAGIC: <CategoryTitle icon={<SparkleIcon />} label="Магия / Система" />,
-  HISTORY: <CategoryTitle icon={<ColumnIcon />} label="История" />,
-  CREATURES: <CategoryTitle icon={<DragonIcon />} label="Существа" />,
-  LANGUAGES: <CategoryTitle icon={<LanguageIcon />} label="Языки" />,
-};
-
-const CATEGORIES = Object.keys(CATEGORY_LABELS) as WorldCategory[];
+const CATEGORIES: WorldCategory[] = ["LOCATIONS", "FACTIONS", "LORE", "TECHNOLOGY", "MAGIC", "HISTORY", "CREATURES", "LANGUAGES"];
 
 export default function FantasySection({
   bookId,
@@ -106,100 +73,84 @@ export default function FantasySection({
     setTimeout(() => setJustSaved(false), 1800);
   }
 
-  if (!unlocked) {
-    return (
-      <div
-        className="rounded-md p-9 text-center max-w-[480px]"
-        style={{ border: "1px dashed var(--rule)", color: "var(--faded)" }}
-      >
-        <span className="flex justify-center mb-2.5"><Lock size={26} /></span>
-        <span className="text-[13.5px]">Раздел скрыт от ученика — открой, если он пишет фэнтези</span>
-        {isMentor && (
-          <div className="mt-3.5">
-            <button
-              onClick={handleToggleLock}
-              className="text-[12.5px] px-3 py-1.5 rounded-full"
-              style={{ border: "1px solid var(--sage)", color: "var(--sage)" }}
-            >
-              Открыть мир
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  }
-
+  const [filter, setFilter] = useState<"ALL" | "GENERAL" | WorldCategory>("ALL");
   const openEntry = entries.find((e) => e.id === openEntryId) ?? null;
+  const visibleEntries = filter === "ALL" || filter === "GENERAL" ? entries : entries.filter((entry) => entry.category === filter);
 
   return (
-    <div>
-      {isMentor && (
-        <div className="mb-3.5">
-          <button
-            onClick={handleToggleLock}
-            className="flex items-center gap-1.5 text-[12.5px] px-3 py-1.5 rounded-full"
-            style={{ border: "1px solid var(--sage)", color: "var(--sage)" }}
-          >
-            <Unlock size={13} /> Открыто для ученика — закрыть
-          </button>
-        </div>
-      )}
-
-      <Accordion title={<CategoryTitle icon={<QuillIcon />} label="Все заметки" />} defaultOpen>
+    <section className="rounded-[24px] p-4" style={{ border: "1px solid var(--border)", background: "#fff" }}>
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="text-[17px] font-semibold">Фэнтези мир</h2>
+        {isMentor && (
+          <span className="ml-auto flex items-center gap-2 text-[12.5px]" style={{ color: "var(--muted)" }}>
+            открыт наставником
+            <ToggleSwitch checked={unlocked} onChange={() => handleToggleLock()} />
+          </span>
+        )}
+      </div>
+      {!unlocked ? (
+        <p className="mt-3 text-[13.5px]" style={{ color: "var(--muted)" }}>Раздел скрыт от ученика. Включите, если он пишет фэнтези.</p>
+      ) : (
+      <>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        <FilterChip on={filter === "ALL"} onClick={() => setFilter("ALL")}>Все заметки</FilterChip>
+        {CATEGORIES.map((category) => (
+          <FilterChip key={category} on={filter === category} onClick={() => setFilter(category)}>
+            {CATEGORY_TEXT[category]}
+          </FilterChip>
+        ))}
+        <FilterChip on={filter === "GENERAL"} onClick={() => setFilter("GENERAL")}>Общее</FilterChip>
+      </div>
+      {filter === "ALL" && (
         <AutoGrowTextarea
           defaultValue={book.fantasyNotes}
           placeholder="общий черновик по миру..."
-          className="w-full text-[13.5px] leading-relaxed rounded-md p-2.5"
-          style={{ border: "1px solid var(--rule)" }}
+          className="mt-3 w-full rounded-[14px] bg-transparent p-2.5 text-[13.5px] leading-relaxed outline-none"
+          style={{ border: "1px solid var(--border)" }}
           onBlur={(value) => startTransition(() => updateFantasyText(bookId, "fantasyNotes", value))}
         />
-      </Accordion>
-
-      {CATEGORIES.map((category) => {
-        const categoryEntries = entries.filter((e) => e.category === category);
-        return (
-          <Accordion key={category} title={CATEGORY_LABELS[category]}>
-            <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px,1fr))" }}>
-              {categoryEntries.map((entry) => (
-                <div
-                  key={entry.id}
-                  onClick={() => setOpenEntryId(entry.id)}
-                  className="rounded-md p-2.5 bg-white cursor-pointer"
-                  style={{ border: "1px solid var(--rule)" }}
-                >
-                  <div
-                    className="w-full h-20 rounded-sm mb-2"
-                    style={{
-                      border: "1px dashed var(--rule)",
-                      backgroundImage: entry.photoUrl ? `url(${entry.photoUrl})` : undefined,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
-                  />
-                  <div className="heading text-[13px] font-semibold">{entry.title}</div>
-                </div>
-              ))}
-              <div
-                onClick={() => handleAddEntry(category)}
-                className="rounded-md flex items-center justify-center cursor-pointer text-center"
-                style={{ border: "1px dashed var(--rule)", minHeight: 124, color: "var(--faded)" }}
-              >
-                <span className="text-[12.5px]">+ добавить</span>
-              </div>
-            </div>
-          </Accordion>
-        );
-      })}
-
-      <Accordion title={<CategoryTitle icon={<GeneralIcon />} label="Общее" />}>
+      )}
+      {filter === "GENERAL" ? (
         <AutoGrowTextarea
           defaultValue={book.fantasyGeneral}
           placeholder="всё остальное..."
-          className="w-full text-[13.5px] leading-relaxed rounded-md p-2.5"
-          style={{ border: "1px solid var(--rule)" }}
+          className="mt-3 w-full rounded-[14px] bg-transparent p-2.5 text-[13.5px] leading-relaxed outline-none"
+          style={{ border: "1px solid var(--border)" }}
           onBlur={(value) => startTransition(() => updateFantasyText(bookId, "fantasyGeneral", value))}
         />
-      </Accordion>
+      ) : (
+        <div className="mt-3 flex flex-col gap-2">
+          {visibleEntries.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              onClick={() => setOpenEntryId(entry.id)}
+              className="flex gap-3 rounded-[16px] p-3 text-left"
+              style={{ background: "var(--soft)" }}
+            >
+              <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl" style={{ background: "#D5F3E7", color: "#14684B" }}>
+                {CATEGORY_ICON[entry.category]}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[14px] font-semibold">{entry.title || "Без названия"}</span>
+                <span className="mt-0.5 block text-[12.5px] leading-snug" style={{ color: "var(--ink2)" }}>
+                  {CATEGORY_TEXT[entry.category]}{entry.body ? ` · ${entry.body}` : ""}
+                </span>
+              </span>
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => handleAddEntry(filter === "ALL" ? "LOCATIONS" : filter)}
+            className="mt-1 inline-flex items-center gap-1.5 text-[13px]"
+            style={{ color: "var(--muted)" }}
+          >
+            <Plus size={14} /> добавить запись
+          </button>
+        </div>
+      )}
+      </>
+      )}
 
       {openEntry && (
         <div
@@ -276,6 +227,41 @@ export default function FantasySection({
           </div>
         </div>
       )}
-    </div>
+    </section>
+  );
+}
+
+const CATEGORY_TEXT: Record<WorldCategory, string> = {
+  LOCATIONS: "Локации",
+  FACTIONS: "Фракции",
+  LORE: "Лор",
+  TECHNOLOGY: "Технологии",
+  MAGIC: "Магия / Система",
+  HISTORY: "История",
+  CREATURES: "Существа",
+  LANGUAGES: "Языки",
+};
+
+const CATEGORY_ICON: Record<WorldCategory, React.ReactNode> = {
+  LOCATIONS: <MapPin size={16} />,
+  FACTIONS: <Swords size={16} />,
+  LORE: <ScrollText size={16} />,
+  TECHNOLOGY: <Cog size={16} />,
+  MAGIC: <Sparkles size={16} />,
+  HISTORY: <Landmark size={16} />,
+  CREATURES: <Bug size={16} />,
+  LANGUAGES: <Languages size={16} />,
+};
+
+function FilterChip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-full px-3 py-1 text-[12.5px]"
+      style={on ? { background: "var(--ink)", color: "#fff" } : { background: "var(--soft)", color: "var(--ink2)" }}
+    >
+      {children}
+    </button>
   );
 }

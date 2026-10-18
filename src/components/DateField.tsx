@@ -27,9 +27,9 @@ export default function DateField({
   style?: React.CSSProperties;
 }) {
   return (
-    <div className={`relative inline-flex items-center gap-1.5 ${className ?? ""}`} style={style}>
+    <div className={`relative inline-flex items-center gap-1.5 whitespace-nowrap ${className ?? ""}`} style={style}>
       <span
-        className="text-[13px] font-mono-label"
+        className="whitespace-nowrap text-[13px] font-mono-label"
         style={{ color: value ? "var(--ink)" : "var(--faded)" }}
       >
         {value ? toDisplay(value) : "дд.мм.гггг"}

@@ -3,7 +3,6 @@ import { getSession } from "@/lib/session";
 import { resolveActiveBook } from "@/lib/resolveBook";
 import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
-import Subtabs from "@/components/Subtabs";
 import GrapesTable from "./GrapesTable";
 import ExtraGrapesList from "./ExtraGrapesList";
 import SettingTypeSection from "./SettingTypeSection";
@@ -32,6 +31,7 @@ export default async function SettingView({
   }
 
   const suggestions = await getSuggestionsForRecords("Book", [activeBook.id]);
+  const bookSuggestions = suggestions[activeBook.id] ?? {};
   const extraGrapes = await prisma.grapesSetting.findMany({
     where: { bookId: activeBook.id },
     orderBy: { order: "asc" },
@@ -46,41 +46,7 @@ export default async function SettingView({
   });
   const session = await getSession();
   const isMentor = session?.role === "MENTOR";
-
-  const tabs = [
-    {
-      label: "Метод GRAPES",
-      content: (
-        <>
-          <GrapesTable recordId={activeBook.id} values={activeBook} suggestions={suggestions[activeBook.id] ?? {}} />
-          <ExtraGrapesList
-            key={activeBook.id}
-            bookId={activeBook.id}
-            initialSettings={extraGrapes}
-            suggestions={extraGrapesSuggestions}
-          />
-        </>
-      ),
-    },
-    {
-      label: "Тип сеттинга",
-      content: <SettingTypeSection bookId={activeBook.id} book={activeBook} />,
-    },
-  ];
-
-  if (isMentor || activeBook.fantasyUnlocked) {
-    tabs.push({
-      label: "Фэнтези мир",
-      content: (
-        <FantasySection
-          bookId={activeBook.id}
-          book={activeBook}
-          initialEntries={worldEntries}
-          isMentor={isMentor}
-        />
-      ),
-    });
-  }
+  const showFantasy = isMentor || activeBook.fantasyUnlocked;
 
   return (
     <div>
@@ -89,7 +55,32 @@ export default async function SettingView({
         description="Мир книги по методу GRAPES, тип сеттинга и, если нужно, фэнтези-мир."
         actions={<BookSelect books={books} activeBookId={activeBook.id} compact />}
       />
-      <Subtabs tabs={tabs} />
+
+      <div className="mt-1 flex items-center gap-2">
+        <h2 className="text-[17px] font-semibold">Метод GRAPES</h2>
+        <span className="soon">скоро: подсказки и примеры</span>
+      </div>
+      <div className="mt-2.5">
+        <GrapesTable recordId={activeBook.id} values={activeBook} suggestions={bookSuggestions} />
+      </div>
+      <ExtraGrapesList
+        key={activeBook.id}
+        bookId={activeBook.id}
+        initialSettings={extraGrapes}
+        suggestions={extraGrapesSuggestions}
+      />
+
+      <div className={`mt-4 grid grid-cols-1 gap-4 ${showFantasy ? "xl:grid-cols-[1.25fr_1fr]" : ""}`}>
+        <SettingTypeSection bookId={activeBook.id} book={activeBook} suggestion={bookSuggestions.settingMix} />
+        {showFantasy && (
+          <FantasySection
+            bookId={activeBook.id}
+            book={activeBook}
+            initialEntries={worldEntries}
+            isMentor={isMentor}
+          />
+        )}
+      </div>
     </div>
   );
 }

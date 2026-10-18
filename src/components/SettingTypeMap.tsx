@@ -1,72 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-
-const NEAR = 15;
-
-type Key = "конфликт" | "магнит" | "манифест" | "фильтр";
-
-const PURE: Record<Key, { gen: string; text: string }> = {
-  "конфликт": { gen: "конфликта", text: "Враждебный, логичный мир, который сам генерирует испытания. Герой противостоит среде с закреплёнными правилами и последствиями." },
-  "магнит": { gen: "магнита", text: "Понятный и притягательный мир для эскапизма. Компенсирует потребности аудитории и легко копируется в реальность (мерч)." },
-  "манифест": { gen: "манифеста", text: "Мир — иллюстрация идеи. Вся его логика подчинена теории автора, а главный приём — аллегория." },
-  "фильтр": { gen: "фильтра", text: "Мир — эстетическое высказывание. Держится на ассоциациях, метафорах и настроении, а не на объяснениях." },
-};
-
-const PAIRS: Record<string, string> = {
-  "конфликт|магнит": "Общая ось — логика (hardworldbuilding): оба мира держатся на чётких правилах, но по-разному влияют на читателя. Строгий, продуманный мир, где опасность соседствует с желанием в нём остаться — как арена «Голодных игр» или Хогвартс с его угрозами.",
-  "манифест|фильтр": "Общая ось — интуиция (softworldbuilding): оба мира построены на ассоциациях, а не на жёстких правилах. Идея автора растворена в эстетике: сеттинг одновременно доказывает мысль и создаёт настроение — территория магического реализма.",
-  "магнит|фильтр": "Общая ось — комфорт: в обоих мирах хочется остаться. Один держит понятностью и геймификацией, другой — атмосферой и красотой. Уютный, обволакивающий сеттинг, куда сбегают и ради правил игры, и ради ощущения.",
-  "конфликт|манифест": "Общая ось — дискомфорт: оба мира давят на героя. Один враждебен как среда, другой — как доказываемая идея. На их пересечении живёт классическая антиутопия: мир и противостоит герою, и иллюстрирует тезис автора.",
-};
-
-const ALL4 = "Редкий случай: мир держит баланс всех четырёх типов сразу — он объясняет идею, создаёт настроение, притягивает и противостоит. Такой сеттинг легко теряет фокус, поэтому решите, какая грань у вас ведущая.";
+import { computeResult } from "@/features/setting/settingMix";
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
-function quadType(x: number, y: number): Key {
-  if (y < 50) return x < 50 ? "конфликт" : "магнит";
-  return x < 50 ? "манифест" : "фильтр";
-}
-function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
-function pairKey(a: string, b: string) { return PAIRS[`${a}|${b}`] ? `${a}|${b}` : `${b}|${a}`; }
-
-type Result = { verdict: string; mixes: { key: string; pct: number }[]; meaning: string };
-
-function computeResult(rawX: number, rawY: number): Result {
-  const x = clamp(rawX, 3, 97), y = clamp(rawY, 3, 97);
-  const adx = Math.abs(x - 50), ady = Math.abs(y - 50);
-  const nearV = adx < NEAR, nearH = ady < NEAR;
-  const main = quadType(x, y);
-
-  if (nearV && nearH) {
-    const c = x / 100, d = 1 - c, lg = (100 - y) / 100, it = 1 - lg;
-    const w = [
-      { key: "конфликт", p: lg * d }, { key: "магнит", p: lg * c },
-      { key: "манифест", p: it * d }, { key: "фильтр", p: it * c },
-    ].sort((a, b) => b.p - a.p);
-    const tot = w.reduce((s, m) => s + m.p, 0);
-    const pcts = w.map((m) => Math.round((m.p / tot) * 100));
-    pcts[0] += 100 - pcts.reduce((s, v) => s + v, 0);
-    return { verdict: "Смешанный сеттинг: все четыре типа", mixes: w.map((m, i) => ({ key: m.key, pct: pcts[i] })), meaning: ALL4 };
-  }
-
-  let secondary: Key | null = null, dist = 0;
-  if (nearV) {
-    secondary = y < 50 ? (main === "конфликт" ? "магнит" : "конфликт") : (main === "манифест" ? "фильтр" : "манифест");
-    dist = adx;
-  } else if (nearH) {
-    secondary = x < 50 ? (main === "конфликт" ? "манифест" : "конфликт") : (main === "магнит" ? "фильтр" : "магнит");
-    dist = ady;
-  }
-
-  if (secondary) {
-    const mainPct = Math.round(50 + (dist / NEAR) * 50);
-    if (mainPct < 92) {
-      return { verdict: `${cap(main)} с примесью ${PURE[secondary].gen}`, mixes: [{ key: main, pct: mainPct }, { key: secondary, pct: 100 - mainPct }], meaning: PAIRS[pairKey(main, secondary)] };
-    }
-  }
-  return { verdict: `Чистый ${main}`, mixes: [{ key: main, pct: 100 }], meaning: PURE[main].text };
-}
 
 const AXIS = "text-center text-[11px] tracking-[1.6px] uppercase";
 const AXIS_STYLE = { color: "#8E8779" } as const;

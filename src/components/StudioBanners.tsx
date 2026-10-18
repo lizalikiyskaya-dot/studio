@@ -67,8 +67,8 @@ export default async function StudioBanners({
         <div className="banner-deadlines">
           <div className="flex items-center">
             <span className="text-[12.5px]" style={{ color: "var(--muted)" }}>Ближайшие дедлайны</span>
-            <Link href={`${basePath}/calendar`} className="lnk ml-auto inline-flex items-center gap-1 text-[13px]">
-              календарь <ArrowRight size={14} />
+            <Link href={`${basePath}/tasks`} className="lnk ml-auto inline-flex items-center gap-1 text-[13px]">
+              задания <ArrowRight size={14} />
             </Link>
           </div>
           <div className="mt-2">

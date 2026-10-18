@@ -307,7 +307,7 @@ export default function PlanTable({
                   {/* № */}
                   <td
                     className="font-mono-label text-center"
-                    style={{ ...cellBase, borderBottom: "1px solid var(--border)", background: rowBg, fontSize: 12, color: "var(--ink-faint)", verticalAlign: "middle" }}
+                    style={{ ...cellBase, borderBottom: "1px solid var(--border)", background: rowBg, fontSize: 12, color: "var(--ink-faint)", verticalAlign: "middle", whiteSpace: "nowrap" }}
                   >
                     {idx + 1}
                   </td>
@@ -366,6 +366,7 @@ export default function PlanTable({
                       borderRight: "none",
                       background: percentCellBackground(percent),
                       color: "var(--ink)",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {chapter.plannedChars > 0 ? `${percent}%` : "—"}

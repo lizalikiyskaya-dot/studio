@@ -105,7 +105,8 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
       {visible.length === 0 && (
         <p className="text-[14px] mb-4" style={{ color: "var(--muted)" }}>Никого не нашли. Список учеников на месте — измените запрос.</p>
       )}
-    <table className="mentor-table w-full" style={{ borderCollapse: "collapse" }}>
+    <div className="sheet overflow-x-auto">
+    <table className="mentor-table">
       <thead>
         <tr className="text-left text-[12.5px]" style={{ color: "var(--muted)" }}>
           <th />
@@ -147,7 +148,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
               </td>
 
               {/* avatar + name */}
-              <td className="py-2.5 pr-3 text-[13.5px] align-top">
+              <td className="py-2.5 pr-3 align-top text-[13.5px]" style={{ minWidth: 180 }}>
                 <span className="flex items-center gap-2">
                   {s.avatarUrl ? (
                     <img
@@ -164,21 +165,21 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                       {s.name.trim().split(/\s+/).map((p) => p[0]?.toUpperCase() ?? "").slice(0, 2).join("")}
                     </span>
                   )}
-                  <span>{s.name}</span>
+                  <span className="break-words" style={{ wordBreak: "normal" }}>{s.name}</span>
                   <ActivityBeacon unseenAt={s.unseenAt} />
                 </span>
               </td>
 
               {/* email */}
-              <td className="py-2.5 pr-3 text-[13.5px] align-top" style={{ color: "var(--ink-soft)" }}>
-                {s.email}
+              <td className="py-2.5 pr-3 align-top text-[13.5px]" style={{ color: "var(--ink-soft)", maxWidth: 240 }}>
+                <span className="block max-w-[220px] truncate" title={s.email}>{s.email}</span>
               </td>
 
               {/* access status */}
               <td className="py-2.5 pr-3 align-top">
                 <button
                   onClick={() => handleCycleAccess(s.id)}
-                  className="text-[11.5px] font-medium px-2.5 py-1 rounded-full"
+                  className="whitespace-nowrap rounded-full px-2.5 py-1 text-[11.5px] font-medium"
                   style={{ background: bg, color }}
                   title="Нажми для смены статуса"
                 >
@@ -228,6 +229,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
         })}
       </tbody>
     </table>
+    </div>
     </div>
   );
 }

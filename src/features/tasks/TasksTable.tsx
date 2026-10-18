@@ -210,7 +210,7 @@ export default function TasksTable({
             )}
             {visible.map((task, index) => (
               <tr key={task.id}>
-                <td style={{ color: "var(--muted)" }}>{String(index + 1).padStart(2, "0")}</td>
+                <td className="whitespace-nowrap tabular-nums" style={{ color: "var(--muted)" }}>{String(index + 1).padStart(2, "0")}</td>
                 <td className="min-w-[180px]">
                   <EditableWithLinks
                     defaultValue={task.title}

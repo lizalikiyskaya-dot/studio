@@ -360,6 +360,11 @@ model Book {
   settingChips        String[] @default([])
   settingMapX        Float?
   settingMapY        Float?
+  // Доли типов сеттинга 0–100. Пустые — пока считать из старой точки.
+  settingManifest    Int?
+  settingFilter      Int?
+  settingConflict    Int?
+  settingMagnet      Int?
 
   fantasyUnlocked    Boolean @default(false)
   fantasyNotes       String  @default("")

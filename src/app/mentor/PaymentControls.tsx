@@ -22,7 +22,7 @@ export default function PaymentControls({
   }
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex items-center gap-2 whitespace-nowrap">
       <label className="text-[13px]" style={{ color: "var(--faded)" }}>
         День оплаты:
       </label>

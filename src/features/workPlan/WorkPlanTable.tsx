@@ -144,7 +144,7 @@ export default function WorkPlanTable({
                     <MonthSelect value={plan.monthEnd} onChange={(v) => handleField(plan.id, "monthEnd", v)} placeholder="Конец" />
                   </div>
                   {plan.monthStart && (
-                    <div className="text-[12px] mt-1" style={{ color: "var(--muted)" }}>{formatMonthRange(plan.monthStart, plan.monthEnd)}</div>
+                    <div className="mt-1 whitespace-nowrap text-[12px]" style={{ color: "var(--muted)" }}>{formatMonthRange(plan.monthStart, plan.monthEnd)}</div>
                   )}
                 </td>
                 <td className="min-w-[180px]">
