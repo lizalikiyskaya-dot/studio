@@ -14,9 +14,9 @@ function relativeTime(date: Date): string {
 }
 
 /**
- * Clear online/offline presence line for the mentor cabinet: a green
- * pulsing dot + "в сети" when the student pinged within 3 minutes,
- * otherwise a static grey dot + "был(-а) в сети N назад".
+ * Короткая строка присутствия в списке учеников: зелёная точка и «в сети»,
+ * если ученик отмечался меньше 3 минут назад, иначе серая точка и только
+ * относительное время («10 мин назад»). Полная фраза остаётся в подсказке.
  */
 export function PresenceIndicator({ lastSeenAt }: { lastSeenAt: Date | null }) {
   const [, setTick] = useState(0);
@@ -26,14 +26,12 @@ export function PresenceIndicator({ lastSeenAt }: { lastSeenAt: Date | null }) {
   }, []);
 
   const online = !!lastSeenAt && new Date().getTime() - new Date(lastSeenAt).getTime() < 3 * 60_000;
-  const text = online
-    ? "в сети"
-    : lastSeenAt
-      ? `был(-а) в сети ${relativeTime(new Date(lastSeenAt))}`
-      : "ещё не заходил(-а)";
+  const when = lastSeenAt ? relativeTime(new Date(lastSeenAt)) : null;
+  const text = online ? "в сети" : when ?? "—";
+  const title = online ? "в сети" : when ? `был(-а) в сети ${when}` : "ещё не заходил(-а)";
 
   return (
-    <span className="flex items-center gap-2 text-[12px]" style={{ color: online ? "var(--sage)" : "var(--ink-faint)" }}>
+    <span className="mentor-presence" style={{ color: online ? "var(--sage)" : "var(--ink-faint)" }} title={title}>
       <span
         style={{
           display: "inline-block",
@@ -46,7 +44,7 @@ export function PresenceIndicator({ lastSeenAt }: { lastSeenAt: Date | null }) {
           flexShrink: 0,
         }}
       />
-      {text}
+      <span className="whitespace-nowrap">{text}</span>
     </span>
   );
 }
