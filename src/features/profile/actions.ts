@@ -8,9 +8,9 @@ import {
   passwordAttemptLockMessage,
   registerFailedPasswordAttempt,
 } from "@/lib/passwordAttempts";
+import { passwordLengthError, revokeOpenResetTokens } from "@/lib/passwordReset";
 import { createSession, getSession } from "@/lib/session";
 
-const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_LENGTH = 200;
 
 // Any logged-in user editing their OWN account (student or mentor). All
@@ -43,16 +43,11 @@ export async function updateProfileEmail(email: string) {
 
 function validatePasswordChange(current: string, next: string, confirm: string): string | null {
   if (!current || !next || !confirm) return "Заполните все поля";
-  if (
-    current.length > MAX_PASSWORD_LENGTH ||
-    next.length > MAX_PASSWORD_LENGTH ||
-    confirm.length > MAX_PASSWORD_LENGTH
-  ) {
+  if (current.length > MAX_PASSWORD_LENGTH || confirm.length > MAX_PASSWORD_LENGTH) {
     return "Слишком длинный пароль";
   }
-  if (next.length < MIN_PASSWORD_LENGTH) {
-    return "Пароль должен быть не короче 8 символов";
-  }
+  const lengthError = passwordLengthError(next);
+  if (lengthError) return lengthError;
   if (next !== confirm) return "Новый пароль и повтор не совпадают";
   if (next === current) return "Новый пароль должен отличаться от текущего";
   return null;
@@ -115,6 +110,9 @@ export async function updateProfilePassword(current: string, next: string, confi
   // остальные токены больше не проходят проверку в getSession.
   // Роль и статус берём из строки пользователя, не из старого токена.
   try {
+    // Выданная раньше ссылка «забыли пароль» не должна переписать только что
+    // заданный пароль.
+    await revokeOpenResetTokens(user.id);
     await createSession({
       userId: updated.id,
       role: updated.role,

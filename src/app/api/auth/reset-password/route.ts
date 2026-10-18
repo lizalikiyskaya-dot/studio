@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
-import { consumeResetToken, lookupResetToken } from "@/lib/passwordReset";
+import { consumeResetToken, lookupResetToken, passwordLengthError } from "@/lib/passwordReset";
 
 const INVALID = "Ссылка недействительна или устарела. Запросите новую.";
 
@@ -19,22 +18,16 @@ export async function POST(request: Request) {
   const token = typeof body?.token === "string" ? body.token : "";
   const password = typeof body?.password === "string" ? body.password : "";
 
-  if (password.length < 8) {
-    return NextResponse.json(
-      { error: "Пароль должен быть не короче 8 символов" },
-      { status: 400 }
-    );
-  }
-  if (password.length > 200) {
-    return NextResponse.json({ error: "Слишком длинный пароль" }, { status: 400 });
+  const lengthError = passwordLengthError(password);
+  if (lengthError) {
+    return NextResponse.json({ error: lengthError }, { status: 400 });
   }
 
   const found = await lookupResetToken(token);
   if (!found.ok) return NextResponse.json({ error: INVALID }, { status: 400 });
 
   const passwordHash = await bcrypt.hash(password, 10);
-  await prisma.user.update({ where: { id: found.userId }, data: { passwordHash } });
-  await consumeResetToken(found.tokenId, found.userId);
+  await consumeResetToken(found.tokenId, found.userId, passwordHash);
 
   return NextResponse.json({ ok: true });
 }
