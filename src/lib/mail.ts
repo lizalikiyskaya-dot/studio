@@ -89,10 +89,14 @@ export function escapeHtml(value: string): string {
 }
 
 /**
- * Единая обвязка письма: шапка студии, текст, необязательная кнопка.
- * Верстка нарочно простая и табличная — почтовые клиенты не любят
- * современный CSS.
+ * Единая обвязка письма в палитре «Солнечная».
+ * Только таблицы и инлайн-стили: почтовые клиенты режут внешний CSS.
+ * Onest и Literata указаны первыми в стеке — если шрифта нет у получателя,
+ * письмо остаётся на Segoe UI / Helvetica / Georgia.
  */
+const FONT_UI = "Onest,'Segoe UI',Helvetica,Arial,sans-serif";
+const FONT_SERIF = "Literata,Georgia,'Times New Roman',serif";
+
 export function renderEmail(options: {
   title: string;
   paragraphs: string[];
@@ -103,38 +107,76 @@ export function renderEmail(options: {
   const body = paragraphs
     .map(
       (p) =>
-        `<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#2b2724">${p}</p>`
+        `<p style="margin:0 0 14px;font-family:${FONT_UI};font-size:15.5px;line-height:1.55;color:#555555">${p}</p>`
     )
     .join("");
   const button = action
-    ? `<p style="margin:22px 0 0">
-         <a href="${action.url}" style="display:inline-block;padding:11px 22px;border-radius:999px;background:#6e2230;color:#ffffff;text-decoration:none;font-size:14px">${escapeHtml(
-           action.label
-         )}</a>
-       </p>
-       <p style="margin:12px 0 0;font-size:12px;color:#8a827c">Если кнопка не работает, скопируйте ссылку: ${action.url}</p>`
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 0">
+         <tr>
+           <td align="center" bgcolor="#FFD43B" style="border-radius:999px;background:#FFD43B;">
+             <a href="${action.url}" style="display:inline-block;padding:14px 28px;border-radius:999px;background:#FFD43B;color:#202020;text-decoration:none;font-family:${FONT_UI};font-size:16px;font-weight:600;line-height:1">${escapeHtml(
+               action.label
+             )}</a>
+           </td>
+         </tr>
+       </table>
+       <p style="margin:14px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:#8A8A8A">Если кнопка не работает, скопируйте ссылку:<br><a href="${action.url}" style="color:#7B6CF6;text-decoration:underline">${action.url}</a></p>`
     : "";
   const foot = footnote
-    ? `<p style="margin:24px 0 0;font-size:12px;line-height:1.5;color:#8a827c">${footnote}</p>`
+    ? `<p style="margin:24px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:#8A8A8A">${footnote}</p>`
     : "";
 
+  const logo = `<table role="presentation" cellpadding="0" cellspacing="0">
+    <tr>
+      <td style="font-family:${FONT_SERIF};font-size:28px;font-weight:600;letter-spacing:-0.01em;line-height:1;color:#202020;padding:0 0 2px;">Андреенко</td>
+    </tr>
+    <tr>
+      <td style="padding:0 0 0 6px;line-height:0;font-size:0;">
+        <table role="presentation" cellpadding="0" cellspacing="0">
+          <tr><td width="11" height="12" bgcolor="#FFD43B" style="width:11px;height:12px;background:#FFD43B;font-size:0;line-height:0;">&nbsp;</td></tr>
+          <tr><td align="center" style="font-size:0;line-height:0;">
+            <div style="width:0;height:0;border-left:6px solid transparent;border-right:5px solid transparent;border-top:8px solid #FFD43B;font-size:0;line-height:0;"></div>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>`;
+
   return `<!doctype html>
-<html lang="ru"><body style="margin:0;padding:24px;background:#f6f3f0;font-family:Georgia,'Times New Roman',serif">
-  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e6e0da">
-    <tr><td style="padding:26px 28px 0">
-      <div style="font-size:15px;font-weight:600;color:#2b2724">Студия художественной прозы</div>
-      <div style="font-size:12.5px;font-style:italic;color:#8a827c">Лизы Ликийской</div>
-      <hr style="border:none;border-top:1px solid #e6e0da;margin:16px 0 20px">
-      <h1 style="margin:0 0 16px;font-size:19px;font-weight:600;color:#2b2724">${escapeHtml(title)}</h1>
-    </td></tr>
-    <tr><td style="padding:0 28px 28px">
-      ${body}
-      ${button}
-      ${foot}
-    </td></tr>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${escapeHtml(title)}</title>
+</head>
+<body style="margin:0;padding:0;background:#ffffff;">
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#ffffff;">
+    <tr>
+      <td align="center" style="padding:32px 16px 40px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" width="560" style="width:100%;max-width:560px;background:#ffffff;">
+          <tr>
+            <td style="padding:8px 8px 0;border-bottom:1px solid #ECECEC;">
+              ${logo}
+              <div style="margin:14px 0 18px;font-family:${FONT_SERIF};font-size:16px;font-style:italic;line-height:1.3;color:#6553E8;">Студия художественной прозы</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px 8px 0;">
+              <h1 style="margin:0 0 16px;font-family:${FONT_SERIF};font-size:28px;line-height:1.15;font-weight:500;letter-spacing:-0.02em;color:#202020;">${escapeHtml(title)}</h1>
+              ${body}
+              ${button}
+              ${foot}
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:28px 8px 0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:#8A8A8A;">
+              Письмо отправлено платформой ${escapeHtml(appUrl().replace(/^https?:\/\//, ""))}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
   </table>
-  <p style="max-width:560px;margin:14px auto 0;font-size:11.5px;color:#a29a94;text-align:center">
-    Письмо отправлено платформой ${escapeHtml(appUrl().replace(/^https?:\/\//, ""))}
-  </p>
-</body></html>`;
+</body>
+</html>`;
 }

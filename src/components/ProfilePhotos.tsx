@@ -199,6 +199,8 @@ export function CoverCarousel({
           <>
             <img src={currentSlot.url} alt="" className="w-full h-full object-cover" style={{ objectPosition: positions[currentSlot.idx] }} />
             <div className="absolute inset-0 bg-black/10 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+              {/* Drag writes into a ref while the pointer moves; the compiler treats that as a render mutation. */}
+              {/* eslint-disable-next-line react-hooks/immutability */}
               <button onMouseDown={(e) => handleDragStart(currentSlot.idx, e)} className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-medium" style={{ background: "rgba(255,255,255,0.9)", color: "var(--ink)", cursor: "grab" }} title="Зажмите и перетащите">
                 <Move size={11} /> переместить
               </button>

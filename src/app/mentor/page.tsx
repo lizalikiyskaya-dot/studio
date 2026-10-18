@@ -36,20 +36,64 @@ export default async function MentorPage() {
     take: 20,
   });
 
+  const openCount = students.filter((s) => s.status === "APPROVED" && s.paymentStatus === "PAID").length;
+  const awaitingCount = students.filter((s) => s.status === "APPROVED" && s.paymentStatus !== "PAID").length;
+  const suspendedCount = students.filter((s) => s.status === "SUSPENDED").length;
+  const nowMs = new Date().getTime();
+  const onlineCount = students.filter((s) => s.lastSeenAt && nowMs - new Date(s.lastSeenAt).getTime() < 3 * 60_000).length;
+  const freshEdits = studentsWithBeacons.filter((s) => s.unseenAt).length;
+  const today = new Date();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+  const weekDays = new Set<number>();
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(weekStart);
+    day.setDate(weekStart.getDate() + i);
+    if (day.getMonth() === today.getMonth()) weekDays.add(day.getDate());
+  }
+  const paymentsThisWeek = students.filter((s) => s.paymentDay != null && weekDays.has(s.paymentDay));
+  const dateLabel = today.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" });
+
   return (
     <div>
-      <h1 className="page-title text-[28px] font-semibold mb-2">Модерация заявок</h1>
-      <p className="text-[13px] mb-7 max-w-[640px]" style={{ color: "var(--faded)" }}>
+      <div className="text-[14px] capitalize" style={{ color: "var(--muted)" }}>{dateLabel}</div>
+      <h1 className="page-title mt-1 mb-2">Ученики</h1>
+      <p className="text-[15.5px] mb-6 max-w-[640px]" style={{ color: "var(--ink2)" }}>
         Новые ученики попадают сюда после регистрации и получают доступ в
         личный кабинет только после одобрения.
       </p>
 
-      <h2 className="heading text-[15px] font-semibold mb-3" style={{ color: "var(--faded)" }}>
+      <div className="flex gap-3 mb-8 flex-wrap">
+        <div className="rounded-[20px] px-5 py-3.5 text-white" style={{ background: "var(--deep)", flex: "1 1 160px" }}>
+          <div className="text-[13px] text-white/70">Учеников</div>
+          <div className="mt-1 text-[28px] font-semibold leading-none">{students.length}</div>
+          <div className="mt-2 text-[12.5px] text-white/70">{onlineCount} сейчас онлайн</div>
+        </div>
+        <div className="rounded-[20px] px-5 py-3.5" style={{ background: "var(--soft)", flex: "1 1 160px" }}>
+          <div className="text-[13px]" style={{ color: "var(--muted)" }}>Доступ открыт</div>
+          <div className="mt-1 text-[28px] font-semibold leading-none">{openCount}</div>
+          <div className="mt-2 text-[12.5px]" style={{ color: "var(--ink2)" }}>{awaitingCount} ожидает оплаты · {suspendedCount} закрыт</div>
+        </div>
+        <div className="rounded-[20px] px-5 py-3.5" style={{ background: "var(--soft)", flex: "1 1 160px" }}>
+          <div className="text-[13px]" style={{ color: "var(--muted)" }}>Оплаты на этой неделе</div>
+          <div className="mt-1 text-[28px] font-semibold leading-none">{paymentsThisWeek.length}</div>
+          <div className="mt-2 text-[12.5px]" style={{ color: "var(--ink2)" }}>
+            {paymentsThisWeek.length ? paymentsThisWeek.map((s) => `${s.paymentDay}-го`).join(" и ") : "нет дат на этой неделе"}
+          </div>
+        </div>
+        <div className="rounded-[20px] px-5 py-3.5" style={{ background: "var(--soft)", flex: "1 1 160px" }}>
+          <div className="text-[13px]" style={{ color: "var(--muted)" }}>Свежие правки</div>
+          <div className="mt-1 text-[28px] font-semibold leading-none">{freshEdits}</div>
+          <div className="mt-2 text-[12.5px]" style={{ color: "var(--ink2)" }}>непросмотренные изменения</div>
+        </div>
+      </div>
+
+      <h2 className="heading text-[18px] font-semibold mb-3">
         Ожидают решения ({pending.length})
       </h2>
 
       {pending.length === 0 && (
-        <p className="text-[13.5px] mb-8" style={{ color: "var(--faded)" }}>
+        <p className="text-[14px] mb-8" style={{ color: "var(--muted)" }}>
           Новых заявок нет.
         </p>
       )}
@@ -64,7 +108,7 @@ export default async function MentorPage() {
               </td>
               <td className="py-2.5 text-right">
                 <form action={approveUser.bind(null, u.id)} className="inline">
-                  <Button variant="success" pill className="mr-2">
+                  <Button variant="primary" pill className="mr-2">
                     Одобрить
                   </Button>
                 </form>
@@ -77,13 +121,13 @@ export default async function MentorPage() {
         </tbody>
       </table>
 
-      <h2 className="heading text-[15px] font-semibold mb-3" style={{ color: "var(--faded)" }}>
+      <h2 className="heading text-[18px] font-semibold mb-3">
         Ученики ({students.length})
       </h2>
 
       <StudentsList initialStudents={studentsWithBeacons} />
 
-      <h2 className="heading text-[15px] font-semibold mb-3" style={{ color: "var(--faded)" }}>
+      <h2 className="heading text-[18px] font-semibold mb-3">
         Недавние решения
       </h2>
       <table className="mentor-table w-full">

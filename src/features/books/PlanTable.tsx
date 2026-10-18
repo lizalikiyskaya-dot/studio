@@ -315,7 +315,7 @@ export default function PlanTable({
                     <SuggestableField
                       model="PlanChapter" recordId={chapter.id} field="summary"
                       value={chapter.summary} suggestion={chapterSuggestions.summary}
-                      className="w-full min-w-0 outline-none bg-transparent text-[13px] leading-snug"
+                      className="entry-title w-full min-w-0 outline-none bg-transparent text-[13px] font-semibold leading-snug"
                     />
                   </td>
                   {/* dramaticArgument */}

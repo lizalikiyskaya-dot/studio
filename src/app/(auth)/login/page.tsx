@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { CircleAlert } from "lucide-react";
 import PasswordInput from "@/components/PasswordInput";
 
 export default function LoginPage() {
@@ -39,55 +40,47 @@ export default function LoginPage() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1 className="text-[22px] font-semibold mb-6">Вход</h1>
+      <div className="seg">
+        <Link href="/login" className="on">Вход</Link>
+        <Link href="/register">Регистрация</Link>
+      </div>
+      <h1 className="auth-title">С возвращением</h1>
+      <p className="auth-sub">Войдите, чтобы продолжить работу над текстом.</p>
 
-      <div className="mb-4">
-        <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
-          Почта
-        </label>
+      <label className="fld-label">
+        Почта
         <input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full border-b py-1.5 text-[15px] outline-none bg-transparent"
-          style={{ borderColor: "var(--rule)" }}
+          className="fld"
+          autoComplete="email"
         />
-      </div>
+      </label>
 
-      <div className="mb-2">
-        <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
-          Пароль
-        </label>
+      <label className="fld-label">
+        Пароль
         <PasswordInput value={password} onChange={setPassword} required />
-      </div>
+      </label>
 
-      <p className="text-[12.5px] mb-6 text-right">
-        <Link href="/forgot-password" className="underline underline-offset-2" style={{ color: "var(--faded)" }}>
-          Забыли пароль?
-        </Link>
+      <p className="mt-3 text-[13.5px]">
+        <Link href="/forgot-password" className="lnk">Забыли пароль?</Link>
       </p>
 
       {error && (
-        <p className="text-[13px] mb-4" style={{ color: "var(--wine)" }}>
+        <div className="form-error flex items-center gap-2">
+          <CircleAlert size={16} />
           {error}
-        </p>
+        </div>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2.5 rounded-full text-white text-[15px] disabled:opacity-60"
-        style={{ background: "var(--wine)" }}
-      >
+      <button type="submit" disabled={loading} className="btn-y mt-5">
         {loading ? "Вход..." : "Войти"}
       </button>
 
-      <p className="text-[13px] mt-5 text-center" style={{ color: "var(--faded)" }}>
-        Ещё нет аккаунта?{" "}
-        <Link href="/register" className="underline" style={{ color: "var(--wine)" }}>
-          Зарегистрироваться
-        </Link>
+      <p className="text-[14px] mt-6 text-center" style={{ color: "var(--ink2)" }}>
+        Нет аккаунта? <Link href="/register" className="lnk">Зарегистрироваться</Link>
       </p>
     </form>
   );

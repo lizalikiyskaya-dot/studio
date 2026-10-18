@@ -31,7 +31,7 @@ export default function LinkCell({
           rel="noopener noreferrer"
           title={value}
           className="text-[12.5px] truncate underline underline-offset-2"
-          style={{ color: "var(--accent)" }}
+          style={{ color: "var(--vi)" }}
         >
           {shortenUrl(value, maxLength)}
         </a>
@@ -46,7 +46,7 @@ export default function LinkCell({
   }
 
   return (
-    <button onClick={promptEdit} className="text-[12px]" style={{ color: "var(--accent)" }}>
+    <button onClick={promptEdit} className="text-[12px]" style={{ color: "var(--vi)" }}>
       + ссылка
     </button>
   );

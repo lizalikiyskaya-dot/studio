@@ -20,7 +20,9 @@ export default function SectionTracker({ studentId, basePath }: { studentId: str
   const pathname = usePathname();
   const section = sectionFromPath(pathname ?? "", basePath);
   const sectionRef = useRef(section);
-  sectionRef.current = section;
+  useEffect(() => {
+    sectionRef.current = section;
+  }, [section]);
 
   // Mark the section seen whenever the viewer lands on it.
   useEffect(() => {

@@ -116,7 +116,7 @@ export default function DraftsList({
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={() => setArmedId(draft.id)}
               />
-              <span className="flex-1 min-w-0 text-[14px] font-semibold truncate" style={{ color: "var(--ink)" }}>
+              <span className="entry-title flex-1 min-w-0 text-[16px] font-semibold truncate" style={{ color: "var(--ink)" }}>
                 {draft.title || "Без названия"}
               </span>
               {isCollapsed
@@ -156,7 +156,7 @@ export default function DraftsList({
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
                         className="text-[12.5px] underline-offset-2 underline"
-                        style={{ color: "var(--accent)" }}
+                        style={{ color: "var(--vi)" }}
                       >
                         {shortenUrl(draft.link)}
                       </a>

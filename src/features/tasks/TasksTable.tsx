@@ -27,15 +27,15 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
 };
 
 const STATUS_STYLE: Record<TaskStatus, React.CSSProperties> = {
-  IN_PROGRESS: { background: "var(--bg-surface-2)", color: "var(--faded)", border: "1px dashed var(--rule)" },
-  SUBMITTED: { background: "#E2E9EE", color: "#3F6080", border: "none" },
-  NEEDS_REVISION: { background: "var(--accent-soft)", color: "var(--wine)", border: "none" },
-  ACCEPTED: { background: "var(--ink)", color: "#fff", border: "none" },
+  IN_PROGRESS: { background: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)", border: "none" },
+  SUBMITTED: { background: "var(--pill-vio-bg)", color: "var(--pill-vio-fg)", border: "none" },
+  NEEDS_REVISION: { background: "var(--pill-or-bg)", color: "var(--pill-or-fg)", border: "none" },
+  ACCEPTED: { background: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)", border: "none" },
 };
 
 function MetaLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="font-mono-label block text-[9px] uppercase mb-0.5" style={{ color: "var(--faded)" }}>
+    <span className="font-mono-label block text-[12px] mb-0.5" style={{ color: "var(--muted)" }}>
       {children}
     </span>
   );
@@ -57,7 +57,7 @@ function LinkCell({ value, onSave }: { value: string | null; onSave: (value: str
     }
     return (
       <div className="flex items-center gap-1.5 min-w-0">
-        <a href={value} target="_blank" rel="noopener noreferrer" title={value} className="text-[12.5px] truncate" style={{ color: "var(--wine)" }}>
+        <a href={value} target="_blank" rel="noopener noreferrer" title={value} className="lnk text-[12.5px] truncate">
           {display}
         </a>
         <button onClick={promptEdit} title="Изменить ссылку" style={{ color: "var(--faded)", flexShrink: 0 }}>
@@ -67,7 +67,7 @@ function LinkCell({ value, onSave }: { value: string | null; onSave: (value: str
     );
   }
   return (
-    <button onClick={promptEdit} className="text-[12px]" style={{ color: "var(--wine)" }}>
+    <button onClick={promptEdit} className="lnk text-[12px]">
       + ссылка
     </button>
   );
@@ -134,15 +134,17 @@ export default function TasksTable({
 
   const accepted = tasks.filter((t) => t.status === "ACCEPTED").length;
   const inProgress = tasks.filter((t) => t.status === "IN_PROGRESS").length;
+  const submitted = tasks.filter((t) => t.status === "SUBMITTED").length;
   const needsRevision = tasks.filter((t) => t.status === "NEEDS_REVISION").length;
 
   return (
     <div>
       <div className="flex gap-3 mb-6 flex-wrap">
-        <Kpi icon={Bookmark} iconBg="var(--accent-soft)" iconColor="var(--wine)" num={tasks.length} label="всего заданий" />
-        <Kpi icon={Check} iconBg="var(--sage-soft)" iconColor="var(--sage)" num={accepted} label="принято" />
-        <Kpi icon={Clock} iconBg="#E2E9EE" iconColor="#3F6080" num={inProgress} label="в процессе" />
-        <Kpi icon={RotateCcw} iconBg="var(--accent-soft)" iconColor="var(--wine)" num={needsRevision} label="на доработке" />
+        <Kpi tone="deep" icon={Bookmark} iconBg="var(--deep)" iconColor="#fff" num={tasks.length} label="всего заданий" />
+        <Kpi icon={Clock} iconBg="var(--pill-blue-bg)" iconColor="var(--pill-blue-fg)" num={inProgress} label="в процессе" />
+        <Kpi icon={Pencil} iconBg="var(--pill-vio-bg)" iconColor="var(--pill-vio-fg)" num={submitted} label="сдано на проверку" />
+        <Kpi icon={RotateCcw} iconBg="var(--pill-or-bg)" iconColor="var(--pill-or-fg)" num={needsRevision} label="на доработке" />
+        <Kpi icon={Check} iconBg="var(--pill-mint-bg)" iconColor="var(--pill-mint-fg)" num={accepted} label="принято" />
       </div>
 
       <div className="flex flex-col gap-2.5 mb-4">
@@ -159,7 +161,7 @@ export default function TasksTable({
                   defaultValue={task.title}
                   onSave={(v) => handleTitleBlur(task.id, v)}
                   placeholder="Описание задания"
-                  className="w-full min-w-0 outline-none bg-transparent text-[13.5px] leading-snug"
+                  className="entry-title w-full min-w-0 outline-none bg-transparent text-[15px] leading-snug"
                 />
               </div>
               <div>
@@ -222,10 +224,10 @@ export default function TasksTable({
 
       <button
         onClick={handleAdd}
-        className="mt-3.5 inline-flex items-center gap-1.5 text-[13px] px-4 py-2.5 rounded-full transition-colors"
-        style={{ border: "1px dashed var(--wine)", color: "var(--wine)", background: "transparent" }}
+        className="mt-3.5 inline-flex items-center gap-1.5 text-[14.5px] font-semibold px-5 h-11 rounded-full"
+        style={{ background: "var(--y)", color: "var(--ink)" }}
       >
-        + задание
+        + Добавить задание
       </button>
     </div>
   );

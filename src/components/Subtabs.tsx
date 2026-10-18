@@ -10,30 +10,40 @@ export default function Subtabs({
   variant?: "page" | "toggle";
 }) {
   const [active, setActive] = useState(0);
+  const toggle = variant === "toggle";
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className={toggle ? "seg mb-6" : "flex flex-wrap gap-2 mb-6"}>
         {tabs.map((tab, i) => {
           const isActive = active === i;
-          const toggle = variant === "toggle";
-          // Subsections (toggle) use gold — solid gold when active, gold
-          // outline + gold text when inactive. Sections (page) use the
-          // neutral beige active fill.
-          const activeBg = toggle ? "var(--gold)" : "#E8E1DC";
-          const activeColor = toggle ? "#fff" : "var(--ink)";
-          const inactiveBorder = toggle ? "var(--gold)" : "var(--rule)";
-          const inactiveColor = toggle ? "var(--gold)" : "var(--ink-soft)";
+          if (toggle) {
+            return (
+              <button
+                key={tab.label}
+                onClick={() => setActive(i)}
+                className="text-[14px] px-4 py-1.5 rounded-full"
+                style={{
+                  background: isActive ? "#fff" : "transparent",
+                  color: isActive ? "var(--ink)" : "var(--ink2)",
+                  fontWeight: isActive ? 600 : 400,
+                  boxShadow: isActive ? "0 1px 2px rgba(0,0,0,.06)" : undefined,
+                }}
+              >
+                {tab.label}
+              </button>
+            );
+          }
           return (
             <button
               key={tab.label}
               onClick={() => setActive(i)}
-              className={toggle ? "text-[13px] px-4 py-1.5 rounded-full" : "text-[13px] px-4 py-2 rounded-full"}
+              className="text-[14px] px-4 py-2 rounded-full"
               style={{
-                border: `1px solid ${isActive ? activeBg : inactiveBorder}`,
-                background: isActive ? activeBg : "var(--paper-light)",
-                color: isActive ? activeColor : inactiveColor,
-                fontWeight: isActive ? 600 : 400,
+                background: isActive ? "var(--ink)" : "#fff",
+                color: isActive ? "#fff" : "var(--ink)",
+                border: isActive ? "none" : "1px solid var(--border)",
+                fontWeight: isActive ? 600 : 500,
               }}
             >
               {tab.label}

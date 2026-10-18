@@ -122,8 +122,8 @@ export default function ProfileForm({
     });
   }
 
-  const fieldCls = "w-full border rounded-[9px] px-3 py-2 text-[13.5px] outline-none";
-  const fieldStyle = { borderColor: "var(--border)", background: "var(--bg-card)", color: "var(--ink)" };
+  const fieldCls = "fld !h-11";
+  const fieldStyle = { color: "var(--ink)" };
   const labelCls = "block text-[12px] mb-1.5 font-medium";
   const labelStyle = { color: "var(--ink-soft)" };
   const sectionCls = "mb-7";
@@ -202,7 +202,7 @@ export default function ProfileForm({
           <button
             onClick={handleSaveName}
             className="px-5 py-2 rounded-full text-[13px] font-medium flex-shrink-0"
-            style={{ background: "var(--sage)", color: "#fff", border: "1px solid var(--sage)" }}
+            style={{ background: "var(--y)", color: "var(--ink)", border: "none" }}
           >
             Сохранить
           </button>
@@ -224,7 +224,7 @@ export default function ProfileForm({
           <button
             onClick={handleSaveEmail}
             className="px-5 py-2 rounded-full text-[13px] font-medium flex-shrink-0"
-            style={{ background: "var(--sage)", color: "#fff", border: "1px solid var(--sage)" }}
+            style={{ background: "var(--y)", color: "var(--ink)", border: "none" }}
           >
             Сохранить
           </button>
@@ -310,7 +310,7 @@ export default function ProfileForm({
           type="submit"
           disabled={savingPw}
           className="px-5 py-2 rounded-full text-[13px] font-medium disabled:opacity-60"
-          style={{ background: "var(--sage)", color: "#fff", border: "1px solid var(--sage)" }}
+          style={{ background: "var(--y)", color: "var(--ink)", border: "none" }}
         >
           {savingPw ? "Меняем..." : "Сменить"}
         </button>
