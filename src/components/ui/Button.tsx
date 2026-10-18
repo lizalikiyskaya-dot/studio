@@ -58,14 +58,16 @@ interface LinkButtonProps extends LinkProps {
   pill?: boolean;
   className?: string;
   style?: React.CSSProperties;
+  title?: string;
   children: ReactNode;
 }
 
-export function LinkButton({ variant = "primary", size = "md", pill = true, className = "", style, children, ...props }: LinkButtonProps) {
+export function LinkButton({ variant = "primary", size = "md", pill = true, className = "", style, title, children, ...props }: LinkButtonProps) {
   return (
     <Link
       className={`${pill ? "rounded-full" : "rounded-[14px]"} inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors ${SIZE_CLASS[size]} ${className}`}
       style={{ ...VARIANT_STYLE[variant], ...style }}
+      title={title}
       {...props}
     >
       {children}

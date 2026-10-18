@@ -9,11 +9,15 @@ export default function WorkshopLockButton({
   onToggle,
   labelOn,
   labelOff,
+  titleOn,
+  titleOff,
 }: {
   unlocked: boolean;
   onToggle: () => Promise<boolean>;
   labelOn: string;
   labelOff: string;
+  titleOn: string;
+  titleOff: string;
 }) {
   const [unlocked, setUnlocked] = useState(initialUnlocked);
   const [, startTransition] = useTransition();
@@ -24,7 +28,7 @@ export default function WorkshopLockButton({
   }
 
   return (
-    <BadgeButton onClick={handleToggle} tone={unlocked ? "success" : "danger"} fill={unlocked ? "soft" : "outline"}>
+    <BadgeButton onClick={handleToggle} tone={unlocked ? "success" : "danger"} fill={unlocked ? "soft" : "outline"} title={unlocked ? titleOn : titleOff}>
       {unlocked ? <Unlock size={11} /> : <Lock size={11} />}
       {unlocked ? labelOn : labelOff}
     </BadgeButton>

@@ -148,7 +148,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
               </td>
 
               {/* avatar + name */}
-              <td className="py-2.5 pr-3 align-top text-[13.5px]" style={{ minWidth: 180 }}>
+              <td className="py-2.5 pr-2 align-top text-[13.5px]" style={{ width: "18%" }}>
                 <span className="flex items-center gap-2">
                   {s.avatarUrl ? (
                     <img
@@ -171,8 +171,8 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
               </td>
 
               {/* email */}
-              <td className="py-2.5 pr-3 align-top text-[13.5px]" style={{ color: "var(--ink-soft)", maxWidth: 240 }}>
-                <span className="block max-w-[220px] truncate" title={s.email}>{s.email}</span>
+              <td className="py-2.5 pr-2 align-top text-[13.5px]" style={{ color: "var(--ink-soft)", width: "16%" }}>
+                <span className="block truncate" title={s.email}>{s.email}</span>
               </td>
 
               {/* access status */}
@@ -188,7 +188,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
               </td>
 
               {/* payment day */}
-              <td className="py-2.5 pr-2 align-top">
+              <td className="py-2.5 pr-2 align-top" data-label="День оплаты">
                 <PaymentControls userId={s.id} paymentDay={s.paymentDay} />
               </td>
 
@@ -198,7 +198,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
               </td>
 
               {/* workshop locks */}
-              <td className="py-2.5 pr-2 align-top">
+              <td className="py-2.5 pr-2 align-top" data-label="Мастерские" style={{ width: 132 }}>
                 <WorkshopLockControls
                   userId={s.id}
                   bookUnlocked={s.bookWorkshopUnlocked}
@@ -208,8 +208,8 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
 
               {/* open cabinet */}
               <td className="py-2.5 pr-2 align-top">
-                <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" pill>
-                  Открыть кабинет
+                <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" pill title="Открыть кабинет">
+                  Кабинет
                 </LinkButton>
               </td>
 

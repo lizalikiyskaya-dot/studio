@@ -33,7 +33,7 @@ export function PresenceIndicator({ lastSeenAt }: { lastSeenAt: Date | null }) {
       : "ещё не заходил(-а)";
 
   return (
-    <span className="flex items-center gap-2 text-[12px] whitespace-nowrap" style={{ color: online ? "var(--sage)" : "var(--ink-faint)" }}>
+    <span className="flex items-center gap-2 text-[12px]" style={{ color: online ? "var(--sage)" : "var(--ink-faint)" }}>
       <span
         style={{
           display: "inline-block",

@@ -545,6 +545,9 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 .mentor-table { width: 100%; border-collapse: collapse; }
 .mentor-table th { white-space: nowrap; }
 .mentor-workshops { white-space: nowrap; }
+@media (min-width: 1200px) {
+  .sheet table.mentor-table { table-layout: fixed; width: 100%; }
+}
 .studio-content :where(input, textarea, select) { max-width: 100%; }
 
 .studio-tabbar { display: none; }

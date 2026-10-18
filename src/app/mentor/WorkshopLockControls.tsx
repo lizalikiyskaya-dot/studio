@@ -14,18 +14,22 @@ export default function WorkshopLockControls({
   storyUnlocked: boolean;
 }) {
   return (
-    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+    <div className="mentor-workshops flex flex-col items-start gap-1">
       <WorkshopLockButton
         unlocked={bookUnlocked}
         onToggle={() => toggleBookWorkshopLock(userId)}
-        labelOn="книга открыта"
-        labelOff="книга закрыта"
+        labelOn="книга ✓"
+        labelOff="книга"
+        titleOn="книга открыта"
+        titleOff="книга закрыта"
       />
       <WorkshopLockButton
         unlocked={storyUnlocked}
         onToggle={() => toggleStoryWorkshopLock(userId)}
-        labelOn="рассказы открыты"
-        labelOff="рассказы закрыты"
+        labelOn="рассказы ✓"
+        labelOff="рассказы"
+        titleOn="рассказы открыты"
+        titleOff="рассказы закрыты"
       />
     </div>
   );

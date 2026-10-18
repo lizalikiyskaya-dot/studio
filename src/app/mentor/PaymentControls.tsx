@@ -22,13 +22,11 @@ export default function PaymentControls({
   }
 
   return (
-    <div className="flex items-center gap-2 whitespace-nowrap">
-      <label className="text-[13px]" style={{ color: "var(--faded)" }}>
-        День оплаты:
-      </label>
+    <div className="flex items-center whitespace-nowrap">
       <select
         value={day ?? ""}
         onChange={(e) => handleDayChange(e.target.value)}
+        aria-label="День оплаты"
         className="text-[12.5px] px-1.5 py-1 rounded-sm"
         style={{ border: "1px solid var(--rule)" }}
       >
