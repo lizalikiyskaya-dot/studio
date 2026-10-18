@@ -155,7 +155,7 @@ export default function WorkPlanTable({
                   defaultValue={plan.description}
                   onSave={(v) => handleField(plan.id, "description", v)}
                   placeholder="Что планируется на этот период..."
-                  className="w-full outline-none bg-transparent text-[13.5px] leading-snug"
+                  className="entry-title w-full outline-none bg-transparent text-[15px] leading-snug"
                 />
               </div>
 

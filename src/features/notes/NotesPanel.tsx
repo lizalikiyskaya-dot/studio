@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, X, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, CornerDownRight, Quote } from "lucide-react";
+import { Pencil, X, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, CornerDownRight, Quote, PenLine, Check } from "lucide-react";
 import type { Note, Comment } from "@/generated/prisma/client";
 import { createNote, updateNote, deleteNote, resolveNote, reopenNote } from "./actions";
 import CommentsBlock from "@/features/comments/CommentsBlock";
@@ -520,8 +520,8 @@ export default function NotesPanel({
           <div className="flex-1 overflow-y-auto px-3.5 py-3.5">
             {visibleNotes.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12" style={{ color: "var(--ink-faint)" }}>
-                <div className="text-[28px] mb-3 opacity-40">
-                  {tab === "open" ? "✍️" : "✓"}
+                <div className="mb-3" style={{ color: "var(--muted)" }}>
+                  {tab === "open" ? <PenLine size={28} strokeWidth={1.5} /> : <Check size={28} strokeWidth={1.5} />}
                 </div>
                 <p className="text-[13px] text-center">
                   {tab === "open"

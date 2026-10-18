@@ -65,7 +65,7 @@ export default function CalendarWidget({
   return (
     <div className="side-card">
       <div className="flex items-center">
-        <span className="text-[14px] font-semibold">{MONTH_NAMES[month]} {year}</span>
+        <span className="serif text-[15px] font-semibold">{MONTH_NAMES[month]} {year}</span>
         <span className="ml-auto flex gap-1" style={{ color: "var(--muted)" }}>
           <button type="button" onClick={() => changeMonth(-1)} aria-label="Предыдущий месяц">‹</button>
           <button type="button" onClick={() => changeMonth(1)} aria-label="Следующий месяц">›</button>

@@ -33,7 +33,7 @@ export function LinkifiedText({ text, className, style }: { text: string; classN
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
-            style={{ color: "var(--accent)" }}
+            style={{ color: "var(--vi)" }}
           >
             ссылка
           </a>

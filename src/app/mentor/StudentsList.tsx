@@ -218,7 +218,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                   onClick={() => handleDelete(s.id)}
                   title="Удалить ученика"
                   className="flex items-center justify-center opacity-30 hover:opacity-80 transition-opacity"
-                  style={{ color: "var(--accent)" }}
+                  style={{ color: "var(--muted)" }}
                 >
                   <Trash2 size={14} />
                 </button>

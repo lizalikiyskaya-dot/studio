@@ -22,9 +22,9 @@ export function Card({ surface = "white", className = "", style, children, ...pr
 }
 
 export function Kpi({
-  icon: Icon,
+  icon: _icon,
   iconBg,
-  iconColor,
+  iconColor: _iconColor,
   num,
   label,
   tone = "soft",
@@ -36,17 +36,18 @@ export function Kpi({
   label: string;
   tone?: "deep" | "soft";
 }) {
+  void _icon;
+  void _iconColor;
   const deep = tone === "deep";
   return (
     <div
-      className="rounded-[20px] px-5 py-3.5"
+      className="rounded-2xl px-4 py-3.5"
       style={{ flex: "1 1 140px", minWidth: 140, background: deep ? "var(--deep)" : iconBg, color: deep ? "#fff" : "var(--ink)" }}
     >
-      <div className="flex items-center gap-2 text-[13px]" style={{ color: deep ? "rgba(255,255,255,0.7)" : "var(--muted)" }}>
-        <Icon size={15} color={deep ? "#fff" : iconColor} />
+      <div className="text-[12px]" style={{ color: deep ? "rgba(255,255,255,0.75)" : "#555" }}>
         {label}
       </div>
-      <div className="mt-1 text-[28px] font-semibold tracking-tight leading-none">{num}</div>
+      <div className="serif mt-2.5 text-[32px] font-medium leading-none">{num}</div>
     </div>
   );
 }

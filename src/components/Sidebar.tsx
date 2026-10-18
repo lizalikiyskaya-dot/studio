@@ -54,24 +54,10 @@ const BOOK_PATHS = new Set(WORKSHOP_ITEMS.map((item) => item.path));
 const STORY_PATHS = new Set(STORY_WORKSHOP_ITEMS.map((item) => item.path));
 const COLLAPSE_KEY = "sidebar-collapsed";
 
-const AVATAR_PALETTE = [
-  ["#CDEFE2", "#1C6B4F"],
-  ["#E6E2FF", "#4B3FC0"],
-  ["#FFE8D6", "#9A4B12"],
-  ["#DDF0FB", "#18638F"],
-  ["#FCE1EC", "#9C2C58"],
-];
-
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
   return parts.slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
-}
-
-function avatarColors(name: string) {
-  let hash = 0;
-  for (const ch of name) hash = (hash + ch.charCodeAt(0)) % AVATAR_PALETTE.length;
-  return AVATAR_PALETTE[hash];
 }
 
 function sectionOf(pathname: string | null, basePath: string) {
@@ -238,7 +224,8 @@ export default function Sidebar({
       ];
 
   const headerLinks = desktopCollapsed && !mentorMenuOnly ? collapsedLinks : topLinks;
-  const [avatarBg, avatarFg] = avatarColors(userName);
+  const avatarBg = "var(--deep)";
+  const avatarFg = "var(--y)";
   const profileHref = mentorMenuOnly ? "/mentor/profile" : `${basePath}/profile`;
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -388,12 +375,11 @@ export default function Sidebar({
           )}
 
           {upcoming && (
-            <div className="side-card">
-              <div className="inline-flex items-center gap-1.5 rounded-full text-white text-[12px] font-medium px-3 py-1" style={{ background: "var(--v)" }}>
-                Ближайший дедлайн
-              </div>
-              <div className="mt-2.5 text-[14.5px] font-semibold leading-snug">{upcoming.title || "Задание"}</div>
-              <div className="mt-1 text-[13px]" style={{ color: "var(--muted)" }}>{formatDeadline(upcoming.deadline)}</div>
+            <div className="deadline-card">
+              <span className="deadline-ribbon" aria-hidden="true" />
+              <div className="deadline-kicker">Ближайший дедлайн</div>
+              <div className="serif deadline-title">{upcoming.title || "Задание"}</div>
+              <div className="deadline-when">{formatDeadline(upcoming.deadline)}</div>
             </div>
           )}
 

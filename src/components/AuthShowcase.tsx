@@ -1,28 +1,29 @@
-import { BookOpen, MessageSquareText, ScrollText } from "lucide-react";
 import Wordmark from "@/components/Wordmark";
 
 export default function AuthShowcase() {
   return (
     <aside className="auth-hero">
-      <div className="auth-blob-y" />
-      <div className="auth-blob-v" />
+      <span className="auth-ribbon" aria-hidden="true" />
       <div className="relative z-10">
         <Wordmark size="lg" />
       </div>
-      <div className="auth-quote">
-        <div className="text-[12px]" style={{ color: "var(--muted)" }}>Комментарий наставника</div>
-        <div className="serif italic text-[15px] leading-snug mt-1.5">«Добавьте звук — и сцена оживёт».</div>
-      </div>
-      <div className="mt-auto relative z-10">
-        <div className="auth-hero-title">Студия художественной прозы</div>
-        <div className="mt-4 text-[17px] max-w-[420px]" style={{ color: "var(--ink2)" }}>
-          Мастерская книги и рассказов с личным наставником
+      <div className="auth-hero-copy">
+        <div className="auth-kicker">Студия художественной прозы</div>
+        <div className="auth-quote-main">
+          «Краткость —<br />
+          сестра <i>таланта</i>»
+        </div>
+        <div className="auth-attrib">
+          <span className="auth-attrib-rule" />
+          Антон Чехов, из письма брату, 1889
         </div>
       </div>
-      <div className="auth-hero-foot mt-10 relative z-10 flex flex-wrap gap-x-6 gap-y-2 text-[14px]" style={{ color: "var(--ink2)" }}>
-        <span className="inline-flex items-center gap-2"><BookOpen size={16} /> Мастерская книги</span>
-        <span className="inline-flex items-center gap-2"><ScrollText size={16} /> Рассказы</span>
-        <span className="inline-flex items-center gap-2"><MessageSquareText size={16} /> Разборы и правки</span>
+      <div className="auth-hero-foot">
+        <span>Мастерская книги</span>
+        <span className="auth-hero-slash">/</span>
+        <span>Рассказы</span>
+        <span className="auth-hero-slash">/</span>
+        <span>Разборы и правки</span>
       </div>
     </aside>
   );

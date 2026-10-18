@@ -120,11 +120,27 @@ export function renderEmail(options: {
            </td>
          </tr>
        </table>
-       <p style="margin:14px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:#8A8A8A">Если кнопка не работает, скопируйте ссылку:<br><a href="${action.url}" style="color:#6553E8;text-decoration:underline">${action.url}</a></p>`
+       <p style="margin:14px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:#8A8A8A">Если кнопка не работает, скопируйте ссылку:<br><a href="${action.url}" style="color:#7B6CF6;text-decoration:underline">${action.url}</a></p>`
     : "";
   const foot = footnote
     ? `<p style="margin:24px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:#8A8A8A">${footnote}</p>`
     : "";
+
+  const logo = `<table role="presentation" cellpadding="0" cellspacing="0">
+    <tr>
+      <td style="font-family:${FONT_SERIF};font-size:28px;font-weight:600;letter-spacing:-0.01em;line-height:1;color:#202020;padding:0 0 2px;">Андреенко</td>
+    </tr>
+    <tr>
+      <td style="padding:0 0 0 6px;line-height:0;font-size:0;">
+        <table role="presentation" cellpadding="0" cellspacing="0">
+          <tr><td width="11" height="12" bgcolor="#FFD43B" style="width:11px;height:12px;background:#FFD43B;font-size:0;line-height:0;">&nbsp;</td></tr>
+          <tr><td align="center" style="font-size:0;line-height:0;">
+            <div style="width:0;height:0;border-left:6px solid transparent;border-right:5px solid transparent;border-top:8px solid #FFD43B;font-size:0;line-height:0;"></div>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>`;
 
   return `<!doctype html>
 <html lang="ru">
@@ -136,30 +152,24 @@ export function renderEmail(options: {
 <body style="margin:0;padding:0;background:#ffffff;">
   <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#ffffff;">
     <tr>
-      <td align="center" style="padding:28px 16px 36px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" width="560" style="width:100%;max-width:560px;">
+      <td align="center" style="padding:32px 16px 40px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" width="560" style="width:100%;max-width:560px;background:#ffffff;">
           <tr>
-            <td bgcolor="#E6ECFF" style="background-color:#E6ECFF;background-image:linear-gradient(180deg,#E3F6EF,#E6ECFF);border-radius:28px;padding:28px 32px 26px;">
-              <table role="presentation" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td width="34" height="34" align="center" valign="middle" bgcolor="#2B2D5C" style="width:34px;height:34px;background:#2B2D5C;border-radius:10px;font-family:${FONT_SERIF};font-size:18px;font-weight:600;line-height:34px;color:#FFD43B;text-align:center;">А</td>
-                  <td style="padding-left:10px;font-family:${FONT_SERIF};font-size:22px;font-weight:600;letter-spacing:-0.03em;line-height:1;color:#202020;">Андреенко</td>
-                </tr>
-              </table>
-              <div style="margin-top:16px;font-family:${FONT_SERIF};font-size:22px;line-height:1.25;color:#202020;">Студия художественной прозы</div>
+            <td style="padding:8px 8px 0;border-bottom:1px solid #ECECEC;">
+              ${logo}
+              <div style="margin:14px 0 18px;font-family:${FONT_SERIF};font-size:16px;font-style:italic;line-height:1.3;color:#6553E8;">Студия художественной прозы</div>
             </td>
           </tr>
-          <tr><td style="height:22px;font-size:0;line-height:0;">&nbsp;</td></tr>
           <tr>
-            <td style="padding:4px 8px 0;">
-              <h1 style="margin:0 0 16px;font-family:${FONT_UI};font-size:28px;line-height:1.15;font-weight:600;letter-spacing:-0.025em;color:#202020;">${escapeHtml(title)}</h1>
+            <td style="padding:28px 8px 0;">
+              <h1 style="margin:0 0 16px;font-family:${FONT_SERIF};font-size:28px;line-height:1.15;font-weight:500;letter-spacing:-0.02em;color:#202020;">${escapeHtml(title)}</h1>
               ${body}
               ${button}
               ${foot}
             </td>
           </tr>
           <tr>
-            <td align="center" style="padding:22px 8px 0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:#8A8A8A;">
+            <td align="center" style="padding:28px 8px 0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:#8A8A8A;">
               Письмо отправлено платформой ${escapeHtml(appUrl().replace(/^https?:\/\//, ""))}
             </td>
           </tr>

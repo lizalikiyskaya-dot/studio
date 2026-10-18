@@ -108,7 +108,7 @@ export default async function MentorPage() {
               </td>
               <td className="py-2.5 text-right">
                 <form action={approveUser.bind(null, u.id)} className="inline">
-                  <Button variant="success" pill className="mr-2">
+                  <Button variant="primary" pill className="mr-2">
                     Одобрить
                   </Button>
                 </form>

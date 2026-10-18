@@ -161,7 +161,7 @@ export default function TasksTable({
                   defaultValue={task.title}
                   onSave={(v) => handleTitleBlur(task.id, v)}
                   placeholder="Описание задания"
-                  className="w-full min-w-0 outline-none bg-transparent text-[13.5px] leading-snug"
+                  className="entry-title w-full min-w-0 outline-none bg-transparent text-[15px] leading-snug"
                 />
               </div>
               <div>
