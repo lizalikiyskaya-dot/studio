@@ -44,6 +44,76 @@ type Student = {
   unseenAt: Date | null;
 };
 
+function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .slice(0, 2)
+    .join("");
+}
+
+function Avatar({ name, url, large }: { name: string; url: string | null; large?: boolean }) {
+  const size = large ? 36 : undefined;
+  if (url) {
+    return <img src={url} alt="" className="mentor-avatar" style={size ? { width: size, height: size } : undefined} />;
+  }
+  return (
+    <span className="mentor-avatar mentor-avatar-fallback" style={size ? { width: size, height: size, fontSize: 12 } : undefined}>
+      {initials(name)}
+    </span>
+  );
+}
+
+function Person({ student }: { student: Student }) {
+  return (
+    <div className="mentor-person">
+      <div className="mentor-person-title">
+        <Avatar name={student.name} url={student.avatarUrl} />
+        <span className="mentor-person-name">{student.name}</span>
+        <ActivityBeacon unseenAt={student.unseenAt} />
+      </div>
+      <span className="mentor-person-email" title={student.email}>{student.email}</span>
+    </div>
+  );
+}
+
+function AccessButton({ access, onClick }: { access: AccessStatus; onClick: () => void }) {
+  const { bg, color } = ACCESS_COLORS[access];
+  return (
+    <button type="button" onClick={onClick} className="mentor-access" style={{ background: bg, color }} title="Нажми для смены статуса">
+      {ACCESS_LABELS[access]}
+    </button>
+  );
+}
+
+function Reorder({ id, idx, total, onMove }: { id: string; idx: number; total: number; onMove: (id: string, dir: "up" | "down") => void }) {
+  return (
+    <div className="flex flex-col" style={{ color: "var(--ink-faint)" }}>
+      <button type="button" onClick={() => onMove(id, "up")} disabled={idx === 0} className="disabled:opacity-20 hover:opacity-70" title="Выше">
+        <ChevronUp size={13} />
+      </button>
+      <button type="button" onClick={() => onMove(id, "down")} disabled={idx === total - 1} className="disabled:opacity-20 hover:opacity-70" title="Ниже">
+        <ChevronDown size={13} />
+      </button>
+    </div>
+  );
+}
+
+function DeleteButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Удалить ученика"
+      className="flex items-center justify-center opacity-30 hover:opacity-80 transition-opacity"
+      style={{ color: "var(--muted)" }}
+    >
+      <Trash2 size={14} />
+    </button>
+  );
+}
+
 export default function StudentsList({ initialStudents }: { initialStudents: Student[] }) {
   const [students, setStudents] = useState(initialStudents);
   const [query, setQuery] = useState("");
@@ -105,131 +175,84 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
       {visible.length === 0 && (
         <p className="text-[14px] mb-4" style={{ color: "var(--muted)" }}>Никого не нашли. Список учеников на месте — измените запрос.</p>
       )}
-    <div className="sheet overflow-x-auto">
-    <table className="mentor-table">
-      <thead>
-        <tr className="text-left text-[12.5px]" style={{ color: "var(--muted)" }}>
-          <th />
-          <th className="pb-2 font-medium">Ученик</th>
-          <th className="pb-2 font-medium">Почта</th>
-          <th className="pb-2 font-medium">Доступ</th>
-          <th className="pb-2 font-medium">День оплаты</th>
-          <th className="pb-2 font-medium">В сети</th>
-          <th className="pb-2 font-medium">Мастерские</th>
-          <th className="pb-2 font-medium">Кабинет</th>
-          <th />
-        </tr>
-      </thead>
-      <tbody>
+
+      <div className="sheet mentor-sheet">
+        <div className="mentor-row mentor-head" role="row">
+          <div />
+          <div>Ученик</div>
+          <div>Доступ</div>
+          <div className="mentor-h-pay">День оплаты</div>
+          <div>В сети</div>
+          <div className="mentor-h-ws">Мастерские</div>
+          <div>Кабинет</div>
+          <div />
+        </div>
         {visible.map((s) => {
           const idx = students.findIndex((row) => row.id === s.id);
           const access = getAccessStatus(s.status, s.paymentStatus);
-          const { bg, color } = ACCESS_COLORS[access];
           return (
-            <tr key={s.id} style={{ borderBottom: "1px solid var(--rule)" }}>
-              {/* reorder */}
-              <td className="py-2.5 pr-1 align-top" style={{ width: 24 }}>
-                <div className="flex flex-col gap-0.5" style={{ color: "var(--ink-faint)" }}>
-                  <button
-                    onClick={() => handleMove(s.id, "up")}
-                    disabled={idx === 0}
-                    className="disabled:opacity-20 hover:opacity-70"
-                  >
-                    <ChevronUp size={13} />
-                  </button>
-                  <button
-                    onClick={() => handleMove(s.id, "down")}
-                    disabled={idx === students.length - 1}
-                    className="disabled:opacity-20 hover:opacity-70"
-                  >
-                    <ChevronDown size={13} />
-                  </button>
+            <div key={s.id} className="mentor-row mentor-data" role="row">
+              <Reorder id={s.id} idx={idx} total={students.length} onMove={handleMove} />
+              <Person student={s} />
+              <AccessButton access={access} onClick={() => handleCycleAccess(s.id)} />
+              <PaymentControls userId={s.id} paymentDay={s.paymentDay} />
+              <PresenceIndicator lastSeenAt={s.lastSeenAt} />
+              <WorkshopLockControls
+                userId={s.id}
+                bookUnlocked={s.bookWorkshopUnlocked}
+                storyUnlocked={s.storyWorkshopUnlocked}
+              />
+              <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" size="sm" pill title="Открыть кабинет" className="!h-8 !px-2 !text-[13px]">
+                Кабинет
+              </LinkButton>
+              <DeleteButton onClick={() => handleDelete(s.id)} />
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mentor-cards">
+        {visible.map((s) => {
+          const idx = students.findIndex((row) => row.id === s.id);
+          const access = getAccessStatus(s.status, s.paymentStatus);
+          return (
+            <article key={s.id} className="mentor-card">
+              <div className="flex items-start gap-2.5">
+                <Reorder id={s.id} idx={idx} total={students.length} onMove={handleMove} />
+                <Avatar name={s.name} url={s.avatarUrl} large />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-[15px] font-medium leading-snug break-words">{s.name}</span>
+                    <ActivityBeacon unseenAt={s.unseenAt} />
+                  </div>
+                  <div className="mt-0.5 truncate text-[12.5px]" style={{ color: "var(--muted)" }} title={s.email}>{s.email}</div>
                 </div>
-              </td>
-
-              {/* avatar + name */}
-              <td className="py-2.5 pr-2 align-top text-[13.5px]" style={{ width: "18%" }}>
-                <span className="flex items-center gap-2">
-                  {s.avatarUrl ? (
-                    <img
-                      src={s.avatarUrl}
-                      alt={s.name}
-                      className="rounded-full flex-shrink-0"
-                      style={{ width: 26, height: 26, objectFit: "cover" }}
-                    />
-                  ) : (
-                    <span
-                      className="rounded-full flex items-center justify-center flex-shrink-0 font-semibold"
-                      style={{ width: 26, height: 26, background: "var(--accent-soft)", color: "var(--accent)", fontSize: 10 }}
-                    >
-                      {s.name.trim().split(/\s+/).map((p) => p[0]?.toUpperCase() ?? "").slice(0, 2).join("")}
-                    </span>
-                  )}
-                  <span className="break-words" style={{ wordBreak: "normal" }}>{s.name}</span>
-                  <ActivityBeacon unseenAt={s.unseenAt} />
-                </span>
-              </td>
-
-              {/* email */}
-              <td className="py-2.5 pr-2 align-top text-[13.5px]" style={{ color: "var(--ink-soft)", width: "16%" }}>
-                <span className="block truncate" title={s.email}>{s.email}</span>
-              </td>
-
-              {/* access status */}
-              <td className="py-2.5 pr-3 align-top">
-                <button
-                  onClick={() => handleCycleAccess(s.id)}
-                  className="whitespace-nowrap rounded-full px-2.5 py-1 text-[11.5px] font-medium"
-                  style={{ background: bg, color }}
-                  title="Нажми для смены статуса"
-                >
-                  {ACCESS_LABELS[access]}
-                </button>
-              </td>
-
-              {/* payment day */}
-              <td className="py-2.5 pr-2 align-top" data-label="День оплаты">
-                <PaymentControls userId={s.id} paymentDay={s.paymentDay} />
-              </td>
-
-              {/* presence — online / last seen */}
-              <td className="py-2.5 px-3 align-top">
-                <PresenceIndicator lastSeenAt={s.lastSeenAt} />
-              </td>
-
-              {/* workshop locks */}
-              <td className="py-2.5 pr-2 align-top" data-label="Мастерские" style={{ width: 132 }}>
+              </div>
+              <div className="mt-3 flex flex-nowrap items-center gap-1.5">
+                <AccessButton access={access} onClick={() => handleCycleAccess(s.id)} />
                 <WorkshopLockControls
                   userId={s.id}
                   bookUnlocked={s.bookWorkshopUnlocked}
                   storyUnlocked={s.storyWorkshopUnlocked}
                 />
-              </td>
-
-              {/* open cabinet */}
-              <td className="py-2.5 pr-2 align-top">
-                <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" pill title="Открыть кабинет">
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px]" style={{ color: "var(--muted)" }}>День оплаты</span>
+                  <PaymentControls userId={s.id} paymentDay={s.paymentDay} />
+                </div>
+                <PresenceIndicator lastSeenAt={s.lastSeenAt} />
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" size="sm" pill title="Открыть кабинет">
                   Кабинет
                 </LinkButton>
-              </td>
-
-              {/* delete */}
-              <td className="py-2.5 align-top">
-                <button
-                  onClick={() => handleDelete(s.id)}
-                  title="Удалить ученика"
-                  className="flex items-center justify-center opacity-30 hover:opacity-80 transition-opacity"
-                  style={{ color: "var(--muted)" }}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </td>
-            </tr>
+                <DeleteButton onClick={() => handleDelete(s.id)} />
+              </div>
+            </article>
           );
         })}
-      </tbody>
-    </table>
-    </div>
+      </div>
     </div>
   );
 }

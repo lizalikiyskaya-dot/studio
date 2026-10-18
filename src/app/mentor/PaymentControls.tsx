@@ -22,7 +22,7 @@ export default function PaymentControls({
   }
 
   return (
-    <div className="flex items-center whitespace-nowrap">
+    <div className="mentor-pay flex items-center whitespace-nowrap">
       <select
         value={day ?? ""}
         onChange={(e) => handleDayChange(e.target.value)}

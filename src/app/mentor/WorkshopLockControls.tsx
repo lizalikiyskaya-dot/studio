@@ -14,7 +14,7 @@ export default function WorkshopLockControls({
   storyUnlocked: boolean;
 }) {
   return (
-    <div className="mentor-workshops flex flex-col items-start gap-1">
+    <div className="mentor-workshops flex flex-row flex-nowrap items-center gap-1">
       <WorkshopLockButton
         unlocked={bookUnlocked}
         onToggle={() => toggleBookWorkshopLock(userId)}
