@@ -422,6 +422,7 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   .collapse-desktop { display: grid; }
 }
 .side-card { border-radius: 16px; background: #fff; padding: 14px; }
+.mentor-side-nav { display: none; }
 .deadline-card {
   position: relative;
   background: var(--deep);
@@ -490,6 +491,7 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   .studio-topbar { height: 60px; padding: 0 16px; gap: 12px; }
   .studio-topnav { display: none; }
   .studio-menu-btn { display: inline-flex; }
+  .mentor-side-nav { display: block; }
   .mentor-bar { padding: 10px 16px; flex-wrap: wrap; }
   .studio-body { padding: 16px 16px 108px; }
   .studio-sidebar {

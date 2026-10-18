@@ -164,6 +164,39 @@ export async function notifyApproved(userId: string) {
   await sendMail({ to: user.email, subject: "Доступ в личный кабинет открыт", html });
 }
 
+/**
+ * Наставник открыл ученику методичку из общей библиотеки.
+ * Письмо короткое и только если у этой методички включена галочка,
+ * а у ученика не выключены уведомления. Ошибку почты наружу не бросает.
+ */
+export async function notifyStudentGuideOpened(
+  studentId: string,
+  guide: { id: string; title: string; description: string }
+) {
+  const student = await prisma.user.findUnique({
+    where: { id: studentId },
+    select: { name: true, email: true, status: true, emailNotifications: true },
+  });
+  if (!student?.email || !student.emailNotifications) return;
+  if (student.status !== "APPROVED") return;
+
+  const title = (guide.title.trim() || "Методичка").replace(/[\r\n]+/g, " ").slice(0, 180);
+  const paragraphs = [
+    `${escapeHtml(student.name)}, в кабинете открыта методичка «${escapeHtml(title)}».`,
+  ];
+  const about = guide.description.trim();
+  if (about) paragraphs.push(escapeHtml(about));
+  paragraphs.push("Она в разделе «Материалы → Методички». Файл можно открыть или скачать там.");
+
+  const html = renderEmail({
+    title: "Новая методичка",
+    paragraphs,
+    action: { label: "Открыть методичку", url: `${appUrl()}/dashboard/guides/${guide.id}` },
+    footnote: "Письмо приходит, когда наставник открывает методичку. Отключить такие письма можно в профиле.",
+  });
+  await sendMail({ to: student.email, subject: `Новая методичка: ${title}`, html });
+}
+
 /** Письмо со ссылкой на смену пароля. */
 export async function sendPasswordResetEmail(
   user: { name: string; email: string },
