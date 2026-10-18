@@ -1,0 +1,190 @@
+# Выкладка лендинга lizalikiyskaya.ru. Файл должен жить в ветке site:
+# push запускает workflow из того коммита, который запушили.
+# Ветка main этот файл не использует. Workflow студии (.github/workflows/deploy.yml)
+# срабатывает только на push в main и здесь не копируется.
+
+name: Deploy site
+
+on:
+  push:
+    branches:
+      - site
+  workflow_dispatch:
+
+concurrency:
+  group: site-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy site
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check required secrets
+        id: gate
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SITE_SSH_USER: ${{ secrets.SITE_SSH_USER }}
+          SITE_PATH: ${{ secrets.SITE_PATH }}
+        run: |
+          set -euo pipefail
+          missing=""
+          for name in SSH_HOST SSH_KEY SITE_PATH; do
+            value="${!name-}"
+            if [ -z "$value" ]; then
+              missing="${missing:+$missing, }$name"
+            fi
+          done
+          ssh_user="${SITE_SSH_USER:-}"
+          ssh_user_source="SITE_SSH_USER"
+          if [ -z "$ssh_user" ]; then
+            ssh_user="${SSH_USER:-}"
+            ssh_user_source="SSH_USER"
+          fi
+          if [ -z "$ssh_user" ]; then
+            missing="${missing:+$missing, }SITE_SSH_USER (или SSH_USER)"
+          fi
+          if [ -n "$missing" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Деплой лендинга пропущен: не заданы секреты GitHub Actions: $missing"
+            echo "Сервер не обновлялся. Когда будете готовы, добавьте секреты по инструкции docs/deploy-site.md и запушьте в site ещё раз."
+            echo "::notice title=Деплой лендинга пропущен::Не заданы секреты: $missing. См. docs/deploy-site.md"
+            {
+              echo "## Деплой лендинга пропущен"
+              echo
+              echo "Не заданы секреты: \`$missing\`."
+              echo
+              echo "Пуш в \`site\` из-за этого не считается ошибкой. Сервер не менялся."
+              echo "Одноразовая настройка описана в \`docs/deploy-site.md\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          case "$ssh_user" in
+            [A-Za-z_][A-Za-z0-9._-]*) ;;
+            *)
+              echo "Недопустимое имя SSH-пользователя в $ssh_user_source." >&2
+              exit 1
+              ;;
+          esac
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          echo "ssh_user=$ssh_user" >> "$GITHUB_OUTPUT"
+          echo "Секреты на месте. SSH-пользователь берётся из $ssh_user_source."
+
+      - name: Checkout
+        if: steps.gate.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Syntax-check deploy script
+        if: steps.gate.outputs.ready == 'true'
+        run: bash -n scripts/deploy-site.sh
+
+      - name: Deploy over SSH
+        if: steps.gate.outputs.ready == 'true'
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        env:
+          SITE_PATH: ${{ secrets.SITE_PATH }}
+          SITE_BACKUP_DIR: ${{ secrets.SITE_BACKUP_DIR }}
+          SITE_WEB_GROUP: ${{ secrets.SITE_WEB_GROUP }}
+          ARCHIVE_URL: https://codeload.github.com/${{ github.repository }}/tar.gz/${{ github.sha }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ steps.gate.outputs.ssh_user }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          command_timeout: 10m
+          request_pty: true
+          envs: SITE_PATH,SITE_BACKUP_DIR,SITE_WEB_GROUP,ARCHIVE_URL
+          script: |
+            bash --noprofile --norc -euo pipefail -c '
+            set -euo pipefail
+            if [ -z "${SITE_PATH:-}" ]; then
+              echo "SITE_PATH пустой." >&2
+              exit 1
+            fi
+            if [ -z "${ARCHIVE_URL:-}" ]; then
+              echo "ARCHIVE_URL пустой." >&2
+              exit 1
+            fi
+            case "$ARCHIVE_URL" in
+              https://codeload.github.com/*/tar.gz/*) ;;
+              *)
+                echo "Неожиданный адрес архива." >&2
+                exit 1
+                ;;
+            esac
+            if [[ "$ARCHIVE_URL" == *[[:space:]]* || "$ARCHIVE_URL" == *";"* || "$ARCHIVE_URL" == *"|"* ]]; then
+              echo "Адрес архива содержит лишние символы." >&2
+              exit 1
+            fi
+            tmp=$(mktemp -d)
+            cleanup() { rm -rf "$tmp"; }
+            trap cleanup EXIT
+            curl --proto "=https" --tlsv1.2 -fsSL --retry 5 --retry-delay 2 --max-time 180 -o "$tmp/site.tar.gz" "$ARCHIVE_URL"
+            mkdir -p "$tmp/src"
+            tar -xzf "$tmp/site.tar.gz" -C "$tmp/src" --strip-components=1
+            test -f "$tmp/src/scripts/deploy-site.sh"
+            test -f "$tmp/src/index.html"
+            test -f "$tmp/src/save.php"
+            test -f "$tmp/src/send.php"
+            export RELEASE_DIR="$tmp/src"
+            bash "$tmp/src/scripts/deploy-site.sh"
+            '
+
+      - name: Health check
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          set -euo pipefail
+          url="${SITE_URL:-https://lizalikiyskaya.ru}"
+          url="${url%/}"
+          case "$url" in
+            *studio.lizalikiyskaya.ru*)
+              echo "SITE_URL указывает на студию ($url). Для лендинга оставьте секрет пустым или укажите https://lizalikiyskaya.ru" >&2
+              exit 1
+              ;;
+          esac
+          echo "Проверка лендинга: $url"
+          code="000"
+          body="$(mktemp)"
+          trap 'rm -f "$body"' EXIT
+          for attempt in 1 2 3 4 5 6; do
+            code="$(curl -sS -L --compressed --max-time 20 -o "$body" -w "%{http_code}" "$url" || true)"
+            if [ -z "$code" ]; then
+              code="000"
+            fi
+            echo "попытка $attempt: HTTP $code"
+            case "$code" in
+              2*)
+                if grep -q "литературный наставник" "$body"; then
+                  echo "Лендинг ответил $code"
+                  break
+                fi
+                echo "Ответ $code, но на странице нет текста лендинга." >&2
+                code="000"
+                ;;
+            esac
+            if [ "$attempt" -eq 6 ]; then
+              echo "Проверка не прошла: последний ответ HTTP $code, ожидался код 2xx и текст лендинга." >&2
+              exit 1
+            fi
+            sleep 5
+          done
+          save_code="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "$url/save.php" || true)"
+          send_code="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "$url/send.php" || true)"
+          case "$save_code" in
+            401|405) echo "save.php отвечает HTTP $save_code" ;;
+            *) echo "::warning title=save.php::GET /save.php вернул ${save_code:-000}. Ожидались 401 (Basic-Auth) или 405 (PHP без авторизации). См. docs/deploy-site.md" ;;
+          esac
+          case "$send_code" in
+            405) echo "send.php отвечает HTTP 405" ;;
+            *) echo "::warning title=send.php::GET /send.php вернул ${send_code:-000}. Ожидался 405. Если nginx запрещает весь PHP кроме save.php, форма заявки не работает. См. docs/deploy-site.md" ;;
+          esac

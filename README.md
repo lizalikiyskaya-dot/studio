@@ -85,6 +85,7 @@
    (`.start-platform` в `index.html`) пока без `href`; вписать, когда будет.
 
 ## Деплой
-- **Netlify / Vercel / Cloudflare Pages** — перетащить папку (бесплатно, HTTPS,
-  автодеплой из GitHub — нужен для автосинка блога).
-- **Свой VPS + nginx** — папку отдавать как статику (автосинк тогда через свой cron).
+Сейчас сайт стоит на своём VPS (nginx + php-fpm), домен `lizalikiyskaya.ru`.
+Пуш в ветку `site` выкладывает его сам. Одноразовая настройка сервера и секретов:
+[docs/deploy-site.md](docs/deploy-site.md). Как устроены nginx, PHP и пароль админки:
+[DEPLOY.md](DEPLOY.md).
