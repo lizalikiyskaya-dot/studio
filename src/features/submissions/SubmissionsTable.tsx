@@ -17,9 +17,9 @@ const STATUS_LABEL: Record<SubmissionStatus, string> = {
 };
 
 const STATUS_STYLE: Record<SubmissionStatus, React.CSSProperties> = {
-  WAITING: { background: "var(--bg-surface-2)", color: "var(--faded)", border: "1px dashed var(--rule)" },
-  ACCEPTED: { background: "var(--sage-soft)", color: "var(--sage)", border: "none" },
-  REJECTED: { background: "var(--accent-soft)", color: "var(--accent)", border: "none" },
+  WAITING: { background: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)", border: "none" },
+  ACCEPTED: { background: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)", border: "none" },
+  REJECTED: { background: "var(--pill-red-bg)", color: "var(--pill-red-fg)", border: "none" },
 };
 
 export default function SubmissionsTable({

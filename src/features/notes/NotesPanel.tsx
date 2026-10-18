@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useEffect, useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, X, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, CornerDownRight, Quote } from "lucide-react";
 import type { Note, Comment } from "@/generated/prisma/client";
@@ -242,13 +242,15 @@ function ComposeArea({
   const ref = useRef<HTMLTextAreaElement>(null);
   const hadAnchor = useRef(false);
 
-  // Focus the compose box the moment a text selection attaches an anchor.
-  if (anchor && !hadAnchor.current) {
-    hadAnchor.current = true;
-    setTimeout(() => ref.current?.focus(), 0);
-  } else if (!anchor) {
-    hadAnchor.current = false;
-  }
+  // Focus the compose box once a text selection attaches an anchor.
+  useEffect(() => {
+    if (anchor && !hadAnchor.current) {
+      hadAnchor.current = true;
+      ref.current?.focus();
+    } else if (!anchor) {
+      hadAnchor.current = false;
+    }
+  }, [anchor]);
 
   function submit() {
     const text = draft.trim();
@@ -327,6 +329,12 @@ export default function NotesPanel({
   const [, startTransition] = useTransition();
   const router = useRouter();
 
+  useEffect(() => {
+    const toggle = () => setOpen((v) => !v);
+    window.addEventListener("studio:toggle-notes", toggle);
+    return () => window.removeEventListener("studio:toggle-notes", toggle);
+  }, []);
+
   const openNotes = notes.filter((n) => !n.resolved);
   const resolvedNotes = notes.filter((n) => n.resolved);
 
@@ -395,7 +403,7 @@ export default function NotesPanel({
       {/* FAB */}
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center justify-center rounded-full"
+        className="notes-fab flex items-center justify-center rounded-full"
         style={{
           position: "fixed",
           right: 28,
@@ -419,7 +427,7 @@ export default function NotesPanel({
               right: -4,
               width: 20,
               height: 20,
-              background: "var(--wine)",
+              background: "var(--danger)",
               color: "#fff",
               fontSize: 10,
               boxShadow: "0 0 0 2px var(--paper-light)",

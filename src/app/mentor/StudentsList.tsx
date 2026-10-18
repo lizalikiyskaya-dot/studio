@@ -24,8 +24,8 @@ const ACCESS_LABELS: Record<AccessStatus, string> = {
 
 const ACCESS_COLORS: Record<AccessStatus, { bg: string; color: string }> = {
   OPEN: { bg: "var(--sage-soft)", color: "var(--sage)" },
-  AWAITING: { bg: "#FFF3CD", color: "#856404" },
-  SUSPENDED: { bg: "var(--accent-soft)", color: "var(--accent)" },
+  AWAITING: { bg: "var(--pill-or-bg)", color: "var(--pill-or-fg)" },
+  SUSPENDED: { bg: "var(--pill-red-bg)", color: "var(--pill-red-fg)" },
 };
 
 type Student = {
@@ -46,7 +46,13 @@ type Student = {
 
 export default function StudentsList({ initialStudents }: { initialStudents: Student[] }) {
   const [students, setStudents] = useState(initialStudents);
+  const [query, setQuery] = useState("");
   const [, startTransition] = useTransition();
+  const visible = students.filter((s) => {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    return s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q);
+  });
 
   function handleCycleAccess(id: string) {
     startTransition(async () => {
@@ -81,13 +87,41 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
   }
 
   if (students.length === 0) {
-    return <p className="text-[13.5px] mb-8" style={{ color: "var(--faded)" }}>Пока нет учеников.</p>;
+    return <p className="text-[14px] mb-8" style={{ color: "var(--muted)" }}>Пока нет учеников.</p>;
   }
 
   return (
-    <table className="mentor-table w-full mb-10" style={{ borderCollapse: "collapse" }}>
+    <div className="mb-10">
+      <label className="mb-4 flex items-center gap-2 h-11 w-full max-w-[280px] rounded-full px-4 text-[14px]" style={{ background: "var(--soft)", color: "var(--muted)" }}>
+        <span className="sr-only">Найти ученика</span>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Найти ученика"
+          className="w-full bg-transparent outline-none"
+          style={{ color: "var(--ink)" }}
+        />
+      </label>
+      {visible.length === 0 && (
+        <p className="text-[14px] mb-4" style={{ color: "var(--muted)" }}>Никого не нашли. Список учеников на месте — измените запрос.</p>
+      )}
+    <table className="mentor-table w-full" style={{ borderCollapse: "collapse" }}>
+      <thead>
+        <tr className="text-left text-[12.5px]" style={{ color: "var(--muted)" }}>
+          <th />
+          <th className="pb-2 font-medium">Ученик</th>
+          <th className="pb-2 font-medium">Почта</th>
+          <th className="pb-2 font-medium">Доступ</th>
+          <th className="pb-2 font-medium">День оплаты</th>
+          <th className="pb-2 font-medium">В сети</th>
+          <th className="pb-2 font-medium">Мастерские</th>
+          <th className="pb-2 font-medium">Кабинет</th>
+          <th />
+        </tr>
+      </thead>
       <tbody>
-        {students.map((s, idx) => {
+        {visible.map((s) => {
+          const idx = students.findIndex((row) => row.id === s.id);
           const access = getAccessStatus(s.status, s.paymentStatus);
           const { bg, color } = ACCESS_COLORS[access];
           return (
@@ -194,5 +228,6 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
         })}
       </tbody>
     </table>
+    </div>
   );
 }

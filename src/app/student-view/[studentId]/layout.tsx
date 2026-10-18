@@ -35,28 +35,26 @@ export default async function StudentViewLayout({
 
   return (
     <SuggestionProvider canSuggest={student.reviewModeEnabled}>
-      <div className="studio-shell flex min-h-screen">
-        <SectionTracker studentId={student.id} basePath={`/student-view/${studentId}`} />
-        <Sidebar
-          basePath={`/student-view/${studentId}`}
-          userName={student.name}
-          isMentor
-          mentorViewLabel={student.name}
-          studentId={student.id}
-          beacons={beacons}
-          bookWorkshopUnlocked={student.bookWorkshopUnlocked}
-          storyWorkshopUnlocked={student.storyWorkshopUnlocked}
-          calendar={{
-            tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
-            paymentDay: student.paymentDay,
-            paymentStatus: student.paymentStatus,
-          }}
-        />
-        <div className="studio-content min-w-0 px-4 py-6 sm:px-6 lg:px-11 lg:py-9" style={{ flex: 1, background: "var(--paper-light)", minHeight: "100vh" }}>
-          {children}
-        </div>
-        <NotesPanel studentId={student.id} initialNotes={notes} initialComments={noteComments} />
-      </div>
+      <SectionTracker studentId={student.id} basePath={`/student-view/${studentId}`} />
+      <Sidebar
+        basePath={`/student-view/${studentId}`}
+        userName={student.name}
+        isMentor
+        mentorViewLabel={student.name}
+        studentId={student.id}
+        beacons={beacons}
+        notesCount={notes.length}
+        bookWorkshopUnlocked={student.bookWorkshopUnlocked}
+        storyWorkshopUnlocked={student.storyWorkshopUnlocked}
+        calendar={{
+          tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
+          paymentDay: student.paymentDay,
+          paymentStatus: student.paymentStatus,
+        }}
+      >
+        {children}
+      </Sidebar>
+      <NotesPanel studentId={student.id} initialNotes={notes} initialComments={noteComments} />
     </SuggestionProvider>
   );
 }

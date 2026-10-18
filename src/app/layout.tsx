@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
-import { Montserrat, Playfair_Display } from "next/font/google";
+import { Literata, Onest } from "next/font/google";
 import "./globals.css";
 
-const montserrat = Montserrat({
+const onest = Onest({
   subsets: ["latin", "cyrillic"],
   variable: "--font-sans",
+  display: "swap",
 });
 
-const playfair = Playfair_Display({
+const literata = Literata({
   subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
   variable: "--font-serif",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="ru"
-      className={`${montserrat.variable} ${playfair.variable} min-h-full antialiased`}
+      className={`${onest.variable} ${literata.variable} min-h-full antialiased`}
     >
       <body className="min-h-full">{children}</body>
     </html>

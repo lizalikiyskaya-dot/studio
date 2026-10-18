@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { CircleAlert } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -32,65 +33,40 @@ export default function ForgotPasswordPage() {
   if (sent) {
     return (
       <div>
-        <h1 className="text-[22px] font-semibold mb-3">Письмо отправлено</h1>
-        <p className="text-[13.5px] mb-6" style={{ color: "var(--faded)" }}>
+        <h1 className="auth-title">Письмо отправлено</h1>
+        <p className="auth-sub">
           Если такая почта зарегистрирована на платформе, на неё пришла ссылка
           для смены пароля. Ссылка действует один час. Загляните и в папку
           «Спам» — иногда письмо оседает там.
         </p>
-        <Link
-          href="/login"
-          className="block w-full py-2.5 rounded-full text-white text-[15px] text-center"
-          style={{ background: "var(--wine)" }}
-        >
-          Вернуться ко входу
-        </Link>
+        <Link href="/login" className="btn-y mt-6">Вернуться ко входу</Link>
       </div>
     );
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1 className="text-[22px] font-semibold mb-2">Восстановление пароля</h1>
-      <p className="text-[13px] mb-6" style={{ color: "var(--faded)" }}>
-        Укажите почту, с которой вы регистрировались — пришлём ссылку для
-        смены пароля.
-      </p>
+      <h1 className="auth-title">Восстановление пароля</h1>
+      <p className="auth-sub">Укажите почту, с которой вы регистрировались — пришлём ссылку для смены пароля.</p>
 
-      <div className="mb-6">
-        <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
-          Почта
-        </label>
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border-b py-1.5 text-[15px] outline-none bg-transparent"
-          style={{ borderColor: "var(--rule)" }}
-        />
-      </div>
+      <label className="fld-label">
+        Почта
+        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="fld" autoComplete="email" />
+      </label>
 
       {error && (
-        <p className="text-[13px] mb-4" style={{ color: "var(--wine)" }}>
+        <div className="form-error flex items-center gap-2">
+          <CircleAlert size={16} />
           {error}
-        </p>
+        </div>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2.5 rounded-full text-white text-[15px] disabled:opacity-60"
-        style={{ background: "var(--wine)" }}
-      >
+      <button type="submit" disabled={loading} className="btn-y mt-5">
         {loading ? "Отправляем..." : "Прислать ссылку"}
       </button>
 
-      <p className="text-[13px] mt-5 text-center" style={{ color: "var(--faded)" }}>
-        Вспомнили пароль?{" "}
-        <Link href="/login" className="underline" style={{ color: "var(--wine)" }}>
-          Войти
-        </Link>
+      <p className="text-[14px] mt-6 text-center" style={{ color: "var(--ink2)" }}>
+        Вспомнили пароль? <Link href="/login" className="lnk">Войти</Link>
       </p>
     </form>
   );

@@ -3,29 +3,19 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 type Tone = "neutral" | "success" | "danger" | "warning";
 type Fill = "outline" | "solid" | "soft";
 
-const TONE_COLOR: Record<Tone, string> = {
-  neutral: "var(--faded)",
-  success: "var(--sage)",
-  danger: "var(--wine)",
-  warning: "var(--wine)",
-};
-
-const TONE_SOFT_BG: Record<Tone, string> = {
-  neutral: "var(--neutral-active)",
-  success: "var(--sage-soft)",
-  danger: "var(--accent-soft)",
-  warning: "var(--accent-soft)",
+const TONE_SOFT: Record<Tone, { background: string; color: string }> = {
+  neutral: { background: "var(--soft)", color: "var(--ink2)" },
+  success: { background: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)" },
+  danger: { background: "var(--pill-red-bg)", color: "var(--pill-red-fg)" },
+  warning: { background: "var(--pill-or-bg)", color: "var(--pill-or-fg)" },
 };
 
 function badgeStyle(tone: Tone, fill: Fill): React.CSSProperties {
-  const color = TONE_COLOR[tone];
+  const soft = TONE_SOFT[tone];
   if (fill === "solid") {
-    return { background: color, color: "#fff", border: `1px solid ${color}` };
+    return { background: soft.color, color: "#fff", border: "none" };
   }
-  if (fill === "soft") {
-    return { background: TONE_SOFT_BG[tone], color, border: "none" };
-  }
-  return { background: "#fff", color, border: `1px solid ${color}` };
+  return { background: soft.background, color: soft.color, border: "none" };
 }
 
 interface BadgeProps {
@@ -35,10 +25,10 @@ interface BadgeProps {
   children: ReactNode;
 }
 
-export function Badge({ tone = "neutral", fill = "outline", className = "", children }: BadgeProps) {
+export function Badge({ tone = "neutral", fill = "soft", className = "", children }: BadgeProps) {
   return (
     <span
-      className={`font-mono-label inline-flex items-center gap-1.5 text-[10.5px] px-2.5 py-1 rounded-full whitespace-nowrap ${className}`}
+      className={`inline-flex items-center gap-1.5 text-[12.5px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${className}`}
       style={badgeStyle(tone, fill)}
     >
       {children}
@@ -53,10 +43,10 @@ interface BadgeButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
-export function BadgeButton({ tone = "neutral", fill = "outline", className = "", children, ...props }: BadgeButtonProps) {
+export function BadgeButton({ tone = "neutral", fill = "soft", className = "", children, ...props }: BadgeButtonProps) {
   return (
     <button
-      className={`font-mono-label inline-flex items-center gap-1.5 text-[10.5px] px-2.5 py-1 rounded-full whitespace-nowrap ${className}`}
+      className={`inline-flex items-center gap-1.5 text-[12.5px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${className}`}
       style={badgeStyle(tone, fill)}
       {...props}
     >

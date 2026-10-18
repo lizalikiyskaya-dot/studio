@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 function relativeTime(date: Date): string {
-  const mins = Math.floor((Date.now() - date.getTime()) / 60000);
+  const mins = Math.floor((new Date().getTime() - date.getTime()) / 60000);
   if (mins < 1) return "только что";
   if (mins < 60) return `${mins} мин назад`;
   const hours = Math.floor(mins / 60);
@@ -25,7 +25,7 @@ export function PresenceIndicator({ lastSeenAt }: { lastSeenAt: Date | null }) {
     return () => clearInterval(id);
   }, []);
 
-  const online = !!lastSeenAt && Date.now() - new Date(lastSeenAt).getTime() < 3 * 60_000;
+  const online = !!lastSeenAt && new Date().getTime() - new Date(lastSeenAt).getTime() < 3 * 60_000;
   const text = online
     ? "в сети"
     : lastSeenAt
@@ -57,7 +57,7 @@ export function OnlineBeacon({ lastSeenAt }: { lastSeenAt: Date | null }) {
   useEffect(() => {
     function check() {
       if (!lastSeenAt) return setOnline(false);
-      setOnline(Date.now() - new Date(lastSeenAt).getTime() < 3 * 60_000);
+      setOnline(new Date().getTime() - new Date(lastSeenAt).getTime() < 3 * 60_000);
     }
     check();
     const id = setInterval(check, 30_000);

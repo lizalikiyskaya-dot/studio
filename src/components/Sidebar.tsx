@@ -1,10 +1,25 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Bookmark, BookOpen, FileText, Pencil, PanelLeft, CalendarDays, Send, Megaphone, Menu, X } from "lucide-react";
-import LogoutButton from "./LogoutButton";
+import {
+  ArrowLeft,
+  BookOpen,
+  Bookmark,
+  CalendarDays,
+  FileText,
+  ListChecks,
+  LogOut,
+  Megaphone,
+  Menu,
+  MessageSquareText,
+  PanelLeft,
+  Pencil,
+  PenLine,
+  Send,
+  X,
+} from "lucide-react";
 import CalendarWidget from "./CalendarWidget";
 import ToggleSwitch from "./ToggleSwitch";
 import { setReviewMode } from "@/features/reviewMode/actions";
@@ -34,7 +49,17 @@ const STORY_WORKSHOP_ITEMS = [
   { path: "stories", n: "02", label: "Отдельные рассказы" },
 ];
 
+const BOOK_PATHS = new Set(WORKSHOP_ITEMS.map((item) => item.path));
+const STORY_PATHS = new Set(STORY_WORKSHOP_ITEMS.map((item) => item.path));
 const COLLAPSE_KEY = "sidebar-collapsed";
+
+const AVATAR_PALETTE = [
+  ["#CDEFE2", "#1C6B4F"],
+  ["#E6E2FF", "#4B3FC0"],
+  ["#FFE8D6", "#9A4B12"],
+  ["#DDF0FB", "#18638F"],
+  ["#FCE1EC", "#9C2C58"],
+];
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -42,25 +67,30 @@ function getInitials(name: string) {
   return parts.slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
 }
 
-function NavBeacon({ show, collapsed }: { show: boolean; collapsed: boolean }) {
-  if (!show) return null;
-  return (
-    <span
-      title="Есть обновления"
-      style={{
-        width: 7,
-        height: 7,
-        borderRadius: "50%",
-        background: "var(--accent)",
-        boxShadow: "0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)",
-        animation: "pulse 2s ease-in-out infinite",
-        flexShrink: 0,
-        ...(collapsed
-          ? { position: "absolute" as const, top: 7, right: 7 }
-          : { marginLeft: "auto" as const }),
-      }}
-    />
-  );
+function avatarColors(name: string) {
+  let hash = 0;
+  for (const ch of name) hash = (hash + ch.charCodeAt(0)) % AVATAR_PALETTE.length;
+  return AVATAR_PALETTE[hash];
+}
+
+function sectionOf(pathname: string | null, basePath: string) {
+  if (!pathname?.startsWith(basePath)) return "";
+  const rest = pathname.slice(basePath.length).replace(/^\//, "");
+  return rest.split("/")[0] ?? "";
+}
+
+function formatDeadline(iso: string) {
+  const date = new Date(iso);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  const diff = Math.round((target.getTime() - today.getTime()) / 86400000);
+  const formatted = date.toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+  if (diff === 0) return `сегодня, ${formatted}`;
+  if (diff === 1) return `завтра, ${formatted}`;
+  if (diff > 1 && diff < 7) return formatted;
+  return formatted;
 }
 
 export default function Sidebar({
@@ -75,6 +105,8 @@ export default function Sidebar({
   storyWorkshopUnlocked,
   avatarUrl,
   beacons,
+  notesCount,
+  children,
 }: {
   basePath: string;
   userName: string;
@@ -91,6 +123,8 @@ export default function Sidebar({
   storyWorkshopUnlocked?: boolean;
   avatarUrl?: string | null;
   beacons?: string[];
+  notesCount?: number;
+  children: ReactNode;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -101,32 +135,28 @@ export default function Sidebar({
   const setReviewModeState = useSetCanSuggest();
   const [, startTransition] = useTransition();
   const [desktopCollapsed, setCollapsed] = useState(false);
-  const [mobile, setMobile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const collapsed = desktopCollapsed && !mobile;
+  const section = sectionOf(pathname, basePath);
+  const onBook = BOOK_PATHS.has(section);
+  const onStory = STORY_PATHS.has(section);
 
   useEffect(() => {
-    const query = window.matchMedia("(max-width: 767px)");
-    const sync = () => { setMobile(query.matches); setMobileOpen(false); };
-    sync();
-    query.addEventListener("change", sync);
-    return () => query.removeEventListener("change", sync);
-  }, []);
-
-  useEffect(() => {
-    // Reads localStorage to sync collapse state after mount — must stay
-    // false on the server/first paint to avoid a hydration mismatch, so
-    // this can't be a useState initializer.
+    // Collapse is remembered per browser. First paint stays expanded so
+    // the server HTML matches the client.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
   }, []);
 
+  useEffect(() => {
+    // Close the mobile sheet after a navigation.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMobileOpen(false);
+  }, [pathname]);
+
   function toggleCollapsed() {
     setCollapsed((v) => {
       const next = !v;
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
-      }
+      window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
       return next;
     });
   }
@@ -136,216 +166,297 @@ export default function Sidebar({
     if (studentId) startTransition(() => setReviewMode(studentId, checked));
   }
 
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  }
+
+  function hrefFor(path: string) {
+    if (BOOK_PATHS.has(path) && bookParam) return `${basePath}/${path}?book=${bookParam}`;
+    if (STORY_PATHS.has(path) && cycleParam) return `${basePath}/${path}?cycle=${cycleParam}`;
+    return `${basePath}/${path}`;
+  }
+
+  const bookBeacon = WORKSHOP_ITEMS.some((item) => beaconSet.has(item.path));
+  const storyBeacon = STORY_WORKSHOP_ITEMS.some((item) => beaconSet.has(item.path));
+
+  type TopLink = { key: string; href: string; label: string; icon: typeof Bookmark; beacon: boolean; active: boolean };
+  const topLinks: TopLink[] = mentorMenuOnly
+    ? [
+        { key: "students", href: "/mentor", label: "Ученики и заявки", icon: Bookmark, beacon: false, active: pathname === "/mentor" },
+        { key: "profile", href: "/mentor/profile", label: "Мой профиль", icon: Pencil, beacon: false, active: pathname === "/mentor/profile" },
+      ]
+    : [
+        ...TOP_ITEMS.map((item) => ({
+          key: item.path,
+          href: hrefFor(item.path),
+          label: item.label,
+          icon: item.icon,
+          beacon: beaconSet.has(item.path),
+          active: section === item.path,
+        })),
+        ...(bookWorkshopUnlocked
+          ? [{ key: "book", href: hrefFor("about"), label: "Мастерская книги", icon: BookOpen, beacon: bookBeacon, active: onBook }]
+          : []),
+        ...(storyWorkshopUnlocked
+          ? [{ key: "stories", href: hrefFor("cycles"), label: "Мастерская рассказов", icon: PenLine, beacon: storyBeacon, active: onStory }]
+          : []),
+      ];
+
+  const collapsedLinks: TopLink[] = mentorMenuOnly
+    ? topLinks
+    : [
+        ...TOP_ITEMS.map((item) => ({
+          key: item.path,
+          href: hrefFor(item.path),
+          label: item.label,
+          icon: item.icon,
+          beacon: beaconSet.has(item.path),
+          active: section === item.path,
+        })),
+        ...(bookWorkshopUnlocked
+          ? WORKSHOP_ITEMS.map((item) => ({
+              key: item.path,
+              href: hrefFor(item.path),
+              label: item.label,
+              icon: BookOpen,
+              beacon: beaconSet.has(item.path),
+              active: section === item.path,
+            }))
+          : []),
+        ...(storyWorkshopUnlocked
+          ? STORY_WORKSHOP_ITEMS.map((item) => ({
+              key: item.path,
+              href: hrefFor(item.path),
+              label: item.label,
+              icon: PenLine,
+              beacon: beaconSet.has(item.path),
+              active: section === item.path,
+            }))
+          : []),
+      ];
+
+  const headerLinks = desktopCollapsed && !mentorMenuOnly ? collapsedLinks : topLinks;
+  const [avatarBg, avatarFg] = avatarColors(userName);
+  const profileHref = mentorMenuOnly ? "/mentor/profile" : `${basePath}/profile`;
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const upcoming = (calendar?.tasks ?? [])
+    .map((task) => ({ ...task, time: new Date(task.deadline).getTime() }))
+    .filter((task) => task.time >= todayStart.getTime())
+    .sort((a, b) => a.time - b.time)[0];
+
+  const subItems = onBook && bookWorkshopUnlocked
+    ? WORKSHOP_ITEMS
+    : onStory && storyWorkshopUnlocked
+      ? STORY_WORKSHOP_ITEMS
+      : null;
+
   return (
-    <>
-    <header className="studio-mobile-header">
-      <span className="masthead-title">Студия Лизы Ликийской</span>
-      <button type="button" onClick={() => setMobileOpen((v) => !v)}
-        aria-expanded={mobileOpen} aria-controls="studio-navigation"
-        className="flex items-center gap-2 rounded-[9px] px-3 py-2"
-        style={{ background: "var(--neutral-active)" }}>
-        {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-        {mobileOpen ? "Закрыть" : "Меню"}
-      </button>
-    </header>
-    <aside
-      id="studio-navigation"
-      onClick={(event) => {
-        if ((event.target as HTMLElement).closest("a")) setMobileOpen(false);
-      }}
-      className={`studio-sidebar px-3 py-[22px] flex flex-col flex-shrink-0${mobileOpen ? " mobile-open" : ""}`}
-      style={{
-        width: collapsed ? 60 : 220,
-        minHeight: "100vh",
-        background: "var(--paper)",
-        borderRight: "1px solid var(--rule)",
-        transition: "width 0.22s ease",
-      }}
-    >
-      <div className="flex-1 overflow-hidden">
-        <div className={`flex items-start gap-2 ${collapsed ? "justify-center" : "justify-between"} px-2.5 pt-1.5 mb-3.5`}>
-          {!collapsed && (
-            <div>
-              <div className="masthead-title text-[15px] leading-tight font-bold">Студия художественной прозы</div>
-              <span className="text-[12px] block mt-0.5" style={{ color: "var(--gold)", fontWeight: 500 }}>
-                Лизы Ликийской
-              </span>
-              <div className="masthead-rule">
-                <div className="masthead-rule-line" />
-                <div className="masthead-rule-line" />
-              </div>
-            </div>
+    <div className="studio-shell">
+      <header className="studio-topbar">
+        <Link href={mentorMenuOnly ? "/mentor" : `${basePath}/tasks`} className="studio-logo">
+          Ликийская
+          <span className="auth-dot" />
+          {mentorMenuOnly && (
+            <span className="ml-2 text-[13px] font-normal" style={{ color: "var(--muted)" }}>кабинет наставника</span>
+          )}
+        </Link>
+        <nav className={`studio-topnav${desktopCollapsed && !mentorMenuOnly ? " is-collapsed" : ""}`} aria-label="Разделы">
+          {headerLinks.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link key={item.key} href={item.href} className={item.active ? "active" : ""} title={item.label}>
+                <Icon className="nav-icon" size={16} />
+                <span className="nav-text">{item.label}</span>
+                {item.beacon && <span className="nav-beacon" title="Есть обновления" />}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="studio-top-actions">
+          {desktopCollapsed && !mentorMenuOnly && (
+            <button type="button" className="collapse-desktop place-items-center h-10 w-10 rounded-full" style={{ background: "var(--soft)" }} onClick={toggleCollapsed} title="Развернуть меню">
+              <PanelLeft size={16} style={{ transform: "rotate(180deg)" }} />
+            </button>
+          )}
+          {typeof notesCount === "number" && (
+            <button type="button" className="notes-chip" onClick={() => window.dispatchEvent(new Event("studio:toggle-notes"))}>
+              <MessageSquareText size={16} />
+              Заметки
+              {notesCount > 0 && <span className="notes-count">{notesCount}</span>}
+            </button>
+          )}
+          {!mentorViewLabel && (
+            <Link href={profileHref} className="avatar h-10 w-10 text-[13px]" style={{ background: isMentor ? "var(--deep)" : avatarBg, color: isMentor ? "#fff" : avatarFg }} title={userName}>
+              {avatarUrl ? <img src={avatarUrl} alt={userName} className="h-full w-full object-cover" /> : getInitials(userName)}
+            </Link>
           )}
           <button
-            onClick={toggleCollapsed}
-            className="studio-desktop-collapse flex items-center justify-center flex-shrink-0 rounded-[9px]"
-            style={{ width: 30, height: 30, background: "var(--neutral-active)", border: "1px solid var(--rule)", color: "var(--ink-soft)" }}
-            title={collapsed ? "Развернуть меню" : "Свернуть меню"}
+            type="button"
+            className="studio-menu-btn items-center gap-2 rounded-full px-3 h-10"
+            style={{ background: "var(--soft)" }}
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-expanded={mobileOpen}
           >
-            <PanelLeft size={14} style={{ transform: collapsed ? "rotate(180deg)" : undefined }} />
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            {mobileOpen ? "Закрыть" : "Меню"}
           </button>
         </div>
+      </header>
 
-        {!collapsed && (
-          <>
-            {mentorViewLabel ? (
-              <Link href="/mentor" className="block text-[12.5px] mb-3.5 px-2.5" style={{ color: "var(--gold)" }}>
-                ← к ученикам · {mentorViewLabel}
-              </Link>
-            ) : (
-              <span className="block text-[12.5px] mb-3.5 px-2.5" style={{ color: "var(--faded)" }}>
-                {mentorMenuOnly ? "кабинет наставника" : "кабинет ученика"}
+      {mentorViewLabel && (
+        <div className="mentor-bar">
+          <Link href="/mentor"><ArrowLeft size={16} /> к ученикам · {mentorViewLabel}</Link>
+          {studentId && isMentor && (
+            <span className="ml-auto flex items-center gap-3">
+              <span style={{ color: "rgba(255,255,255,0.7)" }}>Режим правок</span>
+              <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
+              <span className="text-[13px]" style={{ color: "rgba(255,255,255,0.7)" }}>
+                {reviewMode ? "правки сохраняются как предложения" : "правки сохраняются сразу"}
               </span>
-            )}
+            </span>
+          )}
+        </div>
+      )}
 
-            {studentId && !mentorMenuOnly && isMentor && (
-              <div
-                className="flex items-center justify-between mb-2.5 px-2.5 py-2 rounded-[9px]"
-                style={{ background: "#fff" }}
-              >
-                <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} label="Режим правок" />
+      <div className="studio-body">
+        <aside id="studio-navigation" className={`studio-sidebar${mobileOpen ? " mobile-open" : ""}${desktopCollapsed && !mentorMenuOnly ? " is-collapsed" : ""}`}>
+          <div className="flex justify-end studio-menu-btn">
+            <button type="button" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-2 rounded-full px-3 h-9" style={{ background: "#fff" }}>
+              <X size={16} /> Закрыть
+            </button>
+          </div>
+
+          {!mentorMenuOnly && (
+            <div className="side-card flex items-center gap-3">
+              <div className="avatar h-10 w-10 text-[13px]" style={{ background: avatarBg, color: avatarFg }}>
+                {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : getInitials(userName)}
               </div>
-            )}
-
-            {isMentor && !mentorViewLabel && (
-              <Link
-                href="/mentor"
-                className="block text-[13px] mb-2.5 px-2.5 py-2 rounded-[9px]"
-                style={{
-                  background: pathname === "/mentor" ? "var(--ink)" : "var(--sage)",
-                  color: "#fff",
-                }}
+              <div className="leading-tight min-w-0">
+                <div className="text-[14.5px] font-semibold truncate">{userName}</div>
+                <div className="text-[12.5px]" style={{ color: "var(--muted)" }}>
+                  {mentorViewLabel ? "ученик" : "кабинет ученика"}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={toggleCollapsed}
+                className="collapse-desktop ml-auto place-items-center"
+                style={{ color: "var(--muted)" }}
+                title={desktopCollapsed ? "Развернуть меню" : "Свернуть меню"}
               >
-                Ученики
-              </Link>
-            )}
-          </>
-        )}
+                <PanelLeft size={16} />
+              </button>
+            </div>
+          )}
 
-        {!mentorMenuOnly && (
-          <>
-            <div className="mb-3.5">
-              {TOP_ITEMS.map((item) => {
-                const href = `${basePath}/${item.path}`;
-                const active = pathname?.startsWith(href);
-                const Icon = item.icon;
+          {calendar && (
+            <div className="px-1 flex items-center gap-2 text-[12.5px]">
+              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1" style={{ background: calendar.paymentStatus === "PAID" ? "var(--pill-mint-bg)" : "var(--pill-or-bg)", color: calendar.paymentStatus === "PAID" ? "var(--pill-mint-fg)" : "var(--pill-or-fg)" }}>
+                {calendar.paymentStatus === "PAID" ? "доступ открыт" : "ожидает платежа"}
+              </span>
+              {calendar.paymentDay != null && (
+                <span style={{ color: "var(--muted)" }}>оплата {calendar.paymentDay}-го</span>
+              )}
+            </div>
+          )}
+
+          {subItems && (
+            <nav className="side-card !p-2" aria-label="Разделы мастерской">
+              {subItems.map((item) => {
+                const active = section === item.path;
                 return (
                   <Link
                     key={item.path}
-                    href={href}
-                    title={collapsed ? item.label : undefined}
-                    className={`nav-item relative flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
+                    href={hrefFor(item.path)}
+                    className={`nav-item flex items-center gap-2.5 px-3 py-2 text-[14.5px]${active ? " active" : ""}`}
                   >
-                    <Icon size={17} style={{ flexShrink: 0, opacity: 0.85 }} />
-                    {!collapsed && <span>{item.label}</span>}
-                    <NavBeacon show={beaconSet.has(item.path)} collapsed={collapsed} />
+                    <span className="text-[12px] w-[18px]" style={{ color: "var(--muted)" }}>{item.n}</span>
+                    <span>{item.label}</span>
+                    {beaconSet.has(item.path) && <span className="ml-auto h-[7px] w-[7px] rounded-full" style={{ background: "var(--danger)" }} title="Есть обновления" />}
                   </Link>
                 );
               })}
+            </nav>
+          )}
+
+          {calendar && (
+            <CalendarWidget
+              tasks={calendar.tasks}
+              paymentDay={calendar.paymentDay}
+              paymentStatus={calendar.paymentStatus}
+            />
+          )}
+
+          {upcoming && (
+            <div className="side-card">
+              <div className="inline-flex items-center gap-1.5 rounded-full text-white text-[12px] font-medium px-3 py-1" style={{ background: "var(--v)" }}>
+                Ближайший дедлайн
+              </div>
+              <div className="mt-2.5 text-[14.5px] font-semibold leading-snug">{upcoming.title || "Задание"}</div>
+              <div className="mt-1 text-[13px]" style={{ color: "var(--muted)" }}>{formatDeadline(upcoming.deadline)}</div>
             </div>
+          )}
 
-            {bookWorkshopUnlocked && (
-              <div className="mb-3.5">
-                {!collapsed && <div className="nav-label px-2.5 pb-1.5">Мастерская книги</div>}
-                {WORKSHOP_ITEMS.map((item) => {
-                  const href = `${basePath}/${item.path}${bookParam ? `?book=${bookParam}` : ""}`;
-                  const active = pathname?.startsWith(`${basePath}/${item.path}`);
-                  return (
-                    <Link
-                      key={item.path}
-                      href={href}
-                      title={collapsed ? item.label : undefined}
-                      className={`nav-item relative flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
-                    >
-                      <span className="font-mono-label text-[12px] flex-shrink-0" style={{ width: 18, opacity: 0.85 }}>
-                        {item.n}
-                      </span>
-                      {!collapsed && <span>{item.label}</span>}
-                      <NavBeacon show={beaconSet.has(item.path)} collapsed={collapsed} />
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+          {mentorMenuOnly && (
+            <div className="side-card">
+              <div className="text-[16px] font-semibold">Кабинет наставника</div>
+              <p className="mt-1 text-[13px] leading-snug" style={{ color: "var(--muted)" }}>
+                Заявки, доступ учеников и мастерские. Письма о новых заявках приходят на почту, если уведомления включены в профиле.
+              </p>
+              <Link href="/mentor/profile" className="lnk mt-3 inline-flex text-[13.5px]">Мой профиль</Link>
+            </div>
+          )}
 
-            {storyWorkshopUnlocked && (
-              <div className="mb-3.5">
-                {!collapsed && <div className="nav-label px-2.5 pb-1.5">Мастерская рассказов</div>}
-                {STORY_WORKSHOP_ITEMS.map((item) => {
-                  const href = `${basePath}/${item.path}${cycleParam ? `?cycle=${cycleParam}` : ""}`;
-                  const active = pathname?.startsWith(`${basePath}/${item.path}`);
-                  return (
-                    <Link
-                      key={item.path}
-                      href={href}
-                      title={collapsed ? item.label : undefined}
-                      className={`nav-item relative flex items-center gap-2.5 px-2.5 py-[9px] text-[13.5px] mb-0.5${active ? " active" : ""}${collapsed ? " justify-center" : ""}`}
-                    >
-                      <span className="font-mono-label text-[12px] flex-shrink-0" style={{ width: 18, opacity: 0.85 }}>
-                        {item.n}
-                      </span>
-                      {!collapsed && <span>{item.label}</span>}
-                      <NavBeacon show={beaconSet.has(item.path)} collapsed={collapsed} />
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        )}
-
-        {calendar && !collapsed && (
-          <CalendarWidget
-            tasks={calendar.tasks}
-            paymentDay={calendar.paymentDay}
-            paymentStatus={calendar.paymentStatus}
-          />
-        )}
-      </div>
-
-      <div className="mt-4 pt-3.5" style={{ borderTop: "1px solid var(--rule)" }}>
-        {collapsed ? (
-          <div className="flex justify-center">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={userName} className="rounded-full flex-shrink-0" style={{ width: 32, height: 32, objectFit: "cover" }} />
+          <div className="side-card mt-auto flex items-center gap-2">
+            {!mentorViewLabel ? (
+              <>
+                <Link href={profileHref} className="text-[13.5px] font-medium">профиль</Link>
+                <button type="button" onClick={logout} className="ml-auto inline-flex items-center gap-1.5 text-[13px]" style={{ color: "var(--muted)" }}>
+                  <LogOut size={14} /> Выйти
+                </button>
+              </>
             ) : (
-              <div
-                className="rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ width: 32, height: 32, background: "var(--accent-soft)", color: "var(--wine)", fontSize: 12.5, fontWeight: 700 }}
-              >
-                {getInitials(userName)}
-              </div>
+              <span className="text-[13px]" style={{ color: "var(--muted)" }}>Кабинет {mentorViewLabel}</span>
             )}
           </div>
-        ) : (
-          <div className="flex items-center gap-2.5 px-1">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={userName} className="rounded-full flex-shrink-0" style={{ width: 32, height: 32, objectFit: "cover" }} />
-            ) : (
-              <div
-                className="rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ width: 32, height: 32, background: "var(--accent-soft)", color: "var(--wine)", fontSize: 12.5, fontWeight: 700 }}
-              >
-                {getInitials(userName)}
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-medium truncate" style={{ color: "var(--ink)" }}>
-                {userName}
-              </div>
-              {mentorViewLabel ? (
-                <div className="text-[11px]" style={{ color: "var(--faded)" }}>ученик</div>
-              ) : (
-                <Link href={`${basePath}/profile`} className="text-[11px] hover:underline underline-offset-2" style={{ color: "var(--faded)" }}>
-                  профиль
-                </Link>
-              )}
-            </div>
-            {!mentorViewLabel && <LogoutButton />}
-          </div>
-        )}
+        </aside>
+
+        <main className="studio-content">{children}</main>
       </div>
-    </aside>
-    </>
+
+      {!mentorMenuOnly && (
+        <nav className="studio-tabbar" aria-label="Мобильные разделы">
+          <Tab href={`${basePath}/tasks`} label="Задания" icon={ListChecks} active={section === "tasks"} />
+          {bookWorkshopUnlocked ? (
+            <Tab href={hrefFor("about")} label="Книга" icon={BookOpen} active={onBook} beacon={bookBeacon} />
+          ) : (
+            <Tab href={`${basePath}/materials`} label="Материалы" icon={BookOpen} active={section === "materials"} />
+          )}
+          <Tab href={`${basePath}/exercises`} label="Упражнения" icon={PenLine} active={section === "exercises"} beacon={beaconSet.has("exercises")} />
+          <button type="button" onClick={() => setMobileOpen(true)} className="flex-1 flex flex-col items-center gap-1 text-[11px]" style={{ color: "var(--muted)" }}>
+            <span className="h-8 w-12 rounded-full grid place-items-center"><CalendarDays size={16} /></span>
+            Календарь
+          </button>
+          <button type="button" onClick={() => setMobileOpen(true)} className="flex-1 flex flex-col items-center gap-1 text-[11px]" style={{ color: mobileOpen ? "var(--ink)" : "var(--muted)", fontWeight: mobileOpen ? 600 : 400 }}>
+            <span className="h-8 w-12 rounded-full grid place-items-center" style={{ background: mobileOpen ? "var(--y)" : "transparent" }}><Menu size={16} /></span>
+            Ещё
+          </button>
+        </nav>
+      )}
+    </div>
+  );
+}
+
+function Tab({ href, label, icon: Icon, active, beacon }: { href: string; label: string; icon: typeof Bookmark; active: boolean; beacon?: boolean }) {
+  return (
+    <Link href={href} className="flex-1 flex flex-col items-center gap-1 text-[11px] relative" style={{ color: active ? "var(--ink)" : "var(--muted)", fontWeight: active ? 600 : 400 }}>
+      <span className="h-8 w-12 rounded-full grid place-items-center" style={{ background: active ? "var(--y)" : "transparent" }}>
+        <Icon size={16} />
+      </span>
+      {label}
+      {beacon && <span className="absolute top-0 right-3 h-2 w-2 rounded-full" style={{ background: "var(--danger)" }} />}
+    </Link>
   );
 }

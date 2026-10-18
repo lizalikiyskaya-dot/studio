@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { CircleAlert } from "lucide-react";
 import PasswordInput from "@/components/PasswordInput";
 
 export default function ResetPasswordForm({ token }: { token: string }) {
@@ -39,54 +40,35 @@ export default function ResetPasswordForm({ token }: { token: string }) {
   if (done) {
     return (
       <div>
-        <h1 className="text-[22px] font-semibold mb-3">Пароль изменён</h1>
-        <p className="text-[13.5px] mb-6" style={{ color: "var(--faded)" }}>
-          Теперь войдите с новым паролем.
-        </p>
-        <Link
-          href="/login"
-          className="block w-full py-2.5 rounded-full text-white text-[15px] text-center"
-          style={{ background: "var(--wine)" }}
-        >
-          Войти
-        </Link>
+        <h1 className="auth-title">Пароль изменён</h1>
+        <p className="auth-sub">Теперь войдите с новым паролем.</p>
+        <Link href="/login" className="btn-y mt-6">Войти</Link>
       </div>
     );
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1 className="text-[22px] font-semibold mb-2">Новый пароль</h1>
-      <p className="text-[13px] mb-6" style={{ color: "var(--faded)" }}>
-        Придумайте пароль не короче 8 символов.
-      </p>
+      <h1 className="auth-title">Новый пароль</h1>
+      <p className="auth-sub">Придумайте пароль не короче 8 символов.</p>
 
-      <div className="mb-4">
-        <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
-          Новый пароль
-        </label>
+      <label className="fld-label">
+        Новый пароль
         <PasswordInput value={password} onChange={setPassword} required minLength={8} />
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
-          Повторите пароль
-        </label>
+      </label>
+      <label className="fld-label">
+        Повторите пароль
         <PasswordInput value={confirm} onChange={setConfirm} required minLength={8} />
-      </div>
+      </label>
 
       {error && (
-        <p className="text-[13px] mb-4" style={{ color: "var(--wine)" }}>
+        <div className="form-error flex items-center gap-2">
+          <CircleAlert size={16} />
           {error}
-        </p>
+        </div>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2.5 rounded-full text-white text-[15px] disabled:opacity-60"
-        style={{ background: "var(--wine)" }}
-      >
+      <button type="submit" disabled={loading} className="btn-y mt-5">
         {loading ? "Сохраняем..." : "Сохранить пароль"}
       </button>
     </form>

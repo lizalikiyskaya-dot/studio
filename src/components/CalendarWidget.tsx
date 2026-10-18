@@ -20,12 +20,6 @@ const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
 type TaskDeadline = { id: string; title: string; deadline: string };
 
-function chunk<T>(arr: T[], size: number): T[][] {
-  const result: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) result.push(arr.slice(i, i + size));
-  return result;
-}
-
 export default function CalendarWidget({
   tasks,
   paymentDay,
@@ -62,7 +56,6 @@ export default function CalendarWidget({
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ];
   while (cells.length % 7 !== 0) cells.push(null);
-  const weeks = chunk(cells, 7);
 
   function changeMonth(delta: number) {
     setSelectedDay(null);
@@ -70,101 +63,62 @@ export default function CalendarWidget({
   }
 
   return (
-    <div className="mt-3.5 rounded-[14px] px-2.5 pt-2.5 pb-2" style={{ background: "#fff" }}>
-      <div className="mb-2.5">
-        <span
-          className="font-mono-label inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full"
-          style={{
-            background: paymentStatus === "PAID" ? "var(--sage-soft)" : "var(--accent-soft)",
-            color: paymentStatus === "PAID" ? "var(--sage)" : "var(--wine)",
-          }}
-        >
-          <span
-            style={{
-              width: 5,
-              height: 5,
-              borderRadius: 999,
-              background: paymentStatus === "PAID" ? "var(--sage)" : "var(--wine)",
-            }}
-          />
-          {paymentStatus === "PAID" ? "доступ открыт" : "ожидает платежа"}
+    <div className="side-card">
+      <div className="flex items-center">
+        <span className="text-[14px] font-semibold">{MONTH_NAMES[month]} {year}</span>
+        <span className="ml-auto flex gap-1" style={{ color: "var(--muted)" }}>
+          <button type="button" onClick={() => changeMonth(-1)} aria-label="Предыдущий месяц">‹</button>
+          <button type="button" onClick={() => changeMonth(1)} aria-label="Следующий месяц">›</button>
         </span>
       </div>
 
-      <div className="flex items-center justify-between mb-2">
-        <button onClick={() => changeMonth(-1)} className="text-[11px] px-1" style={{ color: "var(--faded)" }}>
-          ‹
-        </button>
-        <span className="text-[13px]" style={{ color: "var(--ink-soft)" }}>
-          {MONTH_NAMES[month]} {year}
-        </span>
-        <button onClick={() => changeMonth(1)} className="text-[11px] px-1" style={{ color: "var(--faded)" }}>
-          ›
-        </button>
-      </div>
-
-      <div className="flex">
+      <div className="mt-3 grid grid-cols-7 gap-y-1 text-center">
         {WEEKDAYS.map((w) => (
-          <div key={w} className="flex-1 text-center font-mono-label text-[8px] uppercase" style={{ color: "var(--faded)" }}>
-            {w}
-          </div>
+          <span key={w} className="text-[11px]" style={{ color: "var(--muted)" }}>{w}</span>
         ))}
+        {cells.map((day, index) => {
+          if (day === null) return <span key={index} />;
+          const hasDeadline = tasksByDay.has(day);
+          const isPaymentDay = paymentDay === day;
+          const today = new Date();
+          const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+          const selected = selectedDay === day;
+          let background = "transparent";
+          let color = "var(--ink)";
+          if (isToday) { background = "var(--ink)"; color = "#fff"; }
+          else if (hasDeadline) { background = "var(--pill-or-bg)"; color = "var(--pill-or-fg)"; }
+          else if (isPaymentDay) { background = "var(--pill-mint-bg)"; color = "var(--pill-mint-fg)"; }
+          return (
+            <button
+              key={index}
+              type="button"
+              onClick={() => (hasDeadline || isPaymentDay) && setSelectedDay(selected ? null : day)}
+              className="h-7 grid place-items-center rounded-lg text-[12.5px]"
+              style={{
+                background,
+                color,
+                fontWeight: isToday || hasDeadline || isPaymentDay ? 600 : 400,
+                boxShadow: selected ? "0 0 0 2px var(--v)" : undefined,
+                cursor: hasDeadline || isPaymentDay ? "pointer" : "default",
+              }}
+            >
+              {day}
+            </button>
+          );
+        })}
       </div>
 
-      {weeks.map((week, wi) => (
-        <div key={wi} className="flex">
-          {week.map((day, di) => {
-            if (day === null) return <div key={di} className="flex-1" />;
-            const hasDeadline = tasksByDay.has(day);
-            const isPaymentDay = paymentDay === day;
-            const isClickable = hasDeadline || isPaymentDay;
-            const today = new Date();
-            const isToday =
-              day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-            return (
-              <button
-                key={di}
-                onClick={() => isClickable && setSelectedDay(selectedDay === day ? null : day)}
-                className="relative flex-1 flex flex-col items-center text-[11px] py-1 rounded-sm"
-                style={{
-                  cursor: isClickable ? "pointer" : "default",
-                  background: selectedDay === day ? "var(--rule)" : "transparent",
-                }}
-              >
-                <span className="flex gap-0.5 mb-0.5" style={{ height: 4 }}>
-                  {hasDeadline && (
-                    <span style={{ width: 4, height: 4, borderRadius: 999, background: "var(--ink)" }} />
-                  )}
-                  {isPaymentDay && (
-                    <span style={{ width: 4, height: 4, borderRadius: 999, background: "var(--wine)" }} />
-                  )}
-                </span>
-                <span
-                  className="flex items-center justify-center"
-                  style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: 999,
-                    background: isToday ? "var(--ink)" : "transparent",
-                    color: isToday ? "#fff" : undefined,
-                    fontWeight: isToday ? 600 : undefined,
-                  }}
-                >
-                  {day}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      ))}
+      <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11.5px]" style={{ color: "var(--ink2)" }}>
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "#F28A3C" }} />дедлайн</span>
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "#2FB083" }} />день оплаты</span>
+      </div>
 
       {selectedDay !== null && tasksByDay.has(selectedDay) && (
-        <div className="mt-2 p-2.5 rounded-sm" style={{ border: "1px solid var(--rule)", background: "#fff" }}>
-          <div className="text-[12px] mb-1.5" style={{ color: "var(--faded)" }}>
-            Дедлайн {selectedDay} {MONTH_NAMES[month].toLowerCase()}
-          </div>
+        <div className="mt-3 text-[13px]">
+          <div className="font-semibold">{selectedDay} {MONTH_NAMES[month].toLowerCase()}</div>
           {tasksByDay.get(selectedDay)!.map((t) => (
-            <div key={t.id} className="text-[12.5px] mb-1">
+            <div key={t.id} className="mt-1 flex items-center gap-1.5" style={{ color: "var(--ink2)" }}>
+              <span className="h-2 w-2 rounded-full" style={{ background: "#F28A3C" }} />
               {t.title || "Без названия"}
             </div>
           ))}
@@ -172,16 +126,8 @@ export default function CalendarWidget({
       )}
 
       {selectedDay !== null && selectedDay === paymentDay && (
-        <div className="mt-2 p-2.5 rounded-sm" style={{ border: "1px solid var(--rule)", background: "#fff" }}>
-          <div className="text-[12px] mb-1.5" style={{ color: "var(--faded)" }}>
-            Дата оплаты
-          </div>
-          <div className="text-[12.5px]">
-            {selectedDay} число каждого месяца ·{" "}
-            <span style={{ color: paymentStatus === "PAID" ? "var(--sage)" : "var(--wine)" }}>
-              {paymentStatus === "PAID" ? "оплачено" : "ожидает оплаты"}
-            </span>
-          </div>
+        <div className="mt-2 text-[13px]" style={{ color: paymentStatus === "PAID" ? "var(--sage)" : "var(--pill-or-fg)" }}>
+          {selectedDay} число · {paymentStatus === "PAID" ? "оплачено" : "ожидает оплаты"}
         </div>
       )}
     </div>
