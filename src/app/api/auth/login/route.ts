@@ -25,7 +25,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Неверная почта или пароль" }, { status: 401 });
   }
 
-  await createSession({ userId: user.id, role: user.role, status: user.status });
+  await createSession({
+    userId: user.id,
+    role: user.role,
+    status: user.status,
+    tokenVersion: user.tokenVersion,
+  });
 
   return NextResponse.json({ ok: true, status: user.status });
 }

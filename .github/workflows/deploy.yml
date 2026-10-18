@@ -1,0 +1,139 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Queue a second deploy instead of cancelling the one that is already
+# building on the server.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install and build
+        env:
+          # Dummy values only. The job does not connect to a database.
+          # Prisma generate and `next build` read these at startup.
+          DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci?schema=public
+          JWT_SECRET: ci-build-only-secret
+        run: npm ci && npm run build
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check required secrets
+        id: gate
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          APP_PATH: ${{ secrets.APP_PATH }}
+        run: |
+          set -euo pipefail
+          missing=""
+          for name in SSH_HOST SSH_USER SSH_KEY APP_PATH; do
+            value="${!name-}"
+            if [ -z "$value" ]; then
+              missing="${missing:+$missing, }$name"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Деплой пропущен: не заданы секреты GitHub Actions: $missing"
+            echo "Сборка выше прошла. Сервер не обновлялся. Когда будете готовы, добавьте секреты по инструкции docs/deploy.md и запустите workflow Deploy вручную."
+            echo "::notice title=Деплой пропущен::Не заданы секреты: $missing. См. docs/deploy.md"
+            {
+              echo "## Деплой пропущен"
+              echo
+              echo "Не заданы секреты: \`$missing\`."
+              echo
+              echo "Пуш в \`main\` из-за этого не считается ошибкой. Сервер не менялся."
+              echo "Одноразовая настройка описана в \`docs/deploy.md\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          echo "Секреты на месте, деплой запускается."
+
+      - name: Deploy over SSH
+        if: steps.gate.outputs.ready == 'true'
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        env:
+          APP_PATH: ${{ secrets.APP_PATH }}
+          RESTART_CMD: ${{ secrets.RESTART_CMD }}
+          PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
+          SYSTEMD_SERVICE: ${{ secrets.SYSTEMD_SERVICE }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          command_timeout: 30m
+          request_pty: true
+          envs: APP_PATH,RESTART_CMD,PM2_APP_NAME,SYSTEMD_SERVICE
+          script: |
+            bash --noprofile --norc -euo pipefail -c '
+            set -euo pipefail
+            if [ -z "${APP_PATH:-}" ]; then
+              echo "APP_PATH is empty." >&2
+              exit 1
+            fi
+            cd "$APP_PATH"
+            if [ ! -d .git ]; then
+              echo "APP_PATH is not a git clone: $APP_PATH" >&2
+              exit 1
+            fi
+            export GIT_TERMINAL_PROMPT=0
+            git fetch origin main
+            git reset --hard origin/main
+            bash ./scripts/deploy.sh
+            '
+
+      - name: Health check
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+        run: |
+          set -euo pipefail
+          url="${HEALTHCHECK_URL:-https://studio.lizalikiyskaya.ru}"
+          echo "Проверка сайта: $url"
+          code="000"
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            code="$(curl -sS -L --max-time 20 -o /dev/null -w "%{http_code}" "$url" || true)"
+            if [ -z "$code" ]; then
+              code="000"
+            fi
+            echo "попытка $attempt: HTTP $code"
+            case "$code" in
+              2*)
+                echo "Сайт ответил $code"
+                exit 0
+                ;;
+            esac
+            sleep 5
+          done
+          echo "Проверка не прошла: последний ответ HTTP $code, ожидался код 2xx." >&2
+          exit 1
