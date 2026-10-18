@@ -13,7 +13,7 @@ export default function Subtabs({
 
   return (
     <div>
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         {tabs.map((tab, i) => {
           const isActive = active === i;
           const toggle = variant === "toggle";

@@ -2,7 +2,14 @@
 
 import { useState, useTransition, useRef } from "react";
 import { uploadFile } from "@/lib/uploadFile";
-import { updateProfileName, updateProfileEmail, updateProfilePassword, updateProfileAvatar } from "./actions";
+import ToggleSwitch from "@/components/ToggleSwitch";
+import {
+  updateProfileName,
+  updateProfileEmail,
+  updateProfilePassword,
+  updateProfileAvatar,
+  updateEmailNotifications,
+} from "./actions";
 
 function getInitials(name: string) {
   return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
@@ -13,15 +20,20 @@ export default function ProfileForm({
   initialName,
   initialEmail,
   initialAvatarUrl,
+  initialEmailNotifications = true,
+  isMentor = false,
 }: {
   userId: string;
   initialName: string;
   initialEmail: string;
   initialAvatarUrl: string | null;
+  initialEmailNotifications?: boolean;
+  isMentor?: boolean;
 }) {
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl ?? "");
+  const [notifications, setNotifications] = useState(initialEmailNotifications);
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -58,6 +70,14 @@ export default function ProfileForm({
       const res = await updateProfileEmail(email);
       if ("error" in res) flash(res.error ?? "Ошибка", false);
       else flash("Email сохранён", true);
+    });
+  }
+
+  function handleToggleNotifications(next: boolean) {
+    setNotifications(next);
+    startTransition(async () => {
+      await updateEmailNotifications(next);
+      flash(next ? "Уведомления на почту включены" : "Уведомления на почту выключены", true);
     });
   }
 
@@ -208,6 +228,23 @@ export default function ProfileForm({
           >
             Сохранить
           </button>
+        </div>
+      </div>
+
+      {/* Email notifications */}
+      <div className={sectionCls}>
+        <div className="text-[14px] font-semibold mb-3" style={{ color: "var(--ink)" }}>Уведомления на почту</div>
+        <div className="rounded-[9px] border px-3.5 py-3" style={{ borderColor: "var(--border)", background: "var(--bg-card)" }}>
+          <ToggleSwitch
+            checked={notifications}
+            onChange={handleToggleNotifications}
+            label={isMentor ? "Письма об изменениях у учеников" : "Письма о правках наставника"}
+          />
+          <p className="text-[12px] mt-2" style={{ color: "var(--ink-faint)" }}>
+            {isMentor
+              ? "Когда ученик поработал в кабинете, приходит короткое письмо. Не чаще одного раза в час на ученика."
+              : "Когда наставник вносит правки в ваш кабинет, приходит короткое письмо. Не чаще одного раза в час."}
+          </p>
         </div>
       </div>
 

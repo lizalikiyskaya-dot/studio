@@ -31,6 +31,7 @@ export default async function PendingPage() {
             <p className="text-[14px]" style={{ color: "var(--ink-soft)" }}>
               Спасибо за регистрацию, {user.name}. Наставник проверит заявку и
               откроет доступ в личный кабинет. Это может занять некоторое время.
+              Вам придёт уведомление на почту.
             </p>
           </>
         ) : user.status === "SUSPENDED" ? (

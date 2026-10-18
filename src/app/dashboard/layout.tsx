@@ -32,7 +32,7 @@ export default async function DashboardLayout({
   const beacons = await getSectionBeacons(user.id);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="studio-shell flex min-h-screen">
       <SectionTracker studentId={user.id} basePath="/dashboard" />
       <Sidebar
         basePath="/dashboard"
@@ -49,7 +49,7 @@ export default async function DashboardLayout({
           paymentStatus: user.paymentStatus,
         }}
       />
-      <div className="px-11 py-9" style={{ flex: 1, background: "var(--paper-light)", minHeight: "100vh" }}>
+      <div className="studio-content min-w-0 px-4 py-6 sm:px-6 lg:px-11 lg:py-9" style={{ flex: 1, background: "var(--paper-light)", minHeight: "100vh" }}>
         {children}
       </div>
       <NotesPanel studentId={user.id} initialNotes={notes} initialComments={noteComments} />

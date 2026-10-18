@@ -131,6 +131,17 @@ export async function updateProfilePassword(current: string, next: string, confi
   return { ok: true };
 }
 
+/** Письма об изменениях в кабинете (см. lib/notify.ts) — вкл/выкл для себя. */
+export async function updateEmailNotifications(enabled: boolean) {
+  const session = await requireAuth();
+  await prisma.user.update({
+    where: { id: session.userId },
+    data: { emailNotifications: enabled },
+  });
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 export async function updateProfileAvatar(avatarUrl: string) {
   const session = await requireAuth();
   await prisma.user.update({ where: { id: session.userId }, data: { avatarUrl } });

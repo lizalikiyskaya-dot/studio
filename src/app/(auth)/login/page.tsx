@@ -55,12 +55,18 @@ export default function LoginPage() {
         />
       </div>
 
-      <div className="mb-6">
+      <div className="mb-2">
         <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>
           Пароль
         </label>
         <PasswordInput value={password} onChange={setPassword} required />
       </div>
+
+      <p className="text-[12.5px] mb-6 text-right">
+        <Link href="/forgot-password" className="underline underline-offset-2" style={{ color: "var(--faded)" }}>
+          Забыли пароль?
+        </Link>
+      </p>
 
       {error && (
         <p className="text-[13px] mb-4" style={{ color: "var(--wine)" }}>

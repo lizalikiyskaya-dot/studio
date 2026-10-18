@@ -5,6 +5,7 @@ import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
 import Subtabs from "@/components/Subtabs";
 import GrapesTable from "./GrapesTable";
+import ExtraGrapesList from "./ExtraGrapesList";
 import SettingTypeSection from "./SettingTypeSection";
 import FantasySection from "./FantasySection";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
@@ -30,6 +31,14 @@ export default async function SettingView({
   }
 
   const suggestions = await getSuggestionsForRecords("Book", [activeBook.id]);
+  const extraGrapes = await prisma.grapesSetting.findMany({
+    where: { bookId: activeBook.id },
+    orderBy: { order: "asc" },
+  });
+  const extraGrapesSuggestions = await getSuggestionsForRecords(
+    "GrapesSetting",
+    extraGrapes.map((s) => s.id)
+  );
   const worldEntries = await prisma.worldEntry.findMany({
     where: { bookId: activeBook.id },
     orderBy: { order: "asc" },
@@ -41,7 +50,15 @@ export default async function SettingView({
     {
       label: "Метод GRAPES",
       content: (
-        <GrapesTable bookId={activeBook.id} book={activeBook} suggestions={suggestions[activeBook.id] ?? {}} />
+        <>
+          <GrapesTable recordId={activeBook.id} values={activeBook} suggestions={suggestions[activeBook.id] ?? {}} />
+          <ExtraGrapesList
+            key={activeBook.id}
+            bookId={activeBook.id}
+            initialSettings={extraGrapes}
+            suggestions={extraGrapesSuggestions}
+          />
+        </>
       ),
     },
     {

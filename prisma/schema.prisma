@@ -147,6 +147,12 @@ model User {
   storyWorkshopUnlocked Boolean @default(false)
   lastSeenAt    DateTime?
   lastActivityAt DateTime?
+  // Письма об изменениях в кабинете (см. lib/notify.ts). Троттлинг:
+  // mentorNotifiedAt — когда наставнику последний раз писали про ЭТОГО
+  // ученика, studentNotifiedAt — когда ученику писали про правки наставника.
+  emailNotifications Boolean  @default(true)
+  mentorNotifiedAt  DateTime?
+  studentNotifiedAt DateTime?
   avatarUrl     String?
   sortOrder     Int           @default(0)
   createdAt     DateTime      @default(now())
@@ -166,6 +172,21 @@ model User {
   workPlans         WorkPlan[]
   submissions       Submission[]
   openCalls         OpenCall[]
+  passwordResets    PasswordResetToken[]
+}
+
+// Одноразовая ссылка «Забыли пароль?». В базе лежит только SHA-256 от
+// токена: утечка дампа не даёт возможности сменить кому-то пароль.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model Note {
@@ -280,6 +301,8 @@ model FreeSection {
   content   String          @default("")
   tableData Json?
   status    TaskStatus      @default(IN_PROGRESS)
+  // Карточку завёл сам ученик — ему можно её переименовать и удалить.
+  createdByStudent Boolean @default(false)
 }
 
 model Task {
@@ -347,6 +370,24 @@ model Book {
   characters   Character[]
   acts         Act[]
   worldEntries WorldEntry[]
+  extraGrapes  GrapesSetting[]
+}
+
+// Дополнительные таблицы GRAPES под кнопкой «добавить сеттинг».
+// Первая таблица по-прежнему живёт в полях Book.
+model GrapesSetting {
+  id                 String   @id @default(cuid())
+  bookId             String
+  book               Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order              Int      @default(0)
+  title              String   @default("")
+  grapesGeography    String   @default("")
+  grapesReligion     String   @default("")
+  grapesAchievements String   @default("")
+  grapesPolitics     String   @default("")
+  grapesEconomy      String   @default("")
+  grapesSocial       String   @default("")
+  createdAt          DateTime @default(now())
 }
 
 model PlanChapter {

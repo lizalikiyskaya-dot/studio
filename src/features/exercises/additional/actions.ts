@@ -1,8 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireCabinetAccess, requireMentor } from "@/lib/access";
-import type { FreeSectionType } from "@/generated/prisma/client";
+import { requireCabinetAccess, AccessDeniedError } from "@/lib/access";
+import type { FreeSection, FreeSectionType } from "@/generated/prisma/client";
 import { nextTaskStatus } from "@/features/tasks/status";
 
 export async function createAdditionalSection(
@@ -11,7 +11,8 @@ export async function createAdditionalSection(
   rows?: number,
   cols?: number
 ) {
-  await requireMentor(studentId);
+  // Карточки заводят и наставник, и сам ученик.
+  const session = await requireCabinetAccess(studentId);
   const count = await prisma.freeSection.count({ where: { studentId } });
   const tableData =
     type === "TABLE"
@@ -24,13 +25,26 @@ export async function createAdditionalSection(
       type,
       title: type === "TABLE" ? "Новая таблица" : "Новый вопрос",
       tableData,
+      createdByStudent: session.role === "STUDENT",
     },
   });
 }
 
+/**
+ * Переименовать и удалить карточку может наставник — любую, ученик —
+ * только ту, что завёл сам. Вопросы наставника остаются неприкосновенны.
+ */
+async function requireSectionOwner(section: FreeSection) {
+  const session = await requireCabinetAccess(section.studentId);
+  if (session.role !== "MENTOR" && !section.createdByStudent) {
+    throw new AccessDeniedError("Эту карточку добавил наставник");
+  }
+  return session;
+}
+
 export async function updateSectionTitle(sectionId: string, title: string) {
   const section = await prisma.freeSection.findUniqueOrThrow({ where: { id: sectionId } });
-  await requireMentor(section.studentId);
+  await requireSectionOwner(section);
   await prisma.freeSection.update({ where: { id: sectionId }, data: { title } });
 }
 
@@ -61,7 +75,7 @@ export async function resizeTable(sectionId: string, rows: number, cols: number)
 
 export async function deleteAdditionalSection(sectionId: string) {
   const section = await prisma.freeSection.findUniqueOrThrow({ where: { id: sectionId } });
-  await requireMentor(section.studentId);
+  await requireSectionOwner(section);
   await prisma.freeSection.delete({ where: { id: sectionId } });
 }
 

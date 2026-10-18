@@ -123,10 +123,12 @@ function SectionBody({
   onDelete: (id: string) => void;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  // Свою карточку ученик переименовывает и удаляет сам, карточки наставника — нет.
+  const canManage = isMentorViewer || section.createdByStudent;
 
   return (
     <div ref={rootRef}>
-      {isMentorViewer ? (
+      {canManage ? (
         <input
           defaultValue={section.title}
           onBlur={(e) => onTitle(section.id, e.target.value)}
@@ -159,7 +161,7 @@ function SectionBody({
 
       <div className="flex gap-1.5 mt-3">
         <CardSaveButton scopeRef={rootRef} />
-        {isMentorViewer && (
+        {canManage && (
           <Button onClick={() => onDelete(section.id)} variant="secondary" size="sm" pill>
             удалить раздел
           </Button>
@@ -250,16 +252,14 @@ export default function AdditionalList({
         </Accordion>
       ))}
 
-      {isMentorViewer && (
-        <div className="flex gap-2.5">
-          <Button onClick={() => handleAdd("TEXT")} variant="dashed" size="sm" pill>
-            + текст (вопрос-ответ)
-          </Button>
-          <Button onClick={() => handleAdd("TABLE")} variant="dashed" size="sm" pill>
-            + таблица
-          </Button>
-        </div>
-      )}
+      <div className="flex gap-2.5">
+        <Button onClick={() => handleAdd("TEXT")} variant="dashed" size="sm" pill>
+          + текст (вопрос-ответ)
+        </Button>
+        <Button onClick={() => handleAdd("TABLE")} variant="dashed" size="sm" pill>
+          + таблица
+        </Button>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import type { Book } from "@/generated/prisma/client";
 import type { GrapesField } from "./actions";
+import type { SuggestableModel } from "@/lib/suggestionRegistry";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 
 const ROWS: { field: GrapesField; letter: string; label: string }[] = [
@@ -13,13 +13,17 @@ const ROWS: { field: GrapesField; letter: string; label: string }[] = [
   { field: "grapesSocial", letter: "S", label: "Соц. структура" },
 ];
 
+// Одна и та же таблица и для основного сеттинга (поля Book),
+// и для добавленных кнопкой «добавить сеттинг» (GrapesSetting).
 export default function GrapesTable({
-  bookId,
-  book,
+  model = "Book",
+  recordId,
+  values,
   suggestions,
 }: {
-  bookId: string;
-  book: Book;
+  model?: Extract<SuggestableModel, "Book" | "GrapesSetting">;
+  recordId: string;
+  values: Record<GrapesField, string>;
   suggestions: Record<string, string>;
 }) {
   return (
@@ -36,10 +40,10 @@ export default function GrapesTable({
             {label}
           </div>
           <SuggestableField
-            model="Book"
-            recordId={bookId}
+            model={model}
+            recordId={recordId}
             field={field}
-            value={book[field]}
+            value={values[field]}
             suggestion={suggestions[field]}
             className="flex-1 outline-none bg-transparent text-[13.5px] leading-snug"
           />

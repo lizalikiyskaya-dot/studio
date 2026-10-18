@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
-import { saveFieldOrSuggest, acceptFieldSuggestion } from "./actions";
+import { saveFieldOrSuggest, acceptFieldSuggestion, rejectFieldSuggestion } from "./actions";
 import type { SuggestableModel } from "@/lib/suggestionRegistry";
-import { wordDiff } from "@/lib/wordDiff";
+import { sentenceDiff } from "@/lib/sentenceDiff";
 
 export default function SuggestableField({
   model,
@@ -65,14 +65,25 @@ export default function SuggestableField({
     if (!suggestion) return;
     setValue(suggestion);
     setSuggestion(null);
+    lastSentRef.current = suggestion;
     startTransition(async () => {
       await acceptFieldSuggestion(model, recordId, field);
       onSaved?.(suggestion);
     });
   }
 
+  // Отклонение: правка наставника выбрасывается, в поле остаётся свой текст.
+  function handleReject() {
+    if (!suggestion) return;
+    setSuggestion(null);
+    lastSentRef.current = value;
+    startTransition(async () => {
+      await rejectFieldSuggestion(model, recordId, field);
+    });
+  }
+
   if (suggestion) {
-    const tokens = wordDiff(value, suggestion);
+    const tokens = sentenceDiff(value, suggestion);
     return (
       <div className="rounded-sm p-2.5" style={{ border: "1px solid var(--rule)" }}>
         <span className="whitespace-pre-wrap">
@@ -96,13 +107,21 @@ export default function SuggestableField({
             )
           )}
         </span>
-        <div className="mt-1.5">
+        <div className="mt-1.5 flex items-center gap-2">
           <button
             onClick={handleAccept}
             className="flex items-center gap-1 text-[12px] px-3.5 py-1 rounded-full"
             style={{ color: "#fff", background: "var(--sage)" }}
           >
             <Check size={12} /> принять правку
+          </button>
+          <button
+            onClick={handleReject}
+            title="Оставить свой текст, правку убрать"
+            className="flex items-center gap-1 text-[12px] px-3.5 py-1 rounded-full"
+            style={{ color: "var(--faded)", background: "transparent", border: "1px solid var(--rule)" }}
+          >
+            <X size={12} /> отклонить
           </button>
         </div>
       </div>

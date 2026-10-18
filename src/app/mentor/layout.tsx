@@ -16,9 +16,9 @@ export default async function MentorLayout({
   if (!user) redirect("/login");
 
   return (
-    <div className="flex min-h-screen">
+    <div className="studio-shell flex min-h-screen">
       <Sidebar basePath="/mentor" userName={user.name} isMentor mentorMenuOnly avatarUrl={user.avatarUrl} />
-      <div className="px-11 py-9" style={{ flex: 1, background: "var(--paper-light)", minHeight: "100vh" }}>
+      <div className="studio-content min-w-0 px-4 py-6 sm:px-6 lg:px-11 lg:py-9" style={{ flex: 1, background: "var(--paper-light)", minHeight: "100vh" }}>
         {children}
       </div>
     </div>

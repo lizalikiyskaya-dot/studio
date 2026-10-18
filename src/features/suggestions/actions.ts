@@ -60,6 +60,18 @@ export async function acceptFieldSuggestion(model: SuggestableModel, recordId: s
   await prisma.fieldSuggestion.delete({ where: { id: suggestion.id } });
 }
 
+/**
+ * Отклонить правку наставника: предложение удаляется, в поле остаётся
+ * текст ученика. Ничего не применяем — в этом вся суть отказа.
+ */
+export async function rejectFieldSuggestion(model: SuggestableModel, recordId: string, field: string) {
+  const entry = SUGGESTION_REGISTRY[model];
+  const studentId = await entry.getStudentId(recordId);
+  await requireCabinetAccess(studentId);
+
+  await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
+}
+
 export async function getSuggestionsForRecords(model: SuggestableModel, recordIds: string[]) {
   // Серверное действие доступно из интернета напрямую — читать правки
   // наставника должен только вошедший пользователь с открытым доступом.

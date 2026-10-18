@@ -123,7 +123,7 @@ export default function WorkPlanTable({
             style={{ border: "1px solid var(--rule)", background: "var(--paper-light)" }}
           >
             <div
-              className="grid"
+              className="work-plan-fields grid"
               style={{ gridTemplateColumns: "195px minmax(0,1fr) 210px 200px 130px" }}
             >
               {/* Month column */}

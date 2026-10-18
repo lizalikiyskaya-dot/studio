@@ -40,6 +40,8 @@ type Student = {
   avatarUrl: string | null;
   lastSeenAt: Date | null;
   lastActivityAt: Date | null;
+  /** Время самой свежей правки ученика, которую наставник ещё не открывал. */
+  unseenAt: Date | null;
 };
 
 export default function StudentsList({ initialStudents }: { initialStudents: Student[] }) {
@@ -83,7 +85,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
   }
 
   return (
-    <table className="w-full mb-10" style={{ borderCollapse: "collapse" }}>
+    <table className="mentor-table w-full mb-10" style={{ borderCollapse: "collapse" }}>
       <tbody>
         {students.map((s, idx) => {
           const access = getAccessStatus(s.status, s.paymentStatus);
@@ -129,7 +131,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                     </span>
                   )}
                   <span>{s.name}</span>
-                  <ActivityBeacon lastActivityAt={s.lastActivityAt} />
+                  <ActivityBeacon unseenAt={s.unseenAt} />
                 </span>
               </td>
 

@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { notifyApproved } from "@/lib/notify";
 
 async function requireMentor() {
   const session = await getSession();
@@ -15,6 +17,14 @@ async function requireMentor() {
 export async function approveUser(userId: string) {
   await requireMentor();
   await prisma.user.update({ where: { id: userId }, data: { status: "APPROVED" } });
+  // Ученик ждал решения — сообщаем на почту, что кабинет открыт.
+  after(async () => {
+    try {
+      await notifyApproved(userId);
+    } catch (error) {
+      console.error("[notify] письмо об открытии доступа не ушло:", error);
+    }
+  });
   revalidatePath("/mentor");
 }
 
@@ -36,6 +46,14 @@ export async function cycleStudentAccess(userId: string) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   if (user.status === "SUSPENDED") {
     await prisma.user.update({ where: { id: userId }, data: { status: "APPROVED", paymentStatus: "PAID" } });
+    // Доступ вернули — ученику стоит об этом знать.
+    after(async () => {
+      try {
+        await notifyApproved(userId);
+      } catch (error) {
+        console.error("[notify] письмо об открытии доступа не ушло:", error);
+      }
+    });
     revalidatePath("/mentor");
     return "OPEN";
   } else if (user.paymentStatus === "PAID") {

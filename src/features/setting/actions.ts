@@ -22,6 +22,22 @@ export async function updateGrapesField(bookId: string, field: GrapesField, valu
   await prisma.book.update({ where: { id: bookId }, data: { [field]: value } });
 }
 
+// Кнопка «добавить сеттинг»: ещё одна таблица GRAPES под основной.
+export async function createGrapesSetting(bookId: string) {
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
+  await requireCabinetAccess(book.studentId);
+  const count = await prisma.grapesSetting.count({ where: { bookId } });
+  return prisma.grapesSetting.create({ data: { bookId, order: count } });
+}
+
+export async function deleteGrapesSetting(settingId: string) {
+  const setting = await prisma.grapesSetting.findUniqueOrThrow({ where: { id: settingId } });
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: setting.bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.grapesSetting.delete({ where: { id: settingId } });
+  await prisma.fieldSuggestion.deleteMany({ where: { model: "GrapesSetting", recordId: settingId } });
+}
+
 const SETTING_TYPE_CHIPS = ["Магнит", "Манифест", "Фильтр"] as const;
 
 export async function toggleSettingChip(bookId: string, chip: string) {

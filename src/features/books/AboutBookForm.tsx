@@ -52,7 +52,7 @@ export default function AboutBookForm({ book, suggestions, comments }: { book: B
           initialPosition={book.bannerPosition ?? "50% 50%"}
           onSavePosition={(pos) => startTransition(() => { void updateBookPhotoPosition(book.id, "bannerPosition", pos); })}
         />
-        <div className="px-6 pb-6 pt-8 flex gap-8 items-start">
+        <div className="px-6 pb-6 pt-8 flex flex-col sm:flex-row gap-8 items-start">
           <CoverCarousel
             recordId={book.id}
             slots={[
@@ -71,7 +71,7 @@ export default function AboutBookForm({ book, suggestions, comments }: { book: B
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
         <TextAreaField label="Референсы" value={book.references} field="references" bookId={book.id} suggestion={suggestions.references} />
         <TextAreaField label="Целевая аудитория" value={book.audience} field="audience" bookId={book.id} suggestion={suggestions.audience} />
         <Field label="Количество частей" value={book.partsCount} field="partsCount" bookId={book.id} suggestion={suggestions.partsCount} />

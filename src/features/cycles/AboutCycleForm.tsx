@@ -66,7 +66,7 @@ export default function AboutCycleForm({ cycle }: { cycle: Cycle }) {
           initialPosition={cycle.bannerPosition ?? "50% 50%"}
           onSavePosition={(pos) => startTransition(() => { void updateCyclePhotoPosition(cycle.id, "bannerPosition", pos); })}
         />
-        <div className="px-6 pb-6 pt-8 flex gap-8 items-start">
+        <div className="px-6 pb-6 pt-8 flex flex-col sm:flex-row gap-8 items-start">
           <CoverCarousel
             recordId={cycle.id}
             slots={[

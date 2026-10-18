@@ -1,0 +1,64 @@
+# Почта платформы
+
+Платформа отправляет письма в четырёх случаях:
+
+| Событие | Кому | Файл |
+|---|---|---|
+| Ученик поработал в своём кабинете | наставнику | `lib/notify.ts` → `notifyMentorOfStudentEdit` |
+| Наставник внёс правки в кабинет ученика | ученику | `lib/notify.ts` → `notifyStudentOfMentorEdit` |
+| Регистрация | ученику («заявка на рассмотрении») и наставнику («новая заявка») | `lib/notify.ts` → `notifyRegistration` |
+| Одобрение заявки / возврат доступа | ученику | `lib/notify.ts` → `notifyApproved` |
+| Запрос «Забыли пароль?» | тому, кто запросил | `lib/notify.ts` → `sendPasswordResetEmail` |
+
+## Переменные окружения
+
+Прописываются в `/srv/studio/app/.env` (600, владелец `studio`). В репозитории
+их нет и быть не должно.
+
+```
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=lizalikiyskaya@gmail.com
+SMTP_PASSWORD=<пароль приложения Google, 16 символов, без пробелов>
+MAIL_FROM="Студия художественной прозы <lizalikiyskaya@gmail.com>"
+APP_URL=https://studio.lizalikiyskaya.ru
+```
+
+Если переменные не заданы, письма просто не отправляются: в лог уходит
+предупреждение, но ни регистрация, ни сохранение текста из-за этого не падают.
+
+Пароль приложения создаётся при включённой двухфакторке:
+myaccount.google.com → Безопасность → Пароли приложений. Тот же пароль
+используется лендингом `lizalikiyskaya.ru` (там он лежит в `/etc/msmtprc`).
+
+## Как часто приходят письма об изменениях
+
+Не чаще одного раза в час на человека: первая правка после «тишины» даёт
+письмо сразу, остальные правки этого часа копятся молча. Час считается по
+полям `User.mentorNotifiedAt` / `User.studentNotifiedAt`, окно занимается
+атомарно — параллельные правки не дадут двух писем.
+
+Каждый может выключить эти письма себе сам: Профиль → «Уведомления на почту»
+(поле `User.emailNotifications`). Письма про регистрацию, доступ и смену
+пароля этим переключателем не отключаются — они транзакционные.
+
+## Восстановление пароля
+
+`/forgot-password` → письмо со ссылкой `/reset-password?token=…`.
+В базе (`PasswordResetToken`) лежит только SHA-256 от токена, ссылка живёт
+час и срабатывает один раз, повторное письмо — не чаще раза в 2 минуты.
+Ответ формы не зависит от того, есть такая почта на платформе или нет.
+
+## Проверка после деплоя
+
+```bash
+# из каталога приложения на сервере, под пользователем studio
+node -e '
+const nodemailer = require("nodemailer");
+require("dotenv").config({ path: "/srv/studio/app/.env" });
+nodemailer.createTransport({
+  host: process.env.SMTP_HOST, port: +process.env.SMTP_PORT, secure: false,
+  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+}).verify().then(() => console.log("SMTP ok")).catch(e => console.error(e));
+'
+```

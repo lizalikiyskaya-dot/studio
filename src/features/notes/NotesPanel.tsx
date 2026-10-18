@@ -433,7 +433,7 @@ export default function NotesPanel({
       {/* overlay + panel */}
       <div
         onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
-        className="fixed inset-0 flex justify-end"
+        className="fixed inset-0 flex justify-end overflow-hidden"
         style={{
           background: open ? "rgba(30,28,24,0.28)" : "transparent",
           opacity: open ? 1 : 0,

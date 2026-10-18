@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { notifyRegistration } from "@/lib/notify";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -36,8 +37,18 @@ export async function POST(request: Request) {
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: { name, email, passwordHash },
+  });
+
+  // Письма — после ответа: регистрация не должна ждать SMTP и не должна
+  // падать, если почта недоступна.
+  after(async () => {
+    try {
+      await notifyRegistration({ id: user.id, name: user.name, email: user.email });
+    } catch (error) {
+      console.error("[notify] письма о регистрации не ушли:", error);
+    }
   });
 
   return NextResponse.json({ ok: true });

@@ -25,9 +25,9 @@ export default function CycleGrapesTable({
   return (
     <div>
       {ROWS.map(({ field, letter, label }) => (
-        <div key={field} className="flex gap-4 py-3 border-b" style={{ borderColor: "var(--rule)" }}>
+        <div key={field} className="flex flex-col sm:flex-row gap-4 py-3 border-b" style={{ borderColor: "var(--rule)" }}>
           <div
-            className="heading w-[180px] flex-shrink-0 font-semibold text-[15px] pr-4 border-r"
+            className="heading w-full sm:w-[180px] flex-shrink-0 font-semibold text-[15px] pr-4 border-r"
             style={{ color: "var(--wine)", borderColor: "var(--rule)" }}
           >
             <span className="font-bold mr-2" style={{ color: "var(--ink)" }}>
