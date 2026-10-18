@@ -5,11 +5,13 @@ import { useState } from "react";
 export default function Subtabs({
   tabs,
   variant = "page",
+  initial = 0,
 }: {
   tabs: { label: string; content: React.ReactNode }[];
   variant?: "page" | "toggle";
+  initial?: number;
 }) {
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(() => (initial >= 0 && initial < tabs.length ? initial : 0));
   const toggle = variant === "toggle";
 
   return (

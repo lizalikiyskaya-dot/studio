@@ -171,6 +171,7 @@ export default function Sidebar({
   const topLinks: TopLink[] = mentorMenuOnly
     ? [
         { key: "students", href: "/mentor", label: "Ученики и заявки", icon: Bookmark, beacon: false, active: pathname === "/mentor" },
+        { key: "guides", href: "/mentor/guides", label: "Методички", icon: BookOpen, beacon: false, active: pathname === "/mentor/guides" || (pathname?.startsWith("/mentor/guides/") ?? false) },
         { key: "profile", href: "/mentor/profile", label: "Мой профиль", icon: Pencil, beacon: false, active: pathname === "/mentor/profile" },
       ]
     : [
@@ -381,6 +382,25 @@ export default function Sidebar({
               <div className="serif deadline-title">{upcoming.title || "Задание"}</div>
               <div className="deadline-when">{formatDeadline(upcoming.deadline)}</div>
             </div>
+          )}
+
+          {mentorMenuOnly && (
+            <nav className="mentor-side-nav side-card !p-2" aria-label="Разделы наставника">
+              {topLinks.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.key}
+                    href={item.href}
+                    className={`nav-item flex items-center gap-2.5 px-3 py-2 text-[14.5px]${item.active ? " active" : ""}`}
+                    style={{ color: "var(--ink)" }}
+                  >
+                    <Icon size={16} />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
           )}
 
           {mentorMenuOnly && (
