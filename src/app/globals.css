@@ -216,8 +216,30 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   flex-direction: column;
   flex-shrink: 0;
 }
-.auth-hero-mark { display: flex; align-items: baseline; gap: 4px; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
-.auth-dot { width: 8px; height: 8px; border-radius: 99px; background: var(--y); transform: translateY(-10px); }
+.wordmark { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); }
+.wordmark-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--deep);
+  color: var(--y);
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 600;
+  font-size: 18px;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.wordmark-name {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.wordmark.lg .wordmark-mark { width: 40px; height: 40px; border-radius: 12px; font-size: 22px; }
+.wordmark.lg .wordmark-name { font-size: 28px; }
 .auth-hero-title { font-size: 46px; font-weight: 600; line-height: 1.05; letter-spacing: -0.03em; max-width: 460px; }
 .auth-blob-y { position: absolute; right: -60px; top: 90px; width: 300px; height: 300px; border-radius: 999px; background: var(--y); }
 .auth-blob-v { position: absolute; right: 170px; top: 110px; width: 70px; height: 70px; border-radius: 999px; background: #a79bff; }
@@ -248,8 +270,8 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   top: 0;
   z-index: 30;
 }
-.studio-logo { display: flex; align-items: baseline; gap: 4px; flex-shrink: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
-.studio-logo .auth-dot { transform: translateY(-8px); }
+.studio-logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; color: var(--ink); }
+.studio-logo-note { font-family: var(--font-sans), system-ui, sans-serif; font-size: 13px; font-weight: 400; color: var(--muted); }
 .studio-topnav { display: flex; align-items: center; gap: 18px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .studio-topnav::-webkit-scrollbar { display: none; }
 .studio-topnav a {

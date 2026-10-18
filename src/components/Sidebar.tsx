@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import CalendarWidget from "./CalendarWidget";
+import Wordmark from "./Wordmark";
 import ToggleSwitch from "./ToggleSwitch";
 import { setReviewMode } from "@/features/reviewMode/actions";
 import { useCanSuggest, useSetCanSuggest } from "@/features/suggestions/SuggestionContext";
@@ -256,11 +257,8 @@ export default function Sidebar({
     <div className="studio-shell">
       <header className="studio-topbar">
         <Link href={mentorMenuOnly ? "/mentor" : `${basePath}/tasks`} className="studio-logo">
-          Ликийская
-          <span className="auth-dot" />
-          {mentorMenuOnly && (
-            <span className="ml-2 text-[13px] font-normal" style={{ color: "var(--muted)" }}>кабинет наставника</span>
-          )}
+          <Wordmark />
+          {mentorMenuOnly && <span className="studio-logo-note">кабинет наставника</span>}
         </Link>
         <nav className={`studio-topnav${desktopCollapsed && !mentorMenuOnly ? " is-collapsed" : ""}`} aria-label="Разделы">
           {headerLinks.map((item) => {

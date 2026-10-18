@@ -16,8 +16,8 @@ const literata = Literata({
 });
 
 export const metadata: Metadata = {
-  title: "Студия художественной прозы Лизы Ликийской",
-  description: "Личный кабинет ученика",
+  title: "Андреенко — студия художественной прозы",
+  description: "Личный кабинет студии художественной прозы",
 };
 
 export default function RootLayout({

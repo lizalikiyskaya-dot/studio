@@ -142,10 +142,8 @@ export function renderEmail(options: {
             <td bgcolor="#E6ECFF" style="background-color:#E6ECFF;background-image:linear-gradient(180deg,#E3F6EF,#E6ECFF);border-radius:28px;padding:28px 32px 26px;">
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="font-family:${FONT_UI};font-size:22px;font-weight:700;letter-spacing:-0.02em;color:#202020;">Ликийская</td>
-                  <td valign="top" style="padding:4px 0 0 6px;">
-                    <div style="width:8px;height:8px;background:#FFD43B;border-radius:99px;font-size:0;line-height:0;">&nbsp;</div>
-                  </td>
+                  <td width="34" height="34" align="center" valign="middle" bgcolor="#2B2D5C" style="width:34px;height:34px;background:#2B2D5C;border-radius:10px;font-family:${FONT_SERIF};font-size:18px;font-weight:600;line-height:34px;color:#FFD43B;text-align:center;">А</td>
+                  <td style="padding-left:10px;font-family:${FONT_SERIF};font-size:22px;font-weight:600;letter-spacing:-0.03em;line-height:1;color:#202020;">Андреенко</td>
                 </tr>
               </table>
               <div style="margin-top:16px;font-family:${FONT_SERIF};font-size:22px;line-height:1.25;color:#202020;">Студия художественной прозы</div>

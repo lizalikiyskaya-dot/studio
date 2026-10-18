@@ -1,13 +1,13 @@
 import { BookOpen, MessageSquareText, ScrollText } from "lucide-react";
+import Wordmark from "@/components/Wordmark";
 
 export default function AuthShowcase() {
   return (
     <aside className="auth-hero">
       <div className="auth-blob-y" />
       <div className="auth-blob-v" />
-      <div className="auth-hero-mark relative z-10">
-        Ликийская
-        <span className="auth-dot" />
+      <div className="relative z-10">
+        <Wordmark size="lg" />
       </div>
       <div className="auth-quote">
         <div className="text-[12px]" style={{ color: "var(--muted)" }}>Комментарий наставника</div>
