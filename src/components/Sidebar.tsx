@@ -140,6 +140,18 @@ export default function Sidebar({
     setMobileOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    const chrome = document.querySelector<HTMLElement>(".studio-chrome");
+    if (!chrome) return;
+    const apply = () => {
+      document.documentElement.style.setProperty("--chrome-h", `${Math.ceil(chrome.getBoundingClientRect().height)}px`);
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(chrome);
+    return () => observer.disconnect();
+  }, []);
+
   function toggleCollapsed() {
     setCollapsed((v) => {
       const next = !v;
@@ -240,8 +252,27 @@ export default function Sidebar({
       ? STORY_WORKSHOP_ITEMS
       : null;
 
+  const mentorBar = mentorViewLabel ? (
+    <div className="mentor-bar">
+      <Link href="/mentor"><ArrowLeft size={16} /> к ученикам</Link>
+      <span style={{ color: "rgba(255,255,255,0.4)" }}>·</span>
+      <span>Вы в кабинете ученицы <b className="font-semibold">{mentorViewLabel}</b></span>
+      {studentId && isMentor && (
+        <span className="mentor-review">
+          <span style={{ color: "rgba(255,255,255,0.7)" }}>Режим правок</span>
+          <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
+          <span className="text-[13px]" style={{ color: "rgba(255,255,255,0.7)" }}>
+            {reviewMode ? "правки сохраняются как предложения" : "правки сохраняются сразу"}
+          </span>
+        </span>
+      )}
+    </div>
+  ) : null;
+
   return (
-    <div className="studio-shell">
+    <div className={`studio-shell${mentorViewLabel ? " has-mentor" : ""}`}>
+      <div className="studio-chrome">
+        {mentorBar}
       <header className="studio-topbar">
         <Link href={mentorMenuOnly ? "/mentor" : `${basePath}/tasks`} className="studio-logo">
           <Wordmark />
@@ -289,23 +320,7 @@ export default function Sidebar({
           </button>
         </div>
       </header>
-
-          {mentorViewLabel && (
-        <div className="mentor-bar">
-          <Link href="/mentor"><ArrowLeft size={16} /> к ученикам</Link>
-          <span style={{ color: "rgba(255,255,255,0.4)" }}>·</span>
-          <span>Вы в кабинете ученицы <b className="font-semibold">{mentorViewLabel}</b></span>
-          {studentId && isMentor && (
-            <span className="mentor-review">
-              <span style={{ color: "rgba(255,255,255,0.7)" }}>Режим правок</span>
-              <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
-              <span className="text-[13px]" style={{ color: "rgba(255,255,255,0.7)" }}>
-                {reviewMode ? "правки сохраняются как предложения" : "правки сохраняются сразу"}
-              </span>
-            </span>
-          )}
-        </div>
-      )}
+      </div>
 
       <div className="studio-body">
         <aside id="studio-navigation" className={`studio-sidebar${mobileOpen ? " mobile-open" : ""}${desktopCollapsed && !mentorMenuOnly ? " is-collapsed" : ""}`}>

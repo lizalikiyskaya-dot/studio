@@ -374,6 +374,12 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 .auth-card { width: 100%; max-width: 380px; }
 
 .studio-shell { min-height: 100vh; background: #fff; display: flex; flex-direction: column; }
+.studio-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #fff;
+}
 .studio-topbar {
   height: 64px;
   padding: 0 24px;
@@ -382,9 +388,7 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   gap: 22px;
   border-bottom: 1px solid var(--line);
   background: #fff;
-  position: sticky;
-  top: 0;
-  z-index: 30;
+  position: relative;
   overflow: visible;
 }
 .studio-logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; color: var(--ink); }
@@ -465,10 +469,13 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   padding: 8px 40px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 8px 16px;
   background: var(--deep);
   color: #fff;
   font-size: 14px;
+  position: relative;
+  z-index: 1;
 }
 .mentor-bar a { color: var(--y); font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
 .mentor-review { margin-left: auto; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
@@ -485,14 +492,18 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   gap: 12px;
   align-self: flex-start;
   position: sticky;
-  top: 96px;
-  max-height: calc(100vh - 120px);
+  top: calc(var(--chrome-h, 64px) + 32px);
+  max-height: calc(100vh - var(--chrome-h, 64px) - 56px);
   overflow: auto;
 }
 .collapse-desktop { display: none; }
 @media (min-width: 981px) {
   .studio-sidebar.is-collapsed { display: none; }
   .collapse-desktop { display: grid; }
+  .studio-shell.has-mentor .studio-sidebar {
+    top: calc(var(--chrome-h, 112px) + 32px);
+    max-height: calc(100vh - var(--chrome-h, 112px) - 56px);
+  }
 }
 .side-card { border-radius: 16px; background: #fff; padding: 14px; }
 .deadline-card {

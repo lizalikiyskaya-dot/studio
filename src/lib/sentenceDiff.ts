@@ -108,7 +108,10 @@ function groupChanges(tokens: DiffToken[]): DiffToken[] {
   let adds: DiffToken[] = [];
 
   const flush = () => {
-    out.push(...dels, ...adds);
+    const deleted = dels.map((token) => token.text).join("");
+    const added = adds.map((token) => token.text).join("");
+    if (deleted && added) out.push(...withoutSharedEdges(deleted, added));
+    else out.push(...dels, ...adds);
     dels = [];
     adds = [];
   };
@@ -125,4 +128,67 @@ function groupChanges(tokens: DiffToken[]): DiffToken[] {
   }
   flush();
   return out;
+}
+
+/**
+ * Общий край изменённого куска показываем один раз.
+ * Иначе замена «Роман, северная проза» → «Роман, северная проза…новое»
+ * рисуется как зачёркнутое старое плюс то же старое внутри нового.
+ * Режем только по границе слова, чтобы не дробить литературный текст.
+ */
+function withoutSharedEdges(deleted: string, added: string): DiffToken[] {
+  let prefix = sharedPrefix(deleted, added);
+  if (prefix > 0 && prefix < deleted.length && prefix < added.length) {
+    prefix = wordBoundaryPrefix(deleted, prefix);
+  }
+  let suffix = sharedSuffix(deleted, added, prefix);
+  if (suffix > 0 && prefix + suffix < deleted.length && prefix + suffix < added.length) {
+    suffix = wordBoundarySuffix(deleted, suffix);
+  }
+
+  if (prefix === 0 && suffix === 0) {
+    return [
+      { type: "del", text: deleted },
+      { type: "add", text: added },
+    ];
+  }
+
+  const tokens: DiffToken[] = [];
+  if (prefix > 0) tokens.push({ type: "same", text: deleted.slice(0, prefix) });
+  const deletedMiddle = deleted.slice(prefix, deleted.length - suffix);
+  const addedMiddle = added.slice(prefix, added.length - suffix);
+  if (deletedMiddle) tokens.push({ type: "del", text: deletedMiddle });
+  if (addedMiddle) tokens.push({ type: "add", text: addedMiddle });
+  if (suffix > 0) tokens.push({ type: "same", text: deleted.slice(deleted.length - suffix) });
+  return tokens;
+}
+
+function sharedPrefix(a: string, b: string) {
+  const limit = Math.min(a.length, b.length);
+  let i = 0;
+  while (i < limit && a[i] === b[i]) i++;
+  return i;
+}
+
+function sharedSuffix(a: string, b: string, prefix: number) {
+  const limit = Math.min(a.length, b.length) - prefix;
+  let i = 0;
+  while (i < limit && a[a.length - 1 - i] === b[b.length - 1 - i]) i++;
+  return i;
+}
+
+function wordBoundaryPrefix(text: string, index: number) {
+  if (index <= 0) return 0;
+  if (/\s/.test(text[index] ?? "") || /\s/.test(text[index - 1] ?? "")) return index;
+  const space = text.lastIndexOf(" ", index);
+  return space === -1 ? 0 : space + 1;
+}
+
+function wordBoundarySuffix(text: string, suffix: number) {
+  const start = text.length - suffix;
+  if (start <= 0) return suffix;
+  if (/\s/.test(text[start] ?? "") || /\s/.test(text[start - 1] ?? "")) return suffix;
+  const space = text.indexOf(" ", start);
+  if (space === -1) return 0;
+  return text.length - space;
 }

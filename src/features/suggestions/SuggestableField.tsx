@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, type CSSProperties } from "react";
 import { Check, X } from "lucide-react";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { saveFieldOrSuggest, acceptFieldSuggestion, rejectFieldSuggestion } from "./actions";
@@ -87,25 +87,28 @@ export default function SuggestableField({
     return (
       <div className="rounded-sm p-2.5" style={{ border: "1px solid var(--rule)" }}>
         <span className="whitespace-pre-wrap">
-          {tokens.map((t, i) =>
-            t.type === "same" ? (
-              <span key={i}>{t.text}</span>
-            ) : t.type === "del" ? (
-              <span
-                key={i}
-                style={{ textDecoration: "line-through", textDecorationColor: "var(--wine)", color: "var(--faded)" }}
-              >
+          {tokens.map((t, i) => {
+            const prev = tokens[i - 1];
+            const separated =
+              !!prev &&
+              prev.type !== "same" &&
+              t.type !== "same" &&
+              prev.type !== t.type &&
+              !/\s$/.test(prev.text) &&
+              !/^\s/.test(t.text);
+            const style: CSSProperties =
+              t.type === "del"
+                ? { textDecoration: "line-through", textDecorationColor: "var(--wine)", color: "var(--faded)" }
+                : t.type === "add"
+                  ? { textDecoration: "underline wavy", textDecorationColor: "var(--wine)", color: "var(--wine)" }
+                  : {};
+            if (separated) style.marginLeft = "0.35em";
+            return (
+              <span key={i} style={style}>
                 {t.text}
               </span>
-            ) : (
-              <span
-                key={i}
-                style={{ textDecoration: "underline wavy", textDecorationColor: "var(--wine)", color: "var(--wine)" }}
-              >
-                {t.text}
-              </span>
-            )
-          )}
+            );
+          })}
         </span>
         <div className="mt-1.5 flex items-center gap-2">
           <button
