@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import MaterialsList from "./MaterialsList";
+import PageHeader from "@/components/PageHeader";
 
 export default async function MaterialsView({
   studentId,
@@ -15,10 +16,10 @@ export default async function MaterialsView({
 
   return (
     <div>
-      <h1 className="page-title text-[24px] font-semibold mb-2">Материалы</h1>
-      <p className="text-[13px] mb-6" style={{ color: "var(--faded)" }}>
-        Статус кликабелен: не прочитано → в процессе → прочитано.
-      </p>
+      <PageHeader
+        title="Материалы"
+        description="Книги и методички от Лизы. Отмечайте, что уже прочитано."
+      />
       <MaterialsList studentId={studentId} initialMaterials={materials} canManage={canManage} />
     </div>
   );

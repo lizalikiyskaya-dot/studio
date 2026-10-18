@@ -9,6 +9,7 @@ import ExtraGrapesList from "./ExtraGrapesList";
 import SettingTypeSection from "./SettingTypeSection";
 import FantasySection from "./FantasySection";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
+import PageHeader from "@/components/PageHeader";
 
 export default async function SettingView({
   studentId,
@@ -24,7 +25,7 @@ export default async function SettingView({
   if (!activeBook) {
     return (
       <div>
-        <h1 className="page-title text-[24px] font-semibold mb-6">Сеттинг</h1>
+        <PageHeader title="Сеттинг" description="Мир книги по методу GRAPES, тип сеттинга и, если нужно, фэнтези-мир." />
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -83,8 +84,11 @@ export default async function SettingView({
 
   return (
     <div>
-      <BookSelect books={books} activeBookId={activeBook.id} />
-      <h1 className="page-title text-[24px] font-semibold mb-6">Сеттинг</h1>
+      <PageHeader
+        title="Сеттинг"
+        description="Мир книги по методу GRAPES, тип сеттинга и, если нужно, фэнтези-мир."
+        actions={<BookSelect books={books} activeBookId={activeBook.id} compact />}
+      />
       <Subtabs tabs={tabs} />
     </div>
   );

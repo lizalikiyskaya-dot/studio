@@ -6,6 +6,7 @@ import type { Story, CycleCharacter, CycleWorldEntry, StoryCharacter, StoryWorld
 import { createStory, createStandaloneStory, deleteStory } from "./actions";
 import StoryDetail from "./StoryDetail";
 import { Button } from "@/components/ui/Button";
+import { useHeaderAction } from "@/components/headerAction";
 
 type CycleSettingSnap = {
   grapesGeography: string;
@@ -29,6 +30,7 @@ export default function StoriesList({
   storyCharacters,
   storyWorldEntries,
   cycleSetting,
+  headerAdd = false,
 }: {
   cycleId: string | null;
   studentId: string;
@@ -38,6 +40,7 @@ export default function StoriesList({
   storyCharacters: StoryCharacter[];
   storyWorldEntries: StoryWorldEntry[];
   cycleSetting?: CycleSettingSnap;
+  headerAdd?: boolean;
 }) {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(stories[0]?.id ?? null);
@@ -50,6 +53,7 @@ export default function StoriesList({
       router.refresh();
     });
   }
+  useHeaderAction(headerAdd ? "story-add" : "story-add-inline", handleAdd);
 
   function handleDelete(storyId: string) {
     if (!window.confirm("Удалить рассказ? Это нельзя отменить.")) return;
@@ -77,9 +81,11 @@ export default function StoriesList({
             {story.title || "Без названия"}
           </button>
         ))}
-        <Button onClick={handleAdd} variant="success" size="sm" pill>
-          + новый рассказ
-        </Button>
+        {!headerAdd && (
+          <Button onClick={handleAdd} variant="success" size="sm" pill>
+            + новый рассказ
+          </Button>
+        )}
       </div>
 
       {stories

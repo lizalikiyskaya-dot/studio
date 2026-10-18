@@ -55,98 +55,76 @@ export default async function MentorPage() {
   const dateLabel = today.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" });
 
   return (
-    <div>
-      <div className="text-[14px] capitalize" style={{ color: "var(--muted)" }}>{dateLabel}</div>
-      <h1 className="page-title mt-1 mb-2">Ученики</h1>
-      <p className="text-[15.5px] mb-6 max-w-[640px]" style={{ color: "var(--ink2)" }}>
-        Новые ученики попадают сюда после регистрации и получают доступ в
-        личный кабинет только после одобрения.
-      </p>
+    <div className="mentor-layout">
+      <aside className="flex flex-col gap-4">
+        <section className="sheet p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="serif text-[18px] font-medium">Новые заявки</h2>
+            {pending.length > 0 && (
+              <span className="rounded-full px-2 text-[12px] font-semibold text-white" style={{ background: "var(--v)" }}>{pending.length}</span>
+            )}
+          </div>
+          {pending.length === 0 && <p className="text-[13.5px]" style={{ color: "var(--muted)" }}>Новых заявок нет.</p>}
+          <div className="flex flex-col gap-3">
+            {pending.map((u) => (
+              <div key={u.id} className="rounded-[16px] p-3" style={{ background: "#F7FBF8" }}>
+                <div className="text-[14.5px] font-semibold">{u.name}</div>
+                <div className="text-[12.5px] truncate" style={{ color: "var(--muted)" }}>{u.email}</div>
+                <div className="mt-2 flex items-center gap-3">
+                  <form action={approveUser.bind(null, u.id)}>
+                    <Button variant="primary" pill>Одобрить</Button>
+                  </form>
+                  <form action={rejectUser.bind(null, u.id)}>
+                    <button type="submit" className="text-[13.5px]" style={{ color: "var(--muted)" }}>Отклонить</button>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="sheet p-4">
+          <h2 className="serif text-[18px] font-medium mb-2">Недавние решения</h2>
+          {decided.slice(0, 6).map((u) => (
+            <div key={u.id} className="flex items-center gap-2 py-2" style={{ borderTop: "1px solid var(--line)" }}>
+              <span className="text-[13.5px] truncate">{u.name}</span>
+              <Badge tone={u.status === "APPROVED" ? "success" : "danger"}>{u.status === "APPROVED" ? "одобрено" : "отклонено"}</Badge>
+            </div>
+          ))}
+        </section>
+        <p className="text-[13px] leading-snug px-1" style={{ color: "var(--muted)" }}>
+          Письма о новых заявках и сданных работах будут приходить на почту <span className="soon">скоро</span>
+        </p>
+      </aside>
 
-      <div className="flex gap-3 mb-8 flex-wrap">
-        <div className="rounded-[20px] px-5 py-3.5 text-white" style={{ background: "var(--deep)", flex: "1 1 160px" }}>
-          <div className="text-[13px] text-white/70">Учеников</div>
-          <div className="mt-1 text-[28px] font-semibold leading-none">{students.length}</div>
-          <div className="mt-2 text-[12.5px] text-white/70">{onlineCount} сейчас онлайн</div>
-        </div>
-        <div className="rounded-[20px] px-5 py-3.5" style={{ background: "var(--soft)", flex: "1 1 160px" }}>
-          <div className="text-[13px]" style={{ color: "var(--muted)" }}>Доступ открыт</div>
-          <div className="mt-1 text-[28px] font-semibold leading-none">{openCount}</div>
-          <div className="mt-2 text-[12.5px]" style={{ color: "var(--ink2)" }}>{awaitingCount} ожидает оплаты · {suspendedCount} закрыт</div>
-        </div>
-        <div className="rounded-[20px] px-5 py-3.5" style={{ background: "var(--soft)", flex: "1 1 160px" }}>
-          <div className="text-[13px]" style={{ color: "var(--muted)" }}>Оплаты на этой неделе</div>
-          <div className="mt-1 text-[28px] font-semibold leading-none">{paymentsThisWeek.length}</div>
-          <div className="mt-2 text-[12.5px]" style={{ color: "var(--ink2)" }}>
-            {paymentsThisWeek.length ? paymentsThisWeek.map((s) => `${s.paymentDay}-го`).join(" и ") : "нет дат на этой неделе"}
+      <div>
+        <div className="text-[14px] capitalize" style={{ color: "var(--muted)" }}>{dateLabel}</div>
+        <h1 className="page-title mt-1 mb-5">Ученики</h1>
+        <div className="flex gap-3 mb-6 flex-wrap">
+          <div className="rounded-[20px] px-5 py-3.5 text-white" style={{ background: "var(--deep)", flex: "1 1 150px" }}>
+            <div className="text-[13px] text-white/70">Учеников</div>
+            <div className="mt-1 text-[28px] font-semibold leading-none">{students.length}</div>
+            <div className="mt-2 text-[12.5px] text-white/70">{onlineCount} сейчас онлайн</div>
+          </div>
+          <div className="rounded-[20px] px-5 py-3.5" style={{ background: "var(--soft)", flex: "1 1 150px" }}>
+            <div className="text-[13px]" style={{ color: "var(--muted)" }}>Доступ открыт</div>
+            <div className="mt-1 text-[28px] font-semibold leading-none">{openCount}</div>
+            <div className="mt-2 text-[12.5px]" style={{ color: "var(--ink2)" }}>{awaitingCount} ожидает оплаты · {suspendedCount} закрыт</div>
+          </div>
+          <div className="rounded-[20px] px-5 py-3.5" style={{ background: "var(--soft)", flex: "1 1 150px" }}>
+            <div className="text-[13px]" style={{ color: "var(--muted)" }}>Оплаты на этой неделе</div>
+            <div className="mt-1 text-[28px] font-semibold leading-none">{paymentsThisWeek.length}</div>
+            <div className="mt-2 text-[12.5px]" style={{ color: "var(--ink2)" }}>
+              {paymentsThisWeek.length ? paymentsThisWeek.map((s) => `${s.paymentDay}-го`).join(" и ") : "нет дат на этой неделе"}
+            </div>
+          </div>
+          <div className="rounded-[20px] px-5 py-3.5" style={{ background: "var(--soft)", flex: "1 1 150px" }}>
+            <div className="text-[13px]" style={{ color: "var(--muted)" }}>Свежие правки</div>
+            <div className="mt-1 text-[28px] font-semibold leading-none">{freshEdits}</div>
+            <div className="mt-2 text-[12.5px]" style={{ color: "var(--ink2)" }}>за последние сутки</div>
           </div>
         </div>
-        <div className="rounded-[20px] px-5 py-3.5" style={{ background: "var(--soft)", flex: "1 1 160px" }}>
-          <div className="text-[13px]" style={{ color: "var(--muted)" }}>Свежие правки</div>
-          <div className="mt-1 text-[28px] font-semibold leading-none">{freshEdits}</div>
-          <div className="mt-2 text-[12.5px]" style={{ color: "var(--ink2)" }}>непросмотренные изменения</div>
-        </div>
+        <StudentsList initialStudents={studentsWithBeacons} />
       </div>
-
-      <h2 className="heading text-[18px] font-semibold mb-3">
-        Ожидают решения ({pending.length})
-      </h2>
-
-      {pending.length === 0 && (
-        <p className="text-[14px] mb-8" style={{ color: "var(--muted)" }}>
-          Новых заявок нет.
-        </p>
-      )}
-
-      <table className="mentor-table w-full mb-10" style={{ borderCollapse: "collapse" }}>
-        <tbody>
-          {pending.map((u) => (
-            <tr key={u.id} style={{ borderBottom: "1px solid var(--rule)" }}>
-              <td className="py-2.5 pr-3 text-[13.5px]">{u.name}</td>
-              <td className="py-2.5 pr-3 text-[13.5px]" style={{ color: "var(--ink-soft)" }}>
-                {u.email}
-              </td>
-              <td className="py-2.5 text-right">
-                <form action={approveUser.bind(null, u.id)} className="inline">
-                  <Button variant="primary" pill className="mr-2">
-                    Одобрить
-                  </Button>
-                </form>
-                <form action={rejectUser.bind(null, u.id)} className="inline">
-                  <Button variant="secondary" pill>Отклонить</Button>
-                </form>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <h2 className="heading text-[18px] font-semibold mb-3">
-        Ученики ({students.length})
-      </h2>
-
-      <StudentsList initialStudents={studentsWithBeacons} />
-
-      <h2 className="heading text-[18px] font-semibold mb-3">
-        Недавние решения
-      </h2>
-      <table className="mentor-table w-full">
-        <tbody>
-          {decided.map((u) => (
-            <tr key={u.id} style={{ borderBottom: "1px solid var(--rule)" }}>
-              <td className="py-2.5 pr-3 text-[13.5px]">{u.name}</td>
-              <td className="py-2.5 pr-3 text-[13.5px]" style={{ color: "var(--ink-soft)" }}>
-                {u.email}
-              </td>
-              <td className="py-2.5 text-right">
-                <Badge tone={u.status === "APPROVED" ? "success" : "danger"}>
-                  {u.status === "APPROVED" ? "одобрено" : "отклонено"}
-                </Badge>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

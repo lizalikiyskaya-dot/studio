@@ -1,9 +1,27 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { X } from "lucide-react";
+import { MessageCircle, Send, X } from "lucide-react";
 import type { Comment } from "@/generated/prisma/client";
 import { addComment, updateComment, deleteComment, type CommentableModel } from "./actions";
+
+function initials(author: string) {
+  const parts = author.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("");
+}
+
+function when(date: Date | string) {
+  const value = new Date(date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(value);
+  target.setHours(0, 0, 0, 0);
+  const diff = Math.round((today.getTime() - target.getTime()) / 86400000);
+  if (diff === 0) return "сегодня";
+  if (diff === 1) return "вчера";
+  return value.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+}
 
 function ChatInput({
   placeholder,
@@ -11,12 +29,14 @@ function ChatInput({
   onSubmit,
   onCancel,
   autoFocus,
+  submitLabel,
 }: {
   placeholder: string;
   defaultValue?: string;
   onSubmit: (text: string) => void;
   onCancel?: () => void;
   autoFocus?: boolean;
+  submitLabel?: string;
 }) {
   const [text, setText] = useState(defaultValue ?? "");
 
@@ -24,11 +44,11 @@ function ChatInput({
     const trimmed = text.trim();
     if (!trimmed) return;
     onSubmit(trimmed);
-    setText("");
+    if (!defaultValue) setText("");
   }
 
   return (
-    <div className="flex items-end gap-1.5">
+    <div className="flex items-end gap-2">
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -43,19 +63,21 @@ function ChatInput({
         placeholder={placeholder}
         rows={1}
         autoFocus={autoFocus}
-        className="flex-1 outline-none bg-transparent text-[13px] leading-relaxed resize-none rounded-sm px-2 py-1.5"
-        style={{ border: "1px solid var(--rule)" }}
+        className="fld flex-1 !h-auto min-h-11 py-2.5 resize-none"
       />
       <button
+        type="button"
         onClick={submit}
-        className="text-[12px] px-2.5 py-1.5 rounded-sm flex-shrink-0"
-        style={{ background: "var(--sage)", color: "#fff" }}
+        className="btn-y shrink-0 px-4 text-[14px]"
+        style={{ height: 44, width: "auto" }}
+        aria-label={submitLabel ?? "Отправить"}
       >
-        ↵
+        <Send size={16} />
+        {submitLabel ? <span>{submitLabel}</span> : null}
       </button>
       {onCancel && (
-        <button onClick={onCancel} className="px-1 flex-shrink-0" style={{ color: "var(--faded)" }}>
-          <X size={13} />
+        <button type="button" onClick={onCancel} className="h-11 px-2 shrink-0" style={{ color: "var(--muted)" }} aria-label="Отмена">
+          <X size={16} />
         </button>
       )}
     </div>
@@ -95,50 +117,59 @@ export default function CommentsBlock({
   }
 
   return (
-    <div className="mt-3 pt-3 border-t" style={{ borderColor: "var(--rule)" }}>
-      {comments.map((c) => (
-        <div key={c.id} className="mb-2 pl-2.5 group" style={{ borderLeft: "2px solid var(--wine)" }}>
-          <div className="flex items-center justify-between gap-2">
-            <div className="font-mono-label text-[9.5px]" style={{ color: "var(--faded)" }}>
-              {c.author}, {new Date(c.createdAt).toLocaleDateString("ru-RU")}
-            </div>
-            {editingId !== c.id && (
-              <div className="flex gap-2 flex-shrink-0">
-                <button
-                  onClick={() => setEditingId(c.id)}
-                  className="font-mono-label text-[9px]"
-                  style={{ color: "var(--sage)" }}
-                >
-                  изм.
-                </button>
-                <button
-                  onClick={() => handleDelete(c.id)}
-                  className="font-mono-label text-[9px]"
-                  style={{ color: "var(--wine)" }}
-                >
-                  удал.
-                </button>
+    <div className="mt-4 rounded-[18px] p-4" style={{ background: "var(--soft)" }}>
+      <div className="flex items-center gap-1.5 text-[13px] font-semibold">
+        <MessageCircle size={14} />
+        Комментарии · {comments.length}
+      </div>
+      <div className="mt-3 flex flex-col gap-3">
+        {comments.map((comment) => {
+          const mentor = /настав/i.test(comment.author);
+          return (
+            <div key={comment.id} className="flex gap-2.5">
+              <div
+                className="avatar"
+                style={{
+                  width: 28,
+                  height: 28,
+                  fontSize: 10.5,
+                  background: mentor ? "var(--deep)" : "#CDEFE2",
+                  color: mentor ? "#fff" : "#1C6B4F",
+                }}
+              >
+                {initials(comment.author)}
               </div>
-            )}
-          </div>
-          {editingId === c.id ? (
-            <div className="mt-1">
-              <ChatInput
-                placeholder="Изменить комментарий..."
-                defaultValue={c.text}
-                onSubmit={(text) => handleEdit(c.id, text)}
-                onCancel={() => setEditingId(null)}
-                autoFocus
-              />
+              <div className="min-w-0 flex-1">
+                <div className="text-[12.5px]">
+                  <b className="font-semibold">{comment.author}</b>
+                  <span style={{ color: "var(--muted)" }}> · {when(comment.createdAt)}</span>
+                </div>
+                {editingId === comment.id ? (
+                  <div className="mt-1.5">
+                    <ChatInput
+                      placeholder="Изменить комментарий..."
+                      defaultValue={comment.text}
+                      onSubmit={(text) => handleEdit(comment.id, text)}
+                      onCancel={() => setEditingId(null)}
+                      autoFocus
+                      submitLabel="Сохранить"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="mt-0.5 text-[13.5px] leading-snug whitespace-pre-wrap">{comment.text}</div>
+                    <div className="mt-1 flex gap-3 text-[12.5px]">
+                      <button type="button" className="lnk" onClick={() => setEditingId(comment.id)}>изменить</button>
+                      <button type="button" style={{ color: "var(--muted)" }} onClick={() => handleDelete(comment.id)}>удалить</button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          ) : (
-            <div className="text-[13px] italic mt-0.5 whitespace-pre-wrap" style={{ color: "var(--ink-soft)" }}>
-              {c.text}
-            </div>
-          )}
-        </div>
-      ))}
-      <div className="mt-1.5">
+          );
+        })}
+      </div>
+      <div className="mt-3">
         <ChatInput placeholder="+ комментарий..." onSubmit={handleAdd} />
       </div>
     </div>

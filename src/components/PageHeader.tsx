@@ -1,0 +1,21 @@
+import type { ReactNode } from "react";
+
+export default function PageHeader({
+  title,
+  description,
+  actions,
+}: {
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="page-head">
+      <div className="min-w-0">
+        <h1 className="page-title">{title}</h1>
+        {description ? <p className="page-lead">{description}</p> : null}
+      </div>
+      {actions ? <div className="page-actions">{actions}</div> : null}
+    </div>
+  );
+}

@@ -223,6 +223,14 @@ export default function AdditionalList({
 
   return (
     <div>
+      <div className="flex gap-2.5 mb-4">
+        <Button onClick={() => handleAdd("TEXT")} variant="secondary" size="sm" pill>
+          + текст
+        </Button>
+        <Button onClick={() => handleAdd("TABLE")} variant="secondary" size="sm" pill>
+          + таблица
+        </Button>
+      </div>
       {sections.map((section) => (
         <Accordion
           key={section.id}
@@ -252,14 +260,6 @@ export default function AdditionalList({
         </Accordion>
       ))}
 
-      <div className="flex gap-2.5">
-        <Button onClick={() => handleAdd("TEXT")} variant="dashed" size="sm" pill>
-          + текст (вопрос-ответ)
-        </Button>
-        <Button onClick={() => handleAdd("TABLE")} variant="dashed" size="sm" pill>
-          + таблица
-        </Button>
-      </div>
     </div>
   );
 }

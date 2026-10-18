@@ -438,6 +438,9 @@ model Act {
   title    String       @default("")
   subtitle String       @default("")
   content  String       @default("")
+  // Пустая строка — статус доски считается по трекеру глав.
+  // Иначе: ACCEPTED | IN_PROGRESS | AHEAD.
+  status   String       @default("")
   chapters ActChapter[]
 }
 
@@ -459,6 +462,8 @@ model StorylineBlock {
   color       String     @default("pink")
   name        String     @default("")
   description String     @default("")
+  // Сколько колонок глав занимает сцена, начиная с chapterId. 1 — как раньше.
+  span        Int        @default(1)
 }
 
 model WorkPlan {

@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { X } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { Trash2 } from "lucide-react";
 import type { Submission, SubmissionType, SubmissionStatus } from "@/generated/prisma/client";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import LinkCell from "@/components/LinkCell";
 import DateField from "@/components/DateField";
-import { Button } from "@/components/ui/Button";
 import { createSubmission, deleteSubmission, updateSubmissionField, cycleSubmissionStatus } from "./actions";
 
 const STATUS_LABEL: Record<SubmissionStatus, string> = {
@@ -26,15 +25,17 @@ export default function SubmissionsTable({
   studentId,
   type,
   initial,
+  registerAdd,
 }: {
   studentId: string;
   type: SubmissionType;
   initial: Submission[];
+  registerAdd?: (fn: () => void) => void;
 }) {
   const [rows, setRows] = useState(initial);
   const [, startTransition] = useTransition();
 
-  const targetLabel = type === "CONTEST" ? "Конкурс" : "Издательство";
+  const targetLabel = type === "CONTEST" ? "Название конкурса" : "Издательство";
 
   function handleAdd() {
     startTransition(async () => {
@@ -42,6 +43,10 @@ export default function SubmissionsTable({
       setRows((prev) => [...prev, row]);
     });
   }
+
+  useEffect(() => {
+    registerAdd?.(handleAdd);
+  });
 
   function handleDelete(id: string) {
     if (!window.confirm("Удалить заявку?")) return;
@@ -60,96 +65,49 @@ export default function SubmissionsTable({
     startTransition(async () => { await cycleSubmissionStatus(id); });
   }
 
-  const labelCls = "text-[9px] font-mono-label uppercase tracking-wide mb-1.5";
-
   return (
-    <div>
-      <div className="flex flex-col gap-3 mb-4">
-        {rows.length === 0 && (
-          <p className="text-[13px]" style={{ color: "var(--faded)" }}>Пока нет заявок.</p>
-        )}
-        {rows.map((row) => (
-          <div
-            key={row.id}
-            className="rounded-[14px] px-5 py-4"
-            style={{ border: "1px solid var(--rule)", background: "var(--paper-light)" }}
-          >
-            <div className="record-fields flex items-start gap-4">
-              {/* target */}
-              <div className="flex-shrink-0" style={{ minWidth: 180, maxWidth: 220 }}>
-                <div className={labelCls} style={{ color: "var(--faded)" }}>{targetLabel}</div>
-                <AutoGrowTextarea
-                  defaultValue={row.target}
-                  onBlur={(v) => handleField(row.id, "target", v)}
-                  placeholder={type === "CONTEST" ? "название конкурса" : "название издательства"}
-                  className="w-full outline-none bg-transparent text-[13.5px] leading-snug font-semibold"
-                />
-              </div>
-
-              <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
-
-              {/* work */}
-              <div className="flex-1 min-w-0">
-                <div className={labelCls} style={{ color: "var(--faded)" }}>Произведение</div>
-                <AutoGrowTextarea
-                  defaultValue={row.work}
-                  onBlur={(v) => handleField(row.id, "work", v)}
-                  placeholder="что отправлено"
-                  className="w-full outline-none bg-transparent text-[13.5px] leading-snug"
-                />
-              </div>
-
-              <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
-
-              {/* date */}
-              <div className="flex-shrink-0" style={{ width: 128 }}>
-                <div className={labelCls} style={{ color: "var(--faded)" }}>Дата подачи</div>
-                <DateField value={row.date} onChange={(v) => handleField(row.id, "date", v)} />
-              </div>
-
-              <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
-
-              {/* note */}
-              <div style={{ minWidth: 130, maxWidth: 180 }}>
-                <div className={labelCls} style={{ color: "var(--faded)" }}>Примечание</div>
-                <EditableWithLinks
-                  defaultValue={row.note}
-                  onSave={(v) => handleField(row.id, "note", v)}
-                  placeholder="примечание..."
-                  className="w-full outline-none bg-transparent text-[13px] leading-snug"
-                  style={{ color: "var(--ink-soft)" }}
-                />
-              </div>
-
-              <div style={{ width: 1, alignSelf: "stretch", background: "var(--border)", flexShrink: 0 }} />
-
-              {/* link */}
-              <div className="flex-shrink-0" style={{ width: 130 }}>
-                <div className={labelCls} style={{ color: "var(--faded)" }}>Ссылка</div>
-                <LinkCell value={row.link} onSave={(v) => handleField(row.id, "link", v)} />
-              </div>
-
-              {/* status + delete */}
-              <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                <button onClick={() => handleDelete(row.id)} style={{ color: "var(--faded)" }}>
-                  <X size={14} />
-                </button>
-                <button
-                  onClick={() => handleStatus(row.id)}
-                  className="text-[11.5px] px-3 py-1.5 rounded-full whitespace-nowrap"
-                  style={STATUS_STYLE[row.status]}
-                >
+    <div className="sheet px-3 pt-2 pb-1">
+      <table>
+        <thead>
+          <tr>
+            <th>{targetLabel}</th>
+            <th>Произведение</th>
+            <th>Дата подачи</th>
+            <th>Статус</th>
+            <th>Примечание</th>
+            <th>Ссылка</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 && (
+            <tr><td colSpan={7} style={{ color: "var(--muted)" }}>Пока нет заявок.</td></tr>
+          )}
+          {rows.map((row) => (
+            <tr key={row.id}>
+              <td className="min-w-[160px]">
+                <AutoGrowTextarea defaultValue={row.target} onBlur={(v) => handleField(row.id, "target", v)} placeholder={type === "CONTEST" ? "название конкурса" : "название издательства"} className="w-full outline-none bg-transparent text-[14px] font-semibold" />
+              </td>
+              <td className="min-w-[140px]">
+                <AutoGrowTextarea defaultValue={row.work} onBlur={(v) => handleField(row.id, "work", v)} placeholder="что отправлено" className="w-full outline-none bg-transparent text-[14px]" />
+              </td>
+              <td><DateField value={row.date} onChange={(v) => handleField(row.id, "date", v)} /></td>
+              <td>
+                <button onClick={() => handleStatus(row.id)} className="text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap" style={STATUS_STYLE[row.status]}>
                   {STATUS_LABEL[row.status]}
                 </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <Button onClick={handleAdd} variant="dashed" size="sm" pill>
-        + заявка
-      </Button>
+              </td>
+              <td className="min-w-[120px]">
+                <EditableWithLinks defaultValue={row.note} onSave={(v) => handleField(row.id, "note", v)} placeholder="примечание..." className="w-full outline-none bg-transparent text-[13px]" />
+              </td>
+              <td><LinkCell value={row.link} onSave={(v) => handleField(row.id, "link", v)} /></td>
+              <td>
+                <button onClick={() => handleDelete(row.id)} style={{ color: "var(--muted)" }} title="Удалить заявку"><Trash2 size={15} /></button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -122,6 +122,78 @@ body {
   letter-spacing: -0.01em;
 }
 
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.page-lead {
+  margin-top: 8px;
+  font-size: 15.5px;
+  color: var(--ink2);
+  max-width: 640px;
+  line-height: 1.45;
+}
+.page-actions { margin-left: auto; display: flex; gap: 10px; flex-shrink: 0; align-items: center; }
+.sheet {
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: #fff;
+  overflow: auto;
+}
+.sheet table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.sheet th {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+  text-align: left;
+  padding: 16px 12px 10px;
+  white-space: nowrap;
+}
+.sheet td {
+  padding: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  vertical-align: middle;
+}
+.banner-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+.banner-deadlines { border-radius: 22px; background: #F6F6F4; padding: 20px 20px 12px; }
+.banner-call {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--deep);
+  color: #fff;
+  padding: 20px;
+}
+.soon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--note);
+  color: var(--noteink);
+  border: 1px dashed #E5CF6A;
+  white-space: nowrap;
+}
+.mentor-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 22px; align-items: start; }
+.plan-board { overflow-x: auto; }
+.plan-mobile { display: none; }
+.seg { display: inline-flex; background: var(--soft); border-radius: 999px; padding: 4px; }
+@media (max-width: 760px) {
+  .plan-desktop { display: none; }
+  .plan-mobile { display: block; }
+}
+@media (max-width: 980px) {
+  .banner-row, .mentor-layout { grid-template-columns: minmax(0, 1fr); }
+  .page-actions { margin-left: 0; }
+}
+
 .masthead-title {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-weight: 700;
@@ -399,6 +471,7 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   font-size: 14px;
 }
 .mentor-bar a { color: var(--y); font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+.mentor-review { margin-left: auto; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 
 .studio-body { display: flex; gap: 24px; padding: 24px 40px 40px; flex: 1; min-width: 0; }
 .studio-sidebar {

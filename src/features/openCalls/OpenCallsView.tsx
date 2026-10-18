@@ -7,10 +7,5 @@ export default async function OpenCallsView({ studentId }: { studentId: string }
     orderBy: { order: "asc" },
   });
 
-  return (
-    <div>
-      <h1 className="page-title text-[24px] font-semibold mb-6">Опен-коллы</h1>
-      <OpenCallsTable studentId={studentId} initial={rows} />
-    </div>
-  );
+  return <OpenCallsTable studentId={studentId} initial={rows} />;
 }

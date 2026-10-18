@@ -6,5 +6,5 @@ export default async function Page({
   params: Promise<{ studentId: string }>;
 }) {
   const { studentId } = await params;
-  return <TasksView studentId={studentId} />;
+  return <TasksView studentId={studentId} basePath={`/student-view/${studentId}`} />;
 }

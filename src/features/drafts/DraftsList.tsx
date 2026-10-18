@@ -8,7 +8,8 @@ import { blurOnEnter } from "@/lib/blurOnEnter";
 import { shortenUrl } from "@/lib/shortenUrl";
 import { createDraft, updateDraftField, deleteDraft, reorderDrafts } from "./actions";
 import { Button } from "@/components/ui/Button";
-import { ChevronDown, ChevronRight, GripVertical, Pencil } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
+import { ChevronDown, ChevronRight, GripVertical, Pencil, Plus } from "lucide-react";
 
 export default function DraftsList({
   studentId,
@@ -89,8 +90,18 @@ export default function DraftsList({
 
   return (
     <div>
+      <PageHeader
+        title="Рукописи"
+        description="Черновики и чистовики: ссылка на документ или файл до 8 МБ."
+        actions={
+          <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+            <Plus size={16} /> Добавить рукопись
+          </button>
+        }
+      />
+      <div className="grid gap-4 md:grid-cols-2">
       {drafts.map((draft) => {
-        const isCollapsed = collapsed[draft.id] ?? true;
+        const isCollapsed = collapsed[draft.id] ?? false;
         return (
           <div
             key={draft.id}
@@ -100,7 +111,7 @@ export default function DraftsList({
             onDrop={handleDrop}
             onDragEnd={() => setArmedId(null)}
             onMouseUp={() => setArmedId(null)}
-            className="rounded-[14px] mb-3 max-w-[680px] overflow-hidden"
+            className="rounded-[22px] overflow-hidden"
             style={{ border: "1px solid var(--border)" }}
           >
             {/* Header — always visible */}
@@ -203,10 +214,7 @@ export default function DraftsList({
           </div>
         );
       })}
-
-      <Button onClick={handleAdd} variant="dashed" size="sm" pill>
-        + черновик
-      </Button>
+      </div>
     </div>
   );
 }

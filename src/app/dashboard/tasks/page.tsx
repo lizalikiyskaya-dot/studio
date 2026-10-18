@@ -5,5 +5,5 @@ import TasksView from "@/features/tasks/TasksView";
 export default async function Page() {
   const session = await getSession();
   if (!session) redirect("/login");
-  return <TasksView studentId={session.userId} />;
+  return <TasksView studentId={session.userId} basePath="/dashboard" />;
 }

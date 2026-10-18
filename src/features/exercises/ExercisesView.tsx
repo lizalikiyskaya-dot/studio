@@ -1,4 +1,5 @@
 import Subtabs from "@/components/Subtabs";
+import PageHeader from "@/components/PageHeader";
 import PopArcsView from "./popArcs/PopArcsView";
 import BeliefView from "./belief/BeliefView";
 import StoryCircleView from "./storyCircle/StoryCircleView";
@@ -13,8 +14,11 @@ export default function ExercisesView({
 }) {
   return (
     <div>
-      <h1 className="page-title text-[24px] font-semibold mb-6">Упражнения</h1>
-      <div style={{ maxWidth: 760, margin: "0 auto" }}>
+      <PageHeader
+        title="Упражнения"
+        description="Четыре техники работы с персонажем и сюжетом. Наставник видит ваши ответы и комментирует их."
+      />
+      <div>
         <Subtabs
           tabs={[
             {

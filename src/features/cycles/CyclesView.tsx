@@ -7,6 +7,7 @@ import Subtabs from "@/components/Subtabs";
 import StoriesList from "@/features/stories/StoriesList";
 import CycleCharactersView from "@/features/storyCharacters/CycleCharactersView";
 import CycleSettingView from "@/features/storySetting/CycleSettingView";
+import PageHeader from "@/components/PageHeader";
 
 export default async function CyclesView({
   studentId,
@@ -20,7 +21,7 @@ export default async function CyclesView({
   if (!activeCycle) {
     return (
       <div>
-        <h1 className="page-title text-[24px] font-semibold mb-6">Мастерская рассказов</h1>
+        <PageHeader title="Мастерская рассказов" description="Циклы рассказов с общими героями и миром — и отдельные рассказы." />
         <NoCycleYet studentId={studentId} />
       </div>
     );
@@ -40,8 +41,11 @@ export default async function CyclesView({
 
   return (
     <div>
-      <CycleSwitcher studentId={studentId} cycles={cycles} activeCycleId={activeCycle.id} />
-      <h1 className="page-title text-[24px] font-semibold mb-6">Мастерская рассказов</h1>
+      <PageHeader
+        title="Мастерская рассказов"
+        description="Циклы рассказов с общими героями и миром — и отдельные рассказы."
+        actions={<CycleSwitcher studentId={studentId} cycles={cycles} activeCycleId={activeCycle.id} inline />}
+      />
 
       <Subtabs
         tabs={[

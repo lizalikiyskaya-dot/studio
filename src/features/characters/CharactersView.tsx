@@ -7,6 +7,9 @@ import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
 import type { FieldGroup } from "./fields";
 import { SECONDARY_CHARACTER_GROUPS } from "./fields";
+import PageHeader from "@/components/PageHeader";
+import { HeaderButton } from "@/components/headerAction";
+import { Plus } from "lucide-react";
 
 export default async function CharactersView({
   studentId,
@@ -26,7 +29,7 @@ export default async function CharactersView({
   if (!activeBook) {
     return (
       <div>
-        <h1 className="page-title text-[24px] font-semibold mb-6">{title}</h1>
+        <PageHeader title={title} description="Анкета для каждого героя: от привычек до трансформации." />
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -41,8 +44,17 @@ export default async function CharactersView({
 
   return (
     <div>
-      <BookSelect books={books} activeBookId={activeBook.id} />
-      <h1 className="page-title text-[24px] font-semibold mb-6">{title}</h1>
+      <PageHeader
+        title={title}
+        description="Анкета для каждого героя: от привычек до трансформации."
+        actions={
+          <>
+            <BookSelect books={books} activeBookId={activeBook.id} compact />
+            <HeaderButton actionId="char-secondary" tone="soft"><Plus size={16} /> Второстепенный</HeaderButton>
+            <HeaderButton actionId="char-main"><Plus size={16} /> Главный персонаж</HeaderButton>
+          </>
+        }
+      />
       <CharactersList
         bookId={activeBook.id}
         initialCharacters={characters}

@@ -110,8 +110,8 @@ export default function SuggestableField({
         <div className="mt-1.5 flex items-center gap-2">
           <button
             onClick={handleAccept}
-            className="flex items-center gap-1 text-[12px] px-3.5 py-1 rounded-full"
-            style={{ color: "#fff", background: "var(--sage)" }}
+            className="btn-y inline-flex items-center gap-1 px-3.5 text-[12.5px]"
+            style={{ height: 32, width: "auto" }}
           >
             <Check size={12} /> принять правку
           </button>
