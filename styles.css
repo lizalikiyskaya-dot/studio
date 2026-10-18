@@ -1,0 +1,632 @@
+/* =========================================================
+   Лиза Ликийская — лендинг по макетам Figma (июль 2026)
+   Дизайн-язык: белый фон, строгий serif (Playfair Display),
+   нейтральный гротеск (Inter), рукописные акценты (Bad Script),
+   пыльная роза/бордо как единственный цветовой акцент,
+   бегущая строка «студия художественной прозы».
+   Палитра/шрифты — в переменных, меняются в одном месте.
+   ========================================================= */
+/* Рукописные надписи (шрифт Gogol) вырезаны из макетов как PNG —
+   см. assets/img/script_*.png; отдельный файл шрифта не нужен. */
+:root{
+  --paper:#ffffff;       /* обычный белый */
+  --ink:#000000;         /* обычный чёрный: заголовки, текст, кнопки */
+  --text:#000000;
+  --soft:#595959;        /* мелкие подписи (роли, футер) */
+  --line:#e9e9e9;        /* тонкие линии */
+  --wine:#8B5660;        /* пепельно-красный — единственный цветовой акцент */
+  --rose:#8B5660;
+  --rose-soft:#F0E1E4;   /* розовая подсветка таблеток при наведении */
+  --grey:#e3e3e3;        /* серые плейсхолдеры/подложки фото */
+  --display:"Playfair Display", Georgia, serif;   /* заголовки — Regular 400 */
+  --body:"Inter", system-ui, -apple-system, sans-serif; /* текст/кнопки — Light 300 */
+  --maxw:1060px;                      /* сайт не растягивается на весь экран */
+  --gutter:clamp(24px,8vw,160px);     /* просторные поля слева/справа */
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0;background:var(--paper);color:var(--text);
+  font-family:var(--body);font-weight:300;line-height:1.65;font-size:16.5px;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:clip; /* декор, выходящий за края, не растягивает страницу */
+}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--rose);color:#fff}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
+.display{font-family:var(--display);font-weight:400;line-height:1.06;letter-spacing:-.01em;margin:0;color:var(--ink)}
+.muted{color:var(--soft)}
+
+/* фото: ч/б там, где так в макете */
+.bw{overflow:hidden;background:var(--grey)}
+.bw img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.04);transition:filter .8s ease}
+.bw:hover img{filter:grayscale(.2) contrast(1.04)}
+.warm{overflow:hidden;background:var(--grey)}
+.warm img{width:100%;height:100%;object-fit:cover}
+
+/* кнопки: чёрные прямоугольные, капс — как в макете */
+.btn{
+  display:inline-block;font-family:var(--body);font-size:13px;font-weight:300;
+  letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border:0;
+  padding:17px 36px;background:var(--ink);color:#fff;
+  transition:opacity .25s,transform .25s;
+}
+.btn:hover{opacity:.85;transform:translateY(-1px)}
+
+/* ---------- НАВИГАЦИЯ (стр. 1) ---------- */
+.topnav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(255,255,255,.92);backdrop-filter:saturate(140%) blur(10px);
+  border-bottom:1px solid var(--wine); /* пепельно-красный, как курсивные надписи */
+}
+.topnav .wrap{display:flex;align-items:center;gap:clamp(20px,3.4vw,48px);height:64px}
+.topnav a{font-size:15.5px;color:var(--ink);white-space:nowrap;cursor:pointer}
+.topnav a:hover{color:var(--wine)}
+/* логотип в плашке скрыт на первом экране и плавно проявляется при скролле */
+.topnav-logo img{display:block;height:30px;width:auto;opacity:0;transform:translateY(4px);transition:opacity .45s ease,transform .45s ease}
+.topnav.scrolled .topnav-logo img{opacity:1;transform:none}
+.topnav-spacer{flex:1}
+
+/* ---------- ПЕРВЫЙ ЭКРАН (стр. 1) ---------- */
+.hero .wrap{display:grid;grid-template-columns:1.08fr 1fr;gap:clamp(32px,6vw,90px);align-items:center;padding-top:clamp(8px,2vw,28px);padding-bottom:clamp(56px,8vw,110px)}
+/* рукописные надписи — вырезаны из макетов 1-в-1 (PNG с прозрачностью);
+   как в макетах, курсив всегда чуть «сбегает» за границы своего блока */
+.hero-script{display:block;width:clamp(220px,25vw,330px);height:auto;margin:0 0 16px calc(-1*clamp(14px,4vw,58px))}
+.hero-title{font-size:clamp(40px,5vw,68px)}
+.hero-lead{max-width:42ch;margin:clamp(22px,3vw,32px) 0 clamp(28px,4vw,44px);font-size:17px;line-height:1.7;color:var(--text)}
+.hero-pic{aspect-ratio:3/4;max-height:74vh}
+/* две одинаковые CTA: на десктопе показана та, что в тексте; на мобиле — под фото */
+.hero-cta--mob{display:none}
+
+/* ---------- бегущая строка (стр. 1, 7) ---------- */
+.marquee{background:var(--rose);color:#fff;overflow:hidden}
+.marquee-track{display:flex;align-items:center;gap:26px;width:max-content;white-space:nowrap;padding:12px 0;font-size:14.5px;letter-spacing:.02em;animation:marquee 38s linear infinite}
+.marquee-track i{font-style:normal;font-size:9px;opacity:.9}
+@keyframes marquee{to{transform:translateX(-33.333%)}}
+
+/* ---------- АВТОРСКАЯ ПЛАТФОРМА (стр. 2): рамка + облако таблеток ---------- */
+.platform{padding:clamp(70px,10vw,130px) 0}
+.plat-card{position:relative;max-width:940px;margin:0 auto;border:1px solid #1a1a1a;padding:clamp(36px,6vw,80px) clamp(22px,5vw,64px) clamp(40px,6vw,80px)}
+.plat-card h2{font-size:clamp(34px,4.4vw,56px)}
+/* рамка проходит в пробеле между словами: «художественной» — до рамки,
+   «прозы» — целиком после; пробел в картинке измерен: центр на 81%
+   ширины, значит за рамку выносится 19.5% надписи (+паддинг карточки) */
+.plat-script{
+  display:block;height:auto;width:min(700px,86%);
+  margin:clamp(14px,2vw,26px) calc(-1*clamp(48px,16vw,201px)) clamp(40px,6vw,72px) auto;
+  position:relative;z-index:2;
+}
+.plat-tags{display:flex;flex-wrap:wrap;gap:14px 16px;max-width:840px}
+.plat-tag{background:#f1f1f1;border-radius:999px;padding:13px 26px;font-size:15px;color:var(--ink);transition:background .25s,color .25s;cursor:default}
+.plat-tag:hover{background:var(--rose-soft);color:var(--wine)}
+
+/* ---------- МОЯ ИСТОРИЯ (стр. 3): текст поверх выцветшего ч/б фото ---------- */
+/* по референсу: крупное атмосферное фото во всю секцию, слева выбелено почти в бумагу,
+   поверх — заголовок и текстовая карточка со сдвигом вправо (лесенкой). */
+.story{position:relative;overflow:hidden;padding:clamp(90px,13vw,170px) 0;min-height:clamp(430px,52vw,660px);display:flex;align-items:center}
+.story-bg{position:absolute;inset:0;pointer-events:none}
+/* лицо уводим правее текста, как в референсе: фото шире кадра нет, поэтому
+   двигаем масштабом от левого края (object-position тут бессилен — переполнения по X нет) */
+.story-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:grayscale(1) brightness(1.06);transform:scale(1.34);transform-origin:0 42%}
+.story-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(95deg,rgba(255,255,255,.97) 0%,rgba(255,255,255,.93) 40%,rgba(255,255,255,.72) 64%,rgba(255,255,255,.3) 100%)}
+.story-inner{position:relative;z-index:2;width:100%;display:flex;flex-direction:column;align-items:flex-start}
+.story-title{font-size:clamp(38px,4.6vw,60px)}
+/* текст лежит прямо на фото, без подложки — читаемость держит выбеливающий градиент */
+.story-text{max-width:46ch;margin:clamp(22px,3.4vw,44px) auto 0}
+.story-text p{margin:0 0 18px}
+.story-text p:last-child{margin-bottom:0}
+/* публикации в периодике: жирный заголовок + светлый курсив списком (как в макете) */
+.story-pubs{margin-top:clamp(20px,2.6vw,30px)}
+.story-pubs-t{font-weight:500;margin:0 0 4px!important}
+.story-pubs-list{list-style:none;margin:0;padding:0;color:var(--soft);font-style:italic;line-height:1.65}
+.pub-add{display:none}
+body.editing .pub-add{display:inline-block;margin-top:10px;background:none;border:1px dashed var(--wine);color:var(--wine);border-radius:999px;padding:7px 16px;font-family:var(--body);font-size:13px;cursor:pointer}
+body.editing .pub-t{outline:1px dashed rgba(139,86,96,.55);outline-offset:2px;border-radius:2px}
+.pub-x{background:none;border:0;color:var(--wine);font-size:15px;line-height:1;cursor:pointer;margin-left:8px;display:none}
+body.editing .pub-x{display:inline}
+
+/* ---------- ПОЛНОЕ СОПРОВОЖДЕНИЕ (стр. 4) ---------- */
+.includes{padding:0 0 clamp(80px,10vw,130px)}
+.squig{display:block;width:100%;height:auto;color:var(--ink)}
+.includes h2{font-size:clamp(32px,3.8vw,48px);max-width:520px;margin:clamp(16px,3vw,40px) 0 0}
+.inc-list{list-style:none;max-width:720px;margin:clamp(44px,6vw,80px) auto 0;padding:0}
+/* цифра и заголовок — на одной базовой линии, как в макете (не «плавают») */
+.inc-list li{display:grid;grid-template-columns:96px 1fr;gap:clamp(20px,3vw,36px);margin-bottom:clamp(40px,5vw,64px);align-items:baseline}
+.inc-list li:last-child{margin-bottom:0}
+/* без min-width:0 длинное слово («художественной») распирает 1fr-колонку,
+   и текст «уезжает» за свою ячейку — буквы «гуляют» */
+.inc-list li>span:last-child{min-width:0}
+.inc-rn{font-family:var(--display);font-weight:400;font-size:clamp(44px,4.6vw,60px);line-height:1;color:var(--rose)}
+/* line-height 1.15 (а не 1.65 от body) — первая строка заголовка встаёт вровень с римской цифрой */
+/* переносим длинные слова по слогам с дефисом (hyphens), а не рвём посреди букв */
+.inc-t{font-family:var(--display);font-weight:400;font-size:clamp(21px,2.2vw,27px);line-height:1.15;letter-spacing:-.01em;color:var(--ink);margin:0 0 10px;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:normal}
+.inc-d{margin:0;color:var(--soft);font-size:16px;max-width:52ch}
+
+/* ---------- КОНСУЛЬТАЦИЯ ИЛИ ЛЕКЦИЯ (стр. 5) ---------- */
+.offer{position:relative;overflow:hidden;padding:clamp(80px,10vw,140px) 0}
+.offer-inner{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,6vw,90px);align-items:center}
+.offer-title{font-size:clamp(34px,4.2vw,54px)}
+.offer-price{font-family:var(--display);font-weight:400;font-size:clamp(30px,3.6vw,46px);color:var(--ink);margin:clamp(24px,4vw,48px) 0 clamp(20px,3vw,36px)}
+.offer-price .unit{font-size:.78em;color:var(--text)}
+.offer-text{margin:0;color:var(--text);font-size:16px;max-width:38ch}
+.offer-text+.offer-text{margin-top:15px}
+/* сноска под описанием: в макете вынесена левее колонки текста */
+.offer-note{margin:clamp(18px,2.4vw,30px) 0 0;font-size:16px;color:var(--text);max-width:38ch}
+.offer-note .note-sum{font-family:var(--display);font-size:1.3em;white-space:nowrap}
+/* закрывающая строка условия (у «Сопровождения») — тот же кегль, но жирным */
+.offer-strong{margin:clamp(16px,2vw,24px) 0 0;font-size:16px;font-weight:600;color:var(--text);max-width:38ch}
+@media(min-width:961px){
+  .offer-note{margin-left:calc(-1 * clamp(0px,3.5vw,52px))}
+}
+.offer-art{position:relative;max-width:520px;width:100%;justify-self:center}
+.offer-pic{aspect-ratio:3/4;position:relative;z-index:2}
+/* блок цен: обёртка на оба тарифа для сквозной линии-росчерка */
+.pricing{position:relative}
+/* линия одним росчерком ПОД фото/текстом (они на z-index:2), видна в пустотах;
+   клики проходят сквозь. Скрыта до загрузки обоих фото тарифов (класс .in
+   вешает app.js по их load-событиям) — узор не выскакивает раньше фотографий. */
+.pricing-line{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:0;transition:opacity .35s ease}
+.pricing-line.in{opacity:1}
+.pricing-line path{stroke:var(--wine)}
+
+/* ---------- слайдеры: отзывы (стр. 7) и статьи (стр. 8) ---------- */
+.sec-head{text-align:center;margin-bottom:clamp(20px,3vw,36px)}
+.sec-head h2{font-size:clamp(36px,4.4vw,56px)}
+.slider-top{display:flex;justify-content:flex-end;margin-bottom:clamp(20px,3vw,36px)}
+.sl-arrows{display:flex;gap:26px}
+.sl-arrow{background:none;border:0;cursor:pointer;padding:6px;color:var(--ink);line-height:0}
+.sl-arrow svg{width:44px;height:20px;stroke:currentColor;stroke-width:1.6;fill:none}
+.sl-arrow:hover{color:var(--wine)}
+/* слайдер: двигается ТОЛЬКО стрелками (scrollBy). overflow:hidden отключает прокрутку колесом/пальцем, но программный скролл работает.
+   gap:0 + snap — строго один отзыв на экран, иначе стрелка «недоезжает» на ширину отступа и карточки съезжают */
+.hslider{display:flex;gap:0;overflow:hidden;scroll-behavior:smooth;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none}
+.hslider::-webkit-scrollbar{display:none}
+.hslider>*{scroll-snap-align:start}
+
+.reviews{padding:clamp(70px,9vw,120px) 0 clamp(60px,8vw,100px)}
+.rv-card{flex:0 0 100%}
+.rv-name{font-size:16.5px;font-weight:500;color:var(--ink);margin:0 0 18px}
+.rv-body{display:grid;grid-template-columns:96px 1fr;gap:clamp(18px,2.4vw,30px);align-items:start}
+.rv-ava{width:96px;height:96px;background:var(--grey);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:34px;color:var(--soft);overflow:hidden}
+.rv-ava img{width:100%;height:100%;object-fit:cover}
+.rv-text{margin:0;font-size:16px;color:var(--text)}
+.rv-role{display:block;margin-top:12px;font-size:13px;color:var(--soft)}
+/* у отзыва может не быть подписи-статуса — тогда не оставляем пустую строку */
+.rv-role:empty{display:none}
+/* на широком экране отзыв один, но текст не растягиваем во всю ширину — колонка по центру.
+   Правила идут ПОСЛЕ .rv-name/.rv-body: их короткая запись margin сбрасывала бы auto,
+   из-за этого имя раньше стояло левее квадрата аватарки */
+@media(min-width:961px){
+  .rv-name{max-width:680px;margin:0 auto 18px}
+  .rv-body{max-width:680px;margin-left:auto;margin-right:auto}
+}
+
+.posts-sec{padding:clamp(70px,9vw,120px) 0}
+.post-card{flex:0 0 calc(33.333% - clamp(16px,2.3vw,30px));cursor:pointer;display:block;text-decoration:none;color:inherit}
+.post-pic{aspect-ratio:16/10;margin-bottom:18px}
+/* превью Дзена — квадрат в широкой рамке 16/10: object-fit:cover заполняет ширину
+   и режет верх/низ поровну (object-position по умолчанию center) — кадр по центру. */
+.post-pic img{transition:opacity .25s}
+.post-card:hover .post-pic img{opacity:.85}
+.post-card h3{font-family:var(--body);font-weight:600;font-size:17.5px;line-height:1.35;color:var(--ink);margin:0 0 10px;transition:color .2s;text-align:center}
+.post-card:hover h3{color:var(--wine)}
+.post-card p{margin:0;font-size:15.5px;color:var(--text)}
+.posts-foot{display:flex;justify-content:center;margin-top:clamp(32px,4vw,52px)}
+.posts-foot a{font-size:14px;letter-spacing:.04em;color:var(--soft);border-bottom:1px solid var(--line);padding-bottom:2px}
+.posts-foot a:hover{color:var(--wine);border-color:var(--wine)}
+
+/* ---------- ФОРМА ЗАЯВКИ (стр. 9): стеклянная карточка на ч/б фото ---------- */
+.contact{position:relative;overflow:hidden;padding:clamp(56px,8vw,110px) var(--gutter)}
+.contact-bg{position:absolute;inset:0;pointer-events:none}
+.contact-bg img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) blur(5px);transform:scale(1.06)}
+.contact-bg::after{content:"";position:absolute;inset:0;background:rgba(30,26,26,.3)}
+.glass{
+  position:relative;z-index:2;max-width:1000px;margin:0 auto;
+  border-radius:clamp(22px,3vw,36px);
+  background:rgba(255,255,255,.5);
+  backdrop-filter:blur(18px) saturate(130%);-webkit-backdrop-filter:blur(18px) saturate(130%);
+  padding:clamp(28px,5vw,64px);
+  display:grid;grid-template-columns:1.08fr 1fr;gap:clamp(28px,5vw,64px);
+}
+.fm-left{display:flex;flex-direction:column}
+.fm-script{margin:0}
+/* шире своей колонки — хвост уходит вправо к полям формы, как в макете;
+   сдвиг влево выравнивает «О» по одной вертикали с текстом под надписью */
+.fm-script img{display:block;width:118%;max-width:480px;height:auto;margin-left:-12px}
+.fm-sub{font-size:15px;color:#2c2828;margin:14px 0 clamp(24px,4vw,44px)}
+/* слайдер обложек: идёт сразу под подзаголовком — на одном уровне с полями формы.
+   object-fit:contain — обложку с названием и автором нельзя обрезать;
+   фиксированная пропорция 2/3 держит высоту, страница не «прыгает» при смене кадра. */
+.fm-slider{width:min(330px,100%);margin-top:0}
+.fm-slides{position:relative;width:100%;aspect-ratio:2/3;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.55)}
+.fm-slides img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity 1.1s ease}
+.fm-slides img.on{opacity:1}
+.fm-slider-ui{display:flex;align-items:center;justify-content:center;margin-top:14px}
+.fm-dots{display:flex;justify-content:center;gap:9px}
+.fm-dot{
+  width:9px;height:9px;padding:0;border:0;border-radius:50%;cursor:pointer;
+  background:rgba(20,18,18,.28);transition:background .2s,transform .2s;
+}
+.fm-dot:hover{background:rgba(20,18,18,.5)}
+.fm-dot[aria-current="true"]{background:var(--ink);transform:scale(1.25)}
+/* honeypot: поле-ловушка для ботов — человек его не видит и не может сфокусировать */
+.fm-honey{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none}
+/* режим правки: слайды формы раскладываем плиткой — фото можно заменить (клик),
+   удалить (×) или добавить (+ фото). Вне правки — обычный кросс-фейд-слайдер. */
+body.editing .fm-slider{width:100%}
+body.editing .fm-slider-ui{display:none}
+body.editing .fm-slides{position:static;width:100%;aspect-ratio:auto;height:auto;overflow:visible;border-radius:0;background:none;display:flex;flex-wrap:wrap;gap:12px;padding:2px 0}
+body.editing .fm-slides .sl-item{position:relative;width:112px;height:112px;flex:0 0 auto}
+body.editing .fm-slides .sl-item img{position:static;inset:auto;width:100%;height:100%;object-fit:cover;object-position:50% 68%;opacity:1;border-radius:10px;cursor:pointer}
+body.editing .fm-slides .sl-x{position:absolute;top:-8px;right:-8px;background:#fff;border:1px solid var(--line);border-radius:50%;width:26px;height:26px;color:var(--wine);font-size:16px;line-height:1;cursor:pointer;z-index:2}
+body.editing .fm-slides .sl-add{width:112px;height:112px;border:1px dashed var(--wine);border-radius:10px;background:none;color:var(--wine);font-size:14px;cursor:pointer;flex:0 0 auto}
+
+/* форма компактная */
+.lead-form{display:flex;flex-direction:column;gap:12px;max-width:400px}
+/* в секции форма опущена: «Ваше имя...» на уровне надписи «Оставьте заявку» */
+.contact .lead-form{margin-top:clamp(18px,2.4vw,34px)}
+.fm-input{
+  width:100%;border:0;border-radius:13px;background:#fff;
+  padding:12px 18px;font-family:var(--body);font-size:14.5px;color:var(--ink);
+  box-shadow:0 1px 6px rgba(0,0,0,.05);
+}
+.fm-input::placeholder{color:#8b8686}
+.fm-input:focus{outline:none;box-shadow:0 0 0 2px rgba(20,20,20,.55)}
+textarea.fm-input{resize:vertical;min-height:88px;line-height:1.55}
+.fm-channels{display:flex;flex-wrap:wrap;gap:12px}
+.fm-chan{
+  border:1.5px solid transparent;background:#fff;border-radius:12px;
+  padding:10px 18px;font-family:var(--body);font-size:14px;color:var(--ink);
+  cursor:pointer;transition:border-color .2s;box-shadow:0 1px 6px rgba(0,0,0,.05);
+}
+.fm-chan:hover{border-color:#bdb7b7}
+.fm-chan.on{border-color:var(--ink)}
+.fm-checks{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+/* строкой, а не флексом: длинная подпись со ссылкой переносится как обычный текст
+   (во флексе «Согласен с» и ссылка были отдельными колонками и ломались на узком экране) */
+.fm-check{display:block;position:relative;padding-left:38px;font-size:14px;color:#221e1e;cursor:pointer;user-select:none}
+.fm-check input{position:absolute;opacity:0;pointer-events:none}
+.fm-check .box{position:absolute;left:0;top:0;width:24px;height:24px;background:#fff;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;color:transparent;font-size:15px;transition:.15s}
+.fm-check input:checked+.box{background:var(--ink);color:#fff}
+.fm-check input:focus-visible+.box{outline:2px solid var(--ink);outline-offset:2px}
+.fm-check a{border-bottom:1px solid rgba(0,0,0,.35)}
+.fm-check a:hover{color:var(--wine);border-color:var(--wine)}
+.fm-submit{align-self:flex-start;margin-top:10px;min-width:200px}
+.fm-legal{margin:14px 0 0;font-size:11px;line-height:1.5;color:var(--soft)}
+
+/* ---------- модалка заявки (та же форма, что в секции) ---------- */
+.fmodal{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-start;justify-content:center;padding:5vh 20px;overflow:auto;opacity:0;pointer-events:none;transition:opacity .25s}
+.fmodal.open{opacity:1;pointer-events:auto}
+.fmodal-bg{position:fixed;inset:0;background:rgba(20,18,18,.55);backdrop-filter:blur(4px)}
+.fmodal-card{position:relative;z-index:1;width:100%;max-width:520px;background:#f3f1f1;border-radius:24px;padding:44px 40px 36px;box-shadow:0 24px 80px rgba(0,0,0,.35);transform:translateY(14px);transition:transform .25s}
+.fmodal.open .fmodal-card{transform:none}
+.fmodal-close{position:absolute;top:14px;right:16px;background:transparent;border:0;font-size:28px;line-height:1;color:var(--soft);cursor:pointer;width:38px;height:38px;border-radius:50%}
+.fmodal-close:hover{background:rgba(0,0,0,.06);color:var(--ink)}
+.fmodal .fm-sub{margin-bottom:26px}
+@media(max-width:560px){.fmodal-card{padding:36px 20px 28px}}
+
+/* ---------- ФУТЕР (стр. 10) ---------- */
+footer{position:relative;padding:clamp(44px,6vw,72px) 0 0}
+.foot-kicker{font-size:14px;color:var(--text);margin:0}
+.foot-mail{
+  display:inline-block;font-family:var(--display);font-weight:400;letter-spacing:-.01em;
+  font-size:clamp(26px,3.8vw,50px);line-height:1.12;color:var(--ink);
+  margin:8px 0 clamp(28px,4vw,48px);overflow-wrap:anywhere;
+}
+.foot-mail:hover{color:var(--wine)}
+.foot-legal{text-align:center;font-size:14px;color:var(--text);line-height:1.7}
+.foot-small{text-align:center;font-size:12px;color:var(--soft);margin:18px 0 0;padding-bottom:12px}
+.foot-small a{border-bottom:1px solid var(--line)}
+.foot-small a:hover{color:var(--wine);border-color:var(--wine)}
+
+/* подпись разработчика — правый нижний угол, как в макете («логотип Миши») */
+.dev-credit{position:absolute;right:clamp(18px,4vw,60px);bottom:70px;display:flex;justify-content:center}
+.dev-sign{position:relative;display:block;width:240px;height:116px;text-decoration:none}
+.ds-mark{
+  position:absolute;left:50%;top:8px;transform:translateX(-50%);width:44px;height:88px;
+  -webkit-mask:url(assets/img/dev-signature.png) center/contain no-repeat;
+  mask:url(assets/img/dev-signature.png) center/contain no-repeat;
+  background:linear-gradient(115deg,#3d3a3a 0%,#8B5660 30%,#b28891 50%,#8B5660 70%,#3d3a3a 100%);
+  background-size:300% 100%;animation:ds-shimmer 4.8s linear infinite;
+}
+@keyframes ds-shimmer{to{background-position:300% 0}}
+/* подпись «Разработка и дизайн» — ровно по прямой, без дуги */
+.ds-cap{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);white-space:nowrap;font-family:var(--body);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.ds-plane{
+  position:absolute;left:0;top:0;width:15px;height:15px;color:#229ED9;
+  offset-path:path("M24,62 A96,59 0 1 1 216,62 A96,59 0 1 1 24,62");offset-rotate:auto;offset-anchor:50% 50%;
+  animation:ds-fly 8s linear infinite;
+}
+.ds-plane svg{width:100%;height:100%;display:block;fill:currentColor;transform:rotate(45deg)}
+@keyframes ds-fly{to{offset-distance:100%}}
+.dev-sign:hover .ds-plane{animation-duration:5s}
+.dev-sign:hover .ds-cap{color:var(--wine)}
+
+/* ---------- тост ---------- */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:4px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:92}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* плавное появление при скролле */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .9s ease,transform .9s ease}
+.reveal.in{opacity:1;transform:none}
+
+/* ---------- доступность ---------- */
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+[id]{scroll-margin-top:76px}
+@media(prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  .marquee-track{animation:none}
+  .ds-mark{animation:none}
+  .ds-plane{animation:none;offset-distance:75%}
+  .fm-slides img{transition:none}
+  .pricing-line{transition:none}
+  html{scroll-behavior:auto}
+}
+
+/* ---------- адаптив ---------- */
+.display,.hero-title,.post-card h3{overflow-wrap:break-word}
+
+@media(max-width:960px){
+  /* меньше воздуха между текстом и фото — фото подтянуто вверх */
+  .hero .wrap{grid-template-columns:1fr;gap:20px}
+  .hero-pic{max-height:none;aspect-ratio:4/5;max-width:520px}
+  /* кнопка переезжает под фото */
+  .hero-cta--desk{display:none}
+  .hero-cta--mob{display:inline-block}
+  .story-inner{grid-template-columns:1fr;gap:20px}
+  .story-text{padding-top:0}
+  /* текст на всю ширину — фон делаем почти сплошным ради контраста */
+  .story-bg::after{background:rgba(255,255,255,.86)}
+  .story-bg img{object-position:60% 20%;transform:none}
+  .story-text{margin-left:0}
+  /* меньше воздуха между блоками «сопровождение» ↔ «консультация» ↔ «платформа» */
+  .includes{padding-bottom:clamp(40px,7vw,64px)}
+  .offer{padding:clamp(44px,7vw,68px) 0}
+  .offer-inner{grid-template-columns:1fr;gap:40px}
+  /* в зеркальном блоке фото идёт в разметке первым — на мобиле сначала заголовок, потом фото */
+  .offer--rev .offer-art{order:2}
+  /* на мобиле — простая одноколоночная раскладка, сквозную линию прячем */
+  .pricing-line{display:none}
+  .glass{grid-template-columns:1fr}
+  .fm-slider{margin:0 auto}
+  .fm-script img{width:100%;max-width:380px}
+  /* отзывы на мобиле: тот же слайдер, что на десктопе — по одной карточке в ряд,
+     листается ТОЛЬКО стрелками (overflow:hidden базово, прокрутки пальцем нет → не «залипает») */
+  /* «строго 1 отзыв на экран» теперь в базовых правилах (.hslider gap:0 + .rv-card 100%) */
+  .reviews .slider-top{display:flex}
+  .post-card{flex-basis:calc(50% - clamp(12px,1.7vw,22px))}
+}
+@media(max-width:640px){
+  body{font-size:16px}
+  /* логотип занимал бы ширину даже невидимым и выдавливал ссылки за край;
+     на мобиле его убираем — крупный рукописный логотип есть в самом hero */
+  .topnav-logo,.topnav-spacer{display:none}
+  .topnav .wrap{justify-content:center;gap:22px;height:56px}
+  .topnav a{font-size:14px}
+  /* статьи на мобиле — такая же сетка карточек, как на десктопе (2 в ряд) */
+  .posts-grid{grid-template-columns:repeat(2,1fr);gap:16px}
+  .post-card h3{font-size:15.5px}
+  .post-card p{font-size:14px}
+  .inc-list li{grid-template-columns:56px 1fr;gap:16px}
+  .inc-rn{font-size:36px}
+  .plat-script{margin-right:-44px}
+  .rv-body{grid-template-columns:72px 1fr}
+  .rv-ava{width:72px;height:72px}
+  .btn{width:100%;text-align:center}
+  .fm-submit{width:100%}
+  .contact{padding-left:12px;padding-right:12px}
+  .dev-credit{position:static;padding:6px 0 8px}
+  footer{padding-bottom:0}
+}
+/* совсем узкие телефоны (iPhone SE / старый Android ~320–360px) */
+@media(max-width:380px){
+  :root{--gutter:18px}
+  .topnav .wrap{gap:15px}
+  .topnav a{font-size:13px}
+  .plat-tag{padding:11px 20px;font-size:14px}
+}
+/* =========================================================
+   ДЕСКТОП-КОМПАКТ (только ≥961px — выше мобильного брейкпоинта 960px).
+   Уменьшает масштаб/плотность на больших экранах: отступы секций,
+   верхние границы clamp() заголовков, ширины блоков, высоту фото,
+   gap'ы. Нижние границы clamp() НЕ трогаются (они работают на мобиле),
+   и весь блок физически не применяется на ширинах ≤960px —
+   мобильная версия остаётся без изменений.
+   ========================================================= */
+@media(min-width:961px){
+  :root{--maxw:1010px}
+  body{font-size:15.5px}
+  .btn{padding:15px 30px}
+
+  /* первый экран */
+  .hero .wrap{gap:clamp(32px,5vw,70px);padding-bottom:clamp(56px,7vw,84px)}
+  .hero-title{font-size:clamp(40px,4.4vw,56px)}
+  .hero-lead{font-size:16px;margin:clamp(22px,2.6vw,26px) 0 clamp(28px,3.4vw,34px)}
+  .hero-pic{max-height:60vh}
+
+  /* авторская платформа */
+  .platform{padding:clamp(70px,8vw,100px) 0}
+  .plat-card{max-width:860px;padding:clamp(36px,5vw,64px) clamp(22px,4.4vw,52px) clamp(40px,5vw,64px)}
+  .plat-card h2{font-size:clamp(34px,3.6vw,46px)}
+
+  /* моя история */
+  .story{padding:clamp(90px,10vw,126px) 0}
+  .story-inner{gap:clamp(28px,4vw,54px)}
+  .story-title{font-size:clamp(38px,3.8vw,48px)}
+
+  /* полное сопровождение */
+  .includes{padding-bottom:clamp(80px,8vw,98px)}
+  .includes h2{font-size:clamp(32px,3.2vw,40px)}
+  .inc-list{margin-top:clamp(44px,5vw,60px)}
+  .inc-list li{margin-bottom:clamp(40px,4vw,48px)}
+  .inc-t{font-size:clamp(21px,1.9vw,23px)}
+
+  /* блоки цен */
+  .offer{padding:clamp(80px,8vw,104px) 0}
+  .offer-inner{gap:clamp(32px,5vw,68px)}
+  .offer-title{font-size:clamp(34px,3.5vw,44px)}
+  .offer-price{font-size:clamp(30px,3vw,38px);margin:clamp(24px,3.2vw,36px) 0 clamp(20px,2.4vw,28px)}
+  .offer-art{max-width:440px}
+
+  /* слайдеры отзывов/статей */
+  .sec-head h2{font-size:clamp(36px,3.6vw,46px)}
+  .reviews{padding:clamp(70px,7vw,92px) 0 clamp(60px,6vw,78px)}
+  /* отзывы: горизонтальный слайдер «всё в ряд» со стрелками — базовые .hslider/.slider-top/.rv-card */
+  .posts-sec{padding:clamp(70px,7vw,92px) 0}
+  /* крупнее фото-превью статей: 2 карточки в ряд вместо 3 */
+  .post-card{flex-basis:calc(50% - clamp(16px,2.3vw,30px))}
+
+  /* форма заявки */
+  .contact{padding-top:clamp(56px,6vw,84px);padding-bottom:clamp(56px,6vw,84px)}
+  .glass{max-width:920px;padding:clamp(28px,4vw,52px);gap:clamp(28px,4vw,52px)}
+  /* надпись «Оставьте заявку» держим в своей колонке — без выноса на форму */
+  .fm-script img{width:100%;max-width:320px;margin-left:0}
+
+  /* футер */
+  footer{padding-top:clamp(44px,5vw,58px)}
+  .foot-mail{font-size:clamp(26px,3vw,42px)}
+}
+
+/* =========================================================
+   Курсор-перо (чёрное перо). Только на устройствах с мышью
+   (hover+fine pointer) — на сенсорных экранах телефона не применяется.
+   Хотспот у острого кончика пера (верх-лево). PNG-датаури — работает
+   во всех десктоп-браузерах, включая Safari.
+   ========================================================= */
+@media (hover:hover) and (pointer:fine){
+  :root{--feather:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAD2EAAA9hAHVrK90AAADP0lEQVRYhe2WT0gbWRzH022XZQ/bnkzULMGodFEj4m4UrAWTUsTDHhZkwX8L8Q+sNoKLoHjxJCvqQaxpxEac4ikEFHuQMWA8yGoFLy6LB3FZWbPYS3toxKZJJslneQ/GtZS9jbGHfuEx82YGfp/3/f3e743J9Ekfm4AfgMdAN/AtcDPXAM/cbnemq6srNTY2RiQSOTs/P18BWoEvcwHwuL6+PjU9PU1ZWRl5eXlYrdZ0T09POhwOn2ua9gSwXSXAL263O1FXV8fU1BQlJSUSQh9OpzMZDAa1ZDLpA+5cBcCDoaEhGayxsZGJiQlsNtt7EGI0NDSk9vb2XgPfGw3wRTgcfqsHamlpkRCFhYUfQFgsluzMzEw2k8mMATcMg4jH44rD4UiKIHa7nfn5eXw+H/n5+RQVFVFTU0NxcfEFSHd3dzoejz8zbMcAZYqiZC6tVNaDoiiUl5fT1NRER0cHvb29ci6+aWtr0xKJxFOTUUomkz6Xy5W6DDE6OkpnZ+cHqdDH8PBwFnhkCABw+/Dw8G+bzabpAaqqqggGg2K1ci7SUVlZ+R7E8vJyCig3CqJ6bW3tncViuUhHdXU1q6ur0g1hf3NzM16vV14FkN1uT52enu4ZVpRAUygU0sxm88UqS0tL8fv9uFyui2fCCQEg7gcHBzPAj4YACIk2HAgEspetrq2tJRAIyLTo6dB3hnDs+Pj4D5ORAn72+/1Zs9mc1QP29fWxvr6Ox+OhoqKC/v5+6Y54Pz4+DlBjNESzqqrvRJ4vdUTm5uYkgAguIIQTTqczAfxqKIAQ8M3JycnvHo8nrUOIviBOTqvVKoPrtRCNRl+YrkLATWBAVdW4w+GQbrS2tjIyMiL7hQ62ubn55koAdAFfx2Kx55OTk9mCggJxZDMwMIC+Y1ZWVjKGnhH/J+Dh0dHRn+3t7drs7CxLS0uyJnIGIAR8Dgzt7u5q29vbLC4usrGxkQbum3Ip4G4sFouGQiFZnJFI5J/r+K/87Ozs7IWiKGmv1yvOhp9yCiAE3IpGo78tLCyws7PzMucuCAFf7e/v/yU65rW4IAQUqqr6amtrS9TCLdN1CPju4OAgDrRfC4AQ4Abuycknmf7Tv4OCY5vJeryfAAAAAElFTkSuQmCC") 4 4}
+  html{cursor:var(--feather),auto}
+  a,button,label,summary,.btn,.fm-chan,.sl-arrow,.plat-tag,.post-card,.rv-card,.fm-check,.foot-mail,.dev-sign,.fmodal-close{cursor:var(--feather),pointer}
+  input,textarea,select,.fm-input{cursor:text}
+}
+
+/* =========================================================
+   СТАТЬИ: аккордеон + логотип Дзена + сетка карточек
+   ========================================================= */
+.posts-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;margin-bottom:clamp(20px,3vw,36px)}
+.posts-title{font-size:clamp(36px,4.4vw,56px);margin:0}
+/* заголовок-кнопка аккордеона */
+.posts-toggle{display:inline-flex;align-items:center;gap:14px;background:none;border:0;padding:0;color:inherit;text-align:left;cursor:pointer}
+.posts-chev{display:inline-flex;color:var(--soft);line-height:0;transition:transform .35s ease,color .2s}
+.posts-chev svg{width:26px;height:26px;display:block}
+.posts-toggle:hover .posts-title{color:var(--wine)}
+.posts-toggle:hover .posts-chev{color:var(--wine)}
+.posts-toggle[aria-expanded="true"] .posts-chev{transform:rotate(180deg)}
+.posts-title{transition:color .2s}
+/* аккордеон: плавное раскрытие через grid-template-rows 0fr→1fr */
+.posts-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s ease}
+.posts-panel.open{grid-template-rows:1fr}
+.posts-panel-inner{overflow:hidden;min-height:0}
+.posts-panel.open .posts-panel-inner{padding-top:clamp(22px,3vw,34px)}
+/* только этот элемент — ссылка в Дзен */
+.dzen-link{display:inline-flex;align-items:center;gap:10px;color:var(--soft)}
+.dzen-logo{display:inline-flex;color:#000;line-height:0}
+.dzen-logo svg{width:30px;height:30px;display:block}
+.dzen-cap{font-size:14px;letter-spacing:.02em;border-bottom:1px solid var(--line);padding-bottom:2px;transition:color .2s,border-color .2s}
+.dzen-link:hover .dzen-cap{color:var(--wine);border-color:var(--wine)}
+.dzen-link:hover .dzen-logo{color:var(--wine)}
+/* статьи всегда видны (без сворачивания) */
+.posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:clamp(26px,3vw,44px)}
+.posts-empty{color:var(--soft);padding:22px 0 6px}
+/* правка адреса Дзен-канала — видна только в режиме редактирования */
+.dzen-url-edit{display:none;flex-basis:100%;align-items:center;gap:10px;font-size:13px;color:var(--soft)}
+body.editing .dzen-url-edit{display:flex}
+.dzen-url-edit input{flex:1;min-width:200px;max-width:440px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px}
+/* редактируемые карточки статей (только в админке) */
+body.editing #posts .post-card.post-edit{position:relative;background:#faf8f8;border:1px solid var(--line);border-radius:14px;padding:16px;cursor:default}
+.post-edit .post-pic{aspect-ratio:16/10;margin-bottom:10px;background:var(--grey);cursor:pointer}
+.post-edit .pe-lb{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin:10px 0 4px}
+.post-edit [contenteditable]{outline:1px dashed var(--line);border-radius:6px;padding:5px 7px;min-height:1.4em;color:var(--ink)}
+.post-edit [contenteditable]:focus{outline:1px solid var(--wine)}
+.post-edit .pe-full{white-space:pre-wrap;font-size:14px;line-height:1.6;max-height:220px;overflow:auto}
+.post-edit .pe-link{width:100%;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
+.post-x{position:absolute;top:8px;right:8px;z-index:2;width:26px;height:26px;border-radius:50%;border:0;background:rgba(20,18,18,.6);color:#fff;font-size:16px;line-height:1;cursor:pointer}
+.post-x:hover{background:var(--wine)}
+.post-add{grid-column:1/-1;justify-self:start;margin-top:6px;background:none;border:1px dashed var(--line);border-radius:999px;padding:8px 18px;color:var(--soft);cursor:pointer}
+.post-add:hover{color:var(--wine);border-color:var(--wine)}
+/* правка бегущей строки: в режиме редактирования останавливаем анимацию, показываем одну подпись */
+body.editing .marquee{overflow:visible}
+body.editing .marquee-track{animation:none;transform:none;white-space:normal;justify-content:center}
+.mq-edit{outline:1px dashed rgba(255,255,255,.6);border-radius:6px;padding:2px 10px}
+.mq-edit:focus{outline:1px solid #fff}
+/* правка подписей каналов связи */
+body.editing .fm-chan .chan-lb{outline:1px dashed var(--line);border-radius:4px;padding:1px 4px}
+body.editing .fm-chan .chan-lb:focus{outline:1px solid var(--wine)}
+
+/* =========================================================
+   ЧИТАЛКА СТАТЬИ (полный текст на странице)
+   ========================================================= */
+.reader{position:fixed;inset:0;z-index:85;display:flex;align-items:flex-start;justify-content:center;padding:5vh 20px;overflow:auto;opacity:0;pointer-events:none;transition:opacity .25s}
+.reader.open{opacity:1;pointer-events:auto}
+.reader-bg{position:fixed;inset:0;background:rgba(20,18,18,.6);backdrop-filter:blur(4px)}
+.reader-card{position:relative;z-index:1;width:100%;max-width:720px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4);transform:translateY(14px);transition:transform .25s}
+.reader.open .reader-card{transform:none}
+.reader-close{position:absolute;top:12px;right:14px;z-index:2;background:rgba(255,255,255,.9);border:0;font-size:26px;line-height:1;color:var(--ink);cursor:pointer;width:40px;height:40px;border-radius:50%}
+.reader-close:hover{background:#fff;color:var(--wine)}
+.reader-pic{aspect-ratio:16/9}
+.reader-body{padding:clamp(24px,4vw,44px)}
+.reader-body h2{font-size:clamp(24px,3vw,36px);line-height:1.12;margin-bottom:14px}
+.reader-by{color:var(--soft);font-size:13px;letter-spacing:.02em;margin:0 0 22px}
+.reader-text p{margin:0 0 16px;font-size:16px;line-height:1.75;color:var(--text)}
+.reader-text p:last-child{margin-bottom:0}
+.reader-dzen{display:inline-block;margin-top:22px;font-size:14px;color:var(--wine);border-bottom:1px solid var(--wine);padding-bottom:2px}
+.reader-dzen:hover{opacity:.8}
+@media(max-width:560px){.reader-body{padding:22px 18px}}
+
+/* =========================================================
+   АДМИН-ПАНЕЛЬ: кнопка, панель сохранения, режим правки
+   ========================================================= */
+/* читалка статьи — оверлей с полным текстом на странице */
+.reader{position:fixed;inset:0;z-index:85;display:flex;align-items:flex-start;justify-content:center;padding:5vh 20px;overflow:auto;opacity:0;pointer-events:none;transition:opacity .25s}
+.reader.open{opacity:1;pointer-events:auto}
+.reader-bg{position:fixed;inset:0;background:rgba(20,18,18,.6);backdrop-filter:blur(4px)}
+.reader-card{position:relative;z-index:1;width:100%;max-width:720px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4);transform:translateY(14px);transition:transform .25s}
+.reader.open .reader-card{transform:none}
+.reader-close{position:absolute;top:12px;right:14px;z-index:2;background:rgba(255,255,255,.9);border:0;font-size:26px;line-height:1;color:var(--ink);cursor:pointer;width:40px;height:40px;border-radius:50%}
+.reader-close:hover{background:#fff;color:var(--wine)}
+.reader-pic{aspect-ratio:16/9}
+.reader-body{padding:clamp(24px,4vw,44px)}
+.reader-body h2{font-size:clamp(24px,3vw,36px);line-height:1.12;margin-bottom:14px}
+.reader-by{color:var(--soft);font-size:13px;letter-spacing:.02em;margin:0 0 22px}
+.reader-text p{margin:0 0 16px;font-size:16px;line-height:1.75;color:var(--text)}
+.reader-text p:last-child{margin-bottom:0}
+.reader-dzen{display:inline-block;margin-top:22px;font-size:14px;color:var(--wine);border-bottom:1px solid var(--wine);padding-bottom:2px}
+.reader-dzen:hover{opacity:.8}
+@media(max-width:560px){.reader-body{padding:22px 18px}}
+/* кнопка входа в админку — прежний вид «таблетки», но по центру футера под «Политикой» (не плавает) */
+.admin-link{display:block;margin:16px auto 0;background:rgba(20,18,18,.5);color:#fff;border:0;border-radius:999px;padding:9px 16px;font-family:var(--body);font-size:12px;letter-spacing:.04em;cursor:pointer;opacity:.32;transition:opacity .25s,background .25s}
+.admin-link:hover{opacity:1;background:var(--ink)}
+.admin-bar{position:fixed;left:0;right:0;bottom:0;z-index:88;display:none;align-items:center;justify-content:space-between;gap:14px 20px;flex-wrap:wrap;background:var(--ink);color:#fff;padding:12px clamp(16px,4vw,40px);box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+.admin-bar.show{display:flex}
+.admin-status{font-size:13px;letter-spacing:.02em;opacity:.9}
+.admin-actions{display:flex;gap:12px;align-items:center}
+.admin-save{padding:11px 24px}
+.admin-cancel{background:none;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:2px;padding:10px 20px;font-family:var(--body);font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.admin-cancel:hover{border-color:#fff}
+/* режим правки */
+body.editing{padding-bottom:70px}
+body.editing [data-e]{outline:1px dashed rgba(139,86,96,.55);outline-offset:3px;border-radius:2px}
+body.editing [data-e]:focus{outline:2px solid var(--wine);background:rgba(240,225,228,.4)}
+body.editing [data-ei]{outline:2px dashed var(--wine);outline-offset:-2px;cursor:pointer;pointer-events:auto}
+body.editing [data-ei]:hover{outline-color:var(--ink)}
+/* пустые редактируемые поля (описание услуги, статус автора отзыва) в режиме правки
+   не схлопываются в невидимую точку — показываем подсказку, по ней можно кликнуть */
+body.editing [data-e]:empty::before,body.editing [data-rv=role]:empty::before{content:"добавить текст";color:var(--soft);opacity:.6}
+body.editing .rv-role:empty{display:block}
+/* фоновые фото: снимаем перекрытие-градиент, чтобы клик попадал в фото */
+body.editing .contact-bg,body.editing .story-bg{pointer-events:auto}
+body.editing .contact-bg::after,body.editing .story-bg::after{pointer-events:none}
+/* таблетки платформы в режиме правки */
+body.editing .plat-tag{cursor:text}
+.tag-x{margin:0 12px 0 -10px;background:none;border:0;color:var(--wine);font-size:16px;line-height:1;cursor:pointer;vertical-align:middle}
+.tag-x:hover{color:var(--ink)}
+.tag-add,.rv-add{background:none;border:1px dashed var(--wine);color:var(--wine);border-radius:999px;padding:11px 20px;font-family:var(--body);font-size:14px;cursor:pointer}
+.tag-add:hover,.rv-add:hover{background:var(--rose-soft)}
+.rv-add{margin-top:14px}
+body.editing .rv-card{position:relative}
+.rv-x{position:absolute;top:-6px;right:-6px;background:#fff;border:1px solid var(--line);border-radius:50%;width:26px;height:26px;color:var(--wine);font-size:16px;line-height:1;cursor:pointer;z-index:2}
+.rv-x:hover{border-color:var(--wine)}
+
+@media print{.toast,.marquee,.topnav,.admin-link,.admin-bar,.reader,.dzen-link{display:none!important}}

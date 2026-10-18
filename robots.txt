@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /save.php
+
+Sitemap: https://lizalikiyskaya.ru/sitemap.xml
