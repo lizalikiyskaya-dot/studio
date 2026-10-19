@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
 import type { SubmissionStatus, SubmissionType } from "@/generated/prisma/client";
+import { awardStars } from "@/features/stars/award";
+import { submissionReadyForStars } from "@/features/stars/rules";
 import { isSubmissionStatus, openCallSentForStatus, planOpenCallAdd } from "./status";
 
 function revalidateCabinet(studentId: string) {
@@ -13,6 +15,11 @@ function revalidateCabinet(studentId: string) {
 
 function isUnique(error: unknown) {
   return typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "P2002";
+}
+
+async function awardSubmissionIfSent(row: { id: string; studentId: string; type: SubmissionType; status: SubmissionStatus }) {
+  if (!submissionReadyForStars(row.status)) return;
+  await awardStars(row.studentId, row.type === "PUBLISHER" ? "PUBLISHER" : "CONTEST", row.id);
 }
 
 export async function addOpenCallToTracker(openCallId: string): Promise<"added" | "exists"> {
@@ -45,6 +52,7 @@ export async function addOpenCallToTracker(openCallId: string): Promise<"added" 
       if (sent !== call.sent) {
         await prisma.openCall.update({ where: { id: call.id }, data: { sent } });
       }
+      await awardSubmissionIfSent(row);
     } catch (error) {
       if (!isUnique(error)) throw error;
     }
@@ -54,7 +62,7 @@ export async function addOpenCallToTracker(openCallId: string): Promise<"added" 
 
   const count = await prisma.submission.count({ where: { studentId: call.studentId, type: "CONTEST" } });
   try {
-    await prisma.submission.create({
+    const row = await prisma.submission.create({
       data: {
         studentId: call.studentId,
         type: "CONTEST",
@@ -67,6 +75,7 @@ export async function addOpenCallToTracker(openCallId: string): Promise<"added" 
         openCallId: call.id,
       },
     });
+    await awardSubmissionIfSent(row);
   } catch (error) {
     if (!isUnique(error)) throw error;
     revalidateCabinet(call.studentId);
@@ -108,7 +117,7 @@ export async function setSubmissionStatus(id: string, status: SubmissionStatus) 
   const row = await prisma.submission.findUniqueOrThrow({ where: { id } });
   await requireCabinetAccess(row.studentId);
   if (row.status === status) return status;
-  await prisma.submission.update({ where: { id }, data: { status } });
+  const updated = await prisma.submission.update({ where: { id }, data: { status } });
   if (row.openCallId) {
     await prisma.openCall.update({
       where: { id: row.openCallId },
@@ -116,5 +125,8 @@ export async function setSubmissionStatus(id: string, status: SubmissionStatus) 
     });
     revalidateCabinet(row.studentId);
   }
+  // 5 или 10 звёзд один раз, когда заявка отмечена отправленной.
+  // «Не отправлено» не считается. Повтор статуса не удваивает.
+  await awardSubmissionIfSent(updated);
   return status;
 }

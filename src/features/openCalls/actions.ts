@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
+import { awardStars } from "@/features/stars/award";
+import { submissionReadyForStars } from "@/features/stars/rules";
 import { statusWhenOpenCallSentChanges } from "@/features/submissions/status";
 
 export async function createOpenCall(studentId: string) {
@@ -34,8 +36,11 @@ export async function setOpenCallSent(id: string, sent: boolean) {
   const submission = await prisma.submission.findUnique({ where: { openCallId: id } });
   if (submission) {
     const status = statusWhenOpenCallSentChanges(submission.status, sent);
-    if (status !== submission.status) {
-      await prisma.submission.update({ where: { id: submission.id }, data: { status } });
+    const updated = status === submission.status
+      ? submission
+      : await prisma.submission.update({ where: { id: submission.id }, data: { status } });
+    if (submissionReadyForStars(updated.status)) {
+      await awardStars(updated.studentId, updated.type === "PUBLISHER" ? "PUBLISHER" : "CONTEST", updated.id);
     }
   }
   return sent;

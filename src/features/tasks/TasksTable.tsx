@@ -121,8 +121,9 @@ export default function TasksTable({
 
   function handleStatus(taskId: string, status: TaskStatus) {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status } : t)));
-    startTransition(() => {
-      void setTaskStatus(taskId, status);
+    startTransition(async () => {
+      await setTaskStatus(taskId, status);
+      router.refresh();
     });
   }
 

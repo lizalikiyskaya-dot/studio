@@ -8,6 +8,7 @@ import {
   BookOpen,
   Bookmark,
   CalendarDays,
+  Sparkles,
   FileText,
   LayoutGrid,
   ListChecks,
@@ -36,6 +37,7 @@ import { useSheetSwipe } from "@/components/useSheetSwipe";
 
 const TOP_ITEMS = [
   { path: "tasks", label: "Задания", icon: Bookmark },
+  { path: "weekly", label: "Задание недели", icon: Sparkles },
   { path: "work-plan", label: "План работы", icon: CalendarDays },
   { path: "materials", label: "Материалы", icon: BookOpen },
   { path: "drafts", label: "Рукописи", icon: FileText },
