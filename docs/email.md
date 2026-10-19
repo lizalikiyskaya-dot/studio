@@ -5,7 +5,7 @@
 | Событие | Кому | Файл |
 |---|---|---|
 | Ученик поработал в своём кабинете | наставнику | `lib/notify.ts` → `notifyMentorOfStudentEdit` |
-| Наставник внёс правки в кабинет ученика | ученику | `lib/notify.ts` → `notifyStudentOfMentorEdit` |
+| Наставник внёс правки в кабинет ученика | ученику | `lib/notify.ts` → `notifyStudentOfMentorEdit`. Сейчас не уходит, пока в окружении нет `STUDENT_EDIT_EMAILS=on`. Маячки в кабинете остаются. |
 | Регистрация | ученику («заявка на рассмотрении») и наставнику («новая заявка») | `lib/notify.ts` → `notifyRegistration` |
 | Одобрение заявки / возврат доступа | ученику | `lib/notify.ts` → `notifyApproved` |
 | Запрос «Забыли пароль?» | тому, кто запросил | `lib/notify.ts` → `sendPasswordResetEmail` |
