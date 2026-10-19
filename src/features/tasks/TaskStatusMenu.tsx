@@ -9,6 +9,7 @@ import type { TaskStatus } from "@/generated/prisma/client";
 import { TASK_STATUSES, TASK_STATUS_LABEL } from "./status";
 
 const STATUS_STYLE: Record<TaskStatus, React.CSSProperties> = {
+  PLANNED: { background: "var(--soft)", color: "var(--ink2)" },
   IN_PROGRESS: { background: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)" },
   SUBMITTED: { background: "var(--pill-vio-bg)", color: "var(--pill-vio-fg)" },
   NEEDS_REVISION: { background: "var(--pill-or-bg)", color: "var(--pill-or-fg)" },
@@ -78,7 +79,7 @@ export default function TaskStatusMenu({
       if (!el) return;
       const rect = el.getBoundingClientRect();
       const width = 248;
-      const height = 220;
+      const height = 292;
       const left = Math.min(Math.max(8, rect.right - width), window.innerWidth - width - 8);
       const below = rect.bottom + 6;
       const top = below + height > window.innerHeight - 8 ? Math.max(8, rect.top - height - 6) : below;
