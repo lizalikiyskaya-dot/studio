@@ -22,7 +22,19 @@ export default async function StudentViewLayout({
   if (session.role !== "MENTOR") redirect("/dashboard/tasks");
 
   const { studentId } = await params;
-  const student = await prisma.user.findUnique({ where: { id: studentId } });
+  const student = await prisma.user.findUnique({
+    where: { id: studentId },
+    select: {
+      id: true,
+      name: true,
+      role: true,
+      reviewModeEnabled: true,
+      bookWorkshopUnlocked: true,
+      storyWorkshopUnlocked: true,
+      paymentDay: true,
+      paymentStatus: true,
+    },
+  });
   if (!student || student.role !== "STUDENT") notFound();
 
   const [tasks, notes, books, cycles] = await Promise.all([

@@ -4,6 +4,7 @@ import { StoryCircleExamplesList, StoryCircleOwnList } from "./StoryCircleList";
 import { STORY_CIRCLE_SEED } from "./seedData";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
+import { attachPortrait, photoIds } from "@/lib/portraits";
 
 export default async function StoryCircleView({
   studentId,
@@ -15,6 +16,7 @@ export default async function StoryCircleView({
   let examples = await prisma.storyCircleCard.findMany({
     where: { studentId, isExample: true },
     orderBy: { order: "asc" },
+    omit: { photoUrl: true },
   });
 
   if (examples.length === 0) {
@@ -30,15 +32,22 @@ export default async function StoryCircleView({
     examples = await prisma.storyCircleCard.findMany({
       where: { studentId, isExample: true },
       orderBy: { order: "asc" },
+      omit: { photoUrl: true },
     });
   }
 
-  const ownCards = await prisma.storyCircleCard.findMany({
-    where: { studentId, isExample: false },
-    orderBy: { order: "asc" },
-  });
-  const ownSuggestions = await getSuggestionsForRecords("StoryCircleCard", ownCards.map((c) => c.id));
-  const allIds = [...examples, ...ownCards].map((c) => c.id);
+  const [ownCards, portraits] = await Promise.all([
+    prisma.storyCircleCard.findMany({
+      where: { studentId, isExample: false },
+      orderBy: { order: "asc" },
+      omit: { photoUrl: true },
+    }),
+    photoIds("story-circle", studentId),
+  ]);
+  const exampleCards = attachPortrait(examples, portraits, "story-circle");
+  const own = attachPortrait(ownCards, portraits, "story-circle");
+  const ownSuggestions = await getSuggestionsForRecords("StoryCircleCard", own.map((c) => c.id));
+  const allIds = [...exampleCards, ...own].map((c) => c.id);
   const allComments = await getCommentsForRecords("StoryCircleCard", allIds);
 
   return (
@@ -50,7 +59,7 @@ export default async function StoryCircleView({
           content: (
             <StoryCircleExamplesList
               studentId={studentId}
-              initialCards={examples}
+              initialCards={exampleCards}
               isMentorViewer={isMentorViewer}
               comments={allComments}
             />
@@ -61,7 +70,7 @@ export default async function StoryCircleView({
           content: (
             <StoryCircleOwnList
               studentId={studentId}
-              initialCards={ownCards}
+              initialCards={own}
               suggestions={ownSuggestions}
               comments={allComments}
             />
