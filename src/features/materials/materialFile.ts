@@ -13,6 +13,7 @@ export type MaterialRow = {
   fileName: string | null;
   optional: boolean;
   month: string | null;
+  note: string | null;
   pdfHref: string | null;
   epubHref: string | null;
   fileHref: string | null;
@@ -33,7 +34,28 @@ export const MATERIAL_PAGE_SELECT = {
   fileName: true,
   optional: true,
   month: true,
+  note: true,
 } as const;
+
+export const BOOK_NOTE_MAX = 500;
+
+/** Текст плашки месяца. Пустая строка — плашки нет, в том числе у наставника. */
+export function visibleBookMonth(month: string | null | undefined): string | null {
+  const shown = (month ?? "").trim();
+  return shown.length ? shown : null;
+}
+
+/** Заметка под названием. Пустая строка не занимает место. */
+export function visibleBookNote(note: string | null | undefined): string | null {
+  const shown = (note ?? "").trim();
+  return shown.length ? shown : null;
+}
+
+/** Пустая заметка хранится как null, чтобы повторное сохранение не писало "". */
+export function storedBookNote(value: string): string | null {
+  const trimmed = value.trim().slice(0, BOOK_NOTE_MAX);
+  return trimmed.length ? trimmed : null;
+}
 
 export type MaterialFileKind = "pdf" | "epub" | "file";
 
@@ -57,6 +79,7 @@ type MaterialCore = {
   fileName: string | null;
   optional: boolean;
   month: string | null;
+  note: string | null;
 };
 
 export function materialRow(

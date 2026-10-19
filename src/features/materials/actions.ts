@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import { nextMaterialStatus } from "./status";
 import { nextMaterialOrder } from "./materialRows";
+import { storedBookNote } from "./materialFile";
 import type { MaterialCategory } from "@/generated/prisma/client";
 
 export async function createMaterial(studentId: string, category: MaterialCategory, requestId: string) {
@@ -52,6 +53,7 @@ export async function setMaterialOptional(materialId: string, optional: boolean)
   await prisma.material.update({ where: { id: materialId }, data: { optional } });
 }
 
+// Месяц и заметка книги. Письмо ученику отсюда не уходит: эти действия только пишут строку.
 export async function setMaterialMonth(materialId: string, month: string) {
   const material = await prisma.material.findUniqueOrThrow({ where: { id: materialId } });
   await requireMentor(material.studentId);
@@ -60,6 +62,16 @@ export async function setMaterialMonth(materialId: string, month: string) {
   await prisma.material.update({
     where: { id: materialId },
     data: { month: trimmed.length ? trimmed : null },
+  });
+}
+
+export async function setMaterialNote(materialId: string, note: string) {
+  const material = await prisma.material.findUniqueOrThrow({ where: { id: materialId } });
+  await requireMentor(material.studentId);
+  if (material.category !== "BOOK") return;
+  await prisma.material.update({
+    where: { id: materialId },
+    data: { note: storedBookNote(note) },
   });
 }
 

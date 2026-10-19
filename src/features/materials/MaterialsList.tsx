@@ -19,8 +19,10 @@ import {
   reorderMaterials,
   setMaterialOptional,
   setMaterialMonth,
+  setMaterialNote,
 } from "./actions";
 import { appendMaterial, applyMaterialTitles, enqueueById, enqueueCreate, titleSaveFromField } from "./materialRows";
+import { BOOK_NOTE_MAX, storedBookNote, visibleBookMonth, visibleBookNote } from "./materialFile";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
 import { Button } from "@/components/ui/Button";
 import EmptyState from "@/components/EmptyState";
@@ -100,53 +102,82 @@ function MaterialTitleInput({
   );
 }
 
-function BookMonthField({
+function BookMonthField({ month }: { month: string | null }) {
+  const shown = visibleBookMonth(month);
+  // Пустой месяц не рисуем никому: плашка «месяц» в шапке была пустым местом.
+  if (!shown) return null;
+
+  return (
+    <span
+      data-book-month={shown}
+      className="mt-1 inline-flex max-w-full items-center rounded-full px-2 py-0.5 text-[12px] font-medium leading-none"
+      style={{ background: "var(--note)", color: "var(--noteink)", border: "1px solid transparent" }}
+    >
+      {shown}
+    </span>
+  );
+}
+
+function BookNoteLine({ note }: { note: string | null }) {
+  const shown = visibleBookNote(note);
+  if (!shown) return null;
+  return (
+    <span
+      data-book-note={shown}
+      className="mt-1 block whitespace-normal break-words text-[13px] font-normal leading-snug"
+      style={{ color: "var(--ink2)", letterSpacing: "normal", fontWeight: 400 }}
+    >
+      {shown}
+    </span>
+  );
+}
+
+function BookMonthInput({
   month,
-  canManage,
   onCommit,
 }: {
   month: string | null;
-  canManage: boolean;
   onCommit: (value: string) => void;
 }) {
   const [value, setValue] = useState(month ?? "");
-  const shown = (canManage ? value : month ?? "").trim();
-  if (!canManage && !shown) return null;
-
-  const chip = {
-    background: shown ? "var(--note)" : "#fff",
-    color: shown ? "var(--noteink)" : "var(--muted)",
-    border: "1px solid transparent",
-  } as const;
-
-  if (!canManage) {
-    return (
-      <span
-        data-book-month={shown}
-        className="mt-1 inline-flex max-w-full items-center rounded-full px-2 py-0.5 text-[12px] font-medium leading-none"
-        style={chip}
-      >
-        {shown}
-      </span>
-    );
-  }
-
   return (
     <input
       value={value}
       maxLength={80}
-      placeholder="месяц"
+      placeholder="например, ноябрь 2026"
       aria-label="рекомендуемый месяц"
-      data-book-month={shown}
+      autoComplete="off"
       onChange={(event) => setValue(event.target.value)}
       onBlur={() => {
         if (value.trim() !== (month ?? "").trim()) onCommit(value);
       }}
-      onClick={(event) => event.stopPropagation()}
-      onMouseDown={(event) => event.stopPropagation()}
       onKeyDown={blurOnEnter}
-      className="mt-1 block w-[9.5rem] max-w-full rounded-full px-2 py-0.5 text-[12px] font-medium leading-none outline-none placeholder:text-[var(--muted)]"
-      style={chip}
+      className="fld"
+    />
+  );
+}
+
+function BookNoteInput({
+  note,
+  onCommit,
+}: {
+  note: string | null;
+  onCommit: (value: string) => void;
+}) {
+  const [value, setValue] = useState(note ?? "");
+  return (
+    <input
+      value={value}
+      maxLength={BOOK_NOTE_MAX}
+      placeholder="коротко, если книга не целиком"
+      aria-label="заметка к книге"
+      autoComplete="off"
+      onChange={(event) => setValue(event.target.value)}
+      onBlur={() => {
+        if (value.trim() !== (note ?? "").trim()) onCommit(value);
+      }}
+      onKeyDown={blurOnEnter}
+      className="fld"
     />
   );
 }
@@ -236,6 +267,12 @@ function BooksList({
     startTransition(() => setMaterialMonth(id, trimmed));
   }
 
+  function handleNote(id: string, note: string) {
+    const next = storedBookNote(note);
+    setBooks((prev) => prev.map((m) => (m.id === id ? { ...m, note: next } : m)));
+    startTransition(() => setMaterialNote(id, next ?? ""));
+  }
+
   return (
     <div>
       {books.map((material) => (
@@ -255,11 +292,8 @@ function BooksList({
             title={
               <span className="block min-w-0">
                 <span className="block truncate">{material.title || "Без названия"}</span>
-                <BookMonthField
-                  month={material.month}
-                  canManage={canManage}
-                  onCommit={(value) => handleMonth(material.id, value)}
-                />
+                <BookMonthField month={material.month} />
+                <BookNoteLine note={material.note} />
               </span>
             }
             headerPrefix={
@@ -309,16 +343,34 @@ function BooksList({
             }
           >
             {canManage && (
-              <MaterialTitleInput
-                id={material.id}
-                title={material.title}
-                onSave={saveTitle}
-                placeholder="Название книги"
-                className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
-                style={{ borderColor: "var(--border)" }}
-              />
+              <>
+                <MaterialTitleInput
+                  id={material.id}
+                  title={material.title}
+                  onSave={saveTitle}
+                  placeholder="Название книги"
+                  className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
+                  style={{ borderColor: "var(--border)" }}
+                />
+                <label className="fld-label" style={{ marginTop: 0 }}>
+                  месяц
+                  <BookMonthInput
+                    key={`${material.id}:month:${material.month ?? ""}`}
+                    month={material.month}
+                    onCommit={(value) => handleMonth(material.id, value)}
+                  />
+                </label>
+                <label className="fld-label">
+                  заметка
+                  <BookNoteInput
+                    key={`${material.id}:note:${material.note ?? ""}`}
+                    note={material.note}
+                    onCommit={(value) => handleNote(material.id, value)}
+                  />
+                </label>
+              </>
             )}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className={`flex items-center gap-2 flex-wrap${canManage ? " mt-4" : ""}`}>
               {material.pdfHref ? (
                 <DownloadButton href={material.pdfHref} fileName={material.pdfName} mime="application/pdf" bytes={material.pdfBytes} />
               ) : canManage ? (
