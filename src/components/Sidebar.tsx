@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -28,6 +28,7 @@ import WorkshopBookCard from "./WorkshopBookCard";
 import type { WorkshopBook } from "@/lib/workshopBooks";
 import { setReviewMode } from "@/features/reviewMode/actions";
 import { useCanSuggest, useSetCanSuggest } from "@/features/suggestions/SuggestionContext";
+import { useSheetSwipe } from "@/components/useSheetSwipe";
 
 const TOP_ITEMS = [
   { path: "tasks", label: "Задания", icon: Bookmark },
@@ -128,6 +129,9 @@ export default function Sidebar({
   const [, startTransition] = useTransition();
   const [desktopCollapsed, setCollapsed] = useState(false);
   const [sheet, setSheet] = useState<null | "calendar" | "sections">(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const sheetBodyRef = useRef<HTMLDivElement>(null);
+  useSheetSwipe(sheet != null, () => setSheet(null), sheetRef, sheetBodyRef);
   const section = sectionOf(pathname, basePath);
   const onBook = BOOK_PATHS.has(section);
   const onStory = STORY_PATHS.has(section);
@@ -608,18 +612,22 @@ export default function Sidebar({
           <button type="button" className="studio-sheet-backdrop" aria-label="Закрыть" onClick={() => setSheet(null)} />
           <button type="button" className="studio-sheet-outside" aria-label="Закрыть" hidden onClick={() => setSheet(null)} />
           <div
+            ref={sheetRef}
             className="studio-sheet"
             role="dialog"
             aria-modal="true"
             aria-label={sheet === "calendar" ? "Календарь" : "Разделы"}
           >
             <div className="studio-sheet-head">
+              <button type="button" className="sheet-grab" data-sheet-handle aria-label="Потяните вниз, чтобы закрыть">
+                <span />
+              </button>
               <div className="text-[16px] font-semibold">{sheet === "calendar" ? "Календарь" : "Разделы"}</div>
               <button type="button" className="studio-sheet-close" onClick={() => setSheet(null)}>
                 <X size={16} /> Закрыть
               </button>
             </div>
-            <div className="studio-sheet-body">
+            <div ref={sheetBodyRef} className="studio-sheet-body">
               {sheet === "calendar" ? (
                 <>
                   {calendar && (

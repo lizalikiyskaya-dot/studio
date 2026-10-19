@@ -905,7 +905,81 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   justify-content: space-between;
   gap: 12px;
   flex-shrink: 0;
-  padding: 14px 16px 8px;
+  flex-wrap: wrap;
+  padding: 6px 16px 8px;
+}
+/* Ручка шторки: высота фиксирована, иначе в колонке flex-basis растянет её на всю панель. */
+.sheet-grab {
+  order: -1;
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  padding: 8px 0 2px;
+  border: 0;
+  background: transparent;
+  touch-action: none;
+  cursor: grab;
+}
+.sheet-grab span {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: #c8c8c8;
+}
+.notes-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  justify-content: flex-end;
+  overflow: hidden;
+  background: transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s ease, visibility 0.22s ease;
+}
+.notes-layer.is-open {
+  background: rgba(30, 28, 24, 0.28);
+  opacity: 1;
+  visibility: visible;
+}
+.notes-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(400px, 92vw);
+  height: 100%;
+  background: var(--bg-card);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.13);
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.22, 0.9, 0.32, 1);
+}
+.notes-layer.is-open .notes-panel { transform: translateX(0); }
+.notes-panel .sheet-grab { display: none; }
+.notes-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.notes-close {
+  display: inline-flex;
+  border: 0;
+  background: transparent;
+  color: var(--ink-faint);
+  padding: 4px;
+}
+.notes-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 .studio-sheet-close {
   display: inline-flex;
@@ -1020,6 +1094,17 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .studio-content :where(.flex.items-center.justify-between, .flex.items-start.justify-between) { flex-wrap: wrap; gap: 12px; }
   .studio-content :where(input, textarea, select, [contenteditable="true"]) { font-size: 16px; }
   .notes-fab { bottom: 96px !important; }
+  .notes-layer { align-items: flex-end; justify-content: stretch; }
+  .notes-panel {
+    width: 100%;
+    height: min(88dvh, 100%);
+    max-height: calc(100% - 8px);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -12px 40px rgba(32, 32, 32, 0.18);
+    transform: translateY(110%);
+  }
+  .notes-layer.is-open .notes-panel { transform: translateY(0); }
+  .notes-panel .sheet-grab { display: flex; }
 }
 @media (max-width: 720px) {
   .studio-logo-note { display: none; }
