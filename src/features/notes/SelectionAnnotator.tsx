@@ -5,16 +5,39 @@ import { MessageSquarePlus } from "lucide-react";
 
 export type Anchor = { quote: string; label: string; url: string };
 
-// True if the node lives inside the notes panel itself (or the floating
-// button), where we never want to offer annotation.
-function insideNotesUi(node: Node | null): boolean {
-  let el: HTMLElement | null =
-    node instanceof HTMLElement ? node : (node?.parentElement ?? null);
+const TEXTUAL_INPUT = new Set(["", "text", "search", "url", "tel", "password", "email", "number"]);
+
+type HostLike = {
+  tagName?: string;
+  type?: string;
+  isContentEditable?: boolean;
+  parentElement?: HostLike | null;
+  getAttribute?: (name: string) => string | null;
+  dataset?: { notesUi?: string; annotateBtn?: string };
+};
+
+/** Поле, в котором человек правит текст, или сама панель заметок.
+ *  Выделение там не должно поднимать «Заметка»: иначе кнопка съедает
+ *  Delete, Backspace и замену набора. */
+export function blocksNote(node: HostLike | null | undefined): boolean {
+  let el = node ?? null;
   while (el) {
     if (el.dataset?.notesUi === "1" || el.dataset?.annotateBtn !== undefined) return true;
-    el = el.parentElement;
+    if (el.getAttribute?.("data-review-field") != null) return true;
+    if (el.isContentEditable) return true;
+    const tag = el.tagName;
+    if (tag === "TEXTAREA" || tag === "SELECT") return true;
+    if (tag === "INPUT" && TEXTUAL_INPUT.has((el.type ?? "text").toLowerCase())) return true;
+    const role = el.getAttribute?.("role");
+    if (role === "textbox" || role === "searchbox") return true;
+    el = el.parentElement ?? null;
   }
   return false;
+}
+
+function hostOf(node: Node | null): HTMLElement | null {
+  if (!node) return null;
+  return node instanceof HTMLElement ? node : node.parentElement;
 }
 
 function readableLabel(): string {
@@ -26,36 +49,17 @@ function readableLabel(): string {
 
 type Found = { text: string; rect: DOMRect | null };
 
-// Read the current selection from either a focused textarea/input (whose
-// internal selection never reaches window.getSelection) or the regular DOM.
-function inReviewField(node: Node | null): boolean {
-  const el = node instanceof HTMLElement ? node : node?.parentElement ?? null;
-  return !!el?.closest("[data-review-field]");
-}
-
+// Выделение в поле ввода и в режиме правок не предлагаем заметить: человек
+// выделяет, чтобы удалить или заменить. Кнопка остаётся на обычном тексте страницы.
 function readSelection(): Found | null {
-  const active = document.activeElement as HTMLElement | null;
-  if (
-    active &&
-    (active.tagName === "TEXTAREA" || active.tagName === "INPUT") &&
-    !insideNotesUi(active)
-  ) {
-    // Поле режима правок: выделение нужно, чтобы удалить или заменить.
-    if (inReviewField(active)) return null;
-    const field = active as HTMLTextAreaElement | HTMLInputElement;
-    const start = field.selectionStart;
-    const end = field.selectionEnd;
-    if (start != null && end != null && end > start) {
-      return { text: field.value.substring(start, end), rect: field.getBoundingClientRect() };
-    }
-    return null;
-  }
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && active !== document.body && blocksNote(active)) return null;
 
   const sel = window.getSelection();
   if (!sel || sel.isCollapsed || sel.rangeCount === 0) return null;
-  if (inReviewField(sel.anchorNode) || inReviewField(sel.focusNode)) return null;
+  if (blocksNote(hostOf(sel.anchorNode)) || blocksNote(hostOf(sel.focusNode))) return null;
   const text = sel.toString();
-  if (!text.trim() || insideNotesUi(sel.anchorNode)) return null;
+  if (!text.trim()) return null;
   return { text, rect: sel.getRangeAt(0).getBoundingClientRect() };
 }
 
@@ -143,8 +147,9 @@ export default function SelectionAnnotator({
       onClick={() => {
         onAnnotate(btn.anchor);
         setBtn(null);
+        const active = document.activeElement;
+        if (active instanceof HTMLElement && blocksNote(active)) return;
         window.getSelection()?.removeAllRanges();
-        (document.activeElement as HTMLElement | null)?.blur?.();
       }}
       className="flex items-center gap-1.5 rounded-full text-[12px] font-medium px-3 py-1.5"
       style={{
