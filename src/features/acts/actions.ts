@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
+import { normalizePlanView, type PlanView } from "./chapterText";
 
 export async function createAct(bookId: string) {
   const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
@@ -27,7 +28,22 @@ export async function deleteAct(actId: string) {
   const act = await prisma.act.findUniqueOrThrow({ where: { id: actId } });
   const book = await prisma.book.findUniqueOrThrow({ where: { id: act.bookId } });
   await requireCabinetAccess(book.studentId);
+  const neighbor = await prisma.act.findFirst({
+    where: { bookId: act.bookId, id: { not: actId } },
+    orderBy: { order: "asc" },
+  });
+  if (neighbor) {
+    await prisma.planChapter.updateMany({ where: { actId }, data: { actId: neighbor.id } });
+  }
   await prisma.act.delete({ where: { id: actId } });
+}
+
+export async function setPlanView(studentId: string, view: PlanView) {
+  await requireCabinetAccess(studentId);
+  await prisma.user.update({
+    where: { id: studentId },
+    data: { planView: normalizePlanView(view) },
+  });
 }
 
 async function requireAccessForAct(actId: string) {
@@ -44,6 +60,13 @@ async function requireAccessForChapter(chapterId: string) {
 
 async function requireAccessForBlock(blockId: string) {
   const block = await prisma.storylineBlock.findUniqueOrThrow({ where: { id: blockId } });
+  if (block.planChapterId) {
+    const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id: block.planChapterId } });
+    const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
+    await requireCabinetAccess(book.studentId);
+    return block;
+  }
+  if (!block.chapterId) throw new Error("Сцена без главы");
   await requireAccessForChapter(block.chapterId);
   return block;
 }
@@ -107,6 +130,29 @@ export async function updateStorylineBlockSpan(blockId: string, span: number) {
   const next = Math.max(1, Math.min(8, Math.floor(span) || 1));
   await requireAccessForBlock(blockId);
   await prisma.storylineBlock.update({ where: { id: blockId }, data: { span: next } });
+}
+
+export async function createPlanScene(planChapterId: string) {
+  const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id: planChapterId } });
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
+  await requireCabinetAccess(book.studentId);
+  const count = await prisma.storylineBlock.count({ where: { planChapterId } });
+  const color = STORYLINE_COLORS[count % STORYLINE_COLORS.length];
+  return prisma.storylineBlock.create({
+    data: { planChapterId, order: count, color, name: "Новая линия" },
+  });
+}
+
+export async function movePlanScene(blockId: string, planChapterId: string) {
+  await requireAccessForBlock(blockId);
+  const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id: planChapterId } });
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
+  await requireCabinetAccess(book.studentId);
+  const count = await prisma.storylineBlock.count({ where: { planChapterId } });
+  await prisma.storylineBlock.update({
+    where: { id: blockId },
+    data: { planChapterId, order: count },
+  });
 }
 
 export async function moveStorylineBlock(blockId: string, targetChapterId: string) {

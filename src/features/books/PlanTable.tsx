@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect, type CSSProperties } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import type { PlanChapter } from "@/generated/prisma/client";
 import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, toggleChapterActBreak, deletePlanChapter } from "./actions";
-import { updatePlanColumnColors } from "./actions";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import { blurOnEnter } from "@/lib/blurOnEnter";
 import { useHeaderAction } from "@/components/headerAction";
+import { progressKind, progressPercent, type ProgressKind } from "@/features/acts/chapterText";
 
 const PALETTE = ["#E0CBE7", "#E2E9EE", "#E2EADC", "#F0E1E4"];
 
@@ -83,51 +83,44 @@ function ColorPicker({
   );
 }
 
-const COLUMNS = ["summary", "dramaticArgument", "note", "chars"] as const;
-type ColKey = (typeof COLUMNS)[number];
-
-const COL_LABELS: Record<ColKey, string> = {
-  summary: "Суть",
-  dramaticArgument: "Ядро",
-  note: "Примечание",
-  chars: "Знаки",
-};
+const LEGEND: { kind: ProgressKind; label: string }[] = [
+  { kind: "none", label: "не начата" },
+  { kind: "work", label: "в работе" },
+  { kind: "almost", label: "почти" },
+  { kind: "done", label: "готова" },
+];
 
 function formatChars(value: number) {
   return value.toLocaleString("ru-RU").replace(/\u00A0/g, " ");
 }
 
-function chapterPercent(chapter: PlanChapter) {
-  if (chapter.plannedChars <= 0) return 0;
-  return Math.round((chapter.writtenChars / chapter.plannedChars) * 100);
-}
-
 function sumChars(chapters: PlanChapter[]) {
   const planned = chapters.reduce((sum, chapter) => sum + (chapter.plannedChars || 0), 0);
   const written = chapters.reduce((sum, chapter) => sum + (chapter.writtenChars || 0), 0);
-  const percent = planned > 0 ? Math.round((written / planned) * 100) : 0;
-  return { planned, written, percent };
+  return { planned, written, percent: progressPercent(written, planned) };
 }
+
+type ActSlice = { id: string; title: string; order: number };
 
 export default function PlanTable({
   bookId,
   initialChapters,
+  initialActs,
   suggestions,
-  initialColumnColors,
 }: {
   bookId: string;
   initialChapters: PlanChapter[];
+  initialActs: ActSlice[];
   suggestions: Record<string, Record<string, string>>;
-  initialColumnColors: Record<string, string>;
 }) {
   const [chapters, setChapters] = useState(initialChapters);
-  const [colColors, setColColors] = useState<Record<string, string>>(initialColumnColors);
-  const [colorsOpen, setColorsOpen] = useState(false);
+  const [acts, setActs] = useState(initialActs);
   const [, startTransition] = useTransition();
 
   function handleAdd() {
     startTransition(async () => {
-      const chapter = await createPlanChapter(bookId);
+      const { chapter, act } = await createPlanChapter(bookId);
+      if (act) setActs((prev) => [...prev, act]);
       setChapters((prev) => [...prev, chapter]);
     });
   }
@@ -151,24 +144,29 @@ export default function PlanTable({
   }
 
   function handleActBreak(chapterId: string, value: boolean) {
-    setChapters((prev) => prev.map((c) => (c.id === chapterId ? { ...c, actBreakAfter: value } : c)));
-    startTransition(() => toggleChapterActBreak(chapterId, value));
-  }
-
-  function handleColColor(col: string, color: string | null) {
-    const next = { ...colColors };
-    if (color) next[col] = color;
-    else delete next[col];
-    setColColors(next);
-    startTransition(() => updatePlanColumnColors(bookId, next));
+    startTransition(async () => {
+      const next = await toggleChapterActBreak(chapterId, value);
+      setChapters(next.chapters);
+      setActs(next.acts);
+    });
   }
 
   const totals = sumChars(chapters);
-  const groups: { act: number; items: { chapter: PlanChapter; index: number }[] }[] = [{ act: 1, items: [] }];
-  chapters.forEach((chapter, index) => {
-    groups[groups.length - 1].items.push({ chapter, index });
-    if (chapter.actBreakAfter) groups.push({ act: groups.length + 1, items: [] });
-  });
+  const numbers = new Map(chapters.map((chapter, index) => [chapter.id, index + 1]));
+  const grouped = new Map<string, PlanChapter[]>();
+  for (const chapter of chapters) {
+    const key = chapter.actId ?? "";
+    const list = grouped.get(key) ?? [];
+    list.push(chapter);
+    grouped.set(key, list);
+  }
+  const groups = acts.map((act, index) => ({
+    key: act.id,
+    label: act.title.trim() || `Акт ${index + 1}`,
+    items: grouped.get(act.id) ?? [],
+  })).filter((group) => group.items.length > 0);
+  const loose = grouped.get("") ?? [];
+  if (loose.length > 0) groups.push({ key: "loose", label: "Ещё", items: loose });
 
   return (
     <div className="chapter-feed">
@@ -192,49 +190,30 @@ export default function PlanTable({
         </div>
       </section>
 
-      <div className="chapter-colors">
-        <button type="button" className="chapter-colors-toggle" onClick={() => setColorsOpen((open) => !open)} aria-expanded={colorsOpen}>
-          Цвета колонок
-        </button>
-        {colorsOpen && (
-          <div className="chapter-colors-row">
-            {COLUMNS.map((col) => (
-              <span key={col} className="chapter-colors-item">
-                <ColorPicker current={colColors[col] ?? null} onChange={(color) => handleColColor(col, color)} label={`Цвет: ${COL_LABELS[col]}`} />
-                {COL_LABELS[col]}
-              </span>
-            ))}
-          </div>
-        )}
+      <div className="chapter-legend" aria-label="Прогресс глав">
+        {LEGEND.map((item) => (
+          <span key={item.kind}>
+            <i className={`is-${item.kind}`} />
+            {item.label}
+          </span>
+        ))}
       </div>
 
       {chapters.length === 0 ? (
-        <p className="chapter-empty">Глав пока нет. Новая глава появится здесь.</p>
+        <p className="chapter-empty">Глав пока нет.</p>
       ) : (
         groups.map((group) => {
-          const stats = sumChars(group.items.map((item) => item.chapter));
-          if (group.items.length === 0) {
-            return (
-              <div key={`act-${group.act}`} className="chapter-act">Акт {group.act}</div>
-            );
-          }
+          const stats = sumChars(group.items);
           return (
-            <section key={`act-${group.act}`}>
-              <div className="chapter-act">Акт {group.act} · {stats.percent}%</div>
-              {group.items.map(({ chapter, index }) => {
-                const percent = chapterPercent(chapter);
-                const over = percent > 100;
+            <section key={group.key}>
+              <div className="chapter-act">{group.label} · {stats.percent}%</div>
+              {group.items.map((chapter) => {
+                const percent = progressPercent(chapter.writtenChars, chapter.plannedChars);
                 const chapterSuggestions = suggestions[chapter.id] ?? {};
-                const fieldBg = (col: ColKey): CSSProperties | undefined =>
-                  chapter.color ? undefined : colColors[col] ? { background: colColors[col] } : undefined;
                 return (
-                  <article
-                    key={chapter.id}
-                    className="chapter-card"
-                    style={{ background: chapter.color ?? "#fff" }}
-                  >
+                  <article key={chapter.id} className={`chapter-card is-${progressKind(chapter.writtenChars, chapter.plannedChars)}`}>
                     <div className="chapter-card-top">
-                      <span className="chapter-card-n">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="chapter-card-n">{numbers.get(chapter.id)}</span>
                       <div className="chapter-card-tools">
                         <ColorPicker
                           current={chapter.color ?? null}
@@ -245,7 +224,6 @@ export default function PlanTable({
                           type="button"
                           className="chapter-tool"
                           onClick={() => handleActBreak(chapter.id, !chapter.actBreakAfter)}
-                          title={chapter.actBreakAfter ? "Убрать границу акта" : "Начать новый акт после этой главы"}
                         >
                           {chapter.actBreakAfter ? "Убрать границу" : "Новый акт"}
                         </button>
@@ -253,7 +231,6 @@ export default function PlanTable({
                           type="button"
                           className="chapter-tool chapter-tool-icon"
                           onClick={() => handleDelete(chapter.id)}
-                          title="Удалить главу"
                           aria-label="Удалить главу"
                         >
                           <Trash2 size={14} />
@@ -263,37 +240,13 @@ export default function PlanTable({
                     <SuggestableField
                       model="PlanChapter"
                       recordId={chapter.id}
-                      field="summary"
-                      value={chapter.summary}
-                      suggestion={chapterSuggestions.summary}
-                      placeholder="Суть по сюжету"
+                      field="title"
+                      value={chapter.title}
+                      suggestion={chapterSuggestions.title}
+                      placeholder="Название"
                       className="chapter-card-title"
-                      style={fieldBg("summary")}
                     />
-                    <SuggestableField
-                      model="PlanChapter"
-                      recordId={chapter.id}
-                      field="dramaticArgument"
-                      value={chapter.dramaticArgument}
-                      suggestion={chapterSuggestions.dramaticArgument}
-                      placeholder="Драматическое ядро"
-                      className="chapter-card-core"
-                      style={fieldBg("dramaticArgument")}
-                    />
-                    <SuggestableField
-                      model="PlanChapter"
-                      recordId={chapter.id}
-                      field="note"
-                      value={chapter.note}
-                      suggestion={chapterSuggestions.note}
-                      placeholder="Примечание"
-                      className="chapter-card-note"
-                      style={fieldBg("note")}
-                    />
-                    <div className="chapter-card-foot" style={fieldBg("chars")}>
-                      <div className="chapter-mini-track" aria-hidden="true">
-                        <i style={{ width: `${Math.min(100, percent)}%`, background: over ? "var(--v)" : "var(--ink)" }} />
-                      </div>
+                    <div className="chapter-card-foot">
                       <div className="chapter-card-figures">
                         <input
                           type="number"
@@ -316,7 +269,7 @@ export default function PlanTable({
                           placeholder="0"
                           className="chapter-num"
                         />
-                        <span className={over ? "chapter-pct is-over" : "chapter-pct"}>
+                        <span className="chapter-pct">
                           {chapter.plannedChars > 0 ? `· ${percent}%` : "· —"}
                         </span>
                       </div>

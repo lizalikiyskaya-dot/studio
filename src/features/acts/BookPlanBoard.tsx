@@ -1,31 +1,72 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { GripVertical, Plus, SlidersHorizontal, Trash2 } from "lucide-react";
-import type { Act, ActChapter, Comment, StorylineBlock } from "@/generated/prisma/client";
+import { useMemo, useState, useTransition, type ReactNode } from "react";
+import { Plus, Trash2, X } from "lucide-react";
+import type { Comment } from "@/generated/prisma/client";
 import {
   createAct,
-  createActChapter,
-  createStorylineBlock,
+  createPlanScene,
   deleteAct,
-  deleteActChapter,
   deleteStorylineBlock,
-  moveStorylineBlock,
-  updateActChapterField,
+  movePlanScene,
+  setPlanView,
   updateActField,
   updateStorylineBlockColor,
   updateStorylineBlockField,
   updateStorylineBlockSpan,
   type StorylineColor,
 } from "./actions";
+import { createPlanChapter, deletePlanChapter, updatePlanChapterNumber } from "@/features/books/actions";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
+import { blurOnEnter } from "@/lib/blurOnEnter";
+import {
+  foldedDescription,
+  normalizePlanView,
+  progressKind,
+  progressPercent,
+  type PlanView,
+  type ProgressKind,
+} from "./chapterText";
 
-type ChapterWithBlocks = ActChapter & { blocks: StorylineBlock[] };
-type ActWithChapters = Act & { chapters: ChapterWithBlocks[] };
-type PlanSlice = { plannedChars: number; writtenChars: number; actBreakAfter: boolean };
+export type PlanScene = {
+  id: string;
+  order: number;
+  color: string;
+  name: string;
+  description: string;
+  span: number;
+};
+
+export type PlanChapterModel = {
+  id: string;
+  order: number;
+  title: string;
+  description: string;
+  summary: string;
+  dramaticArgument: string;
+  note: string;
+  images: string;
+  plannedChars: number;
+  writtenChars: number;
+  color: string | null;
+  actBreakAfter: boolean;
+  actId: string | null;
+  blocks: PlanScene[];
+};
+
+export type PlanActModel = {
+  id: string;
+  order: number;
+  title: string;
+  subtitle: string;
+  content: string;
+  status: string;
+};
+
+type SuggestionMap = Record<string, Record<string, string | null | undefined>>;
 
 const COLORS: { value: StorylineColor; dot: string; bg: string; fg: string }[] = [
   { value: "sage", dot: "#2FB083", bg: "#D5F3E7", fg: "#14684B" },
@@ -34,7 +75,7 @@ const COLORS: { value: StorylineColor; dot: string; bg: string; fg: string }[] =
   { value: "blue", dot: "#3B9EDB", bg: "#DDF0FB", fg: "#18638F" },
   { value: "pink", dot: "#E0528A", bg: "#FCE1EC", fg: "#9C2C58" },
 ];
-const COLOR = Object.fromEntries(COLORS.map((c) => [c.value, c])) as Record<string, (typeof COLORS)[number]>;
+const COLOR = Object.fromEntries(COLORS.map((item) => [item.value, item])) as Record<string, (typeof COLORS)[number]>;
 
 const STATUS_CYCLE = ["", "ACCEPTED", "IN_PROGRESS", "AHEAD"] as const;
 const STATUS_LABEL: Record<string, string> = {
@@ -43,30 +84,32 @@ const STATUS_LABEL: Record<string, string> = {
   AHEAD: "впереди",
 };
 
-function lineKey(block: StorylineBlock) {
+const VIEWS: { id: PlanView; label: string }[] = [
+  { id: "ribbon", label: "Лента" },
+  { id: "tiles", label: "Плитки" },
+  { id: "map", label: "Карта" },
+];
+
+const LEGEND: { kind: ProgressKind; label: string }[] = [
+  { kind: "none", label: "не начата" },
+  { kind: "work", label: "в работе" },
+  { kind: "almost", label: "почти" },
+  { kind: "done", label: "готова" },
+];
+
+function lineKey(block: PlanScene) {
   const name = block.name.trim().toLowerCase();
   return name ? `${block.color}::${name}` : `id:${block.id}`;
 }
 
-function splitProgress(chapters: PlanSlice[], actCount: number) {
-  if (actCount === 0) return [];
-  const breaks = chapters.reduce<PlanSlice[][]>((groups, chapter) => {
-    if (groups.length === 0) groups.push([]);
-    groups[groups.length - 1].push(chapter);
-    if (chapter.actBreakAfter) groups.push([]);
-    return groups;
-  }, []);
-  const usable = breaks.filter((group) => group.length > 0);
-  if (usable.length === actCount) return usable;
-  const size = Math.ceil(chapters.length / actCount) || 1;
-  return Array.from({ length: actCount }, (_, index) => chapters.slice(index * size, (index + 1) * size));
+function kindOf(chapter: { writtenChars: number; plannedChars: number }) {
+  return progressKind(chapter.writtenChars, chapter.plannedChars);
 }
 
-function percent(chapters: PlanSlice[]) {
+function percentOf(chapters: { writtenChars: number; plannedChars: number }[]) {
   const planned = chapters.reduce((sum, chapter) => sum + chapter.plannedChars, 0);
   const written = chapters.reduce((sum, chapter) => sum + chapter.writtenChars, 0);
-  if (planned <= 0) return 0;
-  return Math.min(100, Math.round((written / planned) * 100));
+  return progressPercent(written, planned);
 }
 
 function resolvedStatus(stored: string, progress: number) {
@@ -76,547 +119,806 @@ function resolvedStatus(stored: string, progress: number) {
   return "AHEAD";
 }
 
+function chapterNumbers(chapters: PlanChapterModel[]) {
+  const sorted = chapters.slice().sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+  return new Map(sorted.map((chapter, index) => [chapter.id, index + 1]));
+}
+
+function columnsFor(acts: PlanActModel[], chapters: PlanChapterModel[]) {
+  const grouped = new Map<string, PlanChapterModel[]>();
+  for (const chapter of chapters) {
+    const key = chapter.actId ?? "";
+    const list = grouped.get(key) ?? [];
+    list.push(chapter);
+    grouped.set(key, list);
+  }
+  for (const list of grouped.values()) list.sort((a, b) => a.order - b.order);
+  const sorted = acts.slice().sort((a, b) => a.order - b.order);
+  const lastId = sorted.at(-1)?.id;
+  const named = sorted
+    .filter((act) => {
+      const items = grouped.get(act.id) ?? [];
+      if (items.length > 0) return true;
+      if (act.id === lastId) return true;
+      if (act.subtitle.trim() || act.content.trim()) return true;
+      return Boolean(act.title.trim() && !/^Акт \d+$/.test(act.title.trim()));
+    })
+    .map((act) => ({ act, chapters: grouped.get(act.id) ?? [] }));
+  return { named, loose: grouped.get("") ?? [] };
+}
+
+function Legend() {
+  return (
+    <div className="chapter-legend" aria-label="Прогресс глав">
+      {LEGEND.map((item) => (
+        <span key={item.kind}>
+          <i className={`is-${item.kind}`} />
+          {item.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function StatusButton({ status, progress, onClick }: { status: string; progress: number; onClick: () => void }) {
+  const resolved = resolvedStatus(status, progress);
+  return (
+    <button type="button" className={`plan-status is-${resolved.toLowerCase()}`} onClick={onClick}>
+      {STATUS_LABEL[resolved] ?? "впереди"}
+    </button>
+  );
+}
+
+function Ring({ percent }: { percent: number }) {
+  const radius = 26;
+  const circ = 2 * Math.PI * radius;
+  const shown = Math.min(100, Math.max(0, percent));
+  const dash = (circ * shown) / 100;
+  return (
+    <svg className="plan-ring" viewBox="0 0 72 72" aria-hidden="true">
+      <circle cx="36" cy="36" r={radius} fill="none" stroke="#ececec" strokeWidth="6" />
+      <circle
+        cx="36"
+        cy="36"
+        r={radius}
+        fill="none"
+        stroke="#202020"
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeDasharray={`${dash} ${circ - dash}`}
+        transform="rotate(-90 36 36)"
+      />
+      <text x="36" y="40" textAnchor="middle" fontSize="13" fontWeight="650">{percent}%</text>
+    </svg>
+  );
+}
+
 export default function BookPlanBoard({
   bookId,
+  studentId,
+  initialView,
   initialActs,
+  initialChapters,
   suggestions,
+  actSuggestions,
   comments,
-  planChapters,
   banners,
   bookSelect,
+  openChapterId,
 }: {
   bookId: string;
-  initialActs: ActWithChapters[];
-  suggestions: Record<string, Record<string, string>>;
+  studentId: string;
+  initialView: string;
+  initialActs: PlanActModel[];
+  initialChapters: PlanChapterModel[];
+  suggestions: SuggestionMap;
+  actSuggestions: SuggestionMap;
   comments: Record<string, Comment[]>;
-  planChapters: PlanSlice[];
-  banners: React.ReactNode;
-  bookSelect?: React.ReactNode;
+  banners?: ReactNode;
+  bookSelect?: ReactNode;
+  openChapterId?: string | null;
 }) {
   const [acts, setActs] = useState(initialActs);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [showLines, setShowLines] = useState(false);
-  const [mobileAct, setMobileAct] = useState(0);
-  const [dropColumn, setDropColumn] = useState<string | null>(null);
+  const [chapters, setChapters] = useState(initialChapters);
+  const [view, setView] = useState<PlanView>(normalizePlanView(initialView));
+  const [openId, setOpenId] = useState<string | null>(openChapterId ?? null);
   const [, startTransition] = useTransition();
 
-  const columns = useMemo(
-    () => acts.flatMap((act) => act.chapters.map((chapter) => ({ ...chapter, actTitle: act.title }))),
-    [acts]
-  );
-  const columnIndex = useMemo(() => new Map(columns.map((column, index) => [column.id, index])), [columns]);
-  const blocks = columns.flatMap((column) => column.blocks);
-  const selected = blocks.find((block) => block.id === selectedId) ?? null;
+  const numbers = useMemo(() => chapterNumbers(chapters), [chapters]);
+  const { named, loose } = useMemo(() => columnsFor(acts, chapters), [acts, chapters]);
+  const open = chapters.find((chapter) => chapter.id === openId) ?? null;
+  const openAct = open ? acts.find((act) => act.id === open.actId) ?? null : null;
 
-  const lines = useMemo(() => {
-    const map = new Map<string, { key: string; name: string; color: string; blocks: StorylineBlock[] }>();
-    for (const block of blocks) {
-      const key = lineKey(block);
-      const row = map.get(key) ?? { key, name: block.name || "Без названия", color: block.color, blocks: [] };
-      row.blocks.push(block);
-      map.set(key, row);
-    }
-    return [...map.values()];
-  }, [blocks]);
-
-  const groups = splitProgress(planChapters, acts.length);
-
-  function patchBlock(blockId: string, patch: Partial<StorylineBlock>) {
-    setActs((prev) =>
-      prev.map((act) => ({
-        ...act,
-        chapters: act.chapters.map((chapter) => ({
-          ...chapter,
-          blocks: chapter.blocks.map((block) => (block.id === blockId ? { ...block, ...patch } : block)),
-        })),
-      }))
-    );
+  function patchChapter(id: string, patch: Partial<PlanChapterModel>) {
+    setChapters((prev) => prev.map((chapter) => (chapter.id === id ? { ...chapter, ...patch } : chapter)));
   }
 
-  function handleAddAct() {
+  function patchAct(id: string, patch: Partial<PlanActModel>) {
+    setActs((prev) => prev.map((act) => (act.id === id ? { ...act, ...patch } : act)));
+  }
+
+  function patchScene(chapterId: string, sceneId: string, patch: Partial<PlanScene>) {
+    setChapters((prev) => prev.map((chapter) => (
+      chapter.id === chapterId
+        ? { ...chapter, blocks: chapter.blocks.map((block) => (block.id === sceneId ? { ...block, ...patch } : block)) }
+        : chapter
+    )));
+  }
+
+  function chooseView(next: PlanView) {
+    setView(next);
+    startTransition(() => setPlanView(studentId, next));
+  }
+
+  function addAct() {
     startTransition(async () => {
       const act = await createAct(bookId);
-      setActs((prev) => [...prev, { ...act, chapters: [] }]);
+      setActs((prev) => [...prev, { ...act, subtitle: act.subtitle, content: act.content, status: act.status }]);
     });
   }
 
-  function handleDeleteAct(actId: string) {
+  function addChapter(actId?: string | null) {
+    startTransition(async () => {
+      const { chapter, act } = await createPlanChapter(bookId, actId);
+      if (act) setActs((prev) => [...prev, { ...act, subtitle: "", content: "", status: "" }]);
+      setChapters((prev) => [...prev, { ...chapter, summary: "", dramaticArgument: "", note: "", images: "", blocks: chapter.blocks }]);
+      setOpenId(chapter.id);
+    });
+  }
+
+  function removeChapter(chapterId: string) {
+    if (!window.confirm("Удалить главу?")) return;
+    setChapters((prev) => prev.filter((chapter) => chapter.id !== chapterId));
+    if (openId === chapterId) setOpenId(null);
+    startTransition(() => deletePlanChapter(chapterId));
+  }
+
+  function removeAct(actId: string) {
     if (!window.confirm("Удалить акт?")) return;
+    const neighbor = acts.find((act) => act.id !== actId);
     setActs((prev) => prev.filter((act) => act.id !== actId));
+    setChapters((prev) => prev.map((chapter) => (
+      chapter.actId === actId ? { ...chapter, actId: neighbor?.id ?? null } : chapter
+    )));
     startTransition(() => deleteAct(actId));
   }
 
-  function handleAddChapter() {
+  function cycleStatus(act: PlanActModel, progress: number) {
+    const resolved = resolvedStatus(act.status, progress);
+    const index = STATUS_CYCLE.indexOf(resolved as (typeof STATUS_CYCLE)[number]);
+    const next = STATUS_CYCLE[(index + 1) % STATUS_CYCLE.length];
+    patchAct(act.id, { status: next });
+    startTransition(() => updateActField(act.id, "status", next));
+  }
+
+  function saveNumber(chapterId: string, field: "plannedChars" | "writtenChars", value: number) {
+    const next = Math.max(0, Math.round(Number.isFinite(value) ? value : 0));
+    patchChapter(chapterId, { [field]: next });
+    startTransition(() => updatePlanChapterNumber(chapterId, field, next));
+  }
+
+  function addScene(chapterId: string) {
     startTransition(async () => {
-      const last = acts[acts.length - 1];
-      if (!last) {
-        const act = await createAct(bookId);
-        const chapter = await createActChapter(act.id);
-        setActs([{ ...act, chapters: [chapter] }]);
-        return;
+      const scene = await createPlanScene(chapterId);
+      setChapters((prev) => prev.map((chapter) => (
+        chapter.id === chapterId ? { ...chapter, blocks: [...chapter.blocks, scene] } : chapter
+      )));
+    });
+  }
+
+  function removeScene(chapterId: string, sceneId: string) {
+    setChapters((prev) => prev.map((chapter) => (
+      chapter.id === chapterId ? { ...chapter, blocks: chapter.blocks.filter((block) => block.id !== sceneId) } : chapter
+    )));
+    startTransition(() => deleteStorylineBlock(sceneId));
+  }
+
+  function moveScene(sceneId: string, fromId: string, toId: string) {
+    if (fromId === toId) return;
+    let moved: PlanScene | undefined;
+    setChapters((prev) => prev.map((chapter) => {
+      if (chapter.id === fromId) {
+        moved = chapter.blocks.find((block) => block.id === sceneId);
+        return { ...chapter, blocks: chapter.blocks.filter((block) => block.id !== sceneId) };
       }
-      const chapter = await createActChapter(last.id);
-      setActs((prev) => prev.map((item) => (item.id === last.id ? { ...item, chapters: [...item.chapters, chapter] } : item)));
-    });
+      return chapter;
+    }));
+    if (!moved) return;
+    const scene = moved;
+    setChapters((prev) => prev.map((chapter) => (
+      chapter.id === toId ? { ...chapter, blocks: [...chapter.blocks, scene] } : chapter
+    )));
+    startTransition(() => movePlanScene(sceneId, toId));
   }
 
-  function handleAddLine() {
-    const chapter = columns[0];
-    if (!chapter) return;
-    const color = COLORS[lines.length % COLORS.length].value;
-    startTransition(async () => {
-      const block = await createStorylineBlock(chapter.id);
-      await updateStorylineBlockColor(block.id, color);
-      await updateStorylineBlockField(block.id, "name", "Новая линия");
-      const next = { ...block, color, name: "Новая линия" };
-      setActs((prev) =>
-        prev.map((act) => ({
-          ...act,
-          chapters: act.chapters.map((item) => (item.id === chapter.id ? { ...item, blocks: [...item.blocks, next] } : item)),
-        }))
-      );
-      setSelectedId(block.id);
-    });
-  }
-
-  function handleAddScene(chapterId?: string, name?: string, color?: StorylineColor) {
-    const chapter = chapterId ?? columns[0]?.id;
-    if (!chapter) return;
-    startTransition(async () => {
-      const block = await createStorylineBlock(chapter);
-      if (color) await updateStorylineBlockColor(block.id, color);
-      if (name) await updateStorylineBlockField(block.id, "name", name);
-      const next = { ...block, color: color ?? block.color, name: name ?? block.name };
-      setActs((prev) =>
-        prev.map((act) => ({
-          ...act,
-          chapters: act.chapters.map((item) => (item.id === chapter ? { ...item, blocks: [...item.blocks, next] } : item)),
-        }))
-      );
-      setSelectedId(block.id);
-    });
-  }
-
-  function handleDrop(blockId: string, chapterId: string) {
-    if (!blockId || !chapterId) return;
-    setActs((prev) => {
-      let moving: StorylineBlock | undefined;
-      const stripped = prev.map((act) => ({
-        ...act,
-        chapters: act.chapters.map((chapter) => {
-          const found = chapter.blocks.find((block) => block.id === blockId);
-          if (found) moving = { ...found, chapterId };
-          return { ...chapter, blocks: chapter.blocks.filter((block) => block.id !== blockId) };
-        }),
-      }));
-      if (!moving) return prev;
-      return stripped.map((act) => ({
-        ...act,
-        chapters: act.chapters.map((chapter) =>
-          chapter.id === chapterId ? { ...chapter, blocks: [...chapter.blocks, moving!] } : chapter
-        ),
-      }));
-    });
-    startTransition(() => moveStorylineBlock(blockId, chapterId));
-  }
-
-  function handleField(blockId: string, field: "name" | "description", value: string) {
-    const current = blocks.find((block) => block.id === blockId);
-    patchBlock(blockId, { [field]: value });
-    if (field === "name" && current) {
-      const key = lineKey(current);
-      for (const block of blocks) {
-        if (block.id !== blockId && lineKey(block) === key) {
-          patchBlock(block.id, { name: value });
-          startTransition(() => updateStorylineBlockField(block.id, "name", value));
-        }
-      }
-    }
-    startTransition(() => updateStorylineBlockField(blockId, field, value));
-  }
-
-  function handleColor(blockId: string, color: StorylineColor) {
-    const current = blocks.find((block) => block.id === blockId);
-    if (!current) return;
-    const key = lineKey(current);
-    for (const block of blocks) {
-      if (lineKey(block) === key) {
-        patchBlock(block.id, { color });
-        startTransition(() => updateStorylineBlockColor(block.id, color));
-      }
-    }
-  }
-
-  const grid = `150px repeat(${Math.max(columns.length, 1)}, minmax(120px, 1fr))`;
+  const columns = loose.length > 0
+    ? [...named, { act: { id: "", order: 999, title: "Ещё", subtitle: "", content: "", status: "" }, chapters: loose }]
+    : named;
 
   return (
     <div>
+      {banners}
       <PageHeader
         title="План книги"
         actions={
           <>
             {bookSelect}
-            <button type="button" className="inline-flex items-center gap-2 h-11 px-4 rounded-full text-[14px] font-medium" style={{ background: "var(--soft)" }} onClick={() => setShowLines((v) => !v)}>
-              <SlidersHorizontal size={16} /> Линии
-            </button>
-            <button type="button" className="inline-flex items-center gap-2 h-11 px-5 rounded-full text-[14.5px] font-semibold" style={{ background: "var(--y)" }} onClick={() => handleAddScene(selected?.chapterId, selected?.name, selected?.color as StorylineColor)}>
-              <Plus size={16} /> Добавить сцену
+            <div className="plan-switch" role="tablist" aria-label="Вид плана">
+              {VIEWS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={view === item.id}
+                  className={view === item.id ? "is-on" : undefined}
+                  onClick={() => chooseView(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <button type="button" className="btn-y px-4 text-[14px]" style={{ height: 40, width: "auto" }} onClick={() => addChapter(columns.at(-1)?.act.id || null)}>
+              <Plus size={15} /> Глава
             </button>
           </>
         }
       />
 
-      {acts.length === 0 ? (
-        <EmptyState
-          cue="Самое время разложить книгу"
-          detail="Акты, главы и сцены появятся на доске."
-          action={
-            <button type="button" onClick={handleAddAct} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
-              <Plus size={16} /> Добавить акт
-            </button>
-          }
-        />
+      <div className="plan-toolbar">
+        <Legend />
+        <button type="button" className="chapter-tool" onClick={addAct}>Новый акт</button>
+      </div>
+
+      {chapters.length === 0 && acts.length === 0 ? (
+        <EmptyState cue="Глав пока нет" action={
+          <button type="button" className="btn-y px-4 text-[14px]" style={{ height: 40, width: "auto" }} onClick={() => addChapter(null)}>
+            <Plus size={15} /> Глава
+          </button>
+        } />
+      ) : view === "ribbon" ? (
+        <Ribbon columns={columns} numbers={numbers} onOpen={setOpenId} onStatus={cycleStatus} onAdd={addChapter} onDeleteAct={removeAct} actSuggestions={actSuggestions} onActTitle={(id, title) => patchAct(id, { title })} />
+      ) : view === "tiles" ? (
+        <Tiles columns={columns} numbers={numbers} onOpen={setOpenId} onStatus={cycleStatus} onAdd={addChapter} onDeleteAct={removeAct} actSuggestions={actSuggestions} onActTitle={(id, title) => patchAct(id, { title })} />
       ) : (
-      <>
-      <div className="plan-desktop sheet plan-board p-5 pb-3">
-        <div style={{ display: "grid", gridTemplateColumns: grid }}>
-          <div />
-          {acts.map((act, index) => {
-            const progress = percent(groups[index] ?? []);
-            const status = resolvedStatus(act.status, progress);
-            return (
-              <div key={act.id} style={{ gridColumn: `span ${Math.max(act.chapters.length, 1)}` }} className="pr-2 pb-2">
-                <div className="text-[13.5px] whitespace-nowrap">
-                  <b className="font-semibold">{act.title || `Акт ${index + 1}`}</b>
-                  <span style={{ color: "var(--muted)" }}> · {STATUS_LABEL[status]}</span>
-                </div>
-                <div className="mt-2 h-[5px] rounded-full" style={{ background: "#ECECEC" }}>
-                  <div className="h-full rounded-full" style={{ width: `${progress}%`, background: "#202020" }} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="mt-2 border-b" style={{ display: "grid", gridTemplateColumns: grid, borderColor: "var(--border)" }}>
-          <div />
-          {columns.map((column, index) => (
-            <div
-              key={column.id}
-              className="pt-3 pb-2 pl-2"
-              style={{
-                borderLeft: index ? "1px solid var(--border)" : undefined,
-                background: dropColumn === column.id ? "#FFF8D6" : undefined,
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDropColumn(column.id);
-              }}
-              onDragLeave={() => setDropColumn((current) => (current === column.id ? null : current))}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDropColumn(null);
-                handleDrop(e.dataTransfer.getData("text/plain"), column.id);
-              }}
-            >
-              <input
-                defaultValue={column.title}
-                onBlur={(e) => {
-                  startTransition(() => updateActChapterField(column.id, "title", e.target.value));
-                }}
-                className="w-full bg-transparent outline-none text-[12.5px] font-medium"
-              />
-              <div className="text-[12px] truncate" style={{ color: "var(--muted)" }}>{column.description || column.actTitle}</div>
-            </div>
-          ))}
-        </div>
+        <PlotMap columns={columns} numbers={numbers} onOpen={setOpenId} onMove={moveScene} onAdd={addChapter} />
+      )}
 
-        <div className="mt-2">
-          {lines.map((line) => {
-            const palette = COLOR[line.color] ?? COLORS[0];
-            return (
-              <div key={line.key} className="py-1" style={{ display: "grid", gridTemplateColumns: grid, alignItems: "center" }}>
-                <div className="flex items-center gap-2 text-[14px] font-medium pr-2">
-                  <GripVertical size={14} style={{ color: "#C4C4C4" }} />
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: palette.dot }} />
-                  <span className="truncate">{line.name}</span>
-                </div>
-                {line.blocks.map((block) => {
-                  const start = (columnIndex.get(block.chapterId) ?? 0) + 2;
-                  const span = Math.max(1, block.span || 1);
-                  const active = block.id === selectedId;
-                  return (
-                    <button
-                      key={block.id}
-                      type="button"
-                      draggable
-                      onDragStart={(e) => {
-                        e.dataTransfer.setData("text/plain", block.id);
-                        e.dataTransfer.effectAllowed = "move";
-                      }}
-                      onClick={() => setSelectedId(block.id)}
-                      className="mx-0.5 h-10 rounded-[10px] px-3 text-left text-[13px] truncate"
-                      style={{
-                        gridColumn: `${start} / span ${span}`,
-                        background: palette.bg,
-                        color: palette.fg,
-                        boxShadow: active ? "0 0 0 2px #202020" : undefined,
-                      }}
-                    >
-                      {block.name || "сцена"}
-                    </button>
-                  );
-                })}
-                {columns[0] && (
-                  <button
-                    type="button"
-                    onClick={() => handleAddScene(columns[Math.min(columns.length - 1, line.blocks.length)]?.id ?? columns[0].id, line.name, line.color as StorylineColor)}
-                    className="mx-0.5 h-10 rounded-[10px] text-[13px]"
-                    style={{ border: `1.5px dashed ${palette.dot}`, color: palette.fg, background: "#fff" }}
-                  >
-                    + сцена
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
+      {open ? (
+        <ChapterSheet
+          key={open.id}
+          chapter={open}
+          number={numbers.get(open.id) ?? 0}
+          act={openAct}
+          chapters={chapters}
+          numbers={numbers}
+          suggestions={suggestions}
+          actSuggestions={actSuggestions}
+          comments={openAct ? comments[openAct.id] ?? [] : []}
+          onClose={() => setOpenId(null)}
+          onTitle={(title) => patchChapter(open.id, { title })}
+          onDescription={(description) => patchChapter(open.id, { description })}
+          onNumber={(field, value) => saveNumber(open.id, field, value)}
+          onDelete={() => removeChapter(open.id)}
+          onAddScene={() => addScene(open.id)}
+          onSceneBlur={(sceneId, field, value) => {
+            patchScene(open.id, sceneId, { [field]: value });
+            startTransition(() => updateStorylineBlockField(sceneId, field, value));
+          }}
+          onSceneColor={(sceneId, color) => {
+            patchScene(open.id, sceneId, { color });
+            startTransition(() => updateStorylineBlockColor(sceneId, color));
+          }}
+          onSceneSpan={(sceneId, span) => {
+            const next = Math.max(1, Math.min(8, Math.floor(span) || 1));
+            patchScene(open.id, sceneId, { span: next });
+            startTransition(() => updateStorylineBlockSpan(sceneId, next));
+          }}
+          onSceneDelete={(sceneId) => removeScene(open.id, sceneId)}
+          onSceneMove={(sceneId, toId) => moveScene(sceneId, open.id, toId)}
+          onAct={(field, value) => {
+            if (!openAct) return;
+            patchAct(openAct.id, { [field]: value });
+          }}
+          onLegacy={(field, value) => {
+            const next = { ...open, [field]: value };
+            patchChapter(open.id, { [field]: value, description: foldedDescription(next) });
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
 
-        <div className="mt-3 flex flex-wrap items-center gap-5 text-[13.5px]" style={{ color: "var(--muted)" }}>
-          <button type="button" className="inline-flex items-center gap-1.5" onClick={handleAddLine}><Plus size={14} /> Новая линия</button>
-          <button type="button" className="inline-flex items-center gap-1.5" onClick={handleAddChapter}><Plus size={14} /> Глава</button>
-        </div>
-        <div className="mt-2 grid gap-1" style={{ gridTemplateColumns: grid }}>
-          <div />
-          {columns.map((column) => (
-            <div
-              key={`zone-${column.id}`}
-              className="h-8 rounded-[14px]"
-              style={{ background: dropColumn === column.id ? "#FFF8D6" : "transparent" }}
-              title={`Перенести в «${column.title || "главу"}»`}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDropColumn(column.id);
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDropColumn(null);
-                handleDrop(e.dataTransfer.getData("text/plain"), column.id);
-              }}
+function ActHead({
+  act,
+  progress,
+  actSuggestions,
+  onTitle,
+  onStatus,
+  onDelete,
+  onAdd,
+}: {
+  act: PlanActModel;
+  progress: number;
+  actSuggestions: SuggestionMap;
+  onTitle: (title: string) => void;
+  onStatus: () => void;
+  onDelete: () => void;
+  onAdd: () => void;
+}) {
+  if (!act.id) {
+    return (
+      <div className="plan-act-head">
+        <div className="plan-act-name">Ещё</div>
+        <span className="plan-act-pct">{progress}%</span>
+      </div>
+    );
+  }
+  return (
+    <div className="plan-act-head">
+      <SuggestableField
+        model="Act"
+        recordId={act.id}
+        field="title"
+        as="input"
+        value={act.title}
+        suggestion={actSuggestions[act.id]?.title}
+        placeholder="Акт"
+        className="plan-act-name"
+        onSaved={onTitle}
+      />
+      <span className="plan-act-pct">{progress}%</span>
+      <StatusButton status={act.status} progress={progress} onClick={onStatus} />
+      <button type="button" className="chapter-tool" onClick={onAdd}>Глава</button>
+      <button type="button" className="chapter-tool chapter-tool-icon" onClick={onDelete} aria-label="Удалить акт">
+        <Trash2 size={14} />
+      </button>
+    </div>
+  );
+}
+
+function Ribbon({
+  columns,
+  numbers,
+  onOpen,
+  onStatus,
+  onAdd,
+  onDeleteAct,
+  actSuggestions,
+  onActTitle,
+}: {
+  columns: { act: PlanActModel; chapters: PlanChapterModel[] }[];
+  numbers: Map<string, number>;
+  onOpen: (id: string) => void;
+  onStatus: (act: PlanActModel, progress: number) => void;
+  onAdd: (actId: string) => void;
+  onDeleteAct: (actId: string) => void;
+  actSuggestions: SuggestionMap;
+  onActTitle: (id: string, title: string) => void;
+}) {
+  return (
+    <div className="plan-ribbon">
+      {columns.map(({ act, chapters }) => {
+        const progress = percentOf(chapters);
+        return (
+          <section key={act.id || "loose"} className="plan-act">
+            <ActHead
+              act={act}
+              progress={progress}
+              actSuggestions={actSuggestions}
+              onTitle={(title) => onActTitle(act.id, title)}
+              onStatus={() => onStatus(act, progress)}
+              onDelete={() => onDeleteAct(act.id)}
+              onAdd={() => onAdd(act.id)}
             />
-          ))}
-        </div>
-      </div>
-
-      <div className="plan-mobile">
-        <div className="seg mb-3 w-full" style={{ display: "flex" }}>
-          {acts.map((act, index) => (
-            <button
-              key={act.id}
-              type="button"
-              className="flex-1 text-center text-[13.5px]"
-              style={{
-                background: mobileAct === index ? "#fff" : "transparent",
-                fontWeight: mobileAct === index ? 600 : 400,
-                borderRadius: 999,
-                padding: "7px 8px",
-              }}
-              onClick={() => setMobileAct(index)}
-            >
-              {act.title || `Акт ${index + 1}`}
-            </button>
-          ))}
-        </div>
-        {acts[mobileAct] && (
-          <div className="rounded-[18px] px-4 py-3 mb-3" style={{ background: "#E6ECFF" }}>
-            <div className="text-[14px] font-semibold">
-              {acts[mobileAct].title || `Акт ${mobileAct + 1}`}
-              {acts[mobileAct].subtitle ? <span className="font-normal" style={{ color: "var(--ink2)" }}> · {acts[mobileAct].subtitle}</span> : null}
+            <div className="plan-bars">
+              {chapters.map((chapter) => {
+                const percent = progressPercent(chapter.writtenChars, chapter.plannedChars);
+                return (
+                  <button
+                    key={chapter.id}
+                    type="button"
+                    className={`plan-bar is-${kindOf(chapter)}`}
+                    onClick={() => onOpen(chapter.id)}
+                  >
+                    <i style={{ width: `${Math.min(100, percent)}%` }} />
+                    <span>{numbers.get(chapter.id)} {chapter.title || "Глава"}</span>
+                  </button>
+                );
+              })}
             </div>
-            {acts[mobileAct].content ? <div className="text-[13px] mt-0.5" style={{ color: "var(--ink2)" }}>{acts[mobileAct].content}</div> : null}
-          </div>
-        )}
-        <div className="mb-3 flex gap-1.5 overflow-auto">
-          {lines.map((line) => {
-            const palette = COLOR[line.color] ?? COLORS[0];
-            return (
-              <span key={line.key} className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px]" style={{ background: "var(--soft)" }}>
-                <span className="h-2 w-2 rounded-full" style={{ background: palette.dot }} />
-                {line.name}
-              </span>
-            );
-          })}
-        </div>
-        <div className="space-y-2.5">
-          {(acts[mobileAct]?.chapters ?? []).map((chapter) => (
-            <div key={chapter.id} className="rounded-[22px] border p-4" style={{ borderColor: "var(--border)" }}>
-              <div className="text-[12px]" style={{ color: "var(--muted)" }}>{chapter.title || "Глава"}</div>
-              <div className="text-[16px] font-semibold mt-0.5">{chapter.description || chapter.title || "Глава"}</div>
-              <div className="mt-3 space-y-1.5">
-                {chapter.blocks.map((block) => {
-                  const palette = COLOR[block.color] ?? COLORS[0];
-                  return (
-                    <button
-                      key={block.id}
-                      type="button"
-                      onClick={() => setSelectedId(block.id)}
-                      className="flex w-full items-center gap-2 rounded-[12px] px-3 py-2 text-left text-[13px] font-medium"
-                      style={{ background: palette.bg, color: palette.fg }}
-                    >
-                      <span className="h-2 w-2 rounded-full" style={{ background: palette.dot }} />
-                      {block.name || "сцена"}
-                    </button>
-                  );
-                })}
-              </div>
-              <button type="button" className="mt-2 text-[12.5px]" style={{ color: "var(--muted)" }} onClick={() => handleAddScene(chapter.id)}>
-                + блок линии
-              </button>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function Tiles({
+  columns,
+  numbers,
+  onOpen,
+  onStatus,
+  onAdd,
+  onDeleteAct,
+  actSuggestions,
+  onActTitle,
+}: {
+  columns: { act: PlanActModel; chapters: PlanChapterModel[] }[];
+  numbers: Map<string, number>;
+  onOpen: (id: string) => void;
+  onStatus: (act: PlanActModel, progress: number) => void;
+  onAdd: (actId: string) => void;
+  onDeleteAct: (actId: string) => void;
+  actSuggestions: SuggestionMap;
+  onActTitle: (id: string, title: string) => void;
+}) {
+  return (
+    <div className="plan-tiles">
+      {columns.map(({ act, chapters }) => {
+        const progress = percentOf(chapters);
+        return (
+          <section key={act.id || "loose"} className="plan-tile">
+            <div className="plan-tile-top">
+              <Ring percent={progress} />
+              <ActHead
+                act={act}
+                progress={progress}
+                actSuggestions={actSuggestions}
+                onTitle={(title) => onActTitle(act.id, title)}
+                onStatus={() => onStatus(act, progress)}
+                onDelete={() => onDeleteAct(act.id)}
+                onAdd={() => onAdd(act.id)}
+              />
             </div>
-          ))}
-        </div>
-      </div>
-      </>
-      )}
-
-      {showLines && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {lines.map((line) => (
-            <span key={line.key} className="rounded-full px-3 py-1 text-[13px]" style={{ background: (COLOR[line.color] ?? COLORS[0]).bg, color: (COLOR[line.color] ?? COLORS[0]).fg }}>
-              {line.name}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {selected && (
-        <div className="mt-3 rounded-[20px] border px-5 py-4 flex flex-wrap items-start gap-6" style={{ borderColor: "var(--border)", background: "var(--soft)" }}>
-          <div className="w-[180px]">
-            <div className="text-[12px]" style={{ color: "var(--muted)" }}>Сцена</div>
-            <div className="serif text-[20px] font-medium">{selected.name || "Без названия"}</div>
-          </div>
-          <div>
-            <div className="text-[12.5px]" style={{ color: "var(--muted)" }}>Цвет линии</div>
-            <div className="mt-2 flex gap-2">
-              {COLORS.map((color) => (
+            <div className="plan-mosaic">
+              {chapters.map((chapter) => (
                 <button
-                  key={color.value}
+                  key={chapter.id}
                   type="button"
-                  className="h-6 w-6 rounded-full"
-                  style={{ background: color.dot, boxShadow: selected.color === color.value ? "0 0 0 2px #fff, 0 0 0 4px #202020" : undefined }}
-                  onClick={() => handleColor(selected.id, color.value)}
-                />
+                  className={`plan-chip is-${kindOf(chapter)}`}
+                  onClick={() => onOpen(chapter.id)}
+                >
+                  <b>{numbers.get(chapter.id)}</b>
+                  <span>{chapter.title || "Глава"}</span>
+                </button>
               ))}
             </div>
-          </div>
-          <label className="w-[160px] text-[12.5px]" style={{ color: "var(--muted)" }}>
-            Название линии
-            <input
-              defaultValue={selected.name}
-              key={selected.id + selected.name}
-              onBlur={(e) => handleField(selected.id, "name", e.target.value)}
-              className="fld mt-1.5 !h-10"
-            />
-          </label>
-          <label className="flex-1 min-w-[200px] text-[12.5px]" style={{ color: "var(--muted)" }}>
-            Описание сюжетной линии
-            <textarea
-              defaultValue={selected.description}
-              key={selected.id + "d"}
-              onBlur={(e) => handleField(selected.id, "description", e.target.value)}
-              className="fld mt-1.5"
-              rows={2}
-            />
-          </label>
-          <label className="text-[12.5px]" style={{ color: "var(--muted)" }}>
-            Глав
-            <input
-              type="number"
-              min={1}
-              max={8}
-              defaultValue={selected.span || 1}
-              key={selected.id + "s"}
-              onBlur={(e) => {
-                const span = Number(e.target.value) || 1;
-                patchBlock(selected.id, { span });
-                startTransition(() => updateStorylineBlockSpan(selected.id, span));
-              }}
-              className="fld mt-1.5 !h-10 w-16"
-            />
-          </label>
-          <button
-            type="button"
-            className="inline-flex items-center gap-1 text-[13px] pt-6"
-            style={{ color: "#D9481C" }}
-            onClick={() => {
-              if (!window.confirm("Удалить сцену?")) return;
-              setSelectedId(null);
-              setActs((prev) => prev.map((act) => ({ ...act, chapters: act.chapters.map((chapter) => ({ ...chapter, blocks: chapter.blocks.filter((block) => block.id !== selected.id) })) })));
-              startTransition(() => deleteStorylineBlock(selected.id));
-            }}
-          >
-            <Trash2 size={14} /> удалить
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function PlotMap({
+  columns,
+  numbers,
+  onOpen,
+  onMove,
+  onAdd,
+}: {
+  columns: { act: PlanActModel; chapters: PlanChapterModel[] }[];
+  numbers: Map<string, number>;
+  onOpen: (id: string) => void;
+  onMove: (sceneId: string, fromId: string, toId: string) => void;
+  onAdd: (actId: string) => void;
+}) {
+  const flat = columns.flatMap((column) => column.chapters);
+  const rows: { key: string; name: string; color: string }[] = [];
+  const seen = new Set<string>();
+  for (const chapter of flat) {
+    for (const block of chapter.blocks) {
+      const key = lineKey(block);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      rows.push({ key, name: block.name || "Линия", color: block.color });
+    }
+  }
+  const covered = new Set<string>();
+
+  return (
+    <div className="plan-map">
+      <table>
+        <thead>
+          <tr>
+            <th />
+            {columns.map(({ act, chapters: items }) => (
+              <th key={act.id || "loose"} colSpan={Math.max(1, items.length)} className="plan-map-act">
+                <span>{act.title || "Акт"}</span>
+                {act.id ? (
+                  <button type="button" className="chapter-tool" onClick={() => onAdd(act.id)}>Глава</button>
+                ) : null}
+              </th>
+            ))}
+          </tr>
+          <tr>
+            <th />
+            {flat.map((chapter) => (
+              <th key={chapter.id}>
+                <button type="button" className={`plan-map-chapter is-${kindOf(chapter)}`} onClick={() => onOpen(chapter.id)}>
+                  <b>{numbers.get(chapter.id)}</b>
+                  <span>{chapter.title || "Глава"}</span>
+                </button>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.key}>
+              <th className="plan-map-line">{row.name}</th>
+              {flat.map((chapter) => {
+                const token = `${row.key}:${chapter.id}`;
+                if (covered.has(token)) return null;
+                const block = chapter.blocks.find((item) => lineKey(item) === row.key);
+                if (!block) {
+                  return (
+                    <td
+                      key={chapter.id}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={(event) => {
+                        event.preventDefault();
+                        const raw = event.dataTransfer.getData("text/plain");
+                        const [sceneId, fromId] = raw.split("|");
+                        if (sceneId && fromId) onMove(sceneId, fromId, chapter.id);
+                      }}
+                    />
+                  );
+                }
+                const span = Math.max(1, block.span);
+                const start = flat.findIndex((item) => item.id === chapter.id);
+                for (let index = 1; index < span && start + index < flat.length; index += 1) {
+                  covered.add(`${row.key}:${flat[start + index].id}`);
+                }
+                const tone = COLOR[block.color] ?? COLOR.pink;
+                return (
+                  <td key={chapter.id} colSpan={span}>
+                    <button
+                      type="button"
+                      className="plan-scene"
+                      draggable
+                      style={{ background: tone.bg, color: tone.fg }}
+                      onDragStart={(event) => event.dataTransfer.setData("text/plain", `${block.id}|${chapter.id}`)}
+                      onClick={() => onOpen(chapter.id)}
+                    >
+                      {block.name || "Линия"}
+                    </button>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {rows.length === 0 ? <p className="chapter-empty">Сцен пока нет.</p> : null}
+    </div>
+  );
+}
+
+function ChapterSheet(props: {
+  chapter: PlanChapterModel;
+  number: number;
+  act: PlanActModel | null;
+  chapters: PlanChapterModel[];
+  numbers: Map<string, number>;
+  suggestions: SuggestionMap;
+  actSuggestions: SuggestionMap;
+  comments: Comment[];
+  onClose: () => void;
+  onTitle: (title: string) => void;
+  onDescription: (description: string) => void;
+  onNumber: (field: "plannedChars" | "writtenChars", value: number) => void;
+  onDelete: () => void;
+  onAddScene: () => void;
+  onSceneBlur: (sceneId: string, field: "name" | "description", value: string) => void;
+  onSceneColor: (sceneId: string, color: StorylineColor) => void;
+  onSceneSpan: (sceneId: string, span: number) => void;
+  onSceneDelete: (sceneId: string) => void;
+  onSceneMove: (sceneId: string, toId: string) => void;
+  onAct: (field: "title" | "subtitle" | "content", value: string) => void;
+  onLegacy: (field: "summary" | "dramaticArgument" | "note" | "images", value: string) => void;
+}) {
+  const { chapter, act } = props;
+  const chapterSuggestions = props.suggestions[chapter.id] ?? {};
+  const legacyFields = (["summary", "dramaticArgument", "note", "images"] as const).filter((field) => chapterSuggestions[field]);
+  const legacyLabel: Record<(typeof legacyFields)[number], string> = {
+    summary: "Суть",
+    dramaticArgument: "Ядро",
+    note: "Примечание",
+    images: "Образы",
+  };
+
+  return (
+    <>
+      <button type="button" className="plan-sheet-back" aria-label="Закрыть" onClick={props.onClose} />
+      <aside className="plan-sheet" role="dialog" aria-label={chapter.title || "Глава"}>
+        <div className="plan-sheet-top">
+          <span className="chapter-card-n">Глава {props.number}</span>
+          <button type="button" className="chapter-tool chapter-tool-icon" onClick={props.onClose} aria-label="Закрыть">
+            <X size={16} />
           </button>
         </div>
-      )}
+        <SuggestableField
+          model="PlanChapter"
+          recordId={chapter.id}
+          field="title"
+          value={chapter.title}
+          suggestion={chapterSuggestions.title}
+          placeholder="Название"
+          className="plan-sheet-title"
+          onSaved={props.onTitle}
+        />
+        <div className="chapter-card-figures plan-sheet-figures">
+          <input
+            type="number"
+            min={0}
+            defaultValue={chapter.writtenChars || ""}
+            key={`${chapter.id}-w-${chapter.writtenChars}`}
+            onBlur={(event) => props.onNumber("writtenChars", Number(event.target.value))}
+            onKeyDown={blurOnEnter}
+            aria-label="Написано знаков"
+            placeholder="0"
+            className="chapter-num"
+          />
+          <span aria-hidden="true">/</span>
+          <input
+            type="number"
+            min={0}
+            defaultValue={chapter.plannedChars || ""}
+            key={`${chapter.id}-p-${chapter.plannedChars}`}
+            onBlur={(event) => props.onNumber("plannedChars", Number(event.target.value))}
+            onKeyDown={blurOnEnter}
+            aria-label="План знаков"
+            placeholder="0"
+            className="chapter-num"
+          />
+          <span className={`chapter-pct is-${kindOf(chapter)}`}>
+            {chapter.plannedChars > 0 ? `${progressPercent(chapter.writtenChars, chapter.plannedChars)}%` : "—"}
+          </span>
+        </div>
+        <SuggestableField
+          key={chapter.description}
+          model="PlanChapter"
+          recordId={chapter.id}
+          field="description"
+          value={chapter.description}
+          suggestion={chapterSuggestions.description}
+          placeholder="Описание"
+          className="plan-sheet-prose"
+          onSaved={props.onDescription}
+        />
 
-      <div className="mt-5 flex items-center gap-3">
-        <span className="text-[20px] font-semibold">Акты</span>
-        <button type="button" className="ml-auto inline-flex items-center gap-1 h-9 px-3 rounded-full border text-[13.5px]" style={{ borderColor: "var(--border)" }} onClick={handleAddAct}>
-          <Plus size={14} /> Акт
+        <div className="plan-sheet-block">
+          <div className="plan-sheet-label">
+            <span>Сцены</span>
+            <button type="button" className="chapter-tool" onClick={props.onAddScene}>Добавить</button>
+          </div>
+          {chapter.blocks.map((block) => {
+            const tone = COLOR[block.color] ?? COLOR.pink;
+            return (
+              <div key={block.id} className="plan-scene-edit" style={{ background: tone.bg }}>
+                <input
+                  defaultValue={block.name}
+                  className="plan-scene-name"
+                  aria-label="Название сцены"
+                  onBlur={(event) => props.onSceneBlur(block.id, "name", event.target.value)}
+                  onKeyDown={blurOnEnter}
+                />
+                <textarea
+                  defaultValue={block.description}
+                  className="plan-scene-text"
+                  aria-label="Описание сцены"
+                  onBlur={(event) => props.onSceneBlur(block.id, "description", event.target.value)}
+                />
+                <div className="plan-scene-tools">
+                  {COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      type="button"
+                      aria-label={color.value}
+                      className="plan-dot"
+                      style={{ background: color.dot, outline: block.color === color.value ? "2px solid var(--ink)" : "none" }}
+                      onClick={() => props.onSceneColor(block.id, color.value)}
+                    />
+                  ))}
+                  <input
+                    type="number"
+                    min={1}
+                    max={8}
+                    defaultValue={block.span}
+                    aria-label="Ширина сцены"
+                    className="chapter-num"
+                    onBlur={(event) => props.onSceneSpan(block.id, Number(event.target.value))}
+                    onKeyDown={blurOnEnter}
+                  />
+                  <select
+                    aria-label="Глава сцены"
+                    value={chapter.id}
+                    onChange={(event) => props.onSceneMove(block.id, event.target.value)}
+                  >
+                    {props.chapters.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {props.numbers.get(item.id)} {item.title || "Глава"}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="button" className="chapter-tool" onClick={() => props.onSceneDelete(block.id)} aria-label="Удалить сцену">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {act ? (
+          <details className="plan-fold">
+            <summary>Акт</summary>
+            <SuggestableField
+              model="Act"
+              recordId={act.id}
+              field="title"
+              as="input"
+              value={act.title}
+              suggestion={props.actSuggestions[act.id]?.title}
+              placeholder="Название акта"
+              className="plan-fold-title"
+              onSaved={(value) => props.onAct("title", value)}
+            />
+            <SuggestableField
+              model="Act"
+              recordId={act.id}
+              field="subtitle"
+              value={act.subtitle}
+              suggestion={props.actSuggestions[act.id]?.subtitle}
+              placeholder="Подзаголовок"
+              className="plan-fold-text"
+              onSaved={(value) => props.onAct("subtitle", value)}
+            />
+            <SuggestableField
+              model="Act"
+              recordId={act.id}
+              field="content"
+              value={act.content}
+              suggestion={props.actSuggestions[act.id]?.content}
+              placeholder="Текст акта"
+              className="plan-fold-text"
+              onSaved={(value) => props.onAct("content", value)}
+            />
+          </details>
+        ) : null}
+
+        {legacyFields.length > 0 ? (
+          <details className="plan-fold" open>
+            <summary>Прежние поля</summary>
+            {legacyFields.map((field) => (
+              <SuggestableField
+                key={field}
+                model="PlanChapter"
+                recordId={chapter.id}
+                field={field}
+                value={chapter[field]}
+                suggestion={chapterSuggestions[field]}
+                placeholder={legacyLabel[field]}
+                className="plan-fold-text"
+                onSaved={(value) => props.onLegacy(field, value)}
+              />
+            ))}
+          </details>
+        ) : null}
+
+        {act ? (
+          <details className="plan-fold">
+            <summary>Комментарии</summary>
+            <CommentsBlock model="Act" recordId={act.id} initialComments={props.comments} />
+          </details>
+        ) : null}
+
+        <button type="button" className="chapter-tool plan-sheet-delete" onClick={props.onDelete}>
+          Удалить главу
         </button>
-      </div>
-      <div className="mt-3 grid gap-4 md:grid-cols-3">
-        {acts.map((act, index) => {
-          const progress = percent(groups[index] ?? []);
-          const status = resolvedStatus(act.status, progress);
-          const tint = status === "ACCEPTED" ? "#E3F6EF" : status === "IN_PROGRESS" ? "#E6ECFF" : "#F4F4F2";
-          const first = act.chapters[0]?.title;
-          const last = act.chapters[act.chapters.length - 1]?.title;
-          return (
-            <div key={act.id} className="rounded-[20px] p-5" style={{ background: tint }}>
-              <div className="flex items-center gap-2">
-                <SuggestableField model="Act" recordId={act.id} field="title" value={act.title} suggestion={suggestions[act.id]?.title} as="input" className="flex-1 bg-transparent outline-none text-[17px] font-medium" placeholder="Название акта" />
-                <button
-                  type="button"
-                  className="rounded-full bg-white/70 px-2 py-0.5 text-[11.5px]"
-                  onClick={() => {
-                    const current = STATUS_CYCLE.indexOf((act.status || "") as (typeof STATUS_CYCLE)[number]);
-                    const next = STATUS_CYCLE[(current + 1) % STATUS_CYCLE.length];
-                    setActs((prev) => prev.map((item) => (item.id === act.id ? { ...item, status: next } : item)));
-                    startTransition(() => updateActField(act.id, "status", next));
-                  }}
-                >
-                  {STATUS_LABEL[status]}
-                </button>
-                <button type="button" onClick={() => handleDeleteAct(act.id)} style={{ color: "var(--muted)" }} title="Удалить акт"><Trash2 size={14} /></button>
-              </div>
-              <SuggestableField model="Act" recordId={act.id} field="subtitle" value={act.subtitle} suggestion={suggestions[act.id]?.subtitle} as="input" className="mt-1 w-full bg-transparent outline-none text-[12.5px]" style={{ color: "var(--muted)" }} placeholder="завязка / развитие / развязка" />
-              <SuggestableField model="Act" recordId={act.id} field="content" value={act.content} suggestion={suggestions[act.id]?.content} className="mt-2 w-full bg-transparent outline-none text-[14px] leading-snug" placeholder="Общее описание акта" />
-              <div className="mt-3 text-[12.5px]" style={{ color: "var(--muted)" }}>
-                {act.chapters.length ? `${first}${last && last !== first ? ` – ${last}` : ""}` : "глав пока нет"}
-              </div>
-              <div className="mt-2 flex gap-2">
-                <button type="button" className="text-[12.5px]" style={{ color: "var(--vi)" }} onClick={() => startTransition(async () => {
-                  const chapter = await createActChapter(act.id);
-                  setActs((prev) => prev.map((item) => (item.id === act.id ? { ...item, chapters: [...item.chapters, chapter] } : item)));
-                })}>+ глава</button>
-                {act.chapters[0] && (
-                  <button type="button" className="text-[12.5px]" style={{ color: "var(--muted)" }} onClick={() => {
-                    const chapter = act.chapters[act.chapters.length - 1];
-                    if (!window.confirm("Удалить последнюю главу акта?")) return;
-                    setActs((prev) => prev.map((item) => item.id === act.id ? { ...item, chapters: item.chapters.filter((row) => row.id !== chapter.id) } : item));
-                    startTransition(() => deleteActChapter(chapter.id));
-                  }}>убрать главу</button>
-                )}
-              </div>
-              <div className="mt-3">
-                <CommentsBlock model="Act" recordId={act.id} initialComments={comments[act.id] ?? []} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-5">{banners}</div>
-    </div>
+      </aside>
+    </>
   );
 }

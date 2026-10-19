@@ -1261,3 +1261,115 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .notes-chip { font-size: 0; gap: 4px; padding: 0 10px; }
   .notes-count { font-size: 11.5px; }
 }
+
+.chapter-card.is-none { background: #F3F1EC; }
+.chapter-card.is-work { background: #E6ECFF; }
+.chapter-card.is-almost { background: #FFF1B8; }
+.chapter-card.is-done { background: #D5F3E7; }
+.chapter-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; color: var(--ink2); font-size: 13px; }
+.chapter-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.chapter-legend i { width: 10px; height: 10px; border-radius: 99px; display: inline-block; }
+.chapter-legend i.is-none { background: #E4E0D8; }
+.chapter-legend i.is-work { background: #C5D0FF; }
+.chapter-legend i.is-almost { background: #FFD43B; }
+.chapter-legend i.is-done { background: #7DCEA0; }
+
+.plan-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.plan-switch { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--soft); }
+.plan-switch button { border: 0; background: transparent; border-radius: 999px; padding: 7px 12px; font-size: 13.5px; color: var(--ink2); }
+.plan-switch button.is-on { background: #fff; color: var(--ink); font-weight: 650; box-shadow: 0 1px 2px rgba(32, 32, 32, 0.08); }
+
+.plan-ribbon { display: flex; gap: 16px; overflow-x: auto; padding: 8px 2px 18px; }
+.plan-act { min-width: 240px; flex: 1; }
+.plan-act-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.plan-act-name, .plan-fold-title {
+  border: 0; background: transparent; padding: 0; min-width: 0; flex: 1;
+  font: inherit; font-weight: 650; font-size: 16px; color: var(--ink);
+}
+.plan-act-pct { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.plan-status { border: 0; border-radius: 999px; padding: 3px 8px; font-size: 12px; background: var(--soft); color: var(--ink2); }
+.plan-status.is-accepted { background: #D5F3E7; color: #14684B; }
+.plan-status.is-in_progress { background: #FFF1B8; color: #7A6A1E; }
+.plan-status.is-ahead { background: #E6ECFF; color: #4B3FC0; }
+.plan-bars { display: flex; flex-direction: column; gap: 8px; }
+.plan-bar {
+  position: relative; overflow: hidden; height: 48px; border: 0; border-radius: 14px;
+  text-align: left; padding: 0 12px; color: var(--ink); cursor: pointer;
+}
+.plan-bar > i { position: absolute; inset: 0 auto 0 0; opacity: 0.55; }
+.plan-bar > span { position: relative; z-index: 1; display: flex; align-items: center; height: 100%; gap: 8px; font-size: 14px; font-weight: 600; }
+.plan-bar.is-none { background: #F3F1EC; }
+.plan-bar.is-none > i { background: #E4E0D8; }
+.plan-bar.is-work { background: #E6ECFF; }
+.plan-bar.is-work > i { background: #6553E8; }
+.plan-bar.is-almost { background: #FFF1B8; }
+.plan-bar.is-almost > i { background: #FFD43B; }
+.plan-bar.is-done { background: #D5F3E7; }
+.plan-bar.is-done > i { background: #2FB083; }
+
+.plan-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.plan-tile { border: 1px solid var(--border); border-radius: 24px; padding: 16px; background: #fff; }
+.plan-tile-top { display: flex; gap: 12px; align-items: flex-start; }
+.plan-ring { width: 72px; height: 72px; flex: none; }
+.plan-mosaic { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.plan-chip {
+  border: 0; border-radius: 12px; min-width: 72px; max-width: 140px; padding: 8px 10px;
+  text-align: left; cursor: pointer; color: var(--ink);
+}
+.plan-chip b { display: block; font-size: 12px; color: var(--muted); font-weight: 650; }
+.plan-chip span { display: block; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-chip.is-none { background: #F3F1EC; }
+.plan-chip.is-work { background: #E6ECFF; }
+.plan-chip.is-almost { background: #FFF1B8; }
+.plan-chip.is-done { background: #D5F3E7; }
+
+.plan-map { overflow-x: auto; padding-bottom: 12px; }
+.plan-map table { border-collapse: separate; border-spacing: 6px; min-width: 100%; }
+.plan-map th { font-weight: 600; font-size: 13px; text-align: left; vertical-align: bottom; }
+.plan-map-act { color: var(--v); white-space: nowrap; }
+.plan-map-act span { margin-right: 8px; }
+.plan-map-line { color: var(--ink2); white-space: nowrap; max-width: 140px; }
+.plan-map-chapter {
+  border: 0; border-radius: 12px; min-width: 92px; padding: 8px 10px; text-align: left; cursor: pointer; color: var(--ink);
+}
+.plan-map-chapter b { display: block; font-size: 12px; color: var(--muted); }
+.plan-map-chapter span { display: block; font-size: 13px; font-weight: 650; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-map-chapter.is-none { background: #F3F1EC; }
+.plan-map-chapter.is-work { background: #E6ECFF; }
+.plan-map-chapter.is-almost { background: #FFF1B8; }
+.plan-map-chapter.is-done { background: #D5F3E7; }
+.plan-scene { border: 0; border-radius: 12px; width: 100%; min-height: 42px; padding: 8px 10px; text-align: left; font-weight: 650; font-size: 13px; cursor: grab; }
+
+.plan-sheet-back { position: fixed; inset: 0; border: 0; background: rgba(32, 32, 32, 0.28); z-index: 40; }
+.plan-sheet {
+  position: fixed; top: 0; right: 0; z-index: 41; width: min(440px, 100%); height: 100dvh;
+  overflow: auto; background: #fff; border-left: 1px solid var(--border); padding: 22px 22px 48px;
+}
+.plan-sheet-top { display: flex; align-items: center; justify-content: space-between; }
+.plan-sheet-title {
+  display: block; width: 100%; margin-top: 6px; border: 0; resize: none; background: transparent;
+  font-family: var(--font-sans), system-ui, sans-serif; font-weight: 650; font-size: 28px; letter-spacing: -0.03em; line-height: 1.15;
+}
+.plan-sheet-figures { margin-top: 12px; }
+.plan-sheet-prose {
+  display: block; width: 100%; margin-top: 16px; border: 0; resize: none; background: transparent;
+  font-family: var(--font-serif), Georgia, serif; font-size: 17px; line-height: 1.45; color: var(--ink);
+}
+.plan-sheet-block { margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
+.plan-sheet-label { display: flex; align-items: center; justify-content: space-between; font-weight: 650; }
+.plan-scene-edit { border-radius: 14px; padding: 10px; }
+.plan-scene-name, .plan-scene-text, .plan-fold-text {
+  display: block; width: 100%; border: 0; background: transparent; font: inherit; color: var(--ink);
+}
+.plan-scene-name { font-weight: 650; }
+.plan-scene-text { margin-top: 4px; font-family: var(--font-serif), Georgia, serif; min-height: 44px; }
+.plan-scene-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.plan-scene-tools select { border: 0; background: transparent; font: inherit; max-width: 140px; }
+.plan-dot { width: 14px; height: 14px; border-radius: 99px; border: 0; padding: 0; }
+.plan-fold { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
+.plan-fold summary { cursor: pointer; font-weight: 650; }
+.plan-sheet-delete { margin-top: 18px; }
+@media (max-width: 720px) {
+  .plan-sheet { top: auto; left: 0; right: 0; bottom: 0; height: auto; max-height: 88dvh; border-left: 0; border-top: 1px solid var(--border); border-radius: 24px 24px 0 0; }
+  .plan-tile-top { flex-direction: column; }
+}

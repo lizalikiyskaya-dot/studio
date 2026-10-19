@@ -149,6 +149,8 @@ model User {
   paymentReminders Boolean @default(true)
   paymentStatus PaymentStatus @default(PENDING)
   reviewModeEnabled Boolean   @default(true)
+  // Вид «Плана книги» у этого ученика: ribbon, tiles или map.
+  planView      String        @default("ribbon")
   bookWorkshopUnlocked Boolean @default(true)
   storyWorkshopUnlocked Boolean @default(false)
   lastSeenAt    DateTime?
@@ -401,6 +403,9 @@ model Book {
   fantasyNotes       String  @default("")
   fantasyGeneral     String  @default("")
   planColumnColors   Json    @default("{}")
+  // true после того, как главы трекера и плана сведены в одну запись.
+  // Старые столбцы при этом не очищаются.
+  chaptersUnified    Boolean @default(false)
 
   chapters     PlanChapter[]
   characters   Character[]
@@ -435,6 +440,10 @@ model PlanChapter {
   bookId           String
   book             Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
   order             Int     @default(0)
+  // Одно название для трекера и плана.
+  title            String  @default("")
+  // Текст плана. Сюда копируются старые суть, ядро, примечание и описание главы акта.
+  description      String  @default("")
   summary          String  @default("")
   dramaticArgument String  @default("")
   images           String  @default("")
@@ -443,8 +452,12 @@ model PlanChapter {
   writtenChars     Int     @default(0)
   color            String?
   actBreakAfter    Boolean @default(false)
+  actId            String?
+  act              Act?    @relation(fields: [actId], references: [id], onDelete: SetNull)
+  blocks           StorylineBlock[]
 
   @@index([bookId])
+  @@index([actId])
 }
 
 model Character {
@@ -488,6 +501,7 @@ model Act {
   // Иначе: ACCEPTED | IN_PROGRESS | AHEAD.
   status   String       @default("")
   chapters ActChapter[]
+  planChapters PlanChapter[]
 
   @@index([bookId])
 }
@@ -505,17 +519,21 @@ model ActChapter {
 }
 
 model StorylineBlock {
-  id          String     @id @default(cuid())
-  chapterId   String
-  chapter     ActChapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  order       Int        @default(0)
-  color       String     @default("pink")
-  name        String     @default("")
-  description String     @default("")
-  // Сколько колонок глав занимает сцена, начиная с chapterId. 1 — как раньше.
-  span        Int        @default(1)
+  id            String       @id @default(cuid())
+  // Старая привязка к главе акта. После сведения глав остаётся пустой, сцена живёт на PlanChapter.
+  chapterId     String?
+  chapter       ActChapter?  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  planChapterId String?
+  planChapter   PlanChapter? @relation(fields: [planChapterId], references: [id], onDelete: Cascade)
+  order         Int          @default(0)
+  color         String       @default("pink")
+  name          String       @default("")
+  description   String       @default("")
+  // Сколько колонок глав занимает сцена, начиная с главы. 1 — как раньше.
+  span          Int          @default(1)
 
   @@index([chapterId])
+  @@index([planChapterId])
 }
 
 model WorkPlan {
