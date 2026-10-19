@@ -28,6 +28,11 @@ type Found = { text: string; rect: DOMRect | null };
 
 // Read the current selection from either a focused textarea/input (whose
 // internal selection never reaches window.getSelection) or the regular DOM.
+function inReviewField(node: Node | null): boolean {
+  const el = node instanceof HTMLElement ? node : node?.parentElement ?? null;
+  return !!el?.closest("[data-review-field]");
+}
+
 function readSelection(): Found | null {
   const active = document.activeElement as HTMLElement | null;
   if (
@@ -35,6 +40,8 @@ function readSelection(): Found | null {
     (active.tagName === "TEXTAREA" || active.tagName === "INPUT") &&
     !insideNotesUi(active)
   ) {
+    // Поле режима правок: выделение нужно, чтобы удалить или заменить.
+    if (inReviewField(active)) return null;
     const field = active as HTMLTextAreaElement | HTMLInputElement;
     const start = field.selectionStart;
     const end = field.selectionEnd;
@@ -46,6 +53,7 @@ function readSelection(): Found | null {
 
   const sel = window.getSelection();
   if (!sel || sel.isCollapsed || sel.rangeCount === 0) return null;
+  if (inReviewField(sel.anchorNode) || inReviewField(sel.focusNode)) return null;
   const text = sel.toString();
   if (!text.trim() || insideNotesUi(sel.anchorNode)) return null;
   return { text, rect: sel.getRangeAt(0).getBoundingClientRect() };

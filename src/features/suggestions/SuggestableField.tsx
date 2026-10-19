@@ -1,11 +1,90 @@
 "use client";
 
-import { useState, useTransition, useRef, type CSSProperties } from "react";
+import { useRef, useState, useTransition, type CSSProperties } from "react";
+import { usePathname } from "next/navigation";
 import { Check, X } from "lucide-react";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
-import { saveFieldOrSuggest, acceptFieldSuggestion, rejectFieldSuggestion } from "./actions";
+import { saveFieldOrSuggest, acceptFieldSuggestion, rejectFieldSuggestion, resolveSuggestionHunk } from "./actions";
+import { useCanSuggest } from "./SuggestionContext";
 import type { SuggestableModel } from "@/lib/suggestionRegistry";
-import { sentenceDiff } from "@/lib/sentenceDiff";
+import { markedSuggestion, type MarkedToken } from "@/lib/suggestionHunks";
+
+function tokenStyle(token: MarkedToken): CSSProperties {
+  if (token.type === "del") {
+    return { textDecoration: "line-through", textDecorationColor: "var(--v)", color: "var(--faded)" };
+  }
+  if (token.type === "add") {
+    return { textDecoration: "underline wavy", textDecorationColor: "var(--v)", color: "var(--v)" };
+  }
+  return {};
+}
+
+function HunkButtons({ onAccept, onReject }: { onAccept: () => void; onReject: () => void }) {
+  return (
+    <span className="suggest-hunk-actions">
+      <button type="button" onClick={onAccept} className="suggest-accept" title="Принять правку" aria-label="Принять правку">
+        <Check size={12} />
+      </button>
+      <button type="button" onClick={onReject} className="suggest-reject" title="Отклонить правку" aria-label="Отклонить правку">
+        <X size={12} />
+      </button>
+    </span>
+  );
+}
+
+function SuggestionText({
+  base,
+  suggested,
+  className,
+  onHunk,
+}: {
+  base: string;
+  suggested: string;
+  className?: string;
+  onHunk: (index: number, action: "accept" | "reject") => void;
+}) {
+  const marks = markedSuggestion(base, suggested);
+  const pieces: { hunk: number | null; tokens: MarkedToken[] }[] = [];
+  for (const token of marks) {
+    const last = pieces[pieces.length - 1];
+    if (last && last.hunk === token.hunk) last.tokens.push(token);
+    else pieces.push({ hunk: token.hunk, tokens: [token] });
+  }
+  const hunks = new Set(marks.map((token) => token.hunk).filter((hunk) => hunk != null));
+
+  return (
+    <div>
+      <div className={`suggest-doc ${className ?? ""}`}>
+        {pieces.map((piece, index) => {
+          const body = piece.tokens.map((token, tokenIndex) => {
+            const prev = tokenIndex > 0 ? piece.tokens[tokenIndex - 1] : pieces[index - 1]?.tokens.at(-1);
+            const gap = !!prev && prev.type !== token.type && !/\s$/.test(prev.text) && !/^\s/.test(token.text);
+            return (
+              <span key={tokenIndex} style={{ ...tokenStyle(token), marginLeft: gap ? "0.35em" : undefined }}>{token.text}</span>
+            );
+          });
+          if (piece.hunk == null) return <span key={index}>{body}</span>;
+          return (
+            <span key={index} className="suggest-hunk">
+              {body}
+              <HunkButtons onAccept={() => onHunk(piece.hunk!, "accept")} onReject={() => onHunk(piece.hunk!, "reject")} />
+            </span>
+          );
+        })}
+      </div>
+      {hunks.size > 1 && (
+        <div className="mt-2 flex items-center gap-2">
+          <button type="button" onClick={() => onHunk(-1, "accept")} className="btn-y inline-flex items-center gap-1 px-3.5 text-[12.5px]" style={{ height: 32, width: "auto" }}>
+            <Check size={12} /> принять всё
+          </button>
+          <button type="button" onClick={() => onHunk(-1, "reject")} className="suggest-reject-all">
+            <X size={12} /> отклонить всё
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function SuggestableField({
   model,
@@ -30,105 +109,116 @@ export default function SuggestableField({
   style?: React.CSSProperties;
   placeholder?: string;
   resizable?: boolean;
-  // Fires once a value is actually persisted (not just queued as a
-  // mentor suggestion) — lets parent list/card components keep their
-  // own copy of the record (e.g. a collapsed card's header name) in
-  // sync, since this component otherwise tracks the saved value only
-  // in its own local state.
   onSaved?: (value: string) => void;
 }) {
+  const pathname = usePathname();
+  const suggesting = useCanSuggest() && pathname.startsWith("/student-view");
   const [value, setValue] = useState(initialValue);
   const [suggestion, setSuggestion] = useState(initialSuggestion ?? null);
+  const [draft, setDraft] = useState(initialSuggestion ?? initialValue);
+  const [editorKey, setEditorKey] = useState(0);
   const [, startTransition] = useTransition();
-  const lastSentRef = useRef(initialValue);
+  const lastSentRef = useRef(initialSuggestion ?? initialValue);
+  const timerRef = useRef<number | null>(null);
 
-  function handleBlur(newValue: string) {
-    if (newValue === lastSentRef.current) return;
-    lastSentRef.current = newValue;
-    // Wait for the server's actual decision rather than guessing
-    // client-side whether this edit will become a suggestion — guessing
-    // caused a one-frame flash of the accept-suggestion UI even when
-    // review mode was off.
+  function applyResult(next: { value: string; suggestion: string | null }, saved: boolean) {
+    setValue(next.value);
+    setSuggestion(next.suggestion);
+    setDraft(next.suggestion ?? next.value);
+    lastSentRef.current = next.suggestion ?? next.value;
+    setEditorKey((key) => key + 1);
+    if (saved) onSaved?.(next.value);
+  }
+
+  function persist(nextValue: string) {
+    if (nextValue === lastSentRef.current) return;
+    lastSentRef.current = nextValue;
     startTransition(async () => {
-      const result = await saveFieldOrSuggest(model, recordId, field, newValue);
+      const result = await saveFieldOrSuggest(model, recordId, field, nextValue);
       if (result.suggested) {
-        setSuggestion(newValue);
+        setSuggestion(nextValue);
+        setDraft(nextValue);
       } else {
-        setValue(newValue);
+        setValue(nextValue);
         setSuggestion(null);
-        onSaved?.(newValue);
+        setDraft(nextValue);
+        onSaved?.(nextValue);
       }
     });
   }
 
-  function handleAccept() {
-    if (!suggestion) return;
-    setValue(suggestion);
-    setSuggestion(null);
-    lastSentRef.current = suggestion;
+  function handleBlur(nextValue: string) {
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    persist(nextValue);
+  }
+
+  function handleDraft(nextValue: string) {
+    setDraft(nextValue);
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => persist(nextValue), 450);
+  }
+
+  function handleHunk(index: number, action: "accept" | "reject") {
+    if (timerRef.current) window.clearTimeout(timerRef.current);
     startTransition(async () => {
-      await acceptFieldSuggestion(model, recordId, field);
-      onSaved?.(suggestion);
+      const pendingDraft = suggesting && draft !== value ? draft : suggestion;
+      if (suggesting && pendingDraft && pendingDraft !== (suggestion ?? value)) {
+        await saveFieldOrSuggest(model, recordId, field, pendingDraft);
+        lastSentRef.current = pendingDraft;
+      }
+      if (index < 0) {
+        if (action === "accept") await acceptFieldSuggestion(model, recordId, field);
+        else await rejectFieldSuggestion(model, recordId, field);
+        const nextValue = action === "accept" && pendingDraft ? pendingDraft : value;
+        applyResult({ value: nextValue, suggestion: null }, action === "accept");
+        return;
+      }
+      const next = await resolveSuggestionHunk(model, recordId, field, index, action);
+      applyResult(next, next.value !== value);
     });
   }
 
-  // Отклонение: правка наставника выбрасывается, в поле остаётся свой текст.
-  function handleReject() {
-    if (!suggestion) return;
-    setSuggestion(null);
-    lastSentRef.current = value;
-    startTransition(async () => {
-      await rejectFieldSuggestion(model, recordId, field);
-    });
+  if (suggesting) {
+    const pending = draft !== value ? draft : suggestion;
+    return (
+      <div data-review-field="">
+        {pending && pending !== value && (
+          <SuggestionText base={value} suggested={pending} className={className} onHunk={handleHunk} />
+        )}
+        {as === "input" ? (
+          <input
+            key={editorKey}
+            defaultValue={draft}
+            placeholder={placeholder}
+            onChange={(event) => handleDraft(event.target.value)}
+            onBlur={(event) => handleBlur(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                event.currentTarget.blur();
+              }
+            }}
+            className={className}
+            style={style}
+          />
+        ) : (
+          <AutoGrowTextarea
+            key={editorKey}
+            defaultValue={draft}
+            placeholder={placeholder}
+            onChange={handleDraft}
+            onBlur={handleBlur}
+            className={className}
+            style={pending && pending !== value ? { ...style, marginTop: 8 } : style}
+            resizable={resizable}
+          />
+        )}
+      </div>
+    );
   }
 
   if (suggestion) {
-    const tokens = sentenceDiff(value, suggestion);
-    return (
-      <div className="rounded-sm p-2.5" style={{ border: "1px solid var(--rule)" }}>
-        <span className="whitespace-pre-wrap">
-          {tokens.map((t, i) => {
-            const prev = tokens[i - 1];
-            const separated =
-              !!prev &&
-              prev.type !== "same" &&
-              t.type !== "same" &&
-              prev.type !== t.type &&
-              !/\s$/.test(prev.text) &&
-              !/^\s/.test(t.text);
-            const style: CSSProperties =
-              t.type === "del"
-                ? { textDecoration: "line-through", textDecorationColor: "var(--link)", color: "var(--faded)" }
-                : t.type === "add"
-                  ? { textDecoration: "underline wavy", textDecorationColor: "var(--link)", color: "var(--link)" }
-                  : {};
-            if (separated) style.marginLeft = "0.35em";
-            return (
-              <span key={i} style={style}>
-                {t.text}
-              </span>
-            );
-          })}
-        </span>
-        <div className="mt-1.5 flex items-center gap-2">
-          <button
-            onClick={handleAccept}
-            className="btn-y inline-flex items-center gap-1 px-3.5 text-[12.5px]"
-            style={{ height: 32, width: "auto" }}
-          >
-            <Check size={12} /> принять правку
-          </button>
-          <button
-            onClick={handleReject}
-            title="Оставить свой текст, правку убрать"
-            className="flex items-center gap-1 text-[12px] px-3.5 py-1 rounded-full"
-            style={{ color: "var(--faded)", background: "transparent", border: "1px solid var(--rule)" }}
-          >
-            <X size={12} /> отклонить
-          </button>
-        </div>
-      </div>
-    );
+    return <SuggestionText base={value} suggested={suggestion} className={className} onHunk={handleHunk} />;
   }
 
   if (as === "input") {
