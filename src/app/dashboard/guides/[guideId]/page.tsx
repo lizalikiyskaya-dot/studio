@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { loadGuideForReader } from "@/lib/guides";
 import GuideReader from "@/features/guides/GuideReader";
+import { markedTitle } from "@/components/markedTitle";
 
 export default async function StudentGuideReaderPage({ params }: { params: Promise<{ guideId: string }> }) {
   const session = await getSession();
@@ -19,7 +20,7 @@ export default async function StudentGuideReaderPage({ params }: { params: Promi
   if (!guide) {
     return (
       <div style={{ maxWidth: 640 }}>
-        <h1 className="page-title mb-3">Такой страницы нет</h1>
+        <h1 className="page-title mb-3">{markedTitle("Такой страницы нет")}</h1>
         <p className="text-[15.5px] mb-4" style={{ color: "var(--ink2)" }}>
           Вернитесь к своим материалам.
         </p>

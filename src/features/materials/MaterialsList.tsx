@@ -17,6 +17,7 @@ import {
 } from "./actions";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
 import { Button } from "@/components/ui/Button";
+import EmptyState from "@/components/EmptyState";
 import DownloadButton from "@/components/DownloadButton";
 import { dataUrlBytes } from "@/lib/fileMeta";
 import LibraryGuides from "./LibraryGuides";
@@ -254,9 +255,10 @@ function HandoutsList({
   return (
     <div>
       {!canManage && guides.length === 0 && handouts.length === 0 ? (
-        <p className="text-[14px]" style={{ color: "var(--muted)" }}>
-          Методичек пока нет.
-        </p>
+        <EmptyState
+          cue="Самое время читать"
+          detail="Здесь появятся методички студии и личные файлы."
+        />
       ) : null}
       {showLibrary && (
         <div className="mb-8">
@@ -270,9 +272,11 @@ function HandoutsList({
             </p>
           ) : null}
           {guides.length === 0 ? (
-            <p className="text-[14px]" style={{ color: "var(--muted)" }}>
-              В библиотеке пока ничего нет.
-            </p>
+            <EmptyState
+              compact
+              cue={canManage ? "Самое время собрать библиотеку" : "Самое время читать"}
+              detail={canManage ? "Добавьте методичку — её увидят в кабинетах." : "Методички студии появятся здесь."}
+            />
           ) : (
             <LibraryGuides studentId={studentId} guides={guides} canManage={canManage} />
           )}

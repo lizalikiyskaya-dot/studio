@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CircleAlert } from "lucide-react";
 import PasswordInput from "@/components/PasswordInput";
+import { markedTitle } from "@/components/markedTitle";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function RegisterPage() {
         <Link href="/login">Вход</Link>
         <Link href="/register" className="on">Регистрация</Link>
       </div>
-      <h1 className="auth-title">Заявка в студию</h1>
+      <h1 className="auth-title">{markedTitle("Заявка в студию")}</h1>
       <p className="auth-sub">После регистрации заявку нужно подтвердить — доступ откроется после одобрения наставником.</p>
 
       <label className="fld-label">

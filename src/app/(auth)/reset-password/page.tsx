@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { lookupResetToken } from "@/lib/passwordReset";
 import ResetPasswordForm from "./ResetPasswordForm";
+import { markedTitle } from "@/components/markedTitle";
 
 export default async function ResetPasswordPage({
   searchParams,
@@ -16,7 +17,7 @@ export default async function ResetPasswordPage({
   if (!found.ok) {
     return (
       <div>
-        <h1 className="auth-title">Ссылка недействительна</h1>
+        <h1 className="auth-title">{markedTitle("Ссылка недействительна")}</h1>
         <p className="auth-sub">
           {found.reason === "expired"
             ? "Срок действия ссылки истёк — она живёт один час."

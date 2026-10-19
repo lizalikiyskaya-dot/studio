@@ -1,8 +1,6 @@
 @import "tailwindcss";
 
-/* Палитра «Солнечная». Старые имена (--wine, --sage, --gold, --paper)
-   оставлены как алиасы, чтобы существующие экраны подхватили новый вид
-   без поэкранной перекраски. */
+/* Палитра «Солнечная»: чернила, жёлтый маркер, фиолетовый акцент, мятные статусы. */
 :root {
   --ink: #202020;
   --ink2: #555555;
@@ -13,8 +11,6 @@
   --soft: #f4f4f4;
   --bg-surface-2: #f4f4f4;
   --bg-card: #ffffff;
-  --paper: #ffffff;
-  --paper-light: #ffffff;
   --line: #ececec;
   --rule: #ececec;
   --border: #ececec;
@@ -25,15 +21,12 @@
   --accent: #6553e8;
   --accent-soft: #e6e2ff;
   --vi: #7b6cf6;
-  --wine: #4b3fc0;
-  --wine-soft: #dadada;
+  --link: #4b3fc0;
   --deep: #2b2d5c;
   --danger: #e0592a;
   --sage: #2fb083;
   --sage-bright: #2fb083;
   --sage-soft: #d5f3e7;
-  --gold: #6553e8;
-  --gold-soft: #fff5cc;
   --note: #fff5cc;
   --noteink: #7a6a1e;
   --neutral-active: #f4f4f4;
@@ -953,7 +946,7 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--gold);
+  color: var(--v);
 }
 html.studio-sheet-open .notes-fab { visibility: hidden; }
 .studio-menu-btn { display: none; }

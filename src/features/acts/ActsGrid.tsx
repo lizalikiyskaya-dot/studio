@@ -144,7 +144,7 @@ function ChapterRow({
           onKeyDown={blurOnEnter}
           className="heading flex-1 min-w-0 outline-none bg-transparent text-[14px] font-semibold"
         />
-        <button onClick={onDelete} className="flex-shrink-0" style={{ color: "var(--wine)" }}>
+        <button onClick={onDelete} className="flex-shrink-0" style={{ color: "var(--link)" }}>
           <X size={12} />
         </button>
       </div>
@@ -170,8 +170,8 @@ function ChapterRow({
         }}
         className="flex gap-2.5 flex-wrap p-2 rounded-[14px]"
         style={{
-          border: isDragOver ? "1px dashed var(--wine)" : "1px dashed transparent",
-          background: isDragOver ? "var(--paper)" : undefined,
+          border: isDragOver ? "1px dashed var(--link)" : "1px dashed transparent",
+          background: isDragOver ? "var(--bg-card)" : undefined,
           minHeight: 60,
         }}
       >
@@ -380,7 +380,7 @@ export default function ActsGrid({
               <button
                 onClick={() => handleDeleteAct(act.id)}
                 className="text-[12.5px]"
-                style={{ color: "var(--wine)" }}
+                style={{ color: "var(--link)" }}
               >
                 Удалить акт
               </button>
@@ -426,7 +426,7 @@ export default function ActsGrid({
 
             <Button
               onClick={() => handleAddChapter(act.id)}
-              variant="success-outline"
+              variant="secondary"
               size="sm"
               style={{ borderStyle: "dashed" }}
             >

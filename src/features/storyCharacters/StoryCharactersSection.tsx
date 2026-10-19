@@ -19,6 +19,7 @@ import {
   updateStoryCharacterPhotoUrl,
 } from "./actions";
 import { Button } from "@/components/ui/Button";
+import EmptyState from "@/components/EmptyState";
 
 // Simple card for secondary story characters using SECONDARY_CHARACTER_GROUPS
 function SecondaryCard({
@@ -139,7 +140,7 @@ export default function StoryCharactersSection({
         </p>
         <div className="flex flex-wrap gap-2.5">
           {cycleCharacters.length === 0 && (
-            <span className="text-[13px]" style={{ color: "var(--faded)" }}>В цикле пока нет персонажей.</span>
+            <EmptyState compact cue="Самое время собрать героев" detail="Персонажи цикла появятся здесь." />
           )}
           {cycleCharacters.map((c) => (
             <span key={c.id} className="text-[13px] px-3 py-1.5 rounded-sm" style={{ border: "1px solid var(--rule)" }}>
@@ -202,7 +203,7 @@ export default function StoryCharactersSection({
             onDelete={handleDelete}
           />
         ))}
-        <Button onClick={() => handleAdd("MAIN")} variant="dashed-sage" size="sm" pill>
+        <Button onClick={() => handleAdd("MAIN")} variant="dashed-accent" size="sm" pill>
           + главный персонаж
         </Button>
       </section>

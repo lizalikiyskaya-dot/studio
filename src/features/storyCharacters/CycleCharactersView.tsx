@@ -72,7 +72,7 @@ export default function CycleCharactersView({
           onDelete={handleDelete}
         />
       ))}
-      <Button onClick={handleAdd} variant="success" size="sm" pill>
+      <Button onClick={handleAdd} variant="primary" size="sm" pill>
         + новый персонаж цикла
       </Button>
     </div>

@@ -1,12 +1,13 @@
 import { loadLibrary } from "@/lib/guides";
 import GuidesLibrary from "@/features/guides/GuidesLibrary";
+import { markedTitle } from "@/components/markedTitle";
 
 export default async function MentorGuidesPage() {
   const library = await loadLibrary();
 
   return (
     <div style={{ maxWidth: 760 }}>
-      <h1 className="page-title mt-1 mb-6">Методички</h1>
+      <h1 className="page-title mt-1 mb-6">{markedTitle("Методички")}</h1>
 
       {library.ready ? (
         <GuidesLibrary initialGuides={library.guides} studentCount={library.studentCount} />

@@ -1,7 +1,9 @@
+import { markedTitle } from "@/components/markedTitle";
+
 export default function SectionPlaceholder({ title }: { title: string }) {
   return (
     <div>
-      <h1 className="page-title text-[24px] font-semibold mb-2">{title}</h1>
+      <h1 className="page-title text-[24px] font-semibold mb-2">{markedTitle(title)}</h1>
       <p className="text-[14px] mb-8" style={{ color: "var(--faded)" }}>
         Раздел появится на следующем этапе разработки.
       </p>

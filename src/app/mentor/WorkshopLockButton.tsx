@@ -28,7 +28,7 @@ export default function WorkshopLockButton({
   }
 
   return (
-    <BadgeButton onClick={handleToggle} tone={unlocked ? "success" : "danger"} fill={unlocked ? "soft" : "outline"} title={unlocked ? titleOn : titleOff}>
+    <BadgeButton onClick={handleToggle} tone={unlocked ? "mint" : "danger"} fill={unlocked ? "soft" : "outline"} title={unlocked ? titleOn : titleOff}>
       {unlocked ? <Unlock size={11} /> : <Lock size={11} />}
       <span className="ws-label">{unlocked ? labelOn : labelOff}</span>
     </BadgeButton>

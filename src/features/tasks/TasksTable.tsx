@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Plus, Trash2, Pencil } from "lucide-react";
-import PageHeader from "@/components/PageHeader";
+import Mark from "@/components/Mark";
+import EmptyState from "@/components/EmptyState";
 import type { Task, TaskStatus } from "@/generated/prisma/client";
 import {
   createTask,
@@ -150,14 +151,13 @@ export default function TasksTable({
 
   return (
     <div>
-      <PageHeader
-        title="Задания"
-        actions={
+      <div className="page-head">
+        <div className="page-actions">
           <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
             <Plus size={16} /> Добавить задание
           </button>
-        }
-      />
+        </div>
+      </div>
 
       <div className="flex gap-3 mb-5 flex-wrap" role="tablist" aria-label="Фильтр заданий">
         {TABS.map((tab) => {
@@ -184,6 +184,17 @@ export default function TasksTable({
         })}
       </div>
 
+      {tasks.length === 0 ? (
+        <EmptyState
+          cue="Самое время писать"
+          detail="Здесь появятся задания, которые сдадите на проверку."
+          action={
+            <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+              <Plus size={16} /> Добавить задание
+            </button>
+          }
+        />
+      ) : (
       <div className="sheet px-3 pt-2 pb-1">
         <table>
           <thead>
@@ -202,7 +213,7 @@ export default function TasksTable({
             {visible.length === 0 && (
               <tr>
                 <td colSpan={8} style={{ color: "var(--muted)" }}>
-                  {tasks.length === 0 ? "Заданий пока нет." : "В этой вкладке заданий нет."}
+                  В этой вкладке заданий нет.
                 </td>
               </tr>
             )}
@@ -242,10 +253,10 @@ export default function TasksTable({
                 <td>
                   <button
                     onClick={() => handleStatus(task.id, task.status)}
-                    className="text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap"
-                    style={STATUS_STYLE[task.status]}
+                    className={task.status === "ACCEPTED" ? "text-[14px] font-medium whitespace-nowrap" : "text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap"}
+                    style={task.status === "ACCEPTED" ? undefined : STATUS_STYLE[task.status]}
                   >
-                    {STATUS_LABEL[task.status]}
+                    {task.status === "ACCEPTED" ? <Mark>Принято</Mark> : STATUS_LABEL[task.status]}
                   </button>
                 </td>
                 <td>
@@ -258,6 +269,7 @@ export default function TasksTable({
           </tbody>
         </table>
       </div>
+      )}
       {banners}
     </div>
   );

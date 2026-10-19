@@ -93,7 +93,7 @@ export default function LibraryGuides({
               {canManage ? (
                 <span className="inline-flex items-center gap-2 ml-auto">
                   <ToggleSwitch checked={guide.visible} onChange={(checked) => void handleVisible(guide.id, checked)} />
-                  <Badge tone={guide.visible ? "success" : "neutral"}>{guide.visible ? "открыта" : "скрыта"}</Badge>
+                  <Badge tone={guide.visible ? "mint" : "neutral"}>{guide.visible ? "открыта" : "скрыта"}</Badge>
                 </span>
               ) : null}
             </div>

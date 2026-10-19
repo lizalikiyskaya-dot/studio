@@ -98,9 +98,9 @@ export default function SuggestableField({
               !/^\s/.test(t.text);
             const style: CSSProperties =
               t.type === "del"
-                ? { textDecoration: "line-through", textDecorationColor: "var(--wine)", color: "var(--faded)" }
+                ? { textDecoration: "line-through", textDecorationColor: "var(--link)", color: "var(--faded)" }
                 : t.type === "add"
-                  ? { textDecoration: "underline wavy", textDecorationColor: "var(--wine)", color: "var(--wine)" }
+                  ? { textDecoration: "underline wavy", textDecorationColor: "var(--link)", color: "var(--link)" }
                   : {};
             if (separated) style.marginLeft = "0.35em";
             return (

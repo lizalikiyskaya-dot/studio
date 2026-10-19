@@ -77,7 +77,7 @@ export default function SettingMixPanel({
           <div className="mt-1 text-[15px] leading-snug">
             <span style={{ textDecoration: "line-through", color: "var(--faded)" }}>{shareLine(view)}</span>
           </div>
-          <div className="mt-1 text-[15px] leading-snug" style={{ color: "var(--wine)", textDecoration: "underline wavy" }}>{shareLine(proposedView)}</div>
+          <div className="mt-1 text-[15px] leading-snug" style={{ color: "var(--link)", textDecoration: "underline wavy" }}>{shareLine(proposedView)}</div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"

@@ -8,6 +8,7 @@ import EditableWithLinks from "@/components/EditableWithLinks";
 import LinkCell from "@/components/LinkCell";
 import DateField from "@/components/DateField";
 import { createSubmission, deleteSubmission, updateSubmissionField, cycleSubmissionStatus } from "./actions";
+import EmptyState from "@/components/EmptyState";
 
 const STATUS_LABEL: Record<SubmissionStatus, string> = {
   WAITING: "ждём ответа",
@@ -65,6 +66,15 @@ export default function SubmissionsTable({
     startTransition(async () => { await cycleSubmissionStatus(id); });
   }
 
+  if (rows.length === 0) {
+    return (
+      <EmptyState
+        cue="Самое время отправить текст"
+        detail={type === "CONTEST" ? "Конкурсы, куда ушла работа, и что ответили." : "Издательства, куда ушла рукопись, и что ответили."}
+      />
+    );
+  }
+
   return (
     <div className="sheet px-3 pt-2 pb-1">
       <table>
@@ -80,9 +90,6 @@ export default function SubmissionsTable({
           </tr>
         </thead>
         <tbody>
-          {rows.length === 0 && (
-            <tr><td colSpan={7} style={{ color: "var(--muted)" }}>Пока нет заявок.</td></tr>
-          )}
           {rows.map((row) => (
             <tr key={row.id}>
               <td className="min-w-[160px]">

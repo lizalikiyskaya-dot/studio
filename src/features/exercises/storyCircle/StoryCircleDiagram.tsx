@@ -31,8 +31,8 @@ export default function StoryCircleDiagram({ activeStep }: { activeStep?: number
               cx={p.x}
               cy={p.y}
               r={15}
-              fill={isActive ? "var(--wine)" : "var(--paper-light)"}
-              stroke="var(--wine)"
+              fill={isActive ? "var(--link)" : "var(--bg-card)"}
+              stroke="var(--link)"
               strokeWidth={1.5}
             />
             <text
@@ -40,7 +40,7 @@ export default function StoryCircleDiagram({ activeStep }: { activeStep?: number
               y={p.y + 4}
               textAnchor="middle"
               className="heading"
-              style={{ fontSize: 13, fontWeight: 700, fill: isActive ? "#fff" : "var(--wine)" }}
+              style={{ fontSize: 13, fontWeight: 700, fill: isActive ? "#fff" : "var(--link)" }}
             >
               {step.n}
             </text>

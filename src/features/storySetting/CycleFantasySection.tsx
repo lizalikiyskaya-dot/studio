@@ -264,7 +264,7 @@ export default function CycleFantasySection({
               <button
                 onClick={() => handleDeleteEntry(openEntry.id)}
                 className="text-[12.5px] px-3 py-1.5 rounded-full"
-                style={{ border: "1px dashed var(--wine-soft)", color: "var(--wine)" }}
+                style={{ border: "1px dashed var(--border)", color: "var(--link)" }}
               >
                 удалить запись
               </button>

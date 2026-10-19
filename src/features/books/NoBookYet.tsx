@@ -1,8 +1,9 @@
 "use client";
 
 import { useTransition } from "react";
+import { Plus } from "lucide-react";
 import { createBook } from "./actions";
-import { Button } from "@/components/ui/Button";
+import EmptyState from "@/components/EmptyState";
 
 export default function NoBookYet({ studentId }: { studentId: string }) {
   const [, startTransition] = useTransition();
@@ -15,13 +16,14 @@ export default function NoBookYet({ studentId }: { studentId: string }) {
   }
 
   return (
-    <div>
-      <p className="text-[14px] mb-4" style={{ color: "var(--faded)" }}>
-        Книг пока нет.
-      </p>
-      <Button onClick={handleCreate} variant="dashed" pill>
-        + новая книга
-      </Button>
-    </div>
+    <EmptyState
+      cue="Самое время завести книгу"
+      detail="С неё начинается мастерская: о книге, план, персонажи."
+      action={
+        <button type="button" onClick={handleCreate} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+          <Plus size={16} /> Новая книга
+        </button>
+      }
+    />
   );
 }

@@ -83,7 +83,7 @@ function CardBody({
           onMouseLeave={() => setHoverStep(undefined)}
         >
           <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
-            <span className="heading font-semibold" style={{ color: "var(--wine)" }}>
+            <span className="heading font-semibold" style={{ color: "var(--link)" }}>
               {step.n}. {step.short}
             </span>{" "}
             — {step.label}

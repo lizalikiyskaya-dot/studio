@@ -6,6 +6,7 @@ import type { WorkPlan, WorkPlanStatus } from "@/generated/prisma/client";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import PageHeader from "@/components/PageHeader";
 import { createWorkPlan, deleteWorkPlan, updateWorkPlanField, cycleWorkPlanStatus } from "./actions";
+import EmptyState from "@/components/EmptyState";
 
 const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 
@@ -119,6 +120,17 @@ export default function WorkPlanTable({
           </button>
         }
       />
+      {plans.length === 0 ? (
+        <EmptyState
+          cue="Самое время наметить путь"
+          detail="Периоды, литература и заметки к работе."
+          action={
+            <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+              <Plus size={16} /> Добавить период
+            </button>
+          }
+        />
+      ) : (
       <div className="sheet px-3 pt-2 pb-1">
         <table>
           <thead>
@@ -132,9 +144,6 @@ export default function WorkPlanTable({
             </tr>
           </thead>
           <tbody>
-            {plans.length === 0 && (
-              <tr><td colSpan={6} style={{ color: "var(--muted)" }}>Периодов пока нет.</td></tr>
-            )}
             {plans.map((plan) => (
               <tr key={plan.id}>
                 <td className="align-top" style={{ minWidth: 160 }}>
@@ -168,6 +177,7 @@ export default function WorkPlanTable({
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

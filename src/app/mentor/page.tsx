@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import StudentsList from "./StudentsList";
 import { getUnseenActivity } from "@/lib/unseenActivity";
+import { markedTitle } from "@/components/markedTitle";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -86,7 +87,7 @@ export default async function MentorPage() {
   return (
     <div>
       <div className="text-[14px] capitalize" style={{ color: "var(--muted)" }}>{dateLabel}</div>
-      <h1 className="page-title mt-1 mb-5">Ученики</h1>
+      <h1 className="page-title mt-1 mb-5">{markedTitle("Ученики")}</h1>
       <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <section className="sheet p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -118,7 +119,7 @@ export default async function MentorPage() {
           {decided.slice(0, 6).map((u) => (
             <div key={u.id} className="flex items-center gap-2 py-2" style={{ borderTop: "1px solid var(--line)" }}>
               <span className="min-w-0 flex-1 truncate text-[13.5px]">{u.name}</span>
-              <Badge tone={u.status === "APPROVED" ? "success" : "danger"}>{u.status === "APPROVED" ? "одобрено" : "отклонено"}</Badge>
+              <Badge tone={u.status === "APPROVED" ? "mint" : "danger"}>{u.status === "APPROVED" ? "одобрено" : "отклонено"}</Badge>
             </div>
           ))}
           <p className="mt-3 text-[13px] leading-snug" style={{ color: "var(--muted)" }}>

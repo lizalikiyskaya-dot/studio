@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-/** Жёлтый маркер. Пока только на цитате входа — на остальные экраны не вешать, пока не выберут место. */
+/** Жёлтый маркер: цитата входа, имя в приветствии, ключевое слово крупного заголовка, статус «Принято». */
 export default function Mark({ children }: { children: ReactNode }) {
   return <span className="mk">{children}</span>;
 }

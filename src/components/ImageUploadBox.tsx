@@ -122,7 +122,7 @@ export default function ImageUploadBox({
                 onClick={handleDelete}
                 title="Удалить"
                 className="flex items-center justify-center rounded-full"
-                style={{ width: 26, height: 26, background: "#fff", color: "var(--wine)" }}
+                style={{ width: 26, height: 26, background: "#fff", color: "var(--link)" }}
               >
                 <Trash2 size={12} />
               </button>

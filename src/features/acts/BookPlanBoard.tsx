@@ -21,6 +21,7 @@ import {
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import PageHeader from "@/components/PageHeader";
+import EmptyState from "@/components/EmptyState";
 
 type ChapterWithBlocks = ActChapter & { blocks: StorylineBlock[] };
 type ActWithChapters = Act & { chapters: ChapterWithBlocks[] };
@@ -265,6 +266,18 @@ export default function BookPlanBoard({
         }
       />
 
+      {acts.length === 0 ? (
+        <EmptyState
+          cue="Самое время разложить книгу"
+          detail="Акты, главы и сцены появятся на доске."
+          action={
+            <button type="button" onClick={handleAddAct} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+              <Plus size={16} /> Добавить акт
+            </button>
+          }
+        />
+      ) : (
+      <>
       <div className="plan-desktop sheet plan-board p-5 pb-3">
         <div style={{ display: "grid", gridTemplateColumns: grid }}>
           <div />
@@ -413,7 +426,6 @@ export default function BookPlanBoard({
               {act.title || `Акт ${index + 1}`}
             </button>
           ))}
-          {acts.length === 0 && <span className="px-3 py-2 text-[13px]" style={{ color: "var(--muted)" }}>Актов пока нет</span>}
         </div>
         {acts[mobileAct] && (
           <div className="rounded-[18px] px-4 py-3 mb-3" style={{ background: "#E6ECFF" }}>
@@ -464,6 +476,8 @@ export default function BookPlanBoard({
           ))}
         </div>
       </div>
+      </>
+      )}
 
       {showLines && (
         <div className="mt-3 flex flex-wrap gap-2">

@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import LogoutButton from "@/components/LogoutButton";
 import AuthShowcase from "@/components/AuthShowcase";
+import { markedTitle } from "@/components/markedTitle";
 
 export default async function PendingPage() {
   const session = await getSession();
@@ -19,7 +20,7 @@ export default async function PendingPage() {
         <div className="auth-card">
           {user.status === "PENDING" ? (
             <>
-              <h1 className="auth-title">Заявка на рассмотрении</h1>
+              <h1 className="auth-title">{markedTitle("Заявка на рассмотрении")}</h1>
               <p className="auth-sub">
                 Спасибо за регистрацию, {user.name}. Наставник проверит заявку и
                 откроет доступ в личный кабинет. Это может занять некоторое время.
@@ -28,12 +29,12 @@ export default async function PendingPage() {
             </>
           ) : user.status === "SUSPENDED" ? (
             <>
-              <h1 className="auth-title">Доступ закрыт</h1>
+              <h1 className="auth-title">{markedTitle("Доступ закрыт")}</h1>
               <p className="auth-sub">Свяжитесь с наставником для возобновления доступа.</p>
             </>
           ) : (
             <>
-              <h1 className="auth-title">Заявка отклонена</h1>
+              <h1 className="auth-title">{markedTitle("Заявка отклонена")}</h1>
               <p className="auth-sub">Свяжитесь с наставником, чтобы уточнить детали.</p>
             </>
           )}

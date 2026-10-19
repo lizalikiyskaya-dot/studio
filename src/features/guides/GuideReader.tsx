@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { markedTitle } from "@/components/markedTitle";
 
 import type { ReaderGuide } from "./types";
 
@@ -8,7 +9,7 @@ export default function GuideReader({ guide, backHref, backLabel }: { guide: Rea
       <Link href={backHref} className="lnk text-[14.5px]">
         {backLabel}
       </Link>
-      <h1 className="page-title mt-3 mb-3">{guide.title || "Методичка"}</h1>
+      <h1 className="page-title mt-3 mb-3">{markedTitle(guide.title || "Методичка")}</h1>
       {guide.description ? (
         <p className="text-[15.5px] mb-6 whitespace-pre-wrap" style={{ color: "var(--ink2)", maxWidth: 640 }}>
           {guide.description}

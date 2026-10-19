@@ -28,7 +28,7 @@ export default function CycleGrapesTable({
         <div key={field} className="flex flex-col sm:flex-row gap-4 py-3 border-b" style={{ borderColor: "var(--rule)" }}>
           <div
             className="heading w-full sm:w-[180px] flex-shrink-0 font-semibold text-[15px] pr-4 border-r"
-            style={{ color: "var(--wine)", borderColor: "var(--rule)" }}
+            style={{ color: "var(--link)", borderColor: "var(--rule)" }}
           >
             <span className="font-bold mr-2" style={{ color: "var(--ink)" }}>
               {letter}

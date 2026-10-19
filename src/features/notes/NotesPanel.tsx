@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, X, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, CornerDownRight, Quote, PenLine, Check } from "lucide-react";
+import { Pencil, X, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, CornerDownRight, Quote } from "lucide-react";
 import type { Note, Comment } from "@/generated/prisma/client";
 import { createNote, updateNote, deleteNote, resolveNote, reopenNote } from "./actions";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import SelectionAnnotator, { type Anchor } from "./SelectionAnnotator";
+import EmptyState from "@/components/EmptyState";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -430,7 +431,7 @@ export default function NotesPanel({
               background: "var(--danger)",
               color: "#fff",
               fontSize: 10,
-              boxShadow: "0 0 0 2px var(--paper-light)",
+              boxShadow: "0 0 0 2px var(--bg-card)",
             }}
           >
             {openNotes.length}
@@ -456,7 +457,7 @@ export default function NotesPanel({
           style={{
             width: "min(400px, 92vw)",
             height: "100%",
-            background: "var(--paper-light)",
+            background: "var(--bg-card)",
             boxShadow: "-8px 0 32px rgba(0,0,0,0.13)",
             transform: open ? "translateX(0)" : "translateX(100%)",
             transition: "transform 0.28s cubic-bezier(0.22,0.9,0.32,1)",
@@ -519,16 +520,11 @@ export default function NotesPanel({
           {/* note list */}
           <div className="flex-1 overflow-y-auto px-3.5 py-3.5">
             {visibleNotes.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12" style={{ color: "var(--ink-faint)" }}>
-                <div className="mb-3" style={{ color: "var(--muted)" }}>
-                  {tab === "open" ? <PenLine size={28} strokeWidth={1.5} /> : <Check size={28} strokeWidth={1.5} />}
-                </div>
-                <p className="text-[13px] text-center">
-                  {tab === "open"
-                    ? "Заметок пока нет.\nДобавь первую ниже."
-                    : "Решённых заметок нет."}
-                </p>
-              </div>
+              <EmptyState
+                compact
+                cue={tab === "open" ? "Самое время оставить заметку" : "Самое время закрыть вопрос"}
+                detail={tab === "open" ? "Напишите первую заметку внизу." : "Решённые заметки соберутся в этой вкладке."}
+              />
             )}
             {visibleNotes.map((note) => (
               <NoteCard

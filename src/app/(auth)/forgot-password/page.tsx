@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CircleAlert } from "lucide-react";
+import { markedTitle } from "@/components/markedTitle";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -33,7 +34,7 @@ export default function ForgotPasswordPage() {
   if (sent) {
     return (
       <div>
-        <h1 className="auth-title">Письмо отправлено</h1>
+        <h1 className="auth-title">{markedTitle("Письмо отправлено")}</h1>
         <p className="auth-sub">
           Если такая почта зарегистрирована на платформе, на неё пришла ссылка
           для смены пароля. Ссылка действует один час. Загляните и в папку
@@ -46,7 +47,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1 className="auth-title">Восстановление пароля</h1>
+      <h1 className="auth-title">{markedTitle("Восстановление пароля")}</h1>
       <p className="auth-sub">Укажите почту, с которой вы регистрировались — пришлём ссылку для смены пароля.</p>
 
       <label className="fld-label">

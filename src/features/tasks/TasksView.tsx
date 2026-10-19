@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
+import { markedTitle } from "@/components/markedTitle";
 import TasksTable from "./TasksTable";
+import CabinetHello from "./CabinetHello";
 import StudioBanners from "@/components/StudioBanners";
 
 export default async function TasksView({
@@ -10,13 +12,17 @@ export default async function TasksView({
   studentId: string;
   basePath: string;
 }) {
-  const tasks = await prisma.task.findMany({
-    where: { studentId },
-    orderBy: { order: "asc" },
-  });
+  const [tasks, student] = await Promise.all([
+    prisma.task.findMany({
+      where: { studentId },
+      orderBy: { order: "asc" },
+    }),
+    prisma.user.findUnique({ where: { id: studentId }, select: { name: true } }),
+  ]);
 
   return (
-    <Suspense fallback={<h1 className="page-title">Задания</h1>}>
+    <Suspense fallback={<h1 className="page-title">{markedTitle("Задания")}</h1>}>
+      <CabinetHello name={student?.name ?? ""} tasks={tasks} />
       <TasksTable
         studentId={studentId}
         initialTasks={tasks}
