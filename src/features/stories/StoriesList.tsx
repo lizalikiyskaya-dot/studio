@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
@@ -63,8 +65,8 @@ export default function StoriesList({
   }
   useHeaderAction(headerAdd ? "story-add" : "story-add-inline", handleAdd);
 
-  function handleDelete(storyId: string) {
-    if (!window.confirm("Удалить рассказ? Это нельзя отменить.")) return;
+  async function handleDelete(storyId: string) {
+    if (!(await siteConfirm("Удалить рассказ? Это нельзя отменить."))) return;
     startTransition(async () => {
       await deleteStory(storyId);
       if (openId === storyId) setOpenId(null);

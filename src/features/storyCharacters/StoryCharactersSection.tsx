@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Plus } from "lucide-react";
@@ -94,7 +96,7 @@ function SecondaryCard({
                 style={{ borderColor: "var(--rule)" }}
               />
             </div>
-            <Button onClick={() => { if (window.confirm(`Удалить «${character.name || "без имени"}»?`)) onDelete(character.id); }} variant="secondary" size="sm" pill className="flex-shrink-0">
+            <Button onClick={async () => { if (await siteConfirm(`Удалить «${character.name || "без имени"}»?`)) onDelete(character.id); }} variant="secondary" size="sm" pill className="flex-shrink-0">
               удалить
             </Button>
           </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useEffect, useState, useTransition, useRef } from "react";
 import { useSheetSwipe } from "@/components/useSheetSwipe";
 import { useRouter } from "next/navigation";
@@ -377,8 +379,8 @@ export default function NotesPanel({
     startTransition(() => updateNote(id, text));
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить заметку?")) return;
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить заметку?"))) return;
     setNotes((prev) => prev.filter((n) => n.id !== id));
     startTransition(() => deleteNote(id));
   }

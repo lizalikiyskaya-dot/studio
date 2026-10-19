@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { addOpenCallToTracker } from "@/features/submissions/actions";
+import AddToTrackerButton from "@/features/submissions/AddToTrackerButton";
 
 function parseDeadline(value: string): Date | null {
   const text = value.trim();
@@ -39,7 +39,7 @@ export default async function StudioBanners({
       select: { id: true, title: true, deadline: true },
     }),
     prisma.openCall.findMany({ where: { studentId }, orderBy: { order: "asc" } }),
-    prisma.submission.findMany({ where: { studentId }, select: { target: true } }),
+    prisma.submission.findMany({ where: { studentId }, select: { target: true, openCallId: true } }),
   ]);
 
   const today = new Date();
@@ -49,7 +49,8 @@ export default async function StudioBanners({
     .sort((a, b) => a.deadline!.getTime() - b.deadline!.getTime())
     .slice(0, 4);
 
-  const tracked = new Set(submissions.map((row) => row.target.trim().toLowerCase()).filter(Boolean));
+  const trackedIds = new Set(submissions.map((row) => row.openCallId).filter((id): id is string => Boolean(id)));
+  const trackedTargets = new Set(submissions.map((row) => row.target.trim().toLowerCase()).filter(Boolean));
   const nearest = calls
     .map((call) => ({ call, date: parseDeadline(call.deadline) }))
     .filter((row): row is { call: (typeof calls)[number]; date: Date } => row.date != null && daysUntil(row.date) >= 0)
@@ -57,7 +58,10 @@ export default async function StudioBanners({
 
   if (upcoming.length === 0 && !nearest) return null;
 
-  const inTracker = nearest ? tracked.has(nearest.call.target.trim().toLowerCase()) : false;
+  const nearestTarget = nearest?.call.target.trim().toLowerCase() ?? "";
+  const inTracker = nearest
+    ? trackedIds.has(nearest.call.id) || (nearestTarget.length > 0 && trackedTargets.has(nearestTarget))
+    : false;
   const until = nearest ? daysUntil(nearest.date) : 0;
   const untilLabel = until === 0 ? "дедлайн сегодня" : until === 1 ? "дедлайн завтра" : `дедлайн через ${until} ${until % 10 === 1 && until % 100 !== 11 ? "день" : until % 10 >= 2 && until % 10 <= 4 && (until % 100 < 10 || until % 100 >= 20) ? "дня" : "дней"}`;
 
@@ -97,17 +101,7 @@ export default async function StudioBanners({
             {[nearest.call.note, untilLabel].filter(Boolean).join(" · ")}
           </div>
           <div className="mt-3.5 flex flex-wrap gap-2">
-            {inTracker ? (
-              <Link href={`${basePath}/submissions`} className="btn-y !h-9 !w-auto px-4 text-[13.5px]">
-                Уже в трекере
-              </Link>
-            ) : (
-              <form action={addOpenCallToTracker.bind(null, nearest.call.id)}>
-                <button type="submit" className="btn-y !h-9 !w-auto px-4 text-[13.5px] inline-flex items-center gap-1.5">
-                  Добавить в трекер <ArrowUpRight size={14} />
-                </button>
-              </form>
-            )}
+            <AddToTrackerButton openCallId={nearest.call.id} tracked={inTracker} />
             {nearest.call.link ? (
               <a href={nearest.call.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center h-9 px-4 rounded-full text-[13.5px] font-medium bg-white/10 text-white">
                 Условия

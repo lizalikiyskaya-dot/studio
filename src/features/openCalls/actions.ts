@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
+import { statusWhenOpenCallSentChanges } from "@/features/submissions/status";
 
 export async function createOpenCall(studentId: string) {
   await requireCabinetAccess(studentId);
@@ -25,9 +26,17 @@ export async function updateOpenCallField(
   await prisma.openCall.update({ where: { id }, data: { [field]: value } });
 }
 
-export async function toggleOpenCallSent(id: string) {
+export async function setOpenCallSent(id: string, sent: boolean) {
   const row = await prisma.openCall.findUniqueOrThrow({ where: { id } });
   await requireCabinetAccess(row.studentId);
-  await prisma.openCall.update({ where: { id }, data: { sent: !row.sent } });
-  return !row.sent;
+  if (row.sent === sent) return sent;
+  await prisma.openCall.update({ where: { id }, data: { sent } });
+  const submission = await prisma.submission.findUnique({ where: { openCallId: id } });
+  if (submission) {
+    const status = statusWhenOpenCallSentChanges(submission.status, sent);
+    if (status !== submission.status) {
+      await prisma.submission.update({ where: { id: submission.id }, data: { status } });
+    }
+  }
+  return sent;
 }
