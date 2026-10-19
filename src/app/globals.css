@@ -617,13 +617,35 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 }
 .mentor-access {
   display: inline-flex;
-  max-width: 100%;
-  white-space: nowrap;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
   border-radius: 999px;
-  padding: 3px 6px;
+  font-family: inherit;
   font-size: 11.5px;
   font-weight: 500;
-  line-height: 1.3;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+.mentor-card .mentor-access {
+  width: 124px;
+  flex: 0 0 124px;
+  height: 28px;
+  font-size: 12px;
+}
+.mentor-workshops button {
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  line-height: 1;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 .mentor-pay {
   display: flex;
@@ -766,7 +788,8 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   }
   .mentor-avatar { width: 26px; height: 26px; }
   .mentor-person-title { gap: 8px; }
-  .mentor-access { padding: 4px 8px; }
+  .mentor-access { height: 26px; padding: 0 8px; font-size: 12px; }
+  .mentor-workshops button { height: 26px; }
 }
 @container mentor (min-width: 1000px) {
   .mentor-row {
