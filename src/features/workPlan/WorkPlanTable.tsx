@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronDown, Plus, Trash2 } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Plus, Trash2 } from "lucide-react";
 import type { WorkPlan, WorkPlanStatus } from "@/generated/prisma/client";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import PageHeader from "@/components/PageHeader";
@@ -21,6 +22,12 @@ const STATUS_STYLE: Record<WorkPlanStatus, React.CSSProperties> = {
   IN_PROGRESS: { background: "#E2E9EE", color: "#3F6080", border: "none" },
   DONE: { background: "var(--ink)", color: "#fff", border: "none" },
 };
+
+const TABS: { id: string; label: string; status: WorkPlanStatus | null; bg: string; color: string }[] = [
+  { id: "all", label: "Все задачи", status: null, bg: "var(--deep)", color: "#fff" },
+  { id: "progress", label: "В процессе", status: "IN_PROGRESS", bg: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)" },
+  { id: "planned", label: "Запланировано", status: "PLANNED", bg: "var(--soft)", color: "var(--ink)" },
+];
 
 function monthOptions() {
   const now = new Date();
@@ -87,47 +94,28 @@ function PeriodRow({
   onStatus: () => void;
   onDelete: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const range = formatMonthRange(plan.monthStart, plan.monthEnd);
 
   return (
     <tr>
       <td className="align-top" style={{ minWidth: 160 }}>
-        <button
-          type="button"
-          onClick={() => setOpen((value) => !value)}
-          aria-expanded={open}
-          className="inline-flex items-center gap-1.5 text-left text-[13px]"
-        >
-          <ChevronDown size={15} style={{ color: "var(--faded)", transform: open ? undefined : "rotate(-90deg)", transition: "transform .15s" }} />
-          <span>{range || "Период"}</span>
-        </button>
-        {open && (
-          <>
-            <div className="mt-1">
-              <MonthSelect value={plan.monthStart} onChange={(value) => onField("monthStart", value)} placeholder="Начало" />
-            </div>
-            <div className="mt-1">
-              <MonthSelect value={plan.monthEnd} onChange={(value) => onField("monthEnd", value)} placeholder="Конец" />
-            </div>
-          </>
-        )}
+        <div className="text-[13px]">{range || "Период"}</div>
+        <div className="mt-1">
+          <MonthSelect value={plan.monthStart} onChange={(value) => onField("monthStart", value)} placeholder="Начало" />
+        </div>
+        <div className="mt-1">
+          <MonthSelect value={plan.monthEnd} onChange={(value) => onField("monthEnd", value)} placeholder="Конец" />
+        </div>
       </td>
-      {open ? (
-        <>
-          <td className="min-w-[180px]">
-            <EditableWithLinks defaultValue={plan.description} onSave={(value) => onField("description", value)} placeholder="Что планируется..." className="entry-title w-full outline-none bg-transparent text-[15px]" />
-          </td>
-          <td className="min-w-[140px]">
-            <EditableWithLinks defaultValue={plan.literature} onSave={(value) => onField("literature", value)} placeholder="что почитать..." className="w-full outline-none bg-transparent text-[13px]" />
-          </td>
-          <td className="min-w-[140px]">
-            <EditableWithLinks defaultValue={plan.note} onSave={(value) => onField("note", value)} placeholder="примечание..." className="w-full outline-none bg-transparent text-[13px]" />
-          </td>
-        </>
-      ) : (
-        <td colSpan={3} />
-      )}
+      <td className="min-w-[180px]">
+        <EditableWithLinks defaultValue={plan.description} onSave={(value) => onField("description", value)} placeholder="Что планируется..." className="entry-title w-full outline-none bg-transparent text-[15px]" />
+      </td>
+      <td className="min-w-[140px]">
+        <EditableWithLinks defaultValue={plan.literature} onSave={(value) => onField("literature", value)} placeholder="что почитать..." className="w-full outline-none bg-transparent text-[13px]" />
+      </td>
+      <td className="min-w-[140px]">
+        <EditableWithLinks defaultValue={plan.note} onSave={(value) => onField("note", value)} placeholder="примечание..." className="w-full outline-none bg-transparent text-[13px]" />
+      </td>
       <td>
         <button onClick={onStatus} className="text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap" style={STATUS_STYLE[plan.status]}>
           {STATUS_LABEL[plan.status]}
@@ -149,6 +137,20 @@ export default function WorkPlanTable({
 }) {
   const [plans, setPlans] = useState(initialPlans);
   const [, startTransition] = useTransition();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const requested = searchParams.get("tab");
+  const activeTab = TABS.some((tab) => tab.id === requested) ? requested! : "all";
+
+  function selectTab(id: string) {
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("tab", id);
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  }
+
+  const tab = TABS.find((item) => item.id === activeTab) ?? TABS[0];
+  const visible = plans.filter((plan) => tab.status == null || plan.status === tab.status);
 
   function handleAdd() {
     startTransition(async () => {
@@ -184,6 +186,32 @@ export default function WorkPlanTable({
           </button>
         }
       />
+
+      <div className="flex gap-3 mb-5 flex-wrap" role="tablist" aria-label="Фильтр плана работы">
+        {TABS.map((item) => {
+          const count = item.status == null ? plans.length : plans.filter((plan) => plan.status === item.status).length;
+          const on = item.id === activeTab;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              onClick={() => selectTab(item.id)}
+              className={`hover-lift rounded-[18px] px-4 py-3 flex-1 min-w-[120px] text-left${on ? " is-on" : ""}`}
+              style={{
+                background: item.bg,
+                color: item.color,
+                opacity: on ? 1 : 0.72,
+              }}
+            >
+              <div className="text-[24px] font-semibold leading-none">{count}</div>
+              <div className="text-[12.5px] mt-1.5 opacity-80">{item.label}</div>
+            </button>
+          );
+        })}
+      </div>
+
       {plans.length === 0 ? (
         <EmptyState
           cue="Самое время наметить путь"
@@ -208,7 +236,14 @@ export default function WorkPlanTable({
             </tr>
           </thead>
           <tbody>
-            {plans.map((plan) => (
+            {visible.length === 0 && (
+              <tr>
+                <td colSpan={6} style={{ color: "var(--muted)" }}>
+                  В этой вкладке задач нет.
+                </td>
+              </tr>
+            )}
+            {visible.map((plan) => (
               <PeriodRow
                 key={plan.id}
                 plan={plan}
