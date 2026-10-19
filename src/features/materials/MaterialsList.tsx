@@ -2,7 +2,8 @@
 
 import { useState, useTransition, useRef } from "react";
 import Link from "next/link";
-import type { Material } from "@/generated/prisma/client";
+import type { MaterialCategory, MaterialStatus } from "@/generated/prisma/client";
+import { materialToRow, type MaterialRow } from "./materialFile";
 import Accordion from "@/components/Accordion";
 import FileAttachBox from "@/components/FileAttachBox";
 import { uploadFile } from "@/lib/uploadFile";
@@ -148,7 +149,7 @@ function BookMonthField({
   );
 }
 
-function useEditableMaterials(initial: Material[]) {
+function useEditableMaterials(initial: MaterialRow[]) {
   const [items, setItems] = useState(initial);
   const [, startTransition] = useTransition();
   const titleSaves = useRef(new Map<string, Promise<void>>());
@@ -161,11 +162,11 @@ function useEditableMaterials(initial: Material[]) {
     enqueueById(titleSaves.current, id, () => updateMaterialTitle(id, value));
   }
 
-  function addItem(studentId: string, category: Material["category"]) {
+  function addItem(studentId: string, category: MaterialCategory) {
     addChain.current = enqueueCreate(
       addChain.current,
       () => createMaterial(studentId, category, crypto.randomUUID()),
-      (material) => setItems((prev) => appendMaterial(prev, material)),
+      (material) => setItems((prev) => appendMaterial(prev, materialToRow(material))),
     );
   }
 
@@ -178,7 +179,7 @@ function BooksList({
   canManage,
 }: {
   studentId: string;
-  materials: Material[];
+  materials: MaterialRow[];
   canManage: boolean;
 }) {
   const { items: books, setItems: setBooks, startTransition, saveTitle, addItem } = useEditableMaterials(materials);
@@ -201,15 +202,15 @@ function BooksList({
         prev.map((m) =>
           m.id === id
             ? field === "pdf"
-              ? { ...m, pdfUrl: dataUrl, pdfName: fileName }
-              : { ...m, epubUrl: dataUrl, epubName: fileName }
+              ? { ...m, pdfHref: dataUrl, pdfName: fileName, pdfBytes: dataUrlBytes(dataUrl) }
+              : { ...m, epubHref: dataUrl, epubName: fileName, epubBytes: dataUrlBytes(dataUrl) }
             : m
         )
       );
     });
   }
 
-  function handleStatus(id: string, current: Material["status"]) {
+  function handleStatus(id: string, current: MaterialStatus) {
     const next = nextMaterialStatus(current);
     setBooks((prev) => prev.map((m) => (m.id === id ? { ...m, status: next } : m)));
     startTransition(async () => { await cycleMaterialStatus(id); });
@@ -316,15 +317,15 @@ function BooksList({
               />
             )}
             <div className="flex items-center gap-2 flex-wrap">
-              {material.pdfUrl ? (
-                <DownloadButton href={material.pdfUrl} fileName={material.pdfName} mime="application/pdf" bytes={dataUrlBytes(material.pdfUrl)} />
+              {material.pdfHref ? (
+                <DownloadButton href={material.pdfHref} fileName={material.pdfName} mime="application/pdf" bytes={material.pdfBytes} />
               ) : canManage ? (
                 <FileAttachBox label="+ файл PDF" onUpload={(file) => handleFile(material.id, "pdf", file)} />
               ) : (
                 <span className="text-[13px]" style={{ color: "var(--ink-faint)" }}>PDF пока не загружен</span>
               )}
-              {material.epubUrl ? (
-                <DownloadButton href={material.epubUrl} fileName={material.epubName} mime="application/epub+zip" bytes={dataUrlBytes(material.epubUrl)} />
+              {material.epubHref ? (
+                <DownloadButton href={material.epubHref} fileName={material.epubName} mime="application/epub+zip" bytes={material.epubBytes} />
               ) : canManage ? (
                 <FileAttachBox label="+ файл EPUB" onUpload={(file) => handleFile(material.id, "epub", file)} />
               ) : null}
@@ -354,7 +355,7 @@ function HandoutsList({
   canManage,
 }: {
   studentId: string;
-  materials: Material[];
+  materials: MaterialRow[];
   guides: CabinetGuide[];
   canManage: boolean;
 }) {
@@ -373,7 +374,7 @@ function HandoutsList({
   function handleFile(id: string, file: File) {
     startTransition(async () => {
       const { fileName, dataUrl } = await uploadFile("material", id, "file", file);
-      setHandouts((prev) => prev.map((m) => (m.id === id ? { ...m, fileUrl: dataUrl, fileName } : m)));
+      setHandouts((prev) => prev.map((m) => (m.id === id ? { ...m, fileHref: dataUrl, fileName, fileBytes: dataUrlBytes(dataUrl) } : m)));
     });
   }
 
@@ -383,7 +384,7 @@ function HandoutsList({
     startTransition(() => deleteMaterial(id));
   }
 
-  function handleStatus(id: string, current: Material["status"]) {
+  function handleStatus(id: string, current: MaterialStatus) {
     const next = nextMaterialStatus(current);
     setHandouts((prev) => prev.map((m) => (m.id === id ? { ...m, status: next } : m)));
     startTransition(async () => { await cycleMaterialStatus(id); });
@@ -478,8 +479,8 @@ function HandoutsList({
             </span>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-3" style={{ display: open ? "flex" : "none" }}>
-            {material.fileUrl ? (
-              <DownloadButton href={material.fileUrl} fileName={material.fileName} bytes={dataUrlBytes(material.fileUrl)} />
+            {material.fileHref ? (
+              <DownloadButton href={material.fileHref} fileName={material.fileName} bytes={material.fileBytes} />
             ) : canManage ? (
               <FileAttachBox label="+ файл" onUpload={(file) => handleFile(material.id, file)} />
             ) : (
@@ -512,7 +513,7 @@ export default function MaterialsList({
   initialTab = 0,
 }: {
   studentId: string;
-  initialMaterials: Material[];
+  initialMaterials: MaterialRow[];
   guides: CabinetGuide[];
   canManage: boolean;
   initialTab?: number;
