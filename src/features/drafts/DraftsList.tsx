@@ -196,7 +196,7 @@ export default function DraftsList({
                       href={draft.fileData}
                       download={draft.fileName ?? "файл"}
                       className="text-[13px] px-4 py-1.5 rounded-full inline-block"
-                      style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
+                      style={{ color: "var(--vi)", border: "1px solid var(--v)" }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {draft.fileName ?? "скачать"}

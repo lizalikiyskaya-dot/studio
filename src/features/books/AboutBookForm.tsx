@@ -86,12 +86,12 @@ export default function AboutBookForm({ book, suggestions, comments }: { book: B
 
       <div className="max-w-[680px]">
         <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>Синопсис</label>
-        <div className="rounded-md p-4" style={{ border: "1px solid var(--rule)" }}>
-          <div className="flex items-center justify-between mb-2.5">
+        <div className="rounded-[14px] p-4" style={{ border: "1px solid var(--rule)" }}>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
             <button onClick={() => setSynopsisOpen((v) => !v)} className="text-[13px]" style={{ color: "var(--ink-soft)" }}>
               развернуть / свернуть
             </button>
-            <button onClick={toggleSynopsisMode} className="text-[12.5px] underline" style={{ color: "var(--sage)" }}>
+            <button onClick={toggleSynopsisMode} className="lnk text-[12.5px]">
               переключить: текст / ссылка на Google Doc
             </button>
           </div>

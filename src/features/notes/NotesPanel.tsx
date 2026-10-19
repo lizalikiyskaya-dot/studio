@@ -111,7 +111,7 @@ function NoteCard({
             onClick={() => onResolve(note.id)}
             title="Отметить как решённое"
             className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full flex-shrink-0 transition-opacity hover:opacity-80"
-            style={{ color: "var(--sage)", border: "1px solid var(--sage)", background: "var(--sage-soft)" }}
+            style={{ color: "var(--ink)", border: "none", background: "var(--y)" }}
           >
             <CheckCircle2 size={11} />
             Решить

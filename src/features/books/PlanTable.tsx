@@ -251,8 +251,8 @@ export default function PlanTable({
                 <div className="flex items-center gap-3 px-3" style={{ height: 26 }}>
                   <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
                   <span
-                    className="font-mono-label uppercase tracking-widest select-none"
-                    style={{ fontSize: 9, color: "var(--ink-faint)", whiteSpace: "nowrap" }}
+                    className="text-[12px] font-medium select-none"
+                    style={{ color: "var(--muted)", whiteSpace: "nowrap" }}
                   >
                     Акт 1
                   </span>
@@ -389,8 +389,8 @@ export default function PlanTable({
                       <div className="flex items-center gap-3 px-3" style={{ height: 26 }}>
                         <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
                         <span
-                          className="font-mono-label uppercase tracking-widest select-none"
-                          style={{ fontSize: 9, color: "var(--ink-faint)", whiteSpace: "nowrap" }}
+                          className="text-[12px] font-medium select-none"
+                          style={{ color: "var(--muted)", whiteSpace: "nowrap" }}
                         >
                           Акт {actNum + 1}
                         </span>
@@ -410,7 +410,7 @@ export default function PlanTable({
         className="flex flex-wrap items-center gap-x-8 gap-y-2 rounded-[14px] px-5 py-3.5 mb-4"
         style={{ border: "1px solid var(--border)", background: "var(--bg-surface-2)" }}
       >
-        <span className="font-mono-label uppercase tracking-wide text-[10px]" style={{ color: "var(--faded)" }}>
+        <span className="text-[13px] font-medium" style={{ color: "var(--muted)" }}>
           Итого
         </span>
         <div className="flex items-baseline gap-1.5">

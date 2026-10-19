@@ -24,7 +24,7 @@ export default function CycleSettingTypeSection({ cycleId, cycle }: { cycleId: s
           startTransition(() => { void deletePhoto("cycle-setting-photo", cycleId, "settingPhotoUrl"); });
         }}
         placeholder="нажмите, чтобы добавить фото настроения"
-        className="w-full max-w-[420px] h-[170px] rounded-md mb-5"
+        className="w-full max-w-[420px] h-[170px] rounded-[14px] mb-5"
       />
 
       <SettingTypeMap

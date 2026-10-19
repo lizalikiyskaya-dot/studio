@@ -177,7 +177,7 @@ export default function PopArcCard({
   }
 
   return (
-    <div ref={rootRef} className="rounded-md mb-4 overflow-hidden max-w-[760px]" style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "#FAFAF9" }}>
+    <div ref={rootRef} className="rounded-[14px] mb-4 overflow-hidden max-w-[760px]" style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "var(--soft)" }}>
       <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3 cursor-pointer">
         <div
           className="rounded-full flex-shrink-0"

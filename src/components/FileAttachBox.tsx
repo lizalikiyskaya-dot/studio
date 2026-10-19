@@ -26,7 +26,7 @@ export default function FileAttachBox({
   }
 
   return (
-    <label className="text-[13px] px-4 py-1.5 rounded-full cursor-pointer inline-flex items-center gap-1.5 transition-colors" style={{ color: "var(--sage)", border: "1px dashed var(--sage)" }}>
+    <label className="text-[13px] px-4 py-1.5 rounded-full cursor-pointer inline-flex items-center gap-1.5 transition-colors" style={{ color: "var(--vi)", border: "1px dashed var(--v)" }}>
       {name || label}
       <input ref={inputRef} type="file" className="hidden" onChange={handleChange} />
     </label>

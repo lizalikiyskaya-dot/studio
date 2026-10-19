@@ -103,7 +103,7 @@ export default function StoryFantasySection({
         <AutoGrowTextarea
           defaultValue={story.fantasyNotes}
           placeholder="общий черновик по миру..."
-          className="w-full text-[13.5px] leading-relaxed rounded-md p-2.5"
+          className="w-full text-[13.5px] leading-relaxed rounded-[14px] p-2.5"
           style={{ border: "1px solid var(--rule)" }}
           onBlur={(value) => startTransition(() => updateStoryFantasyText(storyId, "fantasyNotes", value))}
         />
@@ -118,7 +118,7 @@ export default function StoryFantasySection({
                 <div
                   key={entry.id}
                   onClick={() => setOpenEntryId(entry.id)}
-                  className="rounded-md p-2.5 bg-white cursor-pointer"
+                  className="rounded-[14px] p-2.5 bg-white cursor-pointer"
                   style={{ border: "1px solid var(--rule)" }}
                 >
                   <div
@@ -135,7 +135,7 @@ export default function StoryFantasySection({
               ))}
               <div
                 onClick={() => handleAddEntry(category)}
-                className="rounded-md flex items-center justify-center cursor-pointer text-center"
+                className="rounded-[14px] flex items-center justify-center cursor-pointer text-center"
                 style={{ border: "1px dashed var(--rule)", minHeight: 124, color: "var(--faded)" }}
               >
                 <span className="text-[12.5px]">+ добавить</span>
@@ -149,7 +149,7 @@ export default function StoryFantasySection({
         <AutoGrowTextarea
           defaultValue={story.fantasyGeneral}
           placeholder="всё остальное..."
-          className="w-full text-[13.5px] leading-relaxed rounded-md p-2.5"
+          className="w-full text-[13.5px] leading-relaxed rounded-[14px] p-2.5"
           style={{ border: "1px solid var(--rule)" }}
           onBlur={(value) => startTransition(() => updateStoryFantasyText(storyId, "fantasyGeneral", value))}
         />
@@ -183,7 +183,7 @@ export default function StoryFantasySection({
                 startTransition(() => { void deletePhoto("story-world-entry-photo", openEntry.id, "photoUrl"); });
               }}
               placeholder="нажмите, чтобы добавить изображение"
-              className="w-full h-[200px] rounded-md mb-5 mt-3.5"
+              className="w-full h-[200px] rounded-[14px] mb-5 mt-3.5"
             />
 
             <div
@@ -202,15 +202,14 @@ export default function StoryFantasySection({
               ref={bodyRef}
               defaultValue={openEntry.body}
               placeholder="Описание, детали, всё, что нужно об этой записи..."
-              className="field-literary w-full text-[14.5px] leading-relaxed rounded-md p-3.5 resize-none"
+              className="field-literary w-full text-[14.5px] leading-relaxed rounded-[14px] p-3.5 resize-none"
               style={{ border: "1px solid var(--rule)", minHeight: "calc(100vh - 480px)" }}
             />
 
             <div className="mt-3.5 flex items-center gap-3">
               <button
                 onClick={() => handleSaveEntry(openEntry.id)}
-                className="text-[12.5px] px-4 py-1.5 rounded-full"
-                style={{ border: "1px solid var(--sage)", color: "#fff", background: "var(--sage)" }}
+                className="btn-y !h-9 !w-auto px-4 text-[13px]"
               >
                 Сохранить
               </button>

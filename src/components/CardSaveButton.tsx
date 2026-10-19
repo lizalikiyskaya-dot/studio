@@ -25,9 +25,9 @@ export default function CardSaveButton({ scopeRef }: { scopeRef: React.RefObject
       onClick={handleSave}
       className="flex items-center gap-1.5 text-[12.5px] px-4 py-1.5 rounded-full flex-shrink-0 transition-colors"
       style={{
-        color: justSaved ? "#fff" : "var(--sage)",
-        background: justSaved ? "var(--sage)" : "transparent",
-        border: "1px solid var(--sage)",
+        color: "var(--ink)",
+        background: "var(--y)",
+        border: "none",
       }}
     >
       {justSaved && <Check size={13} />}

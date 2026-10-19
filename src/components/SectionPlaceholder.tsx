@@ -7,7 +7,7 @@ export default function SectionPlaceholder({ title }: { title: string }) {
       </p>
 
       <div
-        className="rounded-md flex items-center justify-center min-h-[160px]"
+        className="rounded-[14px] flex items-center justify-center min-h-[160px]"
         style={{ border: "1px dashed var(--rule)" }}
       >
         <span className="text-[13px]" style={{ color: "var(--faded)" }}>

@@ -39,7 +39,7 @@ function DownloadOrUpload({
         href={fileUrl}
         download={fileName ?? undefined}
         className="text-[13px] px-4 py-1.5 rounded-full inline-block transition-colors"
-        style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
+        style={{ color: "var(--vi)", border: "1px solid var(--v)" }}
       >
         скачать {label}
       </a>
@@ -397,11 +397,11 @@ export default function MaterialsList({
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[1.5fr_1fr]">
       <section className="sheet px-5 pt-4 pb-3" style={{ order: initialTab === 1 ? 2 : 0 }}>
-        <h2 className="serif mb-2 text-[18px] font-medium">Книги</h2>
+        <h2 className="mb-2 text-[18px] font-semibold">Книги</h2>
         <BooksList studentId={studentId} materials={books} canManage={canManage} />
       </section>
       <section className="sheet px-5 pt-4 pb-3" style={{ order: initialTab === 1 ? 0 : 1 }}>
-        <h2 className="serif mb-2 text-[18px] font-medium">Методички</h2>
+        <h2 className="mb-2 text-[18px] font-semibold">Методички</h2>
         <HandoutsList studentId={studentId} materials={handouts} guides={guides} canManage={canManage} />
       </section>
     </div>

@@ -116,7 +116,7 @@ export default function SettingMixPanel({
   return (
     <div className="flex flex-col gap-4 lg:flex-row">
       <div className="shrink-0">
-        <div className="relative grid grid-cols-2 overflow-hidden rounded-[16px]" style={{ width: 260, height: 210, background: "#FAFAFA", border: "1px solid var(--border)" }}>
+        <div className="relative grid grid-cols-2 overflow-hidden rounded-[16px]" style={{ width: 260, height: 210, background: "var(--soft)", border: "1px solid var(--border)" }}>
           {QUADRANT.map((id) => {
             const meta = MIX_META[id];
             const amount = shares[id] / 100;

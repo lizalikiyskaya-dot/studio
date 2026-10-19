@@ -39,8 +39,8 @@ function SecondaryCard({
 
   return (
     <div
-      className="rounded-md mb-4 overflow-hidden max-w-[760px]"
-      style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "#FAFAF9" }}
+      className="rounded-[14px] mb-4 overflow-hidden max-w-[760px]"
+      style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "var(--soft)" }}
     >
       <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3 cursor-pointer">
         <div
@@ -97,7 +97,7 @@ function SecondaryCard({
 
           {SECONDARY_CHARACTER_GROUPS.map((group) => (
             <div key={group.title} className="mb-5">
-              <h4 className="text-[12px] font-semibold mb-3 uppercase tracking-wide" style={{ color: "var(--ink-faint)" }}>{group.title}</h4>
+              <h4 className="text-[13px] font-semibold mb-3" style={{ color: "var(--muted)" }}>{group.title}</h4>
               {group.fields.map((f) => (
                 <div key={f.key} className="mb-3">
                   {f.label && <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>{f.label}</label>}

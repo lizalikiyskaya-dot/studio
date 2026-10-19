@@ -180,7 +180,7 @@ export default function FantasySection({
                 startTransition(() => { void deletePhoto("world-entry-photo", openEntry.id, "photoUrl"); });
               }}
               placeholder="нажмите, чтобы добавить изображение"
-              className="w-full h-[200px] rounded-md mb-5 mt-3.5"
+              className="w-full h-[200px] rounded-[14px] mb-5 mt-3.5"
             />
 
             <div
@@ -199,15 +199,14 @@ export default function FantasySection({
               ref={bodyRef}
               defaultValue={openEntry.body}
               placeholder="Описание, детали, всё, что нужно об этой записи..."
-              className="field-literary w-full text-[14.5px] leading-relaxed rounded-md p-3.5 resize-none"
+              className="field-literary w-full text-[14.5px] leading-relaxed rounded-[14px] p-3.5 resize-none"
               style={{ border: "1px solid var(--rule)", minHeight: "calc(100vh - 480px)" }}
             />
 
             <div className="mt-3.5 flex items-center gap-3">
               <button
                 onClick={() => handleSaveEntry(openEntry.id)}
-                className="text-[12.5px] px-4 py-1.5 rounded-full"
-                style={{ border: "1px solid var(--sage)", color: "#fff", background: "var(--sage)" }}
+                className="btn-y !h-9 !w-auto px-4 text-[13px]"
               >
                 Сохранить
               </button>

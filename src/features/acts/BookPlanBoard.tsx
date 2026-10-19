@@ -379,7 +379,7 @@ export default function BookPlanBoard({
           {columns.map((column) => (
             <div
               key={`zone-${column.id}`}
-              className="h-8 rounded-md"
+              className="h-8 rounded-[14px]"
               style={{ background: dropColumn === column.id ? "#FFF8D6" : "transparent" }}
               title={`Перенести в «${column.title || "главу"}»`}
               onDragOver={(e) => {
@@ -477,7 +477,7 @@ export default function BookPlanBoard({
       )}
 
       {selected && (
-        <div className="mt-3 rounded-[20px] border px-5 py-4 flex flex-wrap items-start gap-6" style={{ borderColor: "var(--border)", background: "#FAFAF8" }}>
+        <div className="mt-3 rounded-[20px] border px-5 py-4 flex flex-wrap items-start gap-6" style={{ borderColor: "var(--border)", background: "var(--soft)" }}>
           <div className="w-[180px]">
             <div className="text-[12px]" style={{ color: "var(--muted)" }}>Сцена</div>
             <div className="serif text-[20px] font-medium">{selected.name || "Без названия"}</div>
@@ -548,7 +548,7 @@ export default function BookPlanBoard({
       )}
 
       <div className="mt-5 flex items-center gap-3">
-        <span className="serif text-[20px] font-medium">Акты</span>
+        <span className="text-[20px] font-semibold">Акты</span>
         <span className="text-[13px]" style={{ color: "var(--muted)" }}>название, подзаголовок и общее описание</span>
         <button type="button" className="ml-auto inline-flex items-center gap-1 h-9 px-3 rounded-full border text-[13.5px]" style={{ borderColor: "var(--border)" }} onClick={handleAddAct}>
           <Plus size={14} /> Акт

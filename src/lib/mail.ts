@@ -128,7 +128,7 @@ export function renderEmail(options: {
 
   const logo = `<table role="presentation" cellpadding="0" cellspacing="0">
     <tr>
-      <td style="font-family:${FONT_SERIF};font-size:28px;font-weight:600;letter-spacing:-0.01em;line-height:1;color:#202020;padding:0 0 2px;">Андреенко</td>
+      <td style="font-family:${FONT_UI};font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1;color:#202020;padding:0 0 2px;">Закладка</td>
     </tr>
     <tr>
       <td style="padding:0 0 0 6px;line-height:0;font-size:0;">
@@ -162,7 +162,7 @@ export function renderEmail(options: {
           </tr>
           <tr>
             <td style="padding:28px 8px 0;">
-              <h1 style="margin:0 0 16px;font-family:${FONT_SERIF};font-size:28px;line-height:1.15;font-weight:500;letter-spacing:-0.02em;color:#202020;">${escapeHtml(title)}</h1>
+              <h1 style="margin:0 0 16px;font-family:${FONT_UI};font-size:28px;line-height:1.15;font-weight:650;letter-spacing:-0.02em;color:#202020;">${escapeHtml(title)}</h1>
               ${body}
               ${button}
               ${foot}

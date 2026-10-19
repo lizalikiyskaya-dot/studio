@@ -58,7 +58,7 @@ function SharedSettingType({ cycle }: { cycle: CycleSettingSnap }) {
       </p>
       {cycle.settingPhotoUrl && (
         <div
-          className="w-full max-w-[420px] h-[170px] rounded-md mb-5 bg-cover bg-center"
+          className="w-full max-w-[420px] h-[170px] rounded-[14px] mb-5 bg-cover bg-center"
           style={{ backgroundImage: `url(${cycle.settingPhotoUrl})`, border: "1px solid var(--border)" }}
         />
       )}

@@ -47,7 +47,7 @@ export function Kpi({
       <div className="text-[12px]" style={{ color: deep ? "rgba(255,255,255,0.75)" : "#555" }}>
         {label}
       </div>
-      <div className="serif mt-2.5 text-[32px] font-medium leading-none">{num}</div>
+      <div className="mt-2.5 text-[32px] font-semibold leading-none">{num}</div>
     </div>
   );
 }

@@ -16,7 +16,7 @@ const literata = Literata({
 });
 
 export const metadata: Metadata = {
-  title: "Андреенко — студия художественной прозы",
+  title: "Закладка — студия художественной прозы",
   description: "Личный кабинет студии художественной прозы",
 };
 
