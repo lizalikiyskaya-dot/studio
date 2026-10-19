@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { updatePaymentSettings } from "./actions";
 
-// Поля — те же .fld, что на входе. Тумблер жёлтый, как кнопка «Закладки»:
+// Поля — те же .fld, что на входе. Тумблер жёлтый, как основные кнопки:
 // общий ToggleSwitch в остальных местах пока зелёный, сюда он не подходит.
 export default function PaymentControls({
   userId,

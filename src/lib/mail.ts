@@ -140,7 +140,7 @@ export function renderEmail(options: {
 
   const logo = `<table role="presentation" cellpadding="0" cellspacing="0">
     <tr>
-      <td style="font-family:${FONT_UI};font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1;color:#202020;padding:0 0 2px;">Закладка</td>
+      <td style="font-family:${FONT_UI};font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1;color:#202020;padding:0 0 2px;">Андреенко</td>
     </tr>
     <tr>
       <td style="padding:0 0 0 6px;line-height:0;font-size:0;">
