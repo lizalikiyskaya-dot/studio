@@ -93,8 +93,14 @@ export async function notifyMentorOfStudentEdit(studentId: string, section: stri
   await sendMail({ to: liza.email, subject: `${student.name}: новые изменения в кабинете`, html });
 }
 
-/** Наставник поправил кабинет ученика → письмо ученику. */
+/**
+ * Наставник поправил кабинет ученика → письмо ученику.
+ * По умолчанию выключено: писем слишком много. Маячки в кабинете от этого
+ * не зависят — их пишет markSectionActivity до вызова. Включить обратно:
+ * STUDENT_EDIT_EMAILS=on.
+ */
 export async function notifyStudentOfMentorEdit(studentId: string, section: string) {
+  if (process.env.STUDENT_EDIT_EMAILS !== "on") return;
   const student = await prisma.user.findUnique({
     where: { id: studentId },
     select: { email: true, status: true, emailNotifications: true },
