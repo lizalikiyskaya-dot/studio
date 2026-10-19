@@ -46,6 +46,7 @@ export default async function PlanBookView({
         }
       />
       <PlanTable
+        key={activeBook.id}
         bookId={activeBook.id}
         initialChapters={chapters}
         suggestions={suggestions}
