@@ -15,7 +15,6 @@ import {
   Megaphone,
   Menu,
   MessageSquareText,
-  PanelLeft,
   Pencil,
   PenLine,
   Send,
@@ -57,7 +56,6 @@ const STORY_WORKSHOP_ITEMS = [
 
 const BOOK_PATHS = new Set(WORKSHOP_ITEMS.map((item) => item.path));
 const STORY_PATHS = new Set(STORY_WORKSHOP_ITEMS.map((item) => item.path));
-const COLLAPSE_KEY = "sidebar-collapsed";
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -128,7 +126,6 @@ export default function Sidebar({
   const reviewMode = useCanSuggest();
   const setReviewModeState = useSetCanSuggest();
   const [, startTransition] = useTransition();
-  const [desktopCollapsed, setCollapsed] = useState(false);
   const [sheet, setSheet] = useState<null | "calendar" | "sections">(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const sheetBodyRef = useRef<HTMLDivElement>(null);
@@ -138,10 +135,7 @@ export default function Sidebar({
   const onStory = STORY_PATHS.has(section);
 
   useEffect(() => {
-    // Collapse is remembered per browser. First paint stays expanded so
-    // the server HTML matches the client.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
+    window.localStorage.removeItem("sidebar-collapsed");
   }, []);
 
   useEffect(() => {
@@ -269,14 +263,6 @@ export default function Sidebar({
     return () => observer.disconnect();
   }, []);
 
-  function toggleCollapsed() {
-    setCollapsed((v) => {
-      const next = !v;
-      window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
-      return next;
-    });
-  }
-
   function handleToggleReviewMode(checked: boolean) {
     setReviewModeState(checked);
     if (studentId) startTransition(() => setReviewMode(studentId, checked));
@@ -320,40 +306,6 @@ export default function Sidebar({
           : []),
       ];
 
-  const collapsedLinks: TopLink[] = mentorMenuOnly
-    ? topLinks
-    : [
-        ...TOP_ITEMS.map((item) => ({
-          key: item.path,
-          href: hrefFor(item.path),
-          label: item.label,
-          icon: item.icon,
-          beacon: beaconSet.has(item.path),
-          active: section === item.path,
-        })),
-        ...(bookWorkshopUnlocked
-          ? WORKSHOP_ITEMS.map((item) => ({
-              key: item.path,
-              href: hrefFor(item.path),
-              label: item.label,
-              icon: BookOpen,
-              beacon: beaconSet.has(item.path),
-              active: section === item.path,
-            }))
-          : []),
-        ...(storyWorkshopUnlocked
-          ? STORY_WORKSHOP_ITEMS.map((item) => ({
-              key: item.path,
-              href: hrefFor(item.path),
-              label: item.label,
-              icon: PenLine,
-              beacon: beaconSet.has(item.path),
-              active: section === item.path,
-            }))
-          : []),
-      ];
-
-  const headerLinks = desktopCollapsed && !mentorMenuOnly ? collapsedLinks : topLinks;
   const avatarBg = "var(--deep)";
   const avatarFg = "var(--y)";
   const profileHref = mentorMenuOnly ? "/mentor/profile" : `${basePath}/profile`;
@@ -393,8 +345,8 @@ export default function Sidebar({
           <Wordmark />
           {mentorMenuOnly && <span className="studio-logo-note">кабинет наставника</span>}
         </Link>
-        <nav className={`studio-topnav${desktopCollapsed && !mentorMenuOnly ? " is-collapsed" : ""}`} aria-label="Разделы">
-          {headerLinks.map((item) => {
+        <nav className="studio-topnav" aria-label="Разделы">
+          {topLinks.map((item) => {
             const Icon = item.icon;
             return (
               <Link key={item.key} href={item.href} className={item.active ? "active" : ""} title={item.label}>
@@ -406,11 +358,6 @@ export default function Sidebar({
           })}
         </nav>
         <div className="studio-top-actions">
-          {desktopCollapsed && !mentorMenuOnly && (
-            <button type="button" className="collapse-desktop place-items-center h-10 w-10 rounded-full" style={{ background: "var(--soft)" }} onClick={toggleCollapsed} title="Развернуть меню">
-              <PanelLeft size={16} style={{ transform: "rotate(180deg)" }} />
-            </button>
-          )}
           {typeof notesCount === "number" && (
             <button type="button" className="notes-chip" onClick={() => window.dispatchEvent(new Event("studio:toggle-notes"))}>
               <MessageSquareText size={16} />
@@ -438,7 +385,7 @@ export default function Sidebar({
       </div>
 
       <div className="studio-body">
-        <aside id="studio-navigation" className={`studio-sidebar${desktopCollapsed && !mentorMenuOnly ? " is-collapsed" : ""}`}>
+        <aside id="studio-navigation" className="studio-sidebar">
           <div className="flex justify-end studio-menu-btn">
             <button type="button" onClick={() => setSheet(null)} className="inline-flex items-center gap-2 rounded-full px-3 h-9" style={{ background: "#fff" }}>
               <X size={16} /> Закрыть
@@ -454,15 +401,6 @@ export default function Sidebar({
                 <div className="text-[14.5px] font-semibold truncate">{userName}</div>
                 <div className="text-[12.5px]" style={{ color: "var(--muted)" }}>личный кабинет</div>
               </div>
-              <button
-                type="button"
-                onClick={toggleCollapsed}
-                className="collapse-desktop ml-auto place-items-center"
-                style={{ color: "var(--muted)" }}
-                title={desktopCollapsed ? "Развернуть меню" : "Свернуть меню"}
-              >
-                <PanelLeft size={16} />
-              </button>
             </div>
           )}
 
