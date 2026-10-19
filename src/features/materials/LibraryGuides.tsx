@@ -78,11 +78,6 @@ export default function LibraryGuides({
             </div>
 
             <div className="mt-3" style={{ display: open ? "block" : "none" }}>
-            {guide.description ? (
-              <p className="mb-3 text-[13.5px] whitespace-pre-wrap" style={{ color: "var(--ink2)" }}>
-                {guide.description}
-              </p>
-            ) : null}
             <div className="flex items-center gap-3 flex-wrap">
               {canFetch && guide.hasFile ? (
                 <DownloadButton

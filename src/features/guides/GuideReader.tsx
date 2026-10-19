@@ -10,11 +10,6 @@ export default function GuideReader({ guide, backHref, backLabel }: { guide: Rea
         {backLabel}
       </Link>
       <h1 className="page-title mt-3 mb-3">{markedTitle(guide.title || "Методичка")}</h1>
-      {guide.description ? (
-        <p className="text-[15.5px] mb-6 whitespace-pre-wrap" style={{ color: "var(--ink2)", maxWidth: 640 }}>
-          {guide.description}
-        </p>
-      ) : null}
 
       {guide.hasFile ? (
         <div className="flex items-center gap-3 flex-wrap mb-5">

@@ -7,6 +7,7 @@ import { GUIDE_AUDIENCE, forgetGuidesSchema, guidesSchemaReady } from "@/lib/gui
 import { notifyStudentGuideOpened } from "@/lib/notify";
 import { nextMaterialStatus } from "@/features/materials/status";
 import type { MaterialStatus } from "@/generated/prisma/client";
+import { guideFieldData } from "./fields";
 import type { ActionFail, ActionResult, LibraryGuide } from "./types";
 
 const NOT_READY = "Библиотека методичек ещё не подключена к базе. Сначала нужно выполнить SQL.";
@@ -55,7 +56,7 @@ export async function createGuide(): Promise<ActionResult<{ guide: LibraryGuide 
   try {
     const count = await prisma.guide.count();
     const guide = await prisma.guide.create({
-      data: { title: "Новая методичка", order: count },
+      data: { title: "Новая методичка", order: count, notifyOnOpen: false },
       select: {
         id: true,
         title: true,
@@ -94,7 +95,7 @@ export async function updateGuideTitle(guideId: string, title: string): Promise<
   const denied = await mentorReady();
   if (denied) return denied;
   try {
-    await prisma.guide.update({ where: { id: guideId }, data: { title: cleanTitle(title) } });
+    await prisma.guide.update({ where: { id: guideId }, data: guideFieldData({ title: cleanTitle(title) }) });
     touch();
     return { ok: true };
   } catch (error) {
@@ -110,7 +111,7 @@ export async function updateGuideDescription(guideId: string, description: strin
   try {
     await prisma.guide.update({
       where: { id: guideId },
-      data: { description: cleanDescription(description) },
+      data: guideFieldData({ description: cleanDescription(description) }),
     });
     touch();
     return { ok: true };
@@ -125,7 +126,7 @@ export async function setGuideNotify(guideId: string, notifyOnOpen: boolean): Pr
   const denied = await mentorReady();
   if (denied) return denied;
   try {
-    await prisma.guide.update({ where: { id: guideId }, data: { notifyOnOpen } });
+    await prisma.guide.update({ where: { id: guideId }, data: guideFieldData({ notifyOnOpen }) });
     touch();
     return { ok: true };
   } catch (error) {
@@ -153,7 +154,9 @@ export async function reorderGuides(ids: string[]): Promise<ActionResult> {
   const denied = await mentorReady();
   if (denied) return denied;
   try {
-    await prisma.$transaction(ids.map((id, order) => prisma.guide.update({ where: { id }, data: { order } })));
+    await prisma.$transaction(
+      ids.map((id, order) => prisma.guide.update({ where: { id }, data: guideFieldData({ order }) }))
+    );
     touch();
     return { ok: true };
   } catch (error) {
