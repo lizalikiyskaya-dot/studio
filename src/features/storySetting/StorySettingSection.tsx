@@ -6,6 +6,7 @@ import StorySettingTypeSection from "./StorySettingTypeSection";
 import StoryFantasySection from "./StoryFantasySection";
 import { describeShares, resolveShares } from "@/features/setting/settingMix";
 import EmptyState from "@/components/EmptyState";
+import { GrapesSection } from "@/components/GrapesLetterCard";
 
 type CycleSettingSnap = {
   grapesGeography: string;
@@ -90,10 +91,20 @@ export default function StorySettingSection({
 
   return (
     <div>
-      <h2 className="text-[17px] font-semibold">Метод GRAPES</h2>
-      <div className="mt-2.5">
-        {isShared && cycleSetting ? <SharedGrapes cycle={cycleSetting} /> : <StoryGrapesTable story={story} />}
-      </div>
+      {isShared && cycleSetting ? (
+        <>
+          <h2 className="text-[17px] font-semibold">Метод GRAPES</h2>
+          <div className="mt-2.5">
+            <SharedGrapes cycle={cycleSetting} />
+          </div>
+        </>
+      ) : (
+        <GrapesSection>
+          <div className="mt-2.5">
+            <StoryGrapesTable story={story} />
+          </div>
+        </GrapesSection>
+      )}
       <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1.25fr_1fr]">
         {isShared && cycleSetting ? (
           <SharedSettingType cycle={cycleSetting} />

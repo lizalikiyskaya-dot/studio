@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import AddToTrackerButton from "@/features/submissions/AddToTrackerButton";
 import WeekCallNote from "@/components/WeekCallNote";
 import { bannerNoteIsLong } from "@/components/bannerNote";
+import { DEADLINE_BANNER_LIMIT, deadlineMoreLabel } from "@/components/deadlineBanner";
 
 function parseDeadline(value: string): Date | null {
   const text = value.trim();
@@ -48,8 +49,9 @@ export default async function StudioBanners({
   today.setHours(0, 0, 0, 0);
   const upcoming = tasks
     .filter((task) => task.deadline && task.deadline.getTime() >= today.getTime())
-    .sort((a, b) => a.deadline!.getTime() - b.deadline!.getTime())
-    .slice(0, 4);
+    .sort((a, b) => a.deadline!.getTime() - b.deadline!.getTime());
+  const shown = upcoming.slice(0, DEADLINE_BANNER_LIMIT);
+  const hidden = upcoming.length - shown.length;
 
   const trackedIds = new Set(submissions.map((row) => row.openCallId).filter((id): id is string => Boolean(id)));
   const trackedTargets = new Set(submissions.map((row) => row.target.trim().toLowerCase()).filter(Boolean));
@@ -78,7 +80,7 @@ export default async function StudioBanners({
             </Link>
           </div>
           <div className="mt-2">
-            {upcoming.map((task, index) => {
+            {shown.map((task, index) => {
               const hot = daysUntil(task.deadline!) <= 1;
               return (
                 <div key={task.id} className="flex items-center py-1.5 text-[14px]" style={{ borderTop: index ? "1px solid #E6E6E2" : undefined }}>
@@ -89,6 +91,13 @@ export default async function StudioBanners({
                 </div>
               );
             })}
+            {hidden > 0 ? (
+              <div className="flex items-center py-1.5 text-[14px]" style={{ borderTop: "1px solid #E6E6E2" }}>
+                <Link href={`${basePath}/tasks`} className="lnk text-[13px]">
+                  {deadlineMoreLabel(hidden)}
+                </Link>
+              </div>
+            ) : null}
           </div>
         </div>
       )}
