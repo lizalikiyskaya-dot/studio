@@ -15,6 +15,7 @@ import {
   deleteMaterial,
   reorderMaterials,
 } from "./actions";
+import { appendMaterial, applyMaterialTitles, enqueueById, enqueueCreate, titleSaveFromField } from "./materialRows";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
 import { Button } from "@/components/ui/Button";
 import EmptyState from "@/components/EmptyState";
@@ -60,6 +61,64 @@ function useDrag<T extends { id: string }>(
   return { onDragStart, onDragOver, onDrop };
 }
 
+function MaterialTitleInput({
+  id,
+  title,
+  placeholder,
+  className,
+  style,
+  onSave,
+}: {
+  id: string;
+  title: string;
+  placeholder: string;
+  className?: string;
+  style?: React.CSSProperties;
+  onSave: (id: string, title: string) => void;
+}) {
+  return (
+    <input
+      key={id}
+      data-id={id}
+      name={`material-title-${id}`}
+      autoComplete="off"
+      defaultValue={title}
+      onBlur={(event) => {
+        const save = titleSaveFromField(event.currentTarget.dataset.id, event.currentTarget.value);
+        if (save) onSave(save.id, save.title);
+      }}
+      onKeyDown={blurOnEnter}
+      placeholder={placeholder}
+      className={className}
+      style={style}
+    />
+  );
+}
+
+function useEditableMaterials(initial: Material[]) {
+  const [items, setItems] = useState(initial);
+  const [, startTransition] = useTransition();
+  const titleSaves = useRef(new Map<string, Promise<void>>());
+  const addChain = useRef<Promise<void>>(Promise.resolve());
+
+  function saveTitle(id: string, value: string) {
+    setItems((prev) => applyMaterialTitles(prev, [{ id, title: value }]));
+    // Not the same transition as create/upload: those used to interrupt this
+    // save, and the next row's title landed on the previous id.
+    enqueueById(titleSaves.current, id, () => updateMaterialTitle(id, value));
+  }
+
+  function addItem(studentId: string, category: Material["category"]) {
+    addChain.current = enqueueCreate(
+      addChain.current,
+      () => createMaterial(studentId, category, crypto.randomUUID()),
+      (material) => setItems((prev) => appendMaterial(prev, material)),
+    );
+  }
+
+  return { items, setItems, startTransition, saveTitle, addItem };
+}
+
 function BooksList({
   studentId,
   materials,
@@ -69,26 +128,17 @@ function BooksList({
   materials: Material[];
   canManage: boolean;
 }) {
-  const [books, setBooks] = useState(materials);
+  const { items: books, setItems: setBooks, startTransition, saveTitle, addItem } = useEditableMaterials(materials);
   // Card is draggable ONLY while its grip handle is held — otherwise the
   // whole card grabs mousedown and hijacks text selection / cut.
   const [armedId, setArmedId] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
 
   const drag = useDrag(books, setBooks, (ids) =>
     startTransition(() => reorderMaterials(studentId, ids))
   );
 
   function handleAdd() {
-    startTransition(async () => {
-      const material = await createMaterial(studentId, "BOOK");
-      setBooks((prev) => [...prev, material]);
-    });
-  }
-
-  function handleTitle(id: string, value: string) {
-    setBooks((prev) => prev.map((m) => (m.id === id ? { ...m, title: value } : m)));
-    startTransition(() => updateMaterialTitle(id, value));
+    addItem(studentId, "BOOK");
   }
 
   function handleFile(id: string, field: "pdf" | "epub", file: File) {
@@ -158,10 +208,10 @@ function BooksList({
             }
           >
             {canManage && (
-              <input
-                defaultValue={material.title}
-                onBlur={(e) => handleTitle(material.id, e.target.value)}
-                onKeyDown={blurOnEnter}
+              <MaterialTitleInput
+                id={material.id}
+                title={material.title}
+                onSave={saveTitle}
                 placeholder="Название книги"
                 className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
                 style={{ borderColor: "var(--border)" }}
@@ -210,24 +260,15 @@ function HandoutsList({
   guides: CabinetGuide[];
   canManage: boolean;
 }) {
-  const [handouts, setHandouts] = useState(materials);
+  const { items: handouts, setItems: setHandouts, startTransition, saveTitle, addItem } = useEditableMaterials(materials);
   const [armedId, setArmedId] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
 
   const drag = useDrag(handouts, setHandouts, (ids) =>
     startTransition(() => reorderMaterials(studentId, ids))
   );
 
   function handleAdd() {
-    startTransition(async () => {
-      const material = await createMaterial(studentId, "HANDOUT");
-      setHandouts((prev) => [...prev, material]);
-    });
-  }
-
-  function handleTitle(id: string, value: string) {
-    setHandouts((prev) => prev.map((m) => (m.id === id ? { ...m, title: value } : m)));
-    startTransition(() => updateMaterialTitle(id, value));
+    addItem(studentId, "HANDOUT");
   }
 
   function handleFile(id: string, file: File) {
@@ -308,10 +349,10 @@ function HandoutsList({
                 />
               )}
               {canManage ? (
-                <input
-                  defaultValue={material.title}
-                  onBlur={(e) => handleTitle(material.id, e.target.value)}
-                  onKeyDown={blurOnEnter}
+                <MaterialTitleInput
+                  id={material.id}
+                  title={material.title}
+                  onSave={saveTitle}
                   placeholder="Название методички"
                   className="heading min-w-0 flex-1 bg-transparent text-[17px] font-semibold outline-none"
                 />
