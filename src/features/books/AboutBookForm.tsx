@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type Dispatch, type SetStateAction } from "react";
+import { ChevronDown } from "lucide-react";
 import type { Book, Comment } from "@/generated/prisma/client";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
@@ -28,10 +29,97 @@ function TextAreaField({ label, value, field, bookId, suggestion, minHeight = 60
   );
 }
 
+function SynopsisBlock({
+  book,
+  suggestions,
+  synopsisMode,
+  setSynopsisMode,
+  synopsisOpen,
+  setSynopsisOpen,
+  startTransition,
+}: {
+  book: Book;
+  suggestions: Record<string, string>;
+  synopsisMode: Book["synopsisMode"];
+  setSynopsisMode: Dispatch<SetStateAction<Book["synopsisMode"]>>;
+  synopsisOpen: boolean;
+  setSynopsisOpen: Dispatch<SetStateAction<boolean>>;
+  startTransition: (callback: () => void) => void;
+}) {
+  const words = book.synopsisText.trim() ? book.synopsisText.trim().split(/\s+/).length : 0;
+  const preview = (synopsisMode === "TEXT" ? book.synopsisText : book.synopsisLink).replace(/\s+/g, " ").trim();
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3" style={{ border: "1px solid var(--border)", background: "#fff" }}>
+        <button
+          type="button"
+          onClick={() => setSynopsisOpen((value) => !value)}
+          aria-expanded={synopsisOpen}
+          aria-label={synopsisOpen ? "Свернуть синопсис" : "Развернуть синопсис"}
+          className="grid h-8 w-8 place-items-center rounded-full"
+          style={{ background: "var(--soft)" }}
+        >
+          <ChevronDown size={16} style={{ transform: synopsisOpen ? "rotate(180deg)" : undefined, transition: "transform 180ms ease" }} />
+        </button>
+        <span className="text-[14.5px] font-semibold">Синопсис</span>
+        <div className="inline-flex rounded-full p-0.5" style={{ background: "var(--soft)" }} role="tablist" aria-label="Вид синопсиса">
+          {([
+            ["TEXT", "Текст"],
+            ["LINK", "Ссылка"],
+          ] as const).map(([mode, label]) => {
+            const on = synopsisMode === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => {
+                  if (on) return;
+                  setSynopsisMode(mode);
+                  startTransition(() => updateSynopsisMode(book.id, mode));
+                }}
+                className="h-7 rounded-full px-3 text-[13px]"
+                style={{ background: on ? "#fff" : "transparent", color: "var(--ink)", fontWeight: on ? 650 : 500, boxShadow: on ? "0 1px 2px rgba(32,32,32,.08)" : undefined }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        {!synopsisOpen && preview ? (
+          <span className="min-w-[120px] flex-1 truncate text-[13px]" style={{ color: "var(--muted)" }}>{preview}</span>
+        ) : (
+          <span className="flex-1" />
+        )}
+        {synopsisMode === "TEXT" && words > 0 ? (
+          <span className="text-[12.5px]" style={{ color: "var(--muted)" }}>
+            {words.toLocaleString("ru-RU").replace(/\u00A0/g, " ")} слов
+          </span>
+        ) : null}
+      </div>
+      {synopsisOpen && (
+        <div className="mt-3 max-w-[680px]">
+          {synopsisMode === "TEXT" ? (
+            <SuggestableField model="Book" recordId={book.id} field="synopsisText" value={book.synopsisText}
+              suggestion={suggestions.synopsisText} placeholder="Полный синопсис от начала до конца, со спойлерами..."
+              className="w-full outline-none bg-transparent text-[14px]" style={{ minHeight: 120, lineHeight: 1.7 }} />
+          ) : (
+            <SuggestableField model="Book" recordId={book.id} field="synopsisLink" value={book.synopsisLink}
+              suggestion={suggestions.synopsisLink} as="input" placeholder="https://docs.google.com/..."
+              className="w-full border-b py-1.5 outline-none bg-transparent text-[14px]" style={{ borderColor: "var(--rule)" }} />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Основной компонент ───────────────────────────────────────────────────
 export default function AboutBookForm({ book, suggestions, comments }: { book: Book; suggestions: Record<string, string>; comments: Comment[] }) {
   const [synopsisMode, setSynopsisMode] = useState(book.synopsisMode);
-  const [synopsisOpen, setSynopsisOpen] = useState(true);
+  const [synopsisOpen, setSynopsisOpen] = useState(false);
   const [, startTransition] = useTransition();
 
   return (
@@ -78,52 +166,7 @@ export default function AboutBookForm({ book, suggestions, comments }: { book: B
       <TextAreaField label="Концепт" value={book.concept} field="concept" bookId={book.id} suggestion={suggestions.concept} />
       <TextAreaField label="Аннотация" value={book.annotation} field="annotation" bookId={book.id} suggestion={suggestions.annotation} minHeight={80} />
 
-      <div className="max-w-[680px]">
-        <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>Синопсис</label>
-        <div className="rounded-[14px] p-4" style={{ border: "1px solid var(--rule)" }}>
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-            <div className="inline-flex rounded-full p-1" style={{ background: "var(--soft)" }} role="tablist" aria-label="Вид синопсиса">
-              {([
-                ["TEXT", "Текст"],
-                ["LINK", "Ссылка"],
-              ] as const).map(([mode, label]) => {
-                const on = synopsisMode === mode;
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    role="tab"
-                    aria-selected={on}
-                    onClick={() => {
-                      if (on) return;
-                      setSynopsisMode(mode);
-                      startTransition(() => updateSynopsisMode(book.id, mode));
-                    }}
-                    className="h-8 rounded-full px-3.5 text-[13px]"
-                    style={{ background: on ? "#fff" : "transparent", color: "var(--ink)", fontWeight: on ? 650 : 500 }}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-            <button type="button" onClick={() => setSynopsisOpen((v) => !v)} className="text-[13px]" style={{ color: "var(--ink-soft)" }}>
-              {synopsisOpen ? "свернуть" : "развернуть"}
-            </button>
-          </div>
-          {synopsisOpen && (
-            synopsisMode === "TEXT" ? (
-              <SuggestableField model="Book" recordId={book.id} field="synopsisText" value={book.synopsisText}
-                suggestion={suggestions.synopsisText} placeholder="Полный синопсис от начала до конца, со спойлерами..."
-                className="w-full outline-none bg-transparent text-[14px]" style={{ minHeight: 120, lineHeight: 1.7 }} />
-            ) : (
-              <SuggestableField model="Book" recordId={book.id} field="synopsisLink" value={book.synopsisLink}
-                suggestion={suggestions.synopsisLink} as="input" placeholder="https://docs.google.com/..."
-                className="w-full border-b py-1.5 outline-none bg-transparent text-[14px]" style={{ borderColor: "var(--rule)" }} />
-            )
-          )}
-        </div>
-      </div>
+      <SynopsisBlock book={book} suggestions={suggestions} synopsisMode={synopsisMode} setSynopsisMode={setSynopsisMode} synopsisOpen={synopsisOpen} setSynopsisOpen={setSynopsisOpen} startTransition={startTransition} />
 
       <CommentsBlock model="Book" recordId={book.id} initialComments={comments} />
     </div>
