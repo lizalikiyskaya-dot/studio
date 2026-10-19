@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import Mark from "@/components/Mark";
 import EmptyState from "@/components/EmptyState";
 import type { Task, TaskStatus } from "@/generated/prisma/client";
@@ -14,7 +14,9 @@ import {
   updateTaskNotes,
   cycleTaskStatus,
   deleteTask,
+  reorderTasks,
 } from "./actions";
+import { moveBy, moveWithin, taskRowNumber } from "./order";
 import { nextTaskStatus } from "./status";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import DateField from "@/components/DateField";
@@ -88,7 +90,12 @@ export default function TasksTable({
   banners?: React.ReactNode;
 }) {
   const [tasks, setTasks] = useState(initialTasks);
+  const tasksRef = useRef(tasks);
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
+  const dragIdRef = useRef<string | null>(null);
   const [, startTransition] = useTransition();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -134,8 +141,37 @@ export default function TasksTable({
 
   function handleDelete(taskId: string) {
     if (!window.confirm("Удалить задание?")) return;
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    const next = tasksRef.current.filter((task) => task.id !== taskId);
+    tasksRef.current = next;
+    setTasks(next);
     startTransition(() => deleteTask(taskId));
+  }
+
+  function visibleOf(list: Task[]) {
+    const tab = TABS.find((item) => item.id === activeTab) ?? TABS[0];
+    return list.filter((task) => tab.status == null || task.status === tab.status);
+  }
+
+  function persist(next: Task[]) {
+    const current = tasksRef.current;
+    if (next.length === current.length && next.every((task, index) => task.id === current[index]?.id)) return;
+    tasksRef.current = next;
+    setTasks(next);
+    startTransition(() => reorderTasks(studentId, next.map((task) => task.id)));
+  }
+
+  function move(id: string, dir: -1 | 1) {
+    const current = tasksRef.current;
+    const shown = visibleOf(current);
+    persist(moveBy(current, shown.map((task) => task.id), id, dir));
+  }
+
+  function dropOn(targetId: string, fromId: string | null) {
+    dragIdRef.current = null;
+    if (!fromId || fromId === targetId) return;
+    const current = tasksRef.current;
+    const shown = visibleOf(current);
+    persist(moveWithin(current, shown.map((task) => task.id), fromId, targetId));
   }
 
   function selectTab(id: string) {
@@ -218,8 +254,45 @@ export default function TasksTable({
               </tr>
             )}
             {visible.map((task, index) => (
-              <tr key={task.id}>
-                <td className="whitespace-nowrap tabular-nums" style={{ color: "var(--muted)" }}>{String(index + 1).padStart(2, "0")}</td>
+              <tr
+                key={task.id}
+                onDragOver={(event) => {
+                  if (dragIdRef.current) event.preventDefault();
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  dropOn(task.id, event.dataTransfer.getData("text/plain") || dragIdRef.current);
+                }}
+              >
+                <td className="whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="task-move-handle"
+                      draggable
+                      aria-label="Перетащить"
+                      title="Перетащить"
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = "move";
+                        event.dataTransfer.setData("text/plain", task.id);
+                        dragIdRef.current = task.id;
+                      }}
+                      onDragEnd={() => {
+                        dragIdRef.current = null;
+                      }}
+                    >
+                      <GripVertical size={14} />
+                    </span>
+                    <span className="task-move-arrows">
+                      <button type="button" className="task-move-btn" aria-label="Выше" title="Выше" disabled={index === 0} onClick={() => move(task.id, -1)}>
+                        <ChevronUp size={14} />
+                      </button>
+                      <button type="button" className="task-move-btn" aria-label="Ниже" title="Ниже" disabled={index === visible.length - 1} onClick={() => move(task.id, 1)}>
+                        <ChevronDown size={14} />
+                      </button>
+                    </span>
+                    <span className="tabular-nums" style={{ color: "var(--muted)" }}>{taskRowNumber(index)}</span>
+                  </div>
+                </td>
                 <td className="min-w-[180px]">
                   <EditableWithLinks
                     defaultValue={task.title}

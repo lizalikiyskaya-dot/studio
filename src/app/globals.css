@@ -158,6 +158,22 @@ input, textarea, select, [contenteditable="true"] {
   font-size: 14px;
   vertical-align: middle;
 }
+.task-move-arrows { display: inline-flex; flex-direction: column; line-height: 0; color: var(--ink-faint); }
+.task-move-handle { display: none; align-items: center; cursor: grab; color: var(--ink-faint); touch-action: none; }
+.task-move-handle:active { cursor: grabbing; }
+.task-move-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 16px;
+  color: inherit;
+}
+.task-move-btn:disabled { opacity: 0.25; }
+@media (min-width: 981px) {
+  .task-move-arrows { display: none; }
+  .task-move-handle { display: inline-flex; }
+}
 .banner-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
 .banner-deadlines { border-radius: 22px; background: #F6F6F4; padding: 20px 20px 12px; }
 .banner-call {
