@@ -19,10 +19,10 @@ export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
 export const TASK_FILTERS: { id: string; label: string; status: TaskStatus | null; bg: string; color: string }[] = [
   { id: "progress", label: "В процессе", status: "IN_PROGRESS", bg: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)" },
   { id: "planned", label: "Запланировано", status: "PLANNED", bg: "var(--soft)", color: "var(--ink)" },
-  { id: "all", label: "Все задачи", status: null, bg: "var(--deep)", color: "#fff" },
   { id: "submitted", label: "Сдано на проверку", status: "SUBMITTED", bg: "var(--pill-vio-bg)", color: "var(--pill-vio-fg)" },
   { id: "revision", label: "На доработке", status: "NEEDS_REVISION", bg: "var(--pill-or-bg)", color: "var(--pill-or-fg)" },
   { id: "accepted", label: "Принято", status: "ACCEPTED", bg: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)" },
+  { id: "all", label: "Все задачи", status: null, bg: "var(--deep)", color: "#fff" },
 ];
 
 export function isTaskStatus(value: string): value is TaskStatus {
