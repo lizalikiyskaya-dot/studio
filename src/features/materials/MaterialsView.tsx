@@ -15,7 +15,7 @@ export default async function MaterialsView({
   const [materials, guides] = await Promise.all([
     prisma.material.findMany({
       where: { studentId },
-      orderBy: { order: "asc" },
+      orderBy: [{ order: "asc" }, { id: "asc" }],
     }),
     loadCabinetGuides(studentId, canManage),
   ]);
