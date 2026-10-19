@@ -14,6 +14,8 @@ import {
   cycleMaterialStatus,
   deleteMaterial,
   reorderMaterials,
+  setMaterialOptional,
+  setMaterialMonth,
 } from "./actions";
 import { appendMaterial, applyMaterialTitles, enqueueById, enqueueCreate, titleSaveFromField } from "./materialRows";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
@@ -95,6 +97,57 @@ function MaterialTitleInput({
   );
 }
 
+function BookMonthField({
+  month,
+  canManage,
+  onCommit,
+}: {
+  month: string | null;
+  canManage: boolean;
+  onCommit: (value: string) => void;
+}) {
+  const [value, setValue] = useState(month ?? "");
+  const shown = (canManage ? value : month ?? "").trim();
+  if (!canManage && !shown) return null;
+
+  const chip = {
+    background: shown ? "var(--note)" : "#fff",
+    color: shown ? "var(--noteink)" : "var(--muted)",
+    border: "1px solid transparent",
+  } as const;
+
+  if (!canManage) {
+    return (
+      <span
+        data-book-month={shown}
+        className="mt-1 inline-flex max-w-full items-center rounded-full px-2 py-0.5 text-[12px] font-medium leading-none"
+        style={chip}
+      >
+        {shown}
+      </span>
+    );
+  }
+
+  return (
+    <input
+      value={value}
+      maxLength={80}
+      placeholder="месяц"
+      aria-label="рекомендуемый месяц"
+      data-book-month={shown}
+      onChange={(event) => setValue(event.target.value)}
+      onBlur={() => {
+        if (value.trim() !== (month ?? "").trim()) onCommit(value);
+      }}
+      onClick={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+      onKeyDown={blurOnEnter}
+      className="mt-1 block w-[9.5rem] max-w-full rounded-full px-2 py-0.5 text-[12px] font-medium leading-none outline-none placeholder:text-[var(--muted)]"
+      style={chip}
+    />
+  );
+}
+
 function useEditableMaterials(initial: Material[]) {
   const [items, setItems] = useState(initial);
   const [, startTransition] = useTransition();
@@ -168,6 +221,18 @@ function BooksList({
     startTransition(() => deleteMaterial(id));
   }
 
+  function handleOptional(id: string, optional: boolean) {
+    setBooks((prev) => prev.map((m) => (m.id === id ? { ...m, optional } : m)));
+    startTransition(() => setMaterialOptional(id, optional));
+  }
+
+  function handleMonth(id: string, month: string) {
+    const trimmed = month.trim().slice(0, 80);
+    const next = trimmed.length ? trimmed : null;
+    setBooks((prev) => prev.map((m) => (m.id === id ? { ...m, month: next } : m)));
+    startTransition(() => setMaterialMonth(id, trimmed));
+  }
+
   return (
     <div>
       {books.map((material) => (
@@ -183,7 +248,17 @@ function BooksList({
         >
           <Accordion
             key={material.id}
-            title={material.title || "Без названия"}
+            wrapHeader
+            title={
+              <span className="block min-w-0">
+                <span className="block truncate">{material.title || "Без названия"}</span>
+                <BookMonthField
+                  month={material.month}
+                  canManage={canManage}
+                  onCommit={(value) => handleMonth(material.id, value)}
+                />
+              </span>
+            }
             headerPrefix={
               canManage ? (
                 <GripVertical
@@ -195,16 +270,39 @@ function BooksList({
               ) : undefined
             }
             headerExtra={
-              <span
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleStatus(material.id, material.status);
-                }}
-                className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
-                style={MATERIAL_STATUS_STYLE[material.status]}
-              >
-                {MATERIAL_STATUS_LABEL[material.status]}
-              </span>
+              <>
+                {canManage ? (
+                  <label
+                    className="inline-flex items-center gap-1.5 text-[12px] whitespace-nowrap"
+                    style={{ color: "var(--muted)", fontWeight: 500 }}
+                    onClick={(event) => event.stopPropagation()}
+                    onMouseDown={(event) => event.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={material.optional}
+                      onChange={(event) => handleOptional(material.id, event.target.checked)}
+                      aria-label="по желанию"
+                      style={{ width: 14, height: 14, accentColor: "var(--ink)" }}
+                    />
+                    по желанию
+                  </label>
+                ) : material.optional ? (
+                  <span className="text-[12px] whitespace-nowrap" style={{ color: "var(--muted)", fontWeight: 500 }}>
+                    по желанию
+                  </span>
+                ) : null}
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStatus(material.id, material.status);
+                  }}
+                  className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
+                  style={MATERIAL_STATUS_STYLE[material.status]}
+                >
+                  {MATERIAL_STATUS_LABEL[material.status]}
+                </span>
+              </>
             }
           >
             {canManage && (

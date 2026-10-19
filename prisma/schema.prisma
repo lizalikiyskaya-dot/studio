@@ -231,6 +231,10 @@ model Material {
   epubName  String?
   fileUrl   String?
   fileName  String?
+  // Книга «по желанию». Методички поле не показывают. Старые строки — false.
+  optional  Boolean  @default(false)
+  // Рекомендуемый месяц книги, например «ноябрь 2026». Пусто, пока наставник не напишет.
+  month     String?
 
   @@index([studentId])
 }
