@@ -6,12 +6,7 @@ export default async function MentorGuidesPage() {
 
   return (
     <div style={{ maxWidth: 760 }}>
-      <h1 className="page-title mt-1 mb-2">Методички</h1>
-      <p className="text-[15.5px] mb-6" style={{ color: "var(--ink2)", maxWidth: 640 }}>
-        Общая библиотека: каждую методичку вы загружаете один раз. Ученик видит её в «Материалы → Методички»,
-        только когда вы её открыли. Пока она скрыта, её нет в кабинете и скачать её нельзя. Кто придёт позже,
-        тоже не увидит методичку, пока не откроете её в его кабинете.
-      </p>
+      <h1 className="page-title mt-1 mb-6">Методички</h1>
 
       {library.ready ? (
         <GuidesLibrary initialGuides={library.guides} studentCount={library.studentCount} />

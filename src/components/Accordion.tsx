@@ -20,7 +20,7 @@ export default function Accordion({
 
   return (
     <div
-      className="rounded-[14px] mb-3 overflow-hidden"
+      className="hover-lift rounded-[14px] mb-3 overflow-hidden"
       style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "var(--soft)" }}
     >
       <div

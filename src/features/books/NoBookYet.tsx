@@ -17,7 +17,7 @@ export default function NoBookYet({ studentId }: { studentId: string }) {
   return (
     <div>
       <p className="text-[14px] mb-4" style={{ color: "var(--faded)" }}>
-        У ученика пока нет ни одной книги.
+        Книг пока нет.
       </p>
       <Button onClick={handleCreate} variant="dashed" pill>
         + новая книга

@@ -92,7 +92,6 @@ export default function DraftsList({
     <div>
       <PageHeader
         title="Рукописи"
-        description="Черновики и чистовики: ссылка на документ или файл до 8 МБ."
         actions={
           <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
             <Plus size={16} /> Добавить рукопись

@@ -13,6 +13,11 @@ export default function StorySettingTypeSection({ story }: { story: Story }) {
 
   return (
     <div>
+      <SettingTypeMap
+        x={story.settingMapX}
+        y={story.settingMapY}
+        onSave={(x, y) => startTransition(() => updateStorySettingMap(story.id, x, y))}
+      />
       <ImageUploadBox
         value={photoUrl}
         onUpload={(file) => {
@@ -24,12 +29,7 @@ export default function StorySettingTypeSection({ story }: { story: Story }) {
           startTransition(() => { void deletePhoto("story-setting-photo", story.id, "settingPhotoUrl"); });
         }}
         placeholder="нажмите, чтобы добавить фото настроения"
-        className="w-full max-w-[420px] h-[170px] rounded-[14px] mb-5"
-      />
-      <SettingTypeMap
-        x={story.settingMapX}
-        y={story.settingMapY}
-        onSave={(x, y) => startTransition(() => updateStorySettingMap(story.id, x, y))}
+        className="mt-5 h-[220px] w-full rounded-[14px]"
       />
     </div>
   );

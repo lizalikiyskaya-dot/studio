@@ -230,6 +230,25 @@ body {
 }
 .btn-y:disabled { opacity: 0.6; cursor: default; }
 
+.hover-lift.is-on { box-shadow: 0 0 0 2px #202020; }
+.photo-tools { opacity: 1; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .photo-tools { opacity: 0; transition: opacity 200ms ease; }
+  .group:hover .photo-tools { opacity: 1; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .hover-lift {
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(32, 32, 32, 0.1);
+  }
+  .hover-lift.is-on:hover {
+    box-shadow: 0 0 0 2px #202020, 0 12px 28px rgba(32, 32, 32, 0.1);
+  }
+}
+
 .lnk { color: var(--vi); font-weight: 500; }
 .lnk:hover { text-decoration: underline; }
 

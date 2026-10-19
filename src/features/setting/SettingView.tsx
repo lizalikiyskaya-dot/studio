@@ -24,7 +24,7 @@ export default async function SettingView({
   if (!activeBook) {
     return (
       <div>
-        <PageHeader title="Сеттинг" description="Мир книги по методу GRAPES, тип сеттинга и, если нужно, фэнтези-мир." />
+        <PageHeader title="Сеттинг" />
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -52,7 +52,6 @@ export default async function SettingView({
     <div>
       <PageHeader
         title="Сеттинг"
-        description="Мир книги по методу GRAPES, тип сеттинга и, если нужно, фэнтези-мир."
         actions={<BookSelect books={books} activeBookId={activeBook.id} compact />}
       />
 

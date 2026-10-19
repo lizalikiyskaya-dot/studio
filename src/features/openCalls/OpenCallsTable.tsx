@@ -47,7 +47,6 @@ export default function OpenCallsTable({
     <div>
       <PageHeader
         title="Опен-коллы"
-        description="Журналы, антологии и конкурсы, куда можно подать текст."
         actions={
           <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
             <Plus size={16} /> Добавить опен-колл

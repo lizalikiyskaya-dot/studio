@@ -23,24 +23,21 @@ export default function SettingTypeSection({
     <section className="rounded-[24px] p-4" style={{ border: "1px solid var(--border)", background: "#fff" }}>
       <h2 className="text-[17px] font-semibold">Тип сеттинга</h2>
       <div className="mt-3">
-        <SettingMixPanel bookId={bookId} initial={resolveShares(book)} suggestion={suggestion}>
-          <div className="mt-3">
-            <ImageUploadBox
-              value={photoUrl}
-              onUpload={(file) => {
-                setPhotoUrl(URL.createObjectURL(file));
-                startTransition(() => { void uploadFile("setting-photo", bookId, "settingPhotoUrl", file); });
-              }}
-              onDelete={() => {
-                setPhotoUrl(null);
-                startTransition(() => { void deletePhoto("setting-photo", bookId, "settingPhotoUrl"); });
-              }}
-              placeholder="фото настроения"
-              className="h-[64px] w-full rounded-[12px]"
-            />
-          </div>
-        </SettingMixPanel>
+        <SettingMixPanel bookId={bookId} initial={resolveShares(book)} suggestion={suggestion} />
       </div>
+      <ImageUploadBox
+        value={photoUrl}
+        onUpload={(file) => {
+          setPhotoUrl(URL.createObjectURL(file));
+          startTransition(() => { void uploadFile("setting-photo", bookId, "settingPhotoUrl", file); });
+        }}
+        onDelete={() => {
+          setPhotoUrl(null);
+          startTransition(() => { void deletePhoto("setting-photo", bookId, "settingPhotoUrl"); });
+        }}
+        placeholder="фото настроения"
+        className="mt-4 h-[220px] w-full rounded-[14px]"
+      />
     </section>
   );
 }

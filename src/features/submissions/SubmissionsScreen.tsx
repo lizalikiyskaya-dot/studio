@@ -27,7 +27,6 @@ export default function SubmissionsScreen({
     <div>
       <PageHeader
         title="Трекер заявок"
-        description="Куда и что отправлено, когда и чем закончилось."
         actions={
           <button type="button" className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }} onClick={() => addRef.current()}>
             <Plus size={16} /> Новая заявка

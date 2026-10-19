@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef } from "react";
 import { uploadFile } from "@/lib/uploadFile";
 import ToggleSwitch from "@/components/ToggleSwitch";
+import { Button } from "@/components/ui/Button";
 import {
   updateProfileName,
   updateProfileEmail,
@@ -199,13 +200,9 @@ export default function ProfileForm({
             className={fieldCls}
             style={fieldStyle}
           />
-          <button
-            onClick={handleSaveName}
-            className="px-5 py-2 rounded-full text-[13px] font-medium flex-shrink-0"
-            style={{ background: "var(--y)", color: "var(--ink)", border: "none" }}
-          >
+          <Button type="button" variant="primary" size="sm" pill onClick={handleSaveName} className="flex-shrink-0">
             Сохранить
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -221,13 +218,9 @@ export default function ProfileForm({
             className={fieldCls}
             style={fieldStyle}
           />
-          <button
-            onClick={handleSaveEmail}
-            className="px-5 py-2 rounded-full text-[13px] font-medium flex-shrink-0"
-            style={{ background: "var(--y)", color: "var(--ink)", border: "none" }}
-          >
+          <Button type="button" variant="primary" size="sm" pill onClick={handleSaveEmail} className="flex-shrink-0">
             Сохранить
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -242,7 +235,7 @@ export default function ProfileForm({
           />
           <p className="text-[12px] mt-2" style={{ color: "var(--ink-faint)" }}>
             {isMentor
-              ? "Когда ученик поработал в кабинете, приходит короткое письмо. Не чаще одного раза в час на ученика."
+              ? "Когда в кабинете появляются правки, приходит короткое письмо. Не чаще одного раза в час."
               : "Когда наставник вносит правки в ваш кабинет, приходит короткое письмо. Не чаще одного раза в час."}
           </p>
         </div>

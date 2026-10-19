@@ -6,6 +6,7 @@ import ToggleSwitch from "@/components/ToggleSwitch";
 import type { Book, WorldEntry, WorldCategory } from "@/generated/prisma/client";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
+import { Button } from "@/components/ui/Button";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import {
   toggleFantasyLock,
@@ -89,7 +90,7 @@ export default function FantasySection({
         )}
       </div>
       {!unlocked ? (
-        <p className="mt-3 text-[13.5px]" style={{ color: "var(--muted)" }}>Раздел скрыт от ученика. Включите, если он пишет фэнтези.</p>
+        <p className="mt-3 text-[13.5px]" style={{ color: "var(--muted)" }}>Раздел скрыт. Включите, если в книге есть фэнтези.</p>
       ) : (
       <>
       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -204,12 +205,9 @@ export default function FantasySection({
             />
 
             <div className="mt-3.5 flex items-center gap-3">
-              <button
-                onClick={() => handleSaveEntry(openEntry.id)}
-                className="btn-y !h-9 !w-auto px-4 text-[13px]"
-              >
+              <Button type="button" variant="primary" size="sm" pill onClick={() => handleSaveEntry(openEntry.id)}>
                 Сохранить
-              </button>
+              </Button>
               {justSaved && (
                 <span className="flex items-center gap-1 text-[12.5px]" style={{ color: "var(--sage)" }}>
                   <Check size={13} /> сохранено

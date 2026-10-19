@@ -6,6 +6,8 @@ export type LibraryGuide = {
   title: string;
   description: string;
   fileName: string | null;
+  fileMime: string | null;
+  fileBytes: number | null;
   hasFile: boolean;
   isPdf: boolean;
   order: number;
@@ -19,6 +21,8 @@ export type CabinetGuide = {
   title: string;
   description: string;
   fileName: string | null;
+  fileMime: string | null;
+  fileBytes: number | null;
   hasFile: boolean;
   isPdf: boolean;
   visible: boolean;

@@ -57,9 +57,6 @@ export default function CycleCharactersView({
 
   return (
     <div>
-      <p className="text-[13px] mb-4" style={{ color: "var(--faded)" }}>
-        Эти персонажи общие для всего цикла — рассказы с источником «общие» подтягивают их автоматически.
-      </p>
       {list.map((character) => (
         <CharacterCard
           key={character.id}

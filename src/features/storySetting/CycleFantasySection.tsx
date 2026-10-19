@@ -6,6 +6,7 @@ import type { Cycle, CycleWorldEntry, WorldCategory } from "@/generated/prisma/c
 import Accordion from "@/components/Accordion";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
+import { Button } from "@/components/ui/Button";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import {
   toggleCycleFantasyLock,
@@ -113,7 +114,7 @@ export default function CycleFantasySection({
         style={{ border: "1px dashed var(--rule)", color: "var(--faded)" }}
       >
         <span className="flex justify-center mb-2.5"><Lock size={26} /></span>
-        <span className="text-[13.5px]">Раздел скрыт от ученика — открой, если он пишет фэнтези</span>
+        <span className="text-[13.5px]">Раздел скрыт — откройте, если в тексте есть фэнтези</span>
         {isMentor && (
           <div className="mt-3.5">
             <button
@@ -139,7 +140,7 @@ export default function CycleFantasySection({
             className="flex items-center gap-1.5 text-[12.5px] px-3 py-1.5 rounded-full"
             style={{ border: "1px solid var(--border)", color: "var(--ink)", background: "#fff" }}
           >
-            <Unlock size={13} /> Открыто для ученика — закрыть
+            <Unlock size={13} /> Открыто — закрыть
           </button>
         </div>
       )}
@@ -252,12 +253,9 @@ export default function CycleFantasySection({
             />
 
             <div className="mt-3.5 flex items-center gap-3">
-              <button
-                onClick={() => handleSaveEntry(openEntry.id)}
-                className="btn-y !h-9 !w-auto px-4 text-[13px]"
-              >
+              <Button type="button" variant="primary" size="sm" pill onClick={() => handleSaveEntry(openEntry.id)}>
                 Сохранить
-              </button>
+              </Button>
               {justSaved && (
                 <span className="flex items-center gap-1 text-[12.5px]" style={{ color: "var(--sage)" }}>
                   <Check size={13} /> сохранено

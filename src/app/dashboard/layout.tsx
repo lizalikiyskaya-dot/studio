@@ -7,6 +7,7 @@ import PresencePing from "@/features/presence/PresencePing";
 import SectionTracker from "@/features/sectionBeacons/SectionTracker";
 import { getSectionBeacons } from "@/features/sectionBeacons/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
+import { loadWorkshopBooks } from "@/lib/workshopBooks";
 
 export default async function DashboardLayout({
   children,
@@ -21,12 +22,13 @@ export default async function DashboardLayout({
   if (user.role === "MENTOR") redirect("/mentor");
   if (user.status !== "APPROVED") redirect("/pending");
 
-  const [tasks, notes] = await Promise.all([
+  const [tasks, notes, books] = await Promise.all([
     prisma.task.findMany({
       where: { studentId: user.id, deadline: { not: null } },
       select: { id: true, title: true, deadline: true },
     }),
     prisma.note.findMany({ where: { studentId: user.id }, orderBy: { createdAt: "desc" } }),
+    loadWorkshopBooks(user.id),
   ]);
   const [noteComments, beacons] = await Promise.all([
     getCommentsForRecords("Note", notes.map((n) => n.id)),
@@ -46,6 +48,7 @@ export default async function DashboardLayout({
         notesCount={notes.length}
         bookWorkshopUnlocked={user.bookWorkshopUnlocked}
         storyWorkshopUnlocked={user.storyWorkshopUnlocked}
+        books={books}
         calendar={{
           tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
           paymentDay: user.paymentDay,

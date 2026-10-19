@@ -152,7 +152,6 @@ export default function TasksTable({
     <div>
       <PageHeader
         title="Задания"
-        description="Всё, что задала Лиза: дедлайны попадают в календарь, статус меняется по клику."
         actions={
           <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
             <Plus size={16} /> Добавить задание
@@ -171,11 +170,10 @@ export default function TasksTable({
               role="tab"
               aria-selected={on}
               onClick={() => selectTab(tab.id)}
-              className="rounded-[18px] px-4 py-3 flex-1 min-w-[120px] text-left"
+              className={`hover-lift rounded-[18px] px-4 py-3 flex-1 min-w-[120px] text-left${on ? " is-on" : ""}`}
               style={{
                 background: tab.bg,
                 color: tab.color,
-                boxShadow: on ? "0 0 0 2px #202020" : undefined,
                 opacity: on ? 1 : 0.72,
               }}
             >

@@ -252,7 +252,6 @@ export default function BookPlanBoard({
     <div>
       <PageHeader
         title="План книги"
-        description="Акты, главы и сюжетные линии на одном листе. Перетащите сцену, чтобы изменить порядок."
         actions={
           <>
             {bookSelect}

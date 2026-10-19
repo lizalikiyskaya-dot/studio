@@ -86,9 +86,9 @@ export async function notifyMentorOfStudentEdit(studentId: string, section: stri
       `<strong>${name}</strong> — в сети в ${when}, в кабинете есть новые изменения.`,
       `Последняя правка — раздел «${escapeHtml(sectionLabel(section))}». Что именно изменилось, видно по маячкам в кабинете.`,
     ],
-    action: { label: "Открыть кабинет ученика", url: `${appUrl()}/mentor` },
+    action: { label: "Открыть кабинет", url: `${appUrl()}/mentor` },
     footnote:
-      "Письмо приходит не чаще одного раза в час на ученика — остальные правки за этот час копятся молча.",
+      "Письмо приходит не чаще одного раза в час на кабинет — остальные правки за этот час копятся молча.",
   });
   await sendMail({ to: liza.email, subject: `${student.name}: новые изменения в кабинете`, html });
 }

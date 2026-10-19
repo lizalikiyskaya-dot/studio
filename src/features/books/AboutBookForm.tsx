@@ -34,12 +34,6 @@ export default function AboutBookForm({ book, suggestions, comments }: { book: B
   const [synopsisOpen, setSynopsisOpen] = useState(true);
   const [, startTransition] = useTransition();
 
-  function toggleSynopsisMode() {
-    const next = synopsisMode === "TEXT" ? "LINK" : "TEXT";
-    setSynopsisMode(next);
-    startTransition(() => updateSynopsisMode(book.id, next));
-  }
-
   return (
     <div className="max-w-[880px]">
       {/* Баннер + обложки */}
@@ -88,11 +82,33 @@ export default function AboutBookForm({ book, suggestions, comments }: { book: B
         <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>Синопсис</label>
         <div className="rounded-[14px] p-4" style={{ border: "1px solid var(--rule)" }}>
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-            <button onClick={() => setSynopsisOpen((v) => !v)} className="text-[13px]" style={{ color: "var(--ink-soft)" }}>
-              развернуть / свернуть
-            </button>
-            <button onClick={toggleSynopsisMode} className="lnk text-[12.5px]">
-              переключить: текст / ссылка на Google Doc
+            <div className="inline-flex rounded-full p-1" style={{ background: "var(--soft)" }} role="tablist" aria-label="Вид синопсиса">
+              {([
+                ["TEXT", "Текст"],
+                ["LINK", "Ссылка"],
+              ] as const).map(([mode, label]) => {
+                const on = synopsisMode === mode;
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    role="tab"
+                    aria-selected={on}
+                    onClick={() => {
+                      if (on) return;
+                      setSynopsisMode(mode);
+                      startTransition(() => updateSynopsisMode(book.id, mode));
+                    }}
+                    className="h-8 rounded-full px-3.5 text-[13px]"
+                    style={{ background: on ? "#fff" : "transparent", color: "var(--ink)", fontWeight: on ? 650 : 500 }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <button type="button" onClick={() => setSynopsisOpen((v) => !v)} className="text-[13px]" style={{ color: "var(--ink-soft)" }}>
+              {synopsisOpen ? "свернуть" : "развернуть"}
             </button>
           </div>
           {synopsisOpen && (

@@ -113,7 +113,6 @@ export default function WorkPlanTable({
     <div>
       <PageHeader
         title="План работы"
-        description="Крупные этапы на полгода вперёд. Период — до двух месяцев."
         actions={
           <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
             <Plus size={16} /> Добавить период

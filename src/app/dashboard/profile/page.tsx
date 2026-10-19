@@ -12,7 +12,7 @@ export default async function ProfilePage() {
 
   return (
     <div>
-      <PageHeader title="Мой профиль" description="Фото, имя, почта и пароль. Наставник видит здесь те же блоки." />
+      <PageHeader title="Мой профиль" />
       <ProfileForm
         userId={user.id}
         initialName={user.name}

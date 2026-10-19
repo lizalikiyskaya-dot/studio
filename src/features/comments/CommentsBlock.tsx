@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 import type { Comment } from "@/generated/prisma/client";
+import { Button } from "@/components/ui/Button";
 import { addComment, updateComment, deleteComment, type CommentableModel } from "./actions";
 
 function initials(author: string) {
@@ -65,16 +66,10 @@ function ChatInput({
         autoFocus={autoFocus}
         className="fld flex-1 !h-auto min-h-11 py-2.5 resize-none"
       />
-      <button
-        type="button"
-        onClick={submit}
-        className="btn-y shrink-0 px-4 text-[14px]"
-        style={{ height: 44, width: "auto" }}
-        aria-label={submitLabel ?? "Отправить"}
-      >
-        <Send size={16} />
+      <Button type="button" variant="primary" size="sm" pill onClick={submit} className="shrink-0" aria-label={submitLabel ?? "Отправить"}>
+        <Send size={14} />
         {submitLabel ? <span>{submitLabel}</span> : null}
-      </button>
+      </Button>
       {onCancel && (
         <button type="button" onClick={onCancel} className="h-11 px-2 shrink-0" style={{ color: "var(--muted)" }} aria-label="Отмена">
           <X size={16} />

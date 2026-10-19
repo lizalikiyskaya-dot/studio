@@ -89,7 +89,7 @@ export default function ImageUploadBox({
         )}
         {preview && (
           <div
-            className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="photo-tools absolute inset-0 flex items-center justify-center gap-2"
             style={{ background: "rgba(31,32,30,0.45)" }}
           >
             <button

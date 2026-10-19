@@ -29,7 +29,7 @@ export default async function CharactersView({
   if (!activeBook) {
     return (
       <div>
-        <PageHeader title={title} description="Анкета для каждого героя: от привычек до трансформации." />
+        <PageHeader title={title} />
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -46,7 +46,6 @@ export default async function CharactersView({
     <div>
       <PageHeader
         title={title}
-        description="Анкета для каждого героя: от привычек до трансформации."
         actions={
           <>
             <BookSelect books={books} activeBookId={activeBook.id} compact />
