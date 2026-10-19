@@ -24,15 +24,12 @@ import { prisma } from "@/lib/prisma";
  */
 export async function getUnseenActivity(
   viewerId: string,
-  studentIds: string[]
+  students: { id: string; lastActivityAt: Date | null }[]
 ): Promise<Record<string, Date>> {
-  if (studentIds.length === 0) return {};
+  if (students.length === 0) return {};
+  const studentIds = students.map((student) => student.id);
 
-  const [students, activity, seen] = await Promise.all([
-    prisma.user.findMany({
-      where: { id: { in: studentIds } },
-      select: { id: true, lastActivityAt: true },
-    }),
+  const [activity, seen] = await Promise.all([
     prisma.sectionActivity.findMany({
       where: { studentId: { in: studentIds }, byRole: "STUDENT" },
     }),

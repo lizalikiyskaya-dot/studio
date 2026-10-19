@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { AccessDeniedError, requireCabinetAccess, requireMentor, requireMentorSession } from "@/lib/access";
 import { guidesSchemaReady } from "@/lib/guides";
 import { getSession } from "@/lib/session";
+import { shrinkImage } from "@/lib/shrinkImage";
 
 const MAX_SIZE = 8 * 1024 * 1024;
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
@@ -128,16 +129,17 @@ async function handleUpload(req: Request) {
     target === "storycircle-photo" ||
     target === "setting-photo" ||
     target === "cycle-setting-photo" ||
-    target === "story-setting-photo";
+    target === "story-setting-photo" ||
+    target === "avatar";
   const sizeLimit = isImage ? MAX_IMAGE_SIZE : MAX_SIZE;
   if (file.size > sizeLimit) {
     const mb = sizeLimit / (1024 * 1024);
     return Response.json({ error: `Файл слишком большой (максимум ${mb} МБ)` }, { status: 413 });
   }
 
-  const buf = Buffer.from(await file.arrayBuffer());
+  let buf = Buffer.from(await file.arrayBuffer());
 
-  const mime = resolveStoredMime(file.type || "", buf, isImage);
+  let mime = resolveStoredMime(file.type || "", buf, isImage);
   if (mime === null) {
     return Response.json(
       { error: "Поддерживаются изображения PNG, JPEG, WebP и GIF" },
@@ -145,6 +147,13 @@ async function handleUpload(req: Request) {
     );
   }
   const fileName = safeFileName(file.name);
+  if (isImage && mime !== "image/gif") {
+    // Аватар едет с каждой страницей кабинета, обложка — с книгой.
+    const maxEdge = target === "avatar" ? 512 : 1600;
+    const shrunk = await shrinkImage(buf, mime, maxEdge);
+    buf = Buffer.from(shrunk.buf);
+    mime = shrunk.mime;
+  }
   const dataUrl = `data:${mime};base64,${buf.toString("base64")}`;
 
   if (target === "material") {

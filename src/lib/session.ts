@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import type { UserRole, UserStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
@@ -46,7 +47,9 @@ export async function clearSession() {
   cookieStore.delete(COOKIE_NAME);
 }
 
-export async function getSession(): Promise<SessionPayload | null> {
+// Макет и страница одного запроса оба зовут getSession. cache склеивает
+// это в один поход в Postgres за tokenVersion, а не в два.
+export const getSession = cache(async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
@@ -73,4 +76,4 @@ export async function getSession(): Promise<SessionPayload | null> {
   if (!user || user.tokenVersion !== tokenVersion) return null;
 
   return { ...session, tokenVersion };
-}
+});

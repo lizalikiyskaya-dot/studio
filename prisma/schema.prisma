@@ -112,6 +112,8 @@ model Comment {
   author    String
   text      String
   createdAt DateTime @default(now())
+
+  @@index([model, recordId])
 }
 
 // Generic mentor-edit suggestion for a single field on any record.
@@ -206,6 +208,8 @@ model Note {
   resolvedBy   String    @default("")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  @@index([studentId])
 }
 
 model Material {
@@ -222,6 +226,8 @@ model Material {
   epubName  String?
   fileUrl   String?
   fileName  String?
+
+  @@index([studentId])
 }
 
 model Draft {
@@ -235,6 +241,8 @@ model Draft {
   fileName  String?
   fileData  String?
   createdAt DateTime @default(now())
+
+  @@index([studentId])
 }
 
 model PopArcCharacter {
@@ -247,6 +255,8 @@ model PopArcCharacter {
   data      Json     @default("{}")
   arcType   ArcType?
   isExample Boolean  @default(false)
+
+  @@index([studentId])
 }
 
 model BeliefCard {
@@ -259,6 +269,8 @@ model BeliefCard {
   endBelief    String  @default("")
   photoUrl     String?
   isExample    Boolean @default(false)
+
+  @@index([studentId])
 }
 
 model StoryCircleCard {
@@ -270,6 +282,8 @@ model StoryCircleCard {
   data      Json    @default("{}")
   photoUrl  String?
   isExample Boolean @default(false)
+
+  @@index([studentId])
 }
 
 model CustomExercise {
@@ -282,6 +296,8 @@ model CustomExercise {
   answerSuggested  String?
   status           TaskStatus        @default(IN_PROGRESS)
   comments         ExerciseComment[]
+
+  @@index([studentId])
 }
 
 model ExerciseComment {
@@ -291,6 +307,8 @@ model ExerciseComment {
   author     String         @default("")
   text       String         @default("")
   createdAt  DateTime       @default(now())
+
+  @@index([exerciseId])
 }
 
 model FreeSection {
@@ -305,6 +323,8 @@ model FreeSection {
   status    TaskStatus      @default(IN_PROGRESS)
   // Карточку завёл сам ученик — ему можно её переименовать и удалить.
   createdByStudent Boolean @default(false)
+
+  @@index([studentId])
 }
 
 model Task {
@@ -320,6 +340,8 @@ model Task {
   student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+
+  @@index([studentId])
 }
 
 model Book {
@@ -378,6 +400,8 @@ model Book {
   acts         Act[]
   worldEntries WorldEntry[]
   extraGrapes  GrapesSetting[]
+
+  @@index([studentId])
 }
 
 // Дополнительные таблицы GRAPES под кнопкой «добавить сеттинг».
@@ -395,6 +419,8 @@ model GrapesSetting {
   grapesEconomy      String   @default("")
   grapesSocial       String   @default("")
   createdAt          DateTime @default(now())
+
+  @@index([bookId])
 }
 
 model PlanChapter {
@@ -410,6 +436,8 @@ model PlanChapter {
   writtenChars     Int     @default(0)
   color            String?
   actBreakAfter    Boolean @default(false)
+
+  @@index([bookId])
 }
 
 model Character {
@@ -423,6 +451,8 @@ model Character {
   data      Json     @default("{}")
   arcType   ArcType?
   createdAt DateTime @default(now())
+
+  @@index([bookId])
 }
 
 model WorldEntry {
@@ -435,6 +465,8 @@ model WorldEntry {
   body      String        @default("")
   photoUrl  String?
   createdAt DateTime      @default(now())
+
+  @@index([bookId])
 }
 
 model Act {
@@ -449,6 +481,8 @@ model Act {
   // Иначе: ACCEPTED | IN_PROGRESS | AHEAD.
   status   String       @default("")
   chapters ActChapter[]
+
+  @@index([bookId])
 }
 
 model ActChapter {
@@ -459,6 +493,8 @@ model ActChapter {
   title       String           @default("")
   description String           @default("")
   blocks      StorylineBlock[]
+
+  @@index([actId])
 }
 
 model StorylineBlock {
@@ -471,6 +507,8 @@ model StorylineBlock {
   description String     @default("")
   // Сколько колонок глав занимает сцена, начиная с chapterId. 1 — как раньше.
   span        Int        @default(1)
+
+  @@index([chapterId])
 }
 
 model WorkPlan {
@@ -485,6 +523,8 @@ model WorkPlan {
   note        String         @default("")
   status      WorkPlanStatus @default(PLANNED)
   createdAt   DateTime       @default(now())
+
+  @@index([studentId])
 }
 
 // Last time any content in a given section changed, for a given student's
@@ -524,6 +564,8 @@ model Submission {
   note      String           @default("")
   link      String           @default("")
   createdAt DateTime         @default(now())
+
+  @@index([studentId])
 }
 
 model OpenCall {
@@ -537,6 +579,8 @@ model OpenCall {
   link      String   @default("")
   sent      Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@index([studentId])
 }
 
 model Cycle {
@@ -576,6 +620,8 @@ model Cycle {
   stories      Story[]
   characters   CycleCharacter[]
   worldEntries CycleWorldEntry[]
+
+  @@index([studentId])
 }
 
 model Story {
@@ -616,6 +662,9 @@ model Story {
 
   characters   StoryCharacter[]
   worldEntries StoryWorldEntry[]
+
+  @@index([studentId])
+  @@index([cycleId])
 }
 
 model CycleCharacter {
@@ -628,6 +677,8 @@ model CycleCharacter {
   data      Json     @default("{}")
   arcType   ArcType?
   createdAt DateTime @default(now())
+
+  @@index([cycleId])
 }
 
 model StoryCharacter {
@@ -641,6 +692,8 @@ model StoryCharacter {
   data      Json     @default("{}")
   arcType   ArcType?
   createdAt DateTime @default(now())
+
+  @@index([storyId])
 }
 
 model CycleWorldEntry {
@@ -653,6 +706,8 @@ model CycleWorldEntry {
   body      String        @default("")
   photoUrl  String?
   createdAt DateTime      @default(now())
+
+  @@index([cycleId])
 }
 
 // Общая библиотека методичек наставника. Одна запись — один файл на всех
@@ -708,4 +763,6 @@ model StoryWorldEntry {
   body      String        @default("")
   photoUrl  String?
   createdAt DateTime      @default(now())
+
+  @@index([storyId])
 }

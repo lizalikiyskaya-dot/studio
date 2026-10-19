@@ -131,9 +131,16 @@ test("baseline in the repo does not list the open PR files", async () => {
   assert.equal(text.includes("2026-10-guides-library.sql"), false);
 });
 
-test("PR SQL passes the guard and keeps a non-dated name", () => {
+test("PR SQL passes the guard and keeps a non-dated name", async () => {
   assert.deepEqual(findDestructive(bookPlan), []);
   assert.deepEqual(findDestructive(guides), []);
+  const sqlDir = path.join(root, "docs", "sql");
+  const sqlNames = (await fs.readdir(sqlDir)).filter((name) => name.endsWith(".sql"));
+  assert.ok(sqlNames.includes("2026-10-19-query-indexes.sql"));
+  for (const name of sqlNames) {
+    const sql = await fs.readFile(path.join(sqlDir, name), "utf8");
+    assert.deepEqual(findDestructive(sql), [], name);
+  }
   const ordered = sortSqlNames(["2026-10-guides-library.sql", "2026-10-18-book-plan-board.sql"]);
   assert.deepEqual(ordered, ["2026-10-18-book-plan-board.sql", "2026-10-guides-library.sql"]);
   const runnable = statementsToRun(guides);

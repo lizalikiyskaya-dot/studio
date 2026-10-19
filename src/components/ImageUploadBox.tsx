@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { Pencil, Trash2, Maximize2, X } from "lucide-react";
 
 const MAX_SIZE = 4 * 1024 * 1024;
@@ -159,7 +160,15 @@ export default function ImageUploadBox({
                   className="rounded-full overflow-hidden hover:ring-2 transition-all"
                   style={{ aspectRatio: "1", width: "100%" }}
                 >
-                  <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  <Image
+                    src={url}
+                    alt=""
+                    width={96}
+                    height={96}
+                    sizes="96px"
+                    quality={70}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
                 </button>
               ))}
             </div>
