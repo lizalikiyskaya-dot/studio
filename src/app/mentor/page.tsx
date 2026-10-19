@@ -12,29 +12,54 @@ export default async function MentorPage() {
   if (!session) redirect("/login");
   if (session.role !== "MENTOR") redirect("/dashboard/tasks");
 
-  const pending = await prisma.user.findMany({
-    where: { status: "PENDING", role: "STUDENT" },
-    orderBy: { createdAt: "asc" },
+  // Один запрос вместо трёх. В клиент уходят только поля списка:
+  // passwordHash и прочие служебные колонки в браузер не попадают.
+  const people = await prisma.user.findMany({
+    where: { role: "STUDENT" },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      status: true,
+      paymentStatus: true,
+      paymentDay: true,
+      bookWorkshopUnlocked: true,
+      storyWorkshopUnlocked: true,
+      avatarUrl: true,
+      lastSeenAt: true,
+      lastActivityAt: true,
+      sortOrder: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
-  const students = await prisma.user.findMany({
-    where: { status: { in: ["APPROVED", "SUSPENDED"] }, role: "STUDENT" },
-    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-  });
+  const pending = people
+    .filter((s) => s.status === "PENDING")
+    .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  const students = people
+    .filter((s) => s.status === "APPROVED" || s.status === "SUSPENDED")
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, "ru"));
   // Маячок у имени = непросмотренные правки ученика (см. lib/unseenActivity).
-  const unseen = await getUnseenActivity(
-    session.userId,
-    students.map((s) => s.id)
-  );
+  const unseen = await getUnseenActivity(session.userId, students);
   const studentsWithBeacons = students.map((s) => ({
-    ...s,
+    id: s.id,
+    name: s.name,
+    email: s.email,
+    status: s.status,
+    paymentStatus: s.paymentStatus,
+    paymentDay: s.paymentDay,
+    bookWorkshopUnlocked: s.bookWorkshopUnlocked,
+    storyWorkshopUnlocked: s.storyWorkshopUnlocked,
+    avatarUrl: s.avatarUrl,
+    lastSeenAt: s.lastSeenAt,
+    lastActivityAt: s.lastActivityAt,
     unseenAt: unseen[s.id] ?? null,
   }));
 
-  const decided = await prisma.user.findMany({
-    where: { status: { in: ["APPROVED", "REJECTED"] }, role: "STUDENT" },
-    orderBy: { updatedAt: "desc" },
-    take: 20,
-  });
+  const decided = people
+    .filter((s) => s.status === "APPROVED" || s.status === "REJECTED")
+    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+    .slice(0, 20);
 
   const openCount = students.filter((s) => s.status === "APPROVED" && s.paymentStatus === "PAID").length;
   const awaitingCount = students.filter((s) => s.status === "APPROVED" && s.paymentStatus !== "PAID").length;

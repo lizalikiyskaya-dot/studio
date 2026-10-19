@@ -30,8 +30,10 @@ export default async function StudentViewLayout({
     }),
     prisma.note.findMany({ where: { studentId: student.id }, orderBy: { createdAt: "desc" } }),
   ]);
-  const noteComments = await getCommentsForRecords("Note", notes.map((n) => n.id));
-  const beacons = await getSectionBeacons(student.id);
+  const [noteComments, beacons] = await Promise.all([
+    getCommentsForRecords("Note", notes.map((n) => n.id)),
+    getSectionBeacons(student.id),
+  ]);
 
   return (
     <SuggestionProvider canSuggest={student.reviewModeEnabled}>

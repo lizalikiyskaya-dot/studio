@@ -28,8 +28,10 @@ export default async function DashboardLayout({
     }),
     prisma.note.findMany({ where: { studentId: user.id }, orderBy: { createdAt: "desc" } }),
   ]);
-  const noteComments = await getCommentsForRecords("Note", notes.map((n) => n.id));
-  const beacons = await getSectionBeacons(user.id);
+  const [noteComments, beacons] = await Promise.all([
+    getCommentsForRecords("Note", notes.map((n) => n.id)),
+    getSectionBeacons(user.id),
+  ]);
 
   return (
     <>

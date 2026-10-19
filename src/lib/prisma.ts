@@ -3,7 +3,9 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL, max: 3 });
+// Кабинет на один заход открывает несколько запросов сразу (сессия, заметки,
+// задания, маячки). Пул в 3 соединения выстраивал их в очередь.
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL, max: 10 });
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
 
