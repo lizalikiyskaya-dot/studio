@@ -1,5 +1,11 @@
 import type { MaterialStatus } from "@/generated/prisma/client";
 
+/** Ученик, у которого методичка уже открыта. */
+export type OpenedStudent = {
+  id: string;
+  name: string;
+};
+
 /** Карточка в библиотеке наставника. Самого файла здесь нет — только имя. */
 export type LibraryGuide = {
   id: string;
@@ -11,8 +17,8 @@ export type LibraryGuide = {
   hasFile: boolean;
   isPdf: boolean;
   order: number;
-  notifyOnOpen: boolean;
   visibleCount: number;
+  openedStudents: OpenedStudent[];
 };
 
 /** Методичка в кабинете конкретного ученика. Файл отдаёт только API. */
@@ -27,16 +33,6 @@ export type CabinetGuide = {
   isPdf: boolean;
   visible: boolean;
   status: MaterialStatus;
-};
-
-/** Страница просмотра. Без содержимого файла. */
-export type ReaderGuide = {
-  id: string;
-  title: string;
-  description: string;
-  fileName: string | null;
-  hasFile: boolean;
-  isPdf: boolean;
 };
 
 export type ActionFail = { ok: false; error: string };

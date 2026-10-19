@@ -779,7 +779,7 @@ model Guide {
   fileName     String?
   fileMime     String?
   order        Int      @default(0)
-  // Письмо ученику в момент открытия. Выключено, пока наставник сам не отметит.
+  // Старая галочка. Письмо теперь спрашивают при открытии, поле само ничего не шлёт.
   notifyOnOpen Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

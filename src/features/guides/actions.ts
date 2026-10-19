@@ -3,18 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { AccessDeniedError, requireCabinetAccess, requireMentorSession } from "@/lib/access";
-import { GUIDE_AUDIENCE, forgetGuidesSchema, guidesSchemaReady } from "@/lib/guides";
+import { GUIDE_AUDIENCE, forgetGuidesSchema, guidesSchemaReady, listOpenedStudents } from "@/lib/guides";
 import { notifyStudentGuideOpened } from "@/lib/notify";
 import { nextMaterialStatus } from "@/features/materials/status";
 import type { MaterialStatus } from "@/generated/prisma/client";
-import type { ActionFail, ActionResult, LibraryGuide } from "./types";
+import { guideOpenShouldEmail } from "./openGuide";
+import type { ActionFail, ActionResult, LibraryGuide, OpenedStudent } from "./types";
 
 const NOT_READY = "Библиотека методичек ещё не подключена к базе. Сначала нужно выполнить SQL.";
 
 function touch(studentId?: string) {
   revalidatePath("/mentor/guides");
   revalidatePath("/dashboard/materials");
-  revalidatePath("/dashboard/guides/[guideId]", "page");
   if (studentId) {
     revalidatePath(`/student-view/${studentId}/materials`);
   } else {
@@ -63,7 +63,6 @@ export async function createGuide(): Promise<ActionResult<{ guide: LibraryGuide 
         fileName: true,
         fileMime: true,
         order: true,
-        notifyOnOpen: true,
       },
     });
     touch();
@@ -79,8 +78,8 @@ export async function createGuide(): Promise<ActionResult<{ guide: LibraryGuide 
         hasFile: false,
         isPdf: false,
         order: guide.order,
-        notifyOnOpen: guide.notifyOnOpen,
         visibleCount: 0,
+        openedStudents: [],
       },
     };
   } catch (error) {
@@ -121,20 +120,6 @@ export async function updateGuideDescription(guideId: string, description: strin
   }
 }
 
-export async function setGuideNotify(guideId: string, notifyOnOpen: boolean): Promise<ActionResult> {
-  const denied = await mentorReady();
-  if (denied) return denied;
-  try {
-    await prisma.guide.update({ where: { id: guideId }, data: { notifyOnOpen } });
-    touch();
-    return { ok: true };
-  } catch (error) {
-    const missing = schemaOrThrow(error);
-    if (missing) return missing;
-    return { ok: false, error: "Не удалось сохранить настройку письма" };
-  }
-}
-
 export async function deleteGuide(guideId: string): Promise<ActionResult> {
   const denied = await mentorReady();
   if (denied) return denied;
@@ -167,9 +152,9 @@ async function openNotice(guideId: string, studentIds: string[]) {
   if (studentIds.length === 0) return;
   const guide = await prisma.guide.findUnique({
     where: { id: guideId },
-    select: { id: true, title: true, description: true, notifyOnOpen: true },
+    select: { id: true, title: true, description: true },
   });
-  if (!guide?.notifyOnOpen) return;
+  if (!guide) return;
   for (const studentId of studentIds) {
     await notifyStudentGuideOpened(studentId, guide);
   }
@@ -178,7 +163,8 @@ async function openNotice(guideId: string, studentIds: string[]) {
 export async function setGuideVisibleForStudent(
   guideId: string,
   studentId: string,
-  visible: boolean
+  visible: boolean,
+  notify = false
 ): Promise<ActionResult<{ visible: boolean }>> {
   const denied = await mentorReady();
   if (denied) return denied;
@@ -201,7 +187,7 @@ export async function setGuideVisibleForStudent(
       create: { guideId, studentId, visible },
       update: { visible },
     });
-    if (visible && !wasVisible) await openNotice(guideId, [studentId]);
+    if (guideOpenShouldEmail({ visible, wasVisible, notify })) await openNotice(guideId, [studentId]);
     touch(studentId);
     return { ok: true, visible };
   } catch (error) {
@@ -213,8 +199,9 @@ export async function setGuideVisibleForStudent(
 
 export async function setGuideVisibleForAll(
   guideId: string,
-  visible: boolean
-): Promise<ActionResult<{ visibleCount: number }>> {
+  visible: boolean,
+  notify = false
+): Promise<ActionResult<{ visibleCount: number; openedStudents: OpenedStudent[] }>> {
   const denied = await mentorReady();
   if (denied) return denied;
   try {
@@ -224,7 +211,7 @@ export async function setGuideVisibleForAll(
     if (!visible) {
       await prisma.guideAccess.updateMany({ where: { guideId }, data: { visible: false } });
       touch();
-      return { ok: true, visibleCount: 0 };
+      return { ok: true, visibleCount: 0, openedStudents: [] };
     }
 
     const students = await prisma.user.findMany({
@@ -247,11 +234,19 @@ export async function setGuideVisibleForAll(
         )
       );
     }
-    const newlyOpened = students.filter((student) => !wasVisible.get(student.id)).map((student) => student.id);
+    const newlyOpened = students
+      .filter((student) =>
+        guideOpenShouldEmail({
+          visible: true,
+          wasVisible: wasVisible.get(student.id) === true,
+          notify,
+        })
+      )
+      .map((student) => student.id);
     await openNotice(guideId, newlyOpened);
     touch();
-    const visibleCount = await prisma.guideAccess.count({ where: { guideId, visible: true } });
-    return { ok: true, visibleCount };
+    const openedStudents = await listOpenedStudents(guideId);
+    return { ok: true, visibleCount: openedStudents.length, openedStudents };
   } catch (error) {
     const missing = schemaOrThrow(error);
     if (missing) return missing;

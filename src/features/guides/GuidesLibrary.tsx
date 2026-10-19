@@ -1,10 +1,9 @@
 "use client";
 
-import { siteAlert, siteConfirm } from "@/components/SiteDialog";
+import { siteAlert, siteChoice, siteConfirm } from "@/components/SiteDialog";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ChevronDown, GripVertical } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import DownloadButton from "@/components/DownloadButton";
 import { Badge } from "@/components/ui/Badge";
@@ -14,7 +13,6 @@ import {
   createGuide,
   deleteGuide,
   reorderGuides,
-  setGuideNotify,
   setGuideVisibleForAll,
   updateGuideDescription,
   updateGuideTitle,
@@ -42,7 +40,7 @@ export default function GuidesLibrary({
 }) {
   const [guides, setGuides] = useState(initialGuides);
   const [busy, setBusy] = useState(false);
-  const [openIds, setOpenIds] = useState<Record<string, boolean>>({});
+  const [shownIds, setShownIds] = useState<Record<string, boolean>>({});
   const { dropTarget, dragHandle } = useDragReorder(guides, setGuides, (ids) => {
     void reorderGuides(ids).then(async (result) => {
       if (!result.ok) await siteAlert(result.error);
@@ -93,23 +91,24 @@ export default function GuidesLibrary({
     }
   }
 
-  async function handleNotify(id: string, notifyOnOpen: boolean) {
-    patch(id, { notifyOnOpen });
-    const result = await setGuideNotify(id, notifyOnOpen);
-    if (!result.ok) {
-      patch(id, { notifyOnOpen: !notifyOnOpen });
-      await siteAlert(result.error);
-    }
-  }
-
   async function handleAll(id: string, visible: boolean) {
-    if (!visible && !(await siteConfirm("Скрыть эту методичку у всех учеников? Скачать её они больше не смогут."))) return;
-    const result = await setGuideVisibleForAll(id, visible);
+    let notify = false;
+    if (!visible) {
+      if (!(await siteConfirm("Скрыть эту методичку у всех учеников? Скачать её они больше не смогут."))) return;
+    } else {
+      const choice = await siteChoice("Отправить уведомление на почту?", {
+        yes: "Отправить",
+        no: "Не отправлять",
+      });
+      if (choice === "dismiss") return;
+      notify = choice === "yes";
+    }
+    const result = await setGuideVisibleForAll(id, visible, notify);
     if (!result.ok) {
       await siteAlert(result.error);
       return;
     }
-    patch(id, { visibleCount: result.visibleCount });
+    patch(id, { visibleCount: result.visibleCount, openedStudents: result.openedStudents });
   }
 
   async function handleDelete(id: string) {
@@ -134,15 +133,15 @@ export default function GuidesLibrary({
         </div>
       )}
 
-      {guides.map((guide) => {
+      {guides.map((guide, index) => {
         const opened = guide.visibleCount > 0;
-        const open = openIds[guide.id] ?? false;
+        const shown = shownIds[guide.id] ?? false;
         return (
           <article
             key={guide.id}
             {...dropTarget(guide.id)}
-            className="rounded-[24px] px-5 py-4 mb-4"
-            style={{ background: "#fff", border: "1px solid var(--border)" }}
+            className="guide-card rounded-[24px] px-5 py-4 mb-4"
+            style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
           >
             <div className="flex items-start gap-2">
               <span
@@ -154,26 +153,14 @@ export default function GuidesLibrary({
                 <GripVertical size={16} />
               </span>
               <div className="min-w-0 flex-1">
-                <div className="flex items-start gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setOpenIds((prev) => ({ ...prev, [guide.id]: !open }))}
-                    aria-expanded={open}
-                    className="mt-1.5 grid h-6 w-6 shrink-0 place-items-center"
-                    title={open ? "Свернуть" : "Развернуть"}
-                  >
-                    <ChevronDown size={15} style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }} />
-                  </button>
-                  <input
-                    value={guide.title}
-                    onChange={(event) => patch(guide.id, { title: event.target.value })}
-                    onBlur={(event) => void saveTitle(guide.id, event.target.value)}
-                    placeholder="Название методички"
-                    maxLength={200}
-                    className="heading w-full bg-transparent outline-none text-[20px] font-semibold"
-                  />
-                </div>
-                <div style={{ display: open ? "block" : "none" }}>
+                <input
+                  value={guide.title}
+                  onChange={(event) => patch(guide.id, { title: event.target.value })}
+                  onBlur={(event) => void saveTitle(guide.id, event.target.value)}
+                  placeholder="Название методички"
+                  maxLength={200}
+                  className="heading w-full bg-transparent outline-none text-[20px] font-semibold"
+                />
                 <textarea
                   value={guide.description}
                   onChange={(event) => patch(guide.id, { description: event.target.value })}
@@ -202,19 +189,12 @@ export default function GuidesLibrary({
                     />
                   </label>
                   {guide.hasFile ? (
-                    <>
-                      <DownloadButton
-                        href={`/api/guides/${guide.id}/file`}
-                        fileName={guide.fileName}
-                        mime={guide.fileMime}
-                        bytes={guide.fileBytes}
-                      />
-                      {guide.isPdf ? (
-                        <Link href={`/mentor/guides/${guide.id}`} className="lnk text-[13.5px]">
-                          открыть
-                        </Link>
-                      ) : null}
-                    </>
+                    <DownloadButton
+                      href={`/api/guides/${guide.id}/file`}
+                      fileName={guide.fileName}
+                      mime={guide.fileMime}
+                      bytes={guide.fileBytes}
+                    />
                   ) : (
                     <span className="text-[13px]" style={{ color: "var(--muted)" }}>
                       PDF, EPUB, Word, RTF или текст, до 8 МБ
@@ -229,7 +209,25 @@ export default function GuidesLibrary({
                       ? "учеников пока нет"
                       : `у ${guide.visibleCount} из ${studentCount}`}
                   </span>
+                  {studentCount > 0 ? (
+                    <button
+                      type="button"
+                      className="lnk text-[13px]"
+                      onClick={() => setShownIds((prev) => ({ ...prev, [guide.id]: !shown }))}
+                    >
+                      {shown ? "скрыть" : "показать"}
+                    </button>
+                  ) : null}
                 </div>
+                {shown ? (
+                  <div className="mt-2 flex flex-col gap-1 text-[13.5px]" style={{ color: "var(--ink)" }}>
+                    {guide.openedStudents.length === 0 ? (
+                      <span style={{ color: "var(--muted)" }}>Пока никому не открыта</span>
+                    ) : (
+                      guide.openedStudents.map((student) => <span key={student.id}>{student.name}</span>)
+                    )}
+                  </div>
+                ) : null}
 
                 <div className="mt-3 flex items-center gap-2 flex-wrap">
                   <Button type="button" variant="primary" size="sm" pill onClick={() => void handleAll(guide.id, true)}>
@@ -241,17 +239,6 @@ export default function GuidesLibrary({
                   <Button type="button" variant="secondary" size="sm" pill onClick={() => void handleDelete(guide.id)}>
                     Удалить
                   </Button>
-                </div>
-
-                <label className="mt-4 flex items-start gap-2 text-[13.5px] cursor-pointer" style={{ color: "var(--ink2)" }}>
-                  <input
-                    type="checkbox"
-                    className="mt-1"
-                    checked={guide.notifyOnOpen}
-                    onChange={(event) => void handleNotify(guide.id, event.target.checked)}
-                  />
-                  <span>Письмо ученику, когда методичка открывается</span>
-                </label>
                 </div>
               </div>
             </div>

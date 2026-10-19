@@ -1,7 +1,7 @@
 import { Prisma } from "@/generated/prisma/client";
 import { withStatementTimeout } from "@/lib/dbBudget";
 import { prisma } from "@/lib/prisma";
-import type { CabinetGuide, LibraryGuide, ReaderGuide } from "@/features/guides/types";
+import type { CabinetGuide, LibraryGuide, OpenedStudent } from "@/features/guides/types";
 
 /**
  * Текущие ученики для «показать всем»: с открытым доступом и с закрытым.
@@ -70,8 +70,11 @@ const guideListSelect = {
   fileName: true,
   fileMime: true,
   order: true,
-  notifyOnOpen: true,
 } as const;
+
+export function sortOpenedStudents(students: OpenedStudent[]): OpenedStudent[] {
+  return [...students].sort((a, b) => a.name.localeCompare(b.name, "ru"));
+}
 
 async function guideByteSizes(ids: string[]): Promise<Map<string, number | null>> {
   const sizes = new Map<string, number | null>();
@@ -103,11 +106,11 @@ function toLibraryGuide(
     fileName: string | null;
     fileMime: string | null;
     order: number;
-    notifyOnOpen: boolean;
-    _count: { access: number };
+    access: { student: OpenedStudent }[];
   },
   fileBytes: number | null
 ): LibraryGuide {
+  const openedStudents = sortOpenedStudents(guide.access.map((row) => row.student));
   return {
     id: guide.id,
     title: guide.title,
@@ -118,8 +121,8 @@ function toLibraryGuide(
     hasFile: Boolean(guide.fileName),
     isPdf: guide.fileMime === "application/pdf",
     order: guide.order,
-    notifyOnOpen: guide.notifyOnOpen,
-    visibleCount: guide._count.access,
+    visibleCount: openedStudents.length,
+    openedStudents,
   };
 }
 
@@ -131,7 +134,10 @@ export async function loadLibrary(): Promise<{ ready: true; guides: LibraryGuide
         orderBy: [{ order: "asc" }, { createdAt: "asc" }],
         select: {
           ...guideListSelect,
-          _count: { select: { access: { where: { visible: true } } } },
+          access: {
+            where: { visible: true },
+            select: { student: { select: { id: true, name: true } } },
+          },
         },
       }),
       prisma.user.count({ where: GUIDE_AUDIENCE }),
@@ -186,36 +192,11 @@ export async function loadCabinetGuides(studentId: string, includeHidden: boolea
   }
 }
 
-export async function loadGuideForReader(
-  guideId: string,
-  viewer: { userId: string; asMentor: boolean }
-): Promise<ReaderGuide | null> {
-  if (!(await guidesSchemaReady())) return null;
-  try {
-    const guide = await prisma.guide.findUnique({
-      where: { id: guideId },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        fileName: true,
-        fileMime: true,
-        access: { where: { studentId: viewer.userId, visible: true }, select: { visible: true } },
-      },
-    });
-    if (!guide) return null;
-    if (!viewer.asMentor && guide.access.length === 0) return null;
-    return {
-      id: guide.id,
-      title: guide.title,
-      description: guide.description,
-      fileName: guide.fileName,
-      hasFile: Boolean(guide.fileName),
-      isPdf: guide.fileMime === "application/pdf",
-    };
-  } catch (error) {
-    const fallback = mapMissing<ReaderGuide | null>(error, null);
-    if (fallback !== undefined) return fallback;
-    throw error;
-  }
+/** Кто уже видит методичку. Имена, без почты. */
+export async function listOpenedStudents(guideId: string): Promise<OpenedStudent[]> {
+  const rows = await prisma.guideAccess.findMany({
+    where: { guideId, visible: true },
+    select: { student: { select: { id: true, name: true } } },
+  });
+  return sortOpenedStudents(rows.map((row) => row.student));
 }

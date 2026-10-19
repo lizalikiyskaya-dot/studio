@@ -171,9 +171,10 @@ export async function notifyApproved(userId: string) {
 }
 
 /**
- * Наставник открыл ученику методичку из общей библиотеки.
- * Письмо короткое и только если у этой методички включена галочка,
- * а у ученика не выключены уведомления. Ошибку почты наружу не бросает.
+ * Наставник открыл ученику методичку и нажал «Отправить».
+ * Вызывать только в этом случае: само по себе открытие письмо не шлёт.
+ * Ученику без доступа и с выключенными уведомлениями не пишем.
+ * Ошибку почты наружу не бросает.
  */
 export async function notifyStudentGuideOpened(
   studentId: string,
@@ -192,13 +193,13 @@ export async function notifyStudentGuideOpened(
   ];
   const about = guide.description.trim();
   if (about) paragraphs.push(escapeHtml(about));
-  paragraphs.push("Она в разделе «Материалы → Методички». Файл можно открыть или скачать там.");
+  paragraphs.push("Она в разделе «Материалы». Файл можно скачать там.");
 
   const html = renderEmail({
     title: "Новая методичка",
     paragraphs,
-    action: { label: "Открыть методичку", url: `${appUrl()}/dashboard/guides/${guide.id}` },
-    footnote: "Письмо приходит, когда наставник открывает методичку. Отключить такие письма можно в профиле.",
+    action: { label: "Открыть материалы", url: `${appUrl()}/dashboard/materials?tab=handouts` },
+    footnote: "Письмо приходит, только если наставник выбрал отправить уведомление. Отключить такие письма можно в профиле.",
   });
   await sendMail({ to: student.email, subject: `Новая методичка: ${title}`, html });
 }
