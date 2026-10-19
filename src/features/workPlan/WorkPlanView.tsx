@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
+import { markedTitle } from "@/components/markedTitle";
 import WorkPlanTable from "./WorkPlanTable";
 
 export default async function WorkPlanView({ studentId }: { studentId: string }) {
@@ -7,5 +9,9 @@ export default async function WorkPlanView({ studentId }: { studentId: string })
     orderBy: { order: "asc" },
   });
 
-  return <WorkPlanTable studentId={studentId} initialPlans={plans} />;
+  return (
+    <Suspense fallback={<h1 className="page-title">{markedTitle("План работы")}</h1>}>
+      <WorkPlanTable studentId={studentId} initialPlans={plans} />
+    </Suspense>
+  );
 }
