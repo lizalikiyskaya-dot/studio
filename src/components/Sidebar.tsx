@@ -18,6 +18,7 @@ import {
   MessageSquareText,
   Pencil,
   PenLine,
+  Quote,
   Send,
   X,
 } from "lucide-react";
@@ -28,6 +29,7 @@ import Wordmark from "./Wordmark";
 import ToggleSwitch from "./ToggleSwitch";
 import WorkshopBookCard from "./WorkshopBookCard";
 import WorkshopCycleCard from "./WorkshopCycleCard";
+import type { DailyQuote as DailyQuoteRow } from "@/data/dailyQuotes";
 import type { WorkshopBook } from "@/lib/workshopBooks";
 import type { WorkshopCycle } from "@/lib/workshopCycles";
 import type { NearestDeadlineView, NearestPaymentView } from "@/lib/studentFocus";
@@ -105,6 +107,7 @@ export default function Sidebar({
   books,
   cycles,
   nearest,
+  dailyQuote,
   children,
 }: {
   basePath: string;
@@ -126,6 +129,7 @@ export default function Sidebar({
   books?: WorkshopBook[];
   cycles?: WorkshopCycle[];
   nearest?: { deadlines: NearestDeadlineView[]; payments: NearestPaymentView[] };
+  dailyQuote?: DailyQuoteRow | null;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -297,6 +301,8 @@ export default function Sidebar({
     ? [
         { key: "students", href: "/mentor", label: "Ученики и заявки", icon: Bookmark, beacon: false, active: pathname === "/mentor" },
         { key: "guides", href: "/mentor/guides", label: "Методички", icon: BookOpen, beacon: false, active: pathname === "/mentor/guides" || (pathname?.startsWith("/mentor/guides/") ?? false) },
+        { key: "quotes", href: "/mentor/quotes", label: "Цитаты дня", icon: Quote, beacon: false, active: pathname === "/mentor/quotes" },
+        { key: "weekly-admin", href: "/mentor/weekly", label: "Задания недели", icon: Sparkles, beacon: false, active: pathname === "/mentor/weekly" },
         { key: "profile", href: "/mentor/profile", label: "Мой профиль", icon: Pencil, beacon: false, active: pathname === "/mentor/profile" },
       ]
     : [
@@ -449,7 +455,7 @@ export default function Sidebar({
 
           {calendar && (
             <>
-              <DailyQuote />
+              {dailyQuote ? <DailyQuote quote={dailyQuote} /> : null}
               <CalendarWidget
                 tasks={calendar.tasks}
                 paymentDay={calendar.paymentDay}
@@ -580,7 +586,7 @@ export default function Sidebar({
                   {calendar && (
                     <>
                       <div className="mb-3">
-                        <DailyQuote />
+                        {dailyQuote ? <DailyQuote quote={dailyQuote} /> : null}
                       </div>
                       <CalendarWidget
                         tasks={calendar.tasks}

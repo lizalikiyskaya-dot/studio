@@ -866,6 +866,20 @@ model WeeklySubmission {
   @@index([weeklyTaskId])
 }
 
+// Цитата дня. Список правит наставник. День выбирает строку по порядку sortOrder.
+model DailyQuote {
+  id         String   @id @default(cuid())
+  text       String
+  author     String
+  source     String
+  translator String   @default("")
+  sortOrder  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
 // Журнал звёзд. Уникальный ключ не даёт начислить дважды за один и тот же источник.
 model StarAward {
   id        String   @id @default(cuid())
@@ -874,6 +888,8 @@ model StarAward {
   kind      StarKind
   points    Int
   sourceId  String
+  // Пусто у обычных начислений. «завершение книги» — разовая доплата до 100.
+  note      String   @default("")
   createdAt DateTime @default(now())
 
   @@unique([studentId, kind, sourceId])

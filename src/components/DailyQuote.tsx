@@ -1,7 +1,6 @@
-import { quoteForDate } from "@/lib/dailyQuote";
+import type { DailyQuote as DailyQuoteRow } from "@/data/dailyQuotes";
 
-export default function DailyQuote() {
-  const quote = quoteForDate();
+export default function DailyQuote({ quote }: { quote: DailyQuoteRow }) {
   return (
     <aside className="daily-quote" aria-label="Цитата дня">
       <div className="daily-quote-kicker">Цитата дня</div>
