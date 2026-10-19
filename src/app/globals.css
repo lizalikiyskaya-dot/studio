@@ -466,8 +466,7 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   background: var(--y);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
 }
-.studio-topnav.is-collapsed a .nav-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-.studio-topnav:not(.is-collapsed) a .nav-icon { display: none; }
+.studio-topnav a .nav-icon { display: none; }
 .nav-beacon {
   position: absolute;
   top: 4px;
@@ -547,10 +546,7 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
     calc(100vh - var(--sidebar-h, 480px) - 24px)
   );
 }
-.collapse-desktop { display: none; }
 @media (min-width: 981px) {
-  .studio-sidebar.is-collapsed { display: none; }
-  .collapse-desktop { display: grid; }
   .studio-shell.has-mentor .studio-sidebar {
     top: min(
       calc(var(--chrome-h, 112px) + 32px),
