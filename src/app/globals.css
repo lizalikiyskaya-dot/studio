@@ -545,6 +545,37 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 .side-card { border-radius: 16px; background: #fff; padding: 14px; }
 .deadline-card,
 .side-card { flex-shrink: 0; }
+.daily-quote {
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px 14px 12px;
+  flex-shrink: 0;
+}
+.daily-quote-kicker {
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--v);
+}
+.daily-quote-text {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 15.5px;
+  line-height: 1.35;
+  font-weight: 500;
+  margin: 6px 0 0;
+  color: var(--ink);
+}
+.daily-quote-author {
+  margin-top: 8px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--ink2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.daily-quote-credit { min-width: 0; }
+.daily-quote-rule { width: 22px; height: 1px; background: var(--ink); flex-shrink: 0; }
 .mentor-side-nav { display: none; }
 .deadline-card {
   position: relative;

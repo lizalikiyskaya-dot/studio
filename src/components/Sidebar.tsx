@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import CalendarWidget from "./CalendarWidget";
+import DailyQuote from "./DailyQuote";
 import Wordmark from "./Wordmark";
 import ToggleSwitch from "./ToggleSwitch";
 import WorkshopBookCard from "./WorkshopBookCard";
@@ -498,11 +499,14 @@ export default function Sidebar({
           )}
 
           {calendar && (
-            <CalendarWidget
-              tasks={calendar.tasks}
-              paymentDay={calendar.paymentDay}
-              paymentStatus={calendar.paymentStatus}
-            />
+            <>
+              <DailyQuote />
+              <CalendarWidget
+                tasks={calendar.tasks}
+                paymentDay={calendar.paymentDay}
+                paymentStatus={calendar.paymentStatus}
+              />
+            </>
           )}
 
           {upcoming && (
@@ -623,11 +627,16 @@ export default function Sidebar({
                     </div>
                   )}
                   {calendar && (
-                    <CalendarWidget
-                      tasks={calendar.tasks}
-                      paymentDay={calendar.paymentDay}
-                      paymentStatus={calendar.paymentStatus}
-                    />
+                    <>
+                      <div className="mb-3">
+                        <DailyQuote />
+                      </div>
+                      <CalendarWidget
+                        tasks={calendar.tasks}
+                        paymentDay={calendar.paymentDay}
+                        paymentStatus={calendar.paymentStatus}
+                      />
+                    </>
                   )}
                   {upcoming && (
                     <div className="deadline-card mt-3">
