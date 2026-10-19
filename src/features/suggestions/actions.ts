@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAuthenticated, requireCabinetAccess } from "@/lib/access";
 import { SUGGESTION_REGISTRY, type SuggestableModel } from "@/lib/suggestionRegistry";
+import { resolveHunk } from "@/lib/suggestionHunks";
 
 /**
  * Student edits apply directly. A mentor edit over an already
@@ -33,8 +34,9 @@ export async function saveFieldOrSuggest(
   }
 
   const currentValue = await entry.getCurrentValue(recordId, field);
-  if (!currentValue.trim()) {
-    await entry.apply(recordId, field, value);
+  if (!currentValue.trim() || value === currentValue) {
+    if (value !== currentValue) await entry.apply(recordId, field, value);
+    await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
     return { suggested: false };
   }
 
@@ -60,10 +62,34 @@ export async function acceptFieldSuggestion(model: SuggestableModel, recordId: s
   await prisma.fieldSuggestion.delete({ where: { id: suggestion.id } });
 }
 
-/**
- * Отклонить правку наставника: предложение удаляется, в поле остаётся
- * текст ученика. Ничего не применяем — в этом вся суть отказа.
- */
+export async function resolveSuggestionHunk(
+  model: SuggestableModel,
+  recordId: string,
+  field: string,
+  hunkIndex: number,
+  action: "accept" | "reject",
+) {
+  const entry = SUGGESTION_REGISTRY[model];
+  const studentId = await entry.getStudentId(recordId);
+  await requireCabinetAccess(studentId);
+
+  const suggestion = await prisma.fieldSuggestion.findUnique({
+    where: { model_recordId_field: { model, recordId, field } },
+  });
+  const currentValue = await entry.getCurrentValue(recordId, field);
+  if (!suggestion) return { value: currentValue, suggestion: null as string | null };
+
+  const next = resolveHunk(currentValue, suggestion.value, hunkIndex, action);
+  if (next.value !== currentValue) await entry.apply(recordId, field, next.value);
+  if (next.suggestion == null) {
+    await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
+  } else if (next.suggestion !== suggestion.value) {
+    await prisma.fieldSuggestion.update({ where: { id: suggestion.id }, data: { value: next.suggestion } });
+  }
+  return next;
+}
+
+/** Отклонить правку целиком: в поле остаётся текст ученика. */
 export async function rejectFieldSuggestion(model: SuggestableModel, recordId: string, field: string) {
   const entry = SUGGESTION_REGISTRY[model];
   const studentId = await entry.getStudentId(recordId);

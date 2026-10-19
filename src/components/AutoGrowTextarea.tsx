@@ -13,13 +13,14 @@ const AutoGrowTextarea = forwardRef<
   {
     defaultValue: string;
     onBlur: (value: string) => void;
+    onChange?: (value: string) => void;
     className?: string;
     placeholder?: string;
     style?: React.CSSProperties;
     resizable?: boolean;
   }
 >(function AutoGrowTextarea(
-  { defaultValue, onBlur, className, placeholder, style, resizable },
+  { defaultValue, onBlur, onChange, className, placeholder, style, resizable },
   forwardedRef
 ) {
   const innerRef = useRef<HTMLTextAreaElement>(null);
@@ -50,7 +51,10 @@ const AutoGrowTextarea = forwardRef<
       defaultValue={defaultValue}
       placeholder={placeholder}
       rows={1}
-      onInput={(e) => resize(e.currentTarget)}
+      onInput={(e) => {
+        resize(e.currentTarget);
+        onChange?.(e.currentTarget.value);
+      }}
       onBlur={(e) => onBlur(e.target.value)}
       onKeyDown={(e) => {
         if (e.key === "Enter" && !e.shiftKey) {

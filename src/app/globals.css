@@ -90,6 +90,51 @@ input, textarea, select, [contenteditable="true"] {
   font-family: var(--font-serif), Georgia, serif;
 }
 
+.suggest-doc { white-space: pre-wrap; line-height: 1.45; }
+.suggest-hunk {
+  background: #f4f1ff;
+  border-radius: 6px;
+  box-decoration-break: clone;
+}
+.suggest-hunk-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.suggest-accept,
+.suggest-reject,
+.suggest-reject-all {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 26px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.suggest-accept {
+  width: 26px;
+  border: 0;
+  background: var(--sage);
+  color: #fff;
+}
+.suggest-reject {
+  width: 26px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+}
+.suggest-reject-all {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--faded);
+  font-size: 12.5px;
+}
+
 .font-mono-label {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-weight: 500;
