@@ -72,10 +72,10 @@ export default function CharacterCard({
 
   return (
     <div
-      className="hover-lift rounded-[18px] mb-4 overflow-hidden max-w-[760px]"
+      className="hover-lift rounded-[18px] mb-4 max-w-[760px]"
       style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "var(--soft)" }}
     >
-      <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3 cursor-pointer">
+      <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3.5 cursor-pointer">
         <div
           className="rounded-full flex-shrink-0"
           style={{

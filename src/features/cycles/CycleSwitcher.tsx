@@ -7,6 +7,7 @@ import { useTransition } from "react";
 import { Plus } from "lucide-react";
 import { createCycle, deleteCycle } from "./actions";
 import { createStandaloneStory } from "@/features/stories/actions";
+import PillSelect from "@/components/PillSelect";
 
 export default function CycleSwitcher({
   studentId,
@@ -60,18 +61,13 @@ export default function CycleSwitcher({
           Цикл:
         </label>
       )}
-      <select
-        value={activeCycleId}
-        onChange={(e) => handleChange(e.target.value)}
-        className="min-w-0 max-w-full text-[14px] bg-white rounded-full px-4 h-11"
-        style={{ border: "1px solid var(--border)" }}
-      >
+      <PillSelect value={activeCycleId} onChange={(e) => handleChange(e.target.value)}>
         {cycles.map((c) => (
           <option key={c.id} value={c.id}>
             {c.title || "Без названия"}
           </option>
         ))}
-      </select>
+      </PillSelect>
       <button type="button" onClick={handleAddCycle} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
         <Plus size={16} /> Новый цикл
       </button>
