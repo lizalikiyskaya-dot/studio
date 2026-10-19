@@ -11,7 +11,15 @@ test("в списке больше шестидесяти разных цита�
     assert.ok(quote.text.trim().length > 8);
     assert.ok(quote.author.trim().length > 2);
     assert.ok(quote.source.trim().length > 2);
+    assert.equal(quote.source.includes("перевод"), false);
+    assert.equal(quote.author.includes("перевод"), false);
   }
+  const hemingway = DAILY_QUOTES.find((quote) => quote.author === "Эрнест Хемингуэй");
+  assert.equal(hemingway?.source, "«Смерть после полудня», 1932");
+  assert.equal(hemingway?.translator, "В. Топер");
+  const king = DAILY_QUOTES.find((quote) => quote.author === "Стивен Кинг");
+  assert.equal(king?.source, "«Как писать книги»");
+  assert.equal(king?.translator, "М. Левина");
 });
 
 test("в один московский день цитата одна и та же", () => {
