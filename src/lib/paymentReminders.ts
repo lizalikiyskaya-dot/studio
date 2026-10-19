@@ -115,7 +115,7 @@ export function buildPaymentReminder(person: { name: string; paymentAmount: numb
   const when = dateLabel(parts);
   const paragraphs = [`${escapeHtml(person.name)}, сегодня ${when} — день оплаты.`];
   if (person.paymentAmount != null) paragraphs.push(`Сумма — ${rubles(person.paymentAmount)}.`);
-  paragraphs.push("Если дата или сумма изменились, ответьте на это письмо.");
+  paragraphs.push("Если дата или сумма изменились, напишите мне в Телеграме.");
   const subject = "Сегодня день оплаты";
   const html = renderEmail({
     title: subject,

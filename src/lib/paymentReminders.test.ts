@@ -71,6 +71,8 @@ test("letter has no gendered forms and includes the amount only when it is set",
   assert.match(withAmount.html, /3[\s\u00a0]500 ₽/);
   assert.equal(without.html.includes("₽"), false);
   assert.match(withAmount.html, /Саша, сегодня/);
+  assert.match(withAmount.html, /напишите мне в Телеграме/);
+  assert.equal(withAmount.html.includes("ответьте на это письмо"), false);
 });
 
 test("dry-run does not claim or send, and a second claim is one letter", async () => {
