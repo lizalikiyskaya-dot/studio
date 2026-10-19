@@ -523,7 +523,7 @@ export default function Sidebar({
           {upcoming && (
             <div className="deadline-card">
               <span className="deadline-ribbon" aria-hidden="true" />
-              <div className="deadline-kicker">{onBook || onStory || section === "exercises" ? "Разбор в четверг" : "Ближайший дедлайн"}</div>
+              <div className="deadline-kicker">Ближайший дедлайн</div>
               <div className="serif deadline-title">{upcoming.title || "Задание"}</div>
               <div className="deadline-when">{formatDeadline(upcoming.deadline)}</div>
             </div>
@@ -650,7 +650,7 @@ export default function Sidebar({
                   {upcoming && (
                     <div className="deadline-card mt-3">
                       <span className="deadline-ribbon" aria-hidden="true" />
-                      <div className="deadline-kicker">{onBook || onStory || section === "exercises" ? "Разбор в четверг" : "Ближайший дедлайн"}</div>
+                      <div className="deadline-kicker">Ближайший дедлайн</div>
                       <div className="serif deadline-title">{upcoming.title || "Задание"}</div>
                       <div className="deadline-when">{formatDeadline(upcoming.deadline)}</div>
                     </div>
