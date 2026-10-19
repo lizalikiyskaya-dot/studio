@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useState, useTransition } from "react";
 import type { GrapesSetting } from "@/generated/prisma/client";
 import SuggestableField from "@/features/suggestions/SuggestableField";
@@ -26,8 +28,8 @@ export default function ExtraGrapesList({
     });
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить этот сеттинг?")) return;
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить этот сеттинг?"))) return;
     setSettings((prev) => prev.filter((s) => s.id !== id));
     startTransition(() => deleteGrapesSetting(id));
   }

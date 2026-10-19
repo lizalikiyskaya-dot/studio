@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useTransition, useState } from "react";
 import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { cycleStudentAccess, deleteStudent, moveStudent } from "./actions";
@@ -141,8 +143,8 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
     });
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить ученика и все его данные? Это необратимо.")) return;
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить ученика и все его данные? Это необратимо."))) return;
     setStudents((prev) => prev.filter((s) => s.id !== id));
     startTransition(() => deleteStudent(id));
   }

@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useState, useTransition, useRef } from "react";
 import Link from "next/link";
 import type { Material } from "@/generated/prisma/client";
@@ -215,8 +217,8 @@ function BooksList({
     startTransition(async () => { await cycleMaterialStatus(id); });
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить книгу?")) return;
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить книгу?"))) return;
     setBooks((prev) => prev.filter((m) => m.id !== id));
     startTransition(() => deleteMaterial(id));
   }
@@ -377,8 +379,8 @@ function HandoutsList({
     });
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить методичку?")) return;
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить методичку?"))) return;
     setHandouts((prev) => prev.filter((m) => m.id !== id));
     startTransition(() => deleteMaterial(id));
   }

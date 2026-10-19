@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useState, useTransition } from "react";
 import { X, GripVertical, ChevronDown } from "lucide-react";
 import type { Act, ActChapter, StorylineBlock, Comment } from "@/generated/prisma/client";
@@ -220,8 +222,8 @@ export default function ActsGrid({
     });
   }
 
-  function handleDeleteAct(actId: string) {
-    if (!window.confirm("Удалить акт?")) return;
+  async function handleDeleteAct(actId: string) {
+    if (!(await siteConfirm("Удалить акт?"))) return;
     setActs((prev) => prev.filter((a) => a.id !== actId));
     startTransition(() => deleteAct(actId));
   }
@@ -235,8 +237,8 @@ export default function ActsGrid({
     });
   }
 
-  function handleDeleteChapter(actId: string, chapterId: string) {
-    if (!window.confirm("Удалить главу?")) return;
+  async function handleDeleteChapter(actId: string, chapterId: string) {
+    if (!(await siteConfirm("Удалить главу?"))) return;
     setActs((prev) =>
       prev.map((a) =>
         a.id === actId ? { ...a, chapters: a.chapters.filter((c) => c.id !== chapterId) } : a

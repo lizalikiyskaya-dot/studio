@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useRef, useState, useTransition } from "react";
 import { ChevronDown } from "lucide-react";
 import type { PopArcCharacter, ArcType, Comment } from "@/generated/prisma/client";
@@ -166,8 +168,8 @@ export default function PopArcCard({
     setData((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handleDelete() {
-    if (!window.confirm(`Удалить «${name || "без имени"}»?`)) return;
+  async function handleDelete() {
+    if (!(await siteConfirm(`Удалить «${name || "без имени"}»?`))) return;
     onDelete();
   }
 

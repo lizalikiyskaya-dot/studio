@@ -80,6 +80,8 @@ enum SubmissionStatus {
   WAITING
   ACCEPTED
   REJECTED
+  NOT_SENT
+  SENT
 }
 
 enum WorldCategory {
@@ -592,6 +594,10 @@ model Submission {
   status    SubmissionStatus @default(WAITING)
   note      String           @default("")
   link      String           @default("")
+  // Опен-колл, с баннера которого заявка попала в трекер.
+  // Пусто у заявок, заведённых вручную. Одна ссылка — один опен-колл.
+  openCallId String?          @unique
+  openCall   OpenCall?        @relation(fields: [openCallId], references: [id], onDelete: SetNull)
   createdAt DateTime         @default(now())
 
   @@index([studentId])
@@ -608,6 +614,7 @@ model OpenCall {
   link      String   @default("")
   sent      Boolean  @default(false)
   createdAt DateTime @default(now())
+  submission Submission?
 
   @@index([studentId])
 }

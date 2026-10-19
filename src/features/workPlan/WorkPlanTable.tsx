@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useState, useTransition } from "react";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import type { WorkPlan, WorkPlanStatus } from "@/generated/prisma/client";
@@ -157,8 +159,8 @@ export default function WorkPlanTable({
     });
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить строку плана?")) return;
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить строку плана?"))) return;
     setPlans((prev) => prev.filter((p) => p.id !== id));
     startTransition(() => deleteWorkPlan(id));
   }

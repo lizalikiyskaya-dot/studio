@@ -1,5 +1,7 @@
 "use client";
 
+import { siteAlert } from "@/components/SiteDialog";
+
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
@@ -32,7 +34,7 @@ export default function LibraryGuides({
     const result = await cycleGuideStatus(id, studentId);
     if (!result.ok) {
       patch(id, { status: current });
-      window.alert(result.error);
+      await siteAlert(result.error);
     }
   }
 
@@ -42,7 +44,7 @@ export default function LibraryGuides({
     const result = await setGuideVisibleForStudent(id, studentId, visible);
     if (!result.ok) {
       patch(id, { visible: current });
-      window.alert(result.error);
+      await siteAlert(result.error);
     }
   }
 

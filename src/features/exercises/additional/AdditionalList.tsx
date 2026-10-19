@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useRef, useState, useTransition } from "react";
 import type { FreeSection, Comment, TaskStatus } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
@@ -188,8 +190,8 @@ export default function AdditionalList({
     startTransition(() => updateSectionTitle(id, value));
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить раздел?")) return;
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить раздел?"))) return;
     setSections((prev) => prev.filter((s) => s.id !== id));
     startTransition(() => deleteAdditionalSection(id));
   }

@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm, sitePrompt } from "@/components/SiteDialog";
+
 import { useState, useTransition, useRef } from "react";
 import type { Draft } from "@/generated/prisma/client";
 import FileAttachBox from "@/components/FileAttachBox";
@@ -54,14 +56,14 @@ export default function DraftsList({
     });
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить черновик?")) return;
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить черновик?"))) return;
     setDrafts((prev) => prev.filter((d) => d.id !== id));
     startTransition(() => deleteDraft(id));
   }
 
-  function handleEditLink(id: string, current: string | null) {
-    const url = window.prompt("Ссылка", current ?? "");
+  async function handleEditLink(id: string, current: string | null) {
+    const url = await sitePrompt("Ссылка", current ?? "");
     if (url === null) return; // cancelled
     handleField(id, "link", url);
   }

@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm, sitePrompt } from "@/components/SiteDialog";
+
 import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronUp, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
@@ -21,8 +23,8 @@ import EditableWithLinks from "@/components/EditableWithLinks";
 import DateField from "@/components/DateField";
 
 function LinkCell({ value, onSave }: { value: string | null; onSave: (value: string) => void }) {
-  function promptEdit() {
-    const url = window.prompt("Ссылка", value ?? "");
+  async function promptEdit() {
+    const url = await sitePrompt("Ссылка", value ?? "");
     if (url !== null) onSave(url);
   }
   if (value) {
@@ -124,8 +126,8 @@ export default function TasksTable({
     });
   }
 
-  function handleDelete(taskId: string) {
-    if (!window.confirm("Удалить задание?")) return;
+  async function handleDelete(taskId: string) {
+    if (!(await siteConfirm("Удалить задание?"))) return;
     const next = tasksRef.current.filter((task) => task.id !== taskId);
     tasksRef.current = next;
     setTasks(next);

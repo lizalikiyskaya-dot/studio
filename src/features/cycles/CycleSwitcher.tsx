@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { Plus } from "lucide-react";
@@ -39,9 +41,9 @@ export default function CycleSwitcher({
     });
   }
 
-  function handleDeleteCycle() {
+  async function handleDeleteCycle() {
     const activeTitle = cycles.find((c) => c.id === activeCycleId)?.title || "Без названия";
-    if (!window.confirm(`Удалить цикл «${activeTitle}» вместе со всеми рассказами? Это нельзя отменить.`)) {
+    if (!(await siteConfirm(`Удалить цикл «${activeTitle}» вместе со всеми рассказами? Это нельзя отменить.`))) {
       return;
     }
     startTransition(async () => {

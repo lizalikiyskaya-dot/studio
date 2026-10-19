@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useRef, useState, useTransition } from "react";
 import { ChevronDown } from "lucide-react";
 import type { Character, ArcType, Comment } from "@/generated/prisma/client";
@@ -128,8 +130,8 @@ export default function ArcCharacterCard({
     setData((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handleDelete() {
-    if (!window.confirm(`Удалить «${name || "без имени"}»?`)) return;
+  async function handleDelete() {
+    if (!(await siteConfirm(`Удалить «${name || "без имени"}»?`))) return;
     startTransition(() => deleteCharacter(character.id));
     onDeleted(character.id);
   }
