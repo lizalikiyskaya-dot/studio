@@ -5,6 +5,7 @@
  */
 export const SECTION_LABELS: Record<string, string> = {
   tasks: "Задания",
+  weekly: "Задание недели",
   "work-plan": "План работы",
   materials: "Материалы",
   drafts: "Рукописи",

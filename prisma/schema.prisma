@@ -105,6 +105,14 @@ enum SettingSource {
   OWN
 }
 
+// Откуда звёзды. Очки пишутся в StarAward и второй раз за тот же источник не даются.
+enum StarKind {
+  WEEKLY
+  MAIN_TASK
+  CONTEST
+  PUBLISHER
+}
+
 // Generic comment thread attachable to any record (used in Упражнения).
 model Comment {
   id        String   @id @default(cuid())
@@ -186,6 +194,8 @@ model User {
   guideAccess       GuideAccess[]
   guideProgress     GuideProgress[]
   paymentReminderLogs PaymentReminderLog[]
+  weeklySubmissions WeeklySubmission[]
+  starAwards        StarAward[]
 }
 
 // Одноразовая ссылка «Забыли пароль?». В базе лежит только SHA-256 от
@@ -823,4 +833,48 @@ model PaymentReminderLog {
 
   @@unique([studentId, dueOn])
   @@index([dueOn])
+}
+
+// Календарь «Задание недели». Строки общие для всех учеников, сид в docs/sql.
+// Рассылка по субботам сюда не подключена — отдельная задача.
+model WeeklyTask {
+  id          String   @id
+  publishedOn String
+  title       String
+  prompt      String
+  lengthHint  String
+  sortOrder   Int
+  submissions WeeklySubmission[]
+
+  @@unique([publishedOn])
+}
+
+// Одна сдача ученика на неделю. Повторная правка обновляет текст, не строку.
+model WeeklySubmission {
+  id           String     @id @default(cuid())
+  studentId    String
+  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  weeklyTaskId String
+  weeklyTask   WeeklyTask @relation(fields: [weeklyTaskId], references: [id], onDelete: Cascade)
+  text         String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([studentId, weeklyTaskId])
+  @@index([studentId])
+  @@index([weeklyTaskId])
+}
+
+// Журнал звёзд. Уникальный ключ не даёт начислить дважды за один и тот же источник.
+model StarAward {
+  id        String   @id @default(cuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  kind      StarKind
+  points    Int
+  sourceId  String
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, kind, sourceId])
+  @@index([studentId])
 }
