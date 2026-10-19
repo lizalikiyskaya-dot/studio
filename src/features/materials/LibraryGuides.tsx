@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { cycleGuideStatus, setGuideVisibleForStudent } from "@/features/guides/actions";
@@ -19,6 +20,7 @@ export default function LibraryGuides({
   canManage: boolean;
 }) {
   const [guides, setGuides] = useState(initialGuides);
+  const [openIds, setOpenIds] = useState<Record<string, boolean>>({});
 
   function patch(id: string, partial: Partial<CabinetGuide>) {
     setGuides((prev) => prev.map((guide) => (guide.id === id ? { ...guide, ...partial } : guide)));
@@ -48,6 +50,7 @@ export default function LibraryGuides({
     <div className="flex flex-col gap-3">
       {guides.map((guide) => {
         const canFetch = canManage || guide.visible;
+        const open = openIds[guide.id] ?? false;
         return (
           <article
             key={guide.id}
@@ -55,14 +58,15 @@ export default function LibraryGuides({
             style={{ background: "#fff", border: "1px solid var(--border)" }}
           >
             <div className="flex items-start justify-between gap-3 flex-wrap">
-              <div className="min-w-0 flex-1">
-                <div className="heading text-[17px] font-semibold">{guide.title || "Без названия"}</div>
-                {guide.description ? (
-                  <p className="mt-1 text-[13.5px] whitespace-pre-wrap" style={{ color: "var(--ink2)" }}>
-                    {guide.description}
-                  </p>
-                ) : null}
-              </div>
+              <button
+                type="button"
+                onClick={() => setOpenIds((prev) => ({ ...prev, [guide.id]: !open }))}
+                aria-expanded={open}
+                className="flex min-w-0 flex-1 items-center gap-2 text-left"
+              >
+                <ChevronDown size={15} style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }} />
+                <span className="heading text-[17px] font-semibold">{guide.title || "Без названия"}</span>
+              </button>
               <button
                 type="button"
                 onClick={() => void handleStatus(guide.id, guide.status)}
@@ -73,7 +77,13 @@ export default function LibraryGuides({
               </button>
             </div>
 
-            <div className="mt-3 flex items-center gap-3 flex-wrap">
+            <div className="mt-3" style={{ display: open ? "block" : "none" }}>
+            {guide.description ? (
+              <p className="mb-3 text-[13.5px] whitespace-pre-wrap" style={{ color: "var(--ink2)" }}>
+                {guide.description}
+              </p>
+            ) : null}
+            <div className="flex items-center gap-3 flex-wrap">
               {canFetch && guide.hasFile ? (
                 <DownloadButton
                   href={`/api/guides/${guide.id}/file`}
@@ -96,6 +106,7 @@ export default function LibraryGuides({
                   <Badge tone={guide.visible ? "mint" : "neutral"}>{guide.visible ? "открыта" : "скрыта"}</Badge>
                 </span>
               ) : null}
+            </div>
             </div>
           </article>
         );

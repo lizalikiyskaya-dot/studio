@@ -60,6 +60,7 @@ export const SUGGESTION_REGISTRY: Record<SuggestableModel, RegistryEntry> = {
       return typeof value === "string" ? value : "";
     },
     apply: async (id, field, value) => {
+      if (field === "settingMix") return;
       await prisma.cycle.update({ where: { id }, data: { [field]: value } });
     },
   },

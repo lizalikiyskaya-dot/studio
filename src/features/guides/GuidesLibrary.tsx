@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { GripVertical } from "lucide-react";
+import { ChevronDown, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import DownloadButton from "@/components/DownloadButton";
 import { Badge } from "@/components/ui/Badge";
@@ -40,6 +40,7 @@ export default function GuidesLibrary({
 }) {
   const [guides, setGuides] = useState(initialGuides);
   const [busy, setBusy] = useState(false);
+  const [openIds, setOpenIds] = useState<Record<string, boolean>>({});
   const { dropTarget, dragHandle } = useDragReorder(guides, setGuides, (ids) => {
     void reorderGuides(ids).then((result) => {
       if (!result.ok) window.alert(result.error);
@@ -133,6 +134,7 @@ export default function GuidesLibrary({
 
       {guides.map((guide) => {
         const opened = guide.visibleCount > 0;
+        const open = openIds[guide.id] ?? false;
         return (
           <article
             key={guide.id}
@@ -150,14 +152,26 @@ export default function GuidesLibrary({
                 <GripVertical size={16} />
               </span>
               <div className="min-w-0 flex-1">
-                <input
-                  value={guide.title}
-                  onChange={(event) => patch(guide.id, { title: event.target.value })}
-                  onBlur={(event) => void saveTitle(guide.id, event.target.value)}
-                  placeholder="Название методички"
-                  maxLength={200}
-                  className="heading w-full bg-transparent outline-none text-[20px] font-semibold"
-                />
+                <div className="flex items-start gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setOpenIds((prev) => ({ ...prev, [guide.id]: !open }))}
+                    aria-expanded={open}
+                    className="mt-1.5 grid h-6 w-6 shrink-0 place-items-center"
+                    title={open ? "Свернуть" : "Развернуть"}
+                  >
+                    <ChevronDown size={15} style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }} />
+                  </button>
+                  <input
+                    value={guide.title}
+                    onChange={(event) => patch(guide.id, { title: event.target.value })}
+                    onBlur={(event) => void saveTitle(guide.id, event.target.value)}
+                    placeholder="Название методички"
+                    maxLength={200}
+                    className="heading w-full bg-transparent outline-none text-[20px] font-semibold"
+                  />
+                </div>
+                <div style={{ display: open ? "block" : "none" }}>
                 <textarea
                   value={guide.description}
                   onChange={(event) => patch(guide.id, { description: event.target.value })}
@@ -236,6 +250,7 @@ export default function GuidesLibrary({
                   />
                   <span>Письмо ученику, когда методичка открывается</span>
                 </label>
+                </div>
               </div>
             </div>
           </article>

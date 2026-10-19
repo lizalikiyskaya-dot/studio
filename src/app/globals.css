@@ -1229,9 +1229,9 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   padding: 18px 20px 16px;
   margin-top: 10px;
 }
-.chapter-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.chapter-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .chapter-card-n { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
-.chapter-card-tools { display: flex; align-items: center; gap: 10px; }
+.chapter-card-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .chapter-tool {
   border: 0;
   background: transparent;

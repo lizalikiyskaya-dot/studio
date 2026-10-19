@@ -76,7 +76,7 @@ export default function StoryDetail({
   const [, startTransition] = useTransition();
 
   return (
-    <div className="rounded-[14px] p-5 max-w-[880px]" style={{ border: "1px solid var(--rule)" }}>
+    <div className="rounded-[24px] p-5 max-w-[880px]" style={{ border: "1px solid var(--border)", background: "#fff" }}>
       <div className="flex items-center justify-between mb-5 gap-3">
         <input
           defaultValue={story.title}
@@ -96,7 +96,7 @@ export default function StoryDetail({
         />
       )}
 
-      <Accordion title="О рассказе" defaultOpen>
+      <Accordion title="О рассказе">
         <StructureField label="Концепт" value={story.concept} field="concept" storyId={story.id} />
         <StructureField label="Драматический аргумент" value={story.dramaticArgument} field="dramaticArgument" storyId={story.id} />
         <StructureField label="Жанр" value={story.genre} field="genre" storyId={story.id} />

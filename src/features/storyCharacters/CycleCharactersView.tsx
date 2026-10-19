@@ -13,7 +13,7 @@ import {
   updateCycleCharacterField,
   updateCycleCharacterPhotoUrl,
 } from "./actions";
-import { Button } from "@/components/ui/Button";
+import { Plus } from "lucide-react";
 
 export default function CycleCharactersView({
   cycleId,
@@ -72,9 +72,9 @@ export default function CycleCharactersView({
           onDelete={handleDelete}
         />
       ))}
-      <Button onClick={handleAdd} variant="primary" size="sm" pill>
-        + новый персонаж цикла
-      </Button>
+      <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+        <Plus size={16} /> Новый персонаж
+      </button>
     </div>
   );
 }

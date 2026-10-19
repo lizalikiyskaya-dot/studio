@@ -2,8 +2,9 @@
 
 import { usePathname } from "next/navigation";
 import { useTransition } from "react";
+import { Plus } from "lucide-react";
 import { createCycle, deleteCycle } from "./actions";
-import { Button } from "@/components/ui/Button";
+import { createStandaloneStory } from "@/features/stories/actions";
 
 export default function CycleSwitcher({
   studentId,
@@ -30,6 +31,14 @@ export default function CycleSwitcher({
     });
   }
 
+  function handleAddStory() {
+    startTransition(async () => {
+      const story = await createStandaloneStory(studentId);
+      const storiesPath = pathname.replace(/\/cycles$/, "/stories");
+      window.location.href = `${storiesPath}?story=${story.id}`;
+    });
+  }
+
   function handleDeleteCycle() {
     const activeTitle = cycles.find((c) => c.id === activeCycleId)?.title || "Без названия";
     if (!window.confirm(`Удалить цикл «${activeTitle}» вместе со всеми рассказами? Это нельзя отменить.`)) {
@@ -43,7 +52,7 @@ export default function CycleSwitcher({
   }
 
   return (
-    <div className={inline ? "flex flex-wrap items-center gap-2" : "flex flex-wrap items-center gap-3 mb-6"}>
+    <div className={inline ? "flex flex-wrap items-center gap-2" : "flex flex-wrap items-center gap-2 mb-6"}>
       {!inline && (
         <label className="text-[13px]" style={{ color: "var(--faded)" }}>
           Цикл:
@@ -61,12 +70,20 @@ export default function CycleSwitcher({
           </option>
         ))}
       </select>
-      <Button onClick={handleAddCycle} variant="dashed" size="sm" pill>
-        + новый цикл
-      </Button>
-      <Button onClick={handleDeleteCycle} variant="secondary" size="sm" pill>
+      <button type="button" onClick={handleAddCycle} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+        <Plus size={16} /> Новый цикл
+      </button>
+      <button type="button" onClick={handleAddStory} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto", background: "var(--soft)", fontWeight: 500 }}>
+        <Plus size={16} /> Новый рассказ
+      </button>
+      <button
+        type="button"
+        onClick={handleDeleteCycle}
+        className="rounded-full px-4 text-[13.5px]"
+        style={{ height: 44, border: "1px solid var(--border)", background: "#fff" }}
+      >
         удалить цикл
-      </Button>
+      </button>
     </div>
   );
 }

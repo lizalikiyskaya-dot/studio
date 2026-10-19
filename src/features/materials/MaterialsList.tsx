@@ -7,7 +7,7 @@ import Accordion from "@/components/Accordion";
 import FileAttachBox from "@/components/FileAttachBox";
 import { uploadFile } from "@/lib/uploadFile";
 import { blurOnEnter } from "@/lib/blurOnEnter";
-import { GripVertical } from "lucide-react";
+import { ChevronDown, GripVertical } from "lucide-react";
 import {
   createMaterial,
   updateMaterialTitle,
@@ -262,6 +262,7 @@ function HandoutsList({
 }) {
   const { items: handouts, setItems: setHandouts, startTransition, saveTitle, addItem } = useEditableMaterials(materials);
   const [armedId, setArmedId] = useState<string | null>(null);
+  const [openIds, setOpenIds] = useState<Record<string, boolean>>({});
 
   const drag = useDrag(handouts, setHandouts, (ids) =>
     startTransition(() => reorderMaterials(studentId, ids))
@@ -325,7 +326,9 @@ function HandoutsList({
 
       {showPersonalHeading ? <h2 className="heading text-[18px] mb-2">Личные методички</h2> : null}
 
-      {handouts.map((material) => (
+      {handouts.map((material) => {
+        const open = openIds[material.id] ?? false;
+        return (
         <article
           key={material.id}
           draggable={canManage && armedId === material.id}
@@ -339,6 +342,15 @@ function HandoutsList({
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 flex-1 items-start gap-2">
+              <button
+                type="button"
+                onClick={() => setOpenIds((prev) => ({ ...prev, [material.id]: !open }))}
+                aria-expanded={open}
+                className="mt-1 grid h-5 w-5 shrink-0 place-items-center"
+                title={open ? "Свернуть" : "Развернуть"}
+              >
+                <ChevronDown size={15} style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }} />
+              </button>
               {canManage && (
                 <GripVertical
                   size={14}
@@ -367,7 +379,7 @@ function HandoutsList({
               {MATERIAL_STATUS_LABEL[material.status]}
             </span>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center gap-3" style={{ display: open ? "flex" : "none" }}>
             {material.fileUrl ? (
               <DownloadButton href={material.fileUrl} fileName={material.fileName} bytes={dataUrlBytes(material.fileUrl)} />
             ) : canManage ? (
@@ -382,7 +394,8 @@ function HandoutsList({
             )}
           </div>
         </article>
-      ))}
+        );
+      })}
 
       {canManage && (
         <Button onClick={handleAdd} variant="dashed" size="sm" pill className="mt-3">

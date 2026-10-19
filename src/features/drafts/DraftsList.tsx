@@ -29,7 +29,10 @@ export default function DraftsList({
   const dragOverId = useRef<string | null>(null);
 
   function toggleCollapsed(id: string) {
-    setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
+    setCollapsed((prev) => {
+      const current = prev[id] ?? true;
+      return { ...prev, [id]: !current };
+    });
   }
 
   function handleAdd() {
@@ -112,7 +115,7 @@ export default function DraftsList({
       ) : (
       <div className="grid gap-4 md:grid-cols-2">
       {drafts.map((draft) => {
-        const isCollapsed = collapsed[draft.id] ?? false;
+        const isCollapsed = collapsed[draft.id] ?? true;
         return (
           <div
             key={draft.id}

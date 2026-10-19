@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef, useEffect, type CSSProperties } from "react";
-import { Trash2 } from "lucide-react";
+import { ChevronDown, Trash2 } from "lucide-react";
 import type { PlanChapter } from "@/generated/prisma/client";
 import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, toggleChapterActBreak, deletePlanChapter } from "./actions";
 import { updatePlanColumnColors } from "./actions";
@@ -100,6 +100,126 @@ function formatChars(value: number) {
 function chapterPercent(chapter: PlanChapter) {
   if (chapter.plannedChars <= 0) return 0;
   return Math.round((chapter.writtenChars / chapter.plannedChars) * 100);
+}
+
+function ChapterCard({
+  chapter,
+  index,
+  chapterSuggestions,
+  fieldBg,
+  onNumber,
+  onColor,
+  onActBreak,
+  onDelete,
+}: {
+  chapter: PlanChapter;
+  index: number;
+  chapterSuggestions: Record<string, string>;
+  fieldBg: (col: ColKey) => CSSProperties | undefined;
+  onNumber: (field: "plannedChars" | "writtenChars", value: number) => void;
+  onColor: (color: string | null) => void;
+  onActBreak: (value: boolean) => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const percent = chapterPercent(chapter);
+  const over = percent > 100;
+
+  return (
+    <article className="chapter-card" style={{ background: chapter.color ?? "#fff" }}>
+      <div className="chapter-card-top">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="chapter-tool chapter-tool-icon"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+            title={open ? "Свернуть главу" : "Развернуть главу"}
+          >
+            <ChevronDown size={15} style={{ transform: open ? undefined : "rotate(-90deg)", transition: "transform .15s" }} />
+          </button>
+          <span className="chapter-card-n">{index + 1}</span>
+        </div>
+        <div className="chapter-card-tools">
+          <ColorPicker current={chapter.color ?? null} onChange={onColor} label="Цвет главы" />
+          <button
+            type="button"
+            className="chapter-tool"
+            onClick={() => onActBreak(!chapter.actBreakAfter)}
+            title={chapter.actBreakAfter ? "Убрать границу акта" : "Начать новый акт после этой главы"}
+          >
+            {chapter.actBreakAfter ? "Убрать границу" : "Новый акт"}
+          </button>
+          <button type="button" className="chapter-tool chapter-tool-icon" onClick={onDelete} title="Удалить главу" aria-label="Удалить главу">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+      <SuggestableField
+        model="PlanChapter"
+        recordId={chapter.id}
+        field="summary"
+        value={chapter.summary}
+        suggestion={chapterSuggestions.summary}
+        placeholder="Суть по сюжету"
+        className="chapter-card-title"
+        style={fieldBg("summary")}
+      />
+      <div style={{ display: open ? "block" : "none" }}>
+        <SuggestableField
+          model="PlanChapter"
+          recordId={chapter.id}
+          field="dramaticArgument"
+          value={chapter.dramaticArgument}
+          suggestion={chapterSuggestions.dramaticArgument}
+          placeholder="Драматическое ядро"
+          className="chapter-card-core"
+          style={fieldBg("dramaticArgument")}
+        />
+        <SuggestableField
+          model="PlanChapter"
+          recordId={chapter.id}
+          field="note"
+          value={chapter.note}
+          suggestion={chapterSuggestions.note}
+          placeholder="Примечание"
+          className="chapter-card-note"
+          style={fieldBg("note")}
+        />
+        <div className="chapter-card-foot" style={fieldBg("chars")}>
+          <div className="chapter-mini-track" aria-hidden="true">
+            <i style={{ width: `${Math.min(100, percent)}%`, background: over ? "var(--v)" : "var(--ink)" }} />
+          </div>
+          <div className="chapter-card-figures">
+            <input
+              type="number"
+              min={0}
+              defaultValue={chapter.writtenChars || ""}
+              onBlur={(e) => onNumber("writtenChars", Number(e.target.value))}
+              onKeyDown={blurOnEnter}
+              aria-label="Написано знаков"
+              placeholder="0"
+              className="chapter-num"
+            />
+            <span aria-hidden="true">/</span>
+            <input
+              type="number"
+              min={0}
+              defaultValue={chapter.plannedChars || ""}
+              onBlur={(e) => onNumber("plannedChars", Number(e.target.value))}
+              onKeyDown={blurOnEnter}
+              aria-label="План знаков"
+              placeholder="0"
+              className="chapter-num"
+            />
+            <span className={over ? "chapter-pct is-over" : "chapter-pct"}>
+              {chapter.plannedChars > 0 ? `· ${percent}%` : "· —"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 function sumChars(chapters: PlanChapter[]) {
@@ -221,109 +341,19 @@ export default function PlanTable({
           return (
             <section key={`act-${group.act}`}>
               <div className="chapter-act">Акт {group.act} · {stats.percent}%</div>
-              {group.items.map(({ chapter, index }) => {
-                const percent = chapterPercent(chapter);
-                const over = percent > 100;
-                const chapterSuggestions = suggestions[chapter.id] ?? {};
-                const fieldBg = (col: ColKey): CSSProperties | undefined =>
-                  chapter.color ? undefined : colColors[col] ? { background: colColors[col] } : undefined;
-                return (
-                  <article
-                    key={chapter.id}
-                    className="chapter-card"
-                    style={{ background: chapter.color ?? "#fff" }}
-                  >
-                    <div className="chapter-card-top">
-                      <span className="chapter-card-n">{index + 1}</span>
-                      <div className="chapter-card-tools">
-                        <ColorPicker
-                          current={chapter.color ?? null}
-                          onChange={(color) => handleRowColor(chapter.id, color)}
-                          label="Цвет главы"
-                        />
-                        <button
-                          type="button"
-                          className="chapter-tool"
-                          onClick={() => handleActBreak(chapter.id, !chapter.actBreakAfter)}
-                          title={chapter.actBreakAfter ? "Убрать границу акта" : "Начать новый акт после этой главы"}
-                        >
-                          {chapter.actBreakAfter ? "Убрать границу" : "Новый акт"}
-                        </button>
-                        <button
-                          type="button"
-                          className="chapter-tool chapter-tool-icon"
-                          onClick={() => handleDelete(chapter.id)}
-                          title="Удалить главу"
-                          aria-label="Удалить главу"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                    <SuggestableField
-                      model="PlanChapter"
-                      recordId={chapter.id}
-                      field="summary"
-                      value={chapter.summary}
-                      suggestion={chapterSuggestions.summary}
-                      placeholder="Суть по сюжету"
-                      className="chapter-card-title"
-                      style={fieldBg("summary")}
-                    />
-                    <SuggestableField
-                      model="PlanChapter"
-                      recordId={chapter.id}
-                      field="dramaticArgument"
-                      value={chapter.dramaticArgument}
-                      suggestion={chapterSuggestions.dramaticArgument}
-                      placeholder="Драматическое ядро"
-                      className="chapter-card-core"
-                      style={fieldBg("dramaticArgument")}
-                    />
-                    <SuggestableField
-                      model="PlanChapter"
-                      recordId={chapter.id}
-                      field="note"
-                      value={chapter.note}
-                      suggestion={chapterSuggestions.note}
-                      placeholder="Примечание"
-                      className="chapter-card-note"
-                      style={fieldBg("note")}
-                    />
-                    <div className="chapter-card-foot" style={fieldBg("chars")}>
-                      <div className="chapter-mini-track" aria-hidden="true">
-                        <i style={{ width: `${Math.min(100, percent)}%`, background: over ? "var(--v)" : "var(--ink)" }} />
-                      </div>
-                      <div className="chapter-card-figures">
-                        <input
-                          type="number"
-                          min={0}
-                          defaultValue={chapter.writtenChars || ""}
-                          onBlur={(e) => handleNumber(chapter.id, "writtenChars", Number(e.target.value))}
-                          onKeyDown={blurOnEnter}
-                          aria-label="Написано знаков"
-                          placeholder="0"
-                          className="chapter-num"
-                        />
-                        <span aria-hidden="true">/</span>
-                        <input
-                          type="number"
-                          min={0}
-                          defaultValue={chapter.plannedChars || ""}
-                          onBlur={(e) => handleNumber(chapter.id, "plannedChars", Number(e.target.value))}
-                          onKeyDown={blurOnEnter}
-                          aria-label="План знаков"
-                          placeholder="0"
-                          className="chapter-num"
-                        />
-                        <span className={over ? "chapter-pct is-over" : "chapter-pct"}>
-                          {chapter.plannedChars > 0 ? `· ${percent}%` : "· —"}
-                        </span>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
+              {group.items.map(({ chapter, index }) => (
+                <ChapterCard
+                  key={chapter.id}
+                  chapter={chapter}
+                  index={index}
+                  chapterSuggestions={suggestions[chapter.id] ?? {}}
+                  fieldBg={(col) => (chapter.color ? undefined : colColors[col] ? { background: colColors[col] } : undefined)}
+                  onNumber={(field, value) => handleNumber(chapter.id, field, value)}
+                  onColor={(color) => handleRowColor(chapter.id, color)}
+                  onActBreak={(value) => handleActBreak(chapter.id, value)}
+                  onDelete={() => handleDelete(chapter.id)}
+                />
+              ))}
             </section>
           );
         })

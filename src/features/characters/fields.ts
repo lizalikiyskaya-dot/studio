@@ -219,7 +219,6 @@ export type FieldGroup = {
 export const DOSSIER_GROUPS: FieldGroup[] = [
   {
     title: "1. Слои персонажа",
-    defaultOpen: true,
     subhead: "Внешний слой — кто он для мира",
     fields: [
       { key: "habits", label: "Привычки" },
@@ -270,7 +269,6 @@ export const DOSSIER_GROUPS: FieldGroup[] = [
 export const ARC_GROUPS: FieldGroup[] = [
   {
     title: "Позитивная арка",
-    defaultOpen: true,
     fields: [
       { key: "posFalseBelief", sceneKey: "posFalseBeliefScene", label: "Ложное убеждение" },
       { key: "posFalseGoal", sceneKey: "posFalseGoalScene", label: "Ложная мотивация / цель" },
@@ -335,7 +333,6 @@ export const ARC_GROUPS: FieldGroup[] = [
 export const SECONDARY_CHARACTER_GROUPS: FieldGroup[] = [
   {
     title: "1. Роль в истории",
-    defaultOpen: true,
     fields: [
       { key: "sec_role", label: "Роль (наставник, спутник, антагонист...)" },
       { key: "sec_function", label: "Функция: катализатор / контраст / голос темы / ритм и масштаб" },

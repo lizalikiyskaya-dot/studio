@@ -619,6 +619,11 @@ model Cycle {
   settingChips       String[] @default([])
   settingMapX        Float?
   settingMapY        Float?
+  // Доли типов сеттинга 0–100, как у книги. Пустые — считать из старой точки.
+  settingManifest    Int?
+  settingFilter      Int?
+  settingConflict    Int?
+  settingMagnet      Int?
 
   fantasyUnlocked Boolean @default(false)
   fantasyNotes    String  @default("")
@@ -664,6 +669,10 @@ model Story {
   settingChips       String[] @default([])
   settingMapX        Float?
   settingMapY        Float?
+  settingManifest    Int?
+  settingFilter      Int?
+  settingConflict    Int?
+  settingMagnet      Int?
   fantasyNotes       String   @default("")
   fantasyGeneral     String   @default("")
 

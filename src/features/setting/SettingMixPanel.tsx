@@ -21,16 +21,24 @@ function shareLine(view: { title: string; rows: { label: string; value: number; 
   return shares ? `${view.title} — ${shares}` : view.title;
 }
 
+export type SettingMixActions = {
+  save: (shares: SettingShares) => Promise<{ suggested: boolean }>;
+  accept: () => Promise<void>;
+  reject: () => Promise<void>;
+};
+
 export default function SettingMixPanel({
   bookId,
   initial,
   suggestion,
   children,
+  actions,
 }: {
-  bookId: string;
+  bookId?: string;
   initial: SettingShares;
   suggestion?: string | null;
   children?: React.ReactNode;
+  actions?: SettingMixActions;
 }) {
   const [shares, setShares] = useState<SettingShares>(initial);
   const sharesRef = useRef(shares);
@@ -45,7 +53,7 @@ export default function SettingMixPanel({
     sharesRef.current = next;
     setShares(next);
     startTransition(async () => {
-      const result = await saveSettingMix(bookId, next);
+      const result = actions ? await actions.save(next) : await saveSettingMix(bookId!, next);
       if (result.suggested) {
         sharesRef.current = savedRef.current;
         setShares(savedRef.current);
@@ -88,7 +96,7 @@ export default function SettingMixPanel({
                 sharesRef.current = proposed;
                 setShares(proposed);
                 setPending(null);
-                startTransition(() => acceptSettingMix(bookId));
+                startTransition(() => (actions ? actions.accept() : acceptSettingMix(bookId!)));
               }}
             >
               <Check size={12} /> принять правку
@@ -101,7 +109,7 @@ export default function SettingMixPanel({
                 sharesRef.current = savedRef.current;
                 setShares(savedRef.current);
                 setPending(null);
-                startTransition(() => rejectSettingMix(bookId));
+                startTransition(() => (actions ? actions.reject() : rejectSettingMix(bookId!)));
               }}
             >
               <X size={12} /> отклонить
