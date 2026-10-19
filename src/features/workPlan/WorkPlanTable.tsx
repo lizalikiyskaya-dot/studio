@@ -26,9 +26,9 @@ const STATUS_STYLE: Record<WorkPlanStatus, React.CSSProperties> = {
 };
 
 const TABS: { id: string; label: string; status: WorkPlanStatus | null; bg: string; color: string }[] = [
-  { id: "all", label: "Все задачи", status: null, bg: "var(--deep)", color: "#fff" },
   { id: "progress", label: "В процессе", status: "IN_PROGRESS", bg: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)" },
   { id: "planned", label: "Запланировано", status: "PLANNED", bg: "var(--soft)", color: "var(--ink)" },
+  { id: "all", label: "Все задачи", status: null, bg: "var(--deep)", color: "#fff" },
 ];
 
 function monthOptions() {
