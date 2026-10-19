@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { chapterTitle, foldedDescription, progressKind, progressPercent } from "../src/features/acts/chapterText";
+import { chapterTitle, foldedDescription, formatChars, parseChars, progressKind, progressPercent } from "../src/features/acts/chapterText";
 
 const empty = { description: "", summary: "", dramaticArgument: "", note: "", images: "" };
 
@@ -38,6 +38,13 @@ test("chapter title prefers the plan name, then the tracker line", () => {
   assert.equal(chapterTitle("Уже задано", "Из плана", "Из трекера"), "Уже задано");
   assert.equal(chapterTitle("", "Из плана", "Из трекера"), "Из плана");
   assert.equal(chapterTitle("  ", "", "Первая строка\nвторая"), "Первая строка");
+});
+
+test("character counts use a regular space as the thousands separator", () => {
+  assert.equal(formatChars(12000), "12 000");
+  assert.equal(formatChars(0), "0");
+  assert.equal(parseChars("12 000"), 12000);
+  assert.equal(parseChars("12\u00A0000"), 12000);
 });
 
 test("progress brackets match the calm palette", () => {

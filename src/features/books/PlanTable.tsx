@@ -7,7 +7,15 @@ import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, tog
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import { blurOnEnter } from "@/lib/blurOnEnter";
 import { useHeaderAction } from "@/components/headerAction";
-import { progressKind, progressPercent, type ProgressKind } from "@/features/acts/chapterText";
+import { formatChars, parseChars, progressKind, progressPercent, type ProgressKind } from "@/features/acts/chapterText";
+
+const SANS = "var(--font-sans), Onest, system-ui, sans-serif";
+const WASH: Record<ProgressKind, string> = {
+  none: "#F3F1EC",
+  work: "#E6ECFF",
+  almost: "#FFF1B8",
+  done: "#D5F3E7",
+};
 
 const PALETTE = ["#E0CBE7", "#E2E9EE", "#E2EADC", "#F0E1E4"];
 
@@ -90,9 +98,6 @@ const LEGEND: { kind: ProgressKind; label: string }[] = [
   { kind: "done", label: "готова" },
 ];
 
-function formatChars(value: number) {
-  return value.toLocaleString("ru-RU").replace(/\u00A0/g, " ");
-}
 
 function sumChars(chapters: PlanChapter[]) {
   const planned = chapters.reduce((sum, chapter) => sum + (chapter.plannedChars || 0), 0);
@@ -190,10 +195,10 @@ export default function PlanTable({
         </div>
       </section>
 
-      <div className="chapter-legend" aria-label="Прогресс глав">
+      <div className="chapter-legend" aria-label="Прогресс глав" style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center", marginTop: 14 }}>
         {LEGEND.map((item) => (
-          <span key={item.kind}>
-            <i className={`is-${item.kind}`} />
+          <span key={item.kind} style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#555", fontSize: 13, fontFamily: SANS }}>
+            <i style={{ width: 12, height: 12, borderRadius: 99, background: item.kind === "none" ? "#D9D3C7" : item.kind === "work" ? "#6553E8" : item.kind === "almost" ? "#FFD43B" : "#2FB083", display: "inline-block" }} />
             {item.label}
           </span>
         ))}
@@ -211,7 +216,7 @@ export default function PlanTable({
                 const percent = progressPercent(chapter.writtenChars, chapter.plannedChars);
                 const chapterSuggestions = suggestions[chapter.id] ?? {};
                 return (
-                  <article key={chapter.id} className={`chapter-card is-${progressKind(chapter.writtenChars, chapter.plannedChars)}`}>
+                  <article key={chapter.id} className={`chapter-card is-${progressKind(chapter.writtenChars, chapter.plannedChars)}`} style={{ background: WASH[progressKind(chapter.writtenChars, chapter.plannedChars)] }}>
                     <div className="chapter-card-top">
                       <span className="chapter-card-n">{numbers.get(chapter.id)}</span>
                       <div className="chapter-card-tools">
@@ -222,10 +227,10 @@ export default function PlanTable({
                         />
                         <button
                           type="button"
-                          className="chapter-tool"
+                          className={chapter.actBreakAfter ? "chapter-tool act-break is-on" : "chapter-tool act-break"}
                           onClick={() => handleActBreak(chapter.id, !chapter.actBreakAfter)}
                         >
-                          {chapter.actBreakAfter ? "Убрать границу" : "Новый акт"}
+                          {chapter.actBreakAfter ? "Убрать границу" : "Граница"}
                         </button>
                         <button
                           type="button"
@@ -245,29 +250,32 @@ export default function PlanTable({
                       suggestion={chapterSuggestions.title}
                       placeholder="Название"
                       className="chapter-card-title"
+                      style={{ fontFamily: SANS, fontWeight: 500, fontSize: 26, letterSpacing: "-0.02em" }}
                     />
                     <div className="chapter-card-foot">
-                      <div className="chapter-card-figures">
+                      <div className="chapter-card-figures" style={{ display: "flex", alignItems: "center", gap: 6, fontVariantNumeric: "tabular-nums", fontFamily: SANS }}>
                         <input
-                          type="number"
-                          min={0}
-                          defaultValue={chapter.writtenChars || ""}
-                          onBlur={(e) => handleNumber(chapter.id, "writtenChars", Number(e.target.value))}
+                          key={`${chapter.id}-w-${chapter.writtenChars}`}
+                          defaultValue={formatChars(chapter.writtenChars)}
+                          onBlur={(e) => handleNumber(chapter.id, "writtenChars", parseChars(e.target.value))}
                           onKeyDown={blurOnEnter}
+                          inputMode="numeric"
                           aria-label="Написано знаков"
                           placeholder="0"
                           className="chapter-num"
+                          style={{ width: "8ch", fontFamily: SANS, textAlign: "right" }}
                         />
                         <span aria-hidden="true">/</span>
                         <input
-                          type="number"
-                          min={0}
-                          defaultValue={chapter.plannedChars || ""}
-                          onBlur={(e) => handleNumber(chapter.id, "plannedChars", Number(e.target.value))}
+                          key={`${chapter.id}-p-${chapter.plannedChars}`}
+                          defaultValue={formatChars(chapter.plannedChars)}
+                          onBlur={(e) => handleNumber(chapter.id, "plannedChars", parseChars(e.target.value))}
                           onKeyDown={blurOnEnter}
+                          inputMode="numeric"
                           aria-label="План знаков"
                           placeholder="0"
                           className="chapter-num"
+                          style={{ width: "8ch", fontFamily: SANS, textAlign: "right" }}
                         />
                         <span className="chapter-pct">
                           {chapter.plannedChars > 0 ? `· ${percent}%` : "· —"}

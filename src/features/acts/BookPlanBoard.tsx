@@ -24,12 +24,28 @@ import EmptyState from "@/components/EmptyState";
 import { blurOnEnter } from "@/lib/blurOnEnter";
 import {
   foldedDescription,
+  formatChars,
   normalizePlanView,
+  parseChars,
   progressKind,
   progressPercent,
   type PlanView,
   type ProgressKind,
 } from "./chapterText";
+
+const SANS = "var(--font-sans), Onest, system-ui, sans-serif";
+const WASH: Record<ProgressKind, string> = {
+  none: "#F3F1EC",
+  work: "#E6ECFF",
+  almost: "#FFF1B8",
+  done: "#D5F3E7",
+};
+const FILL: Record<ProgressKind, string> = {
+  none: "#D9D3C7",
+  work: "#6553E8",
+  almost: "#FFD43B",
+  done: "#2FB083",
+};
 
 export type PlanScene = {
   id: string;
@@ -149,10 +165,10 @@ function columnsFor(acts: PlanActModel[], chapters: PlanChapterModel[]) {
 
 function Legend() {
   return (
-    <div className="chapter-legend" aria-label="Прогресс глав">
+    <div className="chapter-legend" aria-label="Прогресс глав" style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center", marginTop: 6 }}>
       {LEGEND.map((item) => (
-        <span key={item.kind}>
-          <i className={`is-${item.kind}`} />
+        <span key={item.kind} style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#555", fontSize: 13, fontFamily: SANS }}>
+          <i style={{ width: 12, height: 12, borderRadius: 99, background: item.kind === "none" ? "#D9D3C7" : FILL[item.kind], display: "inline-block" }} />
           {item.label}
         </span>
       ))}
@@ -175,7 +191,7 @@ function Ring({ percent }: { percent: number }) {
   const shown = Math.min(100, Math.max(0, percent));
   const dash = (circ * shown) / 100;
   return (
-    <svg className="plan-ring" viewBox="0 0 72 72" aria-hidden="true">
+    <svg className="plan-ring" width={72} height={72} viewBox="0 0 72 72" aria-hidden="true" style={{ width: 72, height: 72, flex: "none", display: "block" }}>
       <circle cx="36" cy="36" r={radius} fill="none" stroke="#ececec" strokeWidth="6" />
       <circle
         cx="36"
@@ -343,19 +359,33 @@ export default function BookPlanBoard({
         actions={
           <>
             {bookSelect}
-            <div className="plan-switch" role="tablist" aria-label="Вид плана">
-              {VIEWS.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={view === item.id}
-                  className={view === item.id ? "is-on" : undefined}
-                  onClick={() => chooseView(item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
+            <div className="plan-switch" role="tablist" aria-label="Вид плана" style={{ display: "inline-flex", gap: 2, padding: 3, borderRadius: 999, background: "#F4F4F4" }}>
+              {VIEWS.map((item) => {
+                const on = view === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={on}
+                    className={on ? "is-on" : undefined}
+                    onClick={() => chooseView(item.id)}
+                    style={{
+                      border: 0,
+                      borderRadius: 999,
+                      padding: "7px 14px",
+                      background: on ? "#fff" : "transparent",
+                      color: on ? "#202020" : "#555",
+                      fontWeight: on ? 650 : 500,
+                      fontSize: 13.5,
+                      fontFamily: SANS,
+                      boxShadow: on ? "0 1px 2px rgba(32,32,32,0.08)" : "none",
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
             </div>
             <button type="button" className="btn-y px-4 text-[14px]" style={{ height: 40, width: "auto" }} onClick={() => addChapter(columns.at(-1)?.act.id || null)}>
               <Plus size={15} /> Глава
@@ -364,7 +394,7 @@ export default function BookPlanBoard({
         }
       />
 
-      <div className="plan-toolbar">
+      <div className="plan-toolbar" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginTop: 8 }}>
         <Legend />
         <button type="button" className="chapter-tool" onClick={addAct}>Новый акт</button>
       </div>
@@ -448,14 +478,14 @@ function ActHead({
 }) {
   if (!act.id) {
     return (
-      <div className="plan-act-head">
-        <div className="plan-act-name">Ещё</div>
+      <div className="plan-act-head" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div className="plan-act-name" style={{ fontFamily: SANS, fontWeight: 650, fontSize: 16 }}>Ещё</div>
         <span className="plan-act-pct">{progress}%</span>
       </div>
     );
   }
   return (
-    <div className="plan-act-head">
+    <div className="plan-act-head" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 10 }}>
       <SuggestableField
         model="Act"
         recordId={act.id}
@@ -465,6 +495,7 @@ function ActHead({
         suggestion={actSuggestions[act.id]?.title}
         placeholder="Акт"
         className="plan-act-name"
+        style={{ fontFamily: SANS, fontWeight: 650, fontSize: 16, border: 0, background: "transparent", minWidth: 72, flex: 1 }}
         onSaved={onTitle}
       />
       <span className="plan-act-pct">{progress}%</span>
@@ -497,11 +528,11 @@ function Ribbon({
   onActTitle: (id: string, title: string) => void;
 }) {
   return (
-    <div className="plan-ribbon">
+    <div className="plan-ribbon" style={{ display: "flex", gap: 16, overflowX: "auto", padding: "12px 2px 18px" }}>
       {columns.map(({ act, chapters }) => {
         const progress = percentOf(chapters);
         return (
-          <section key={act.id || "loose"} className="plan-act">
+          <section key={act.id || "loose"} className="plan-act" style={{ minWidth: 220, flex: "1 0 220px" }}>
             <ActHead
               act={act}
               progress={progress}
@@ -511,18 +542,23 @@ function Ribbon({
               onDelete={() => onDeleteAct(act.id)}
               onAdd={() => onAdd(act.id)}
             />
-            <div className="plan-bars">
+            <div className="plan-bars" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {chapters.map((chapter) => {
                 const percent = progressPercent(chapter.writtenChars, chapter.plannedChars);
+                const kind = kindOf(chapter);
                 return (
                   <button
                     key={chapter.id}
                     type="button"
-                    className={`plan-bar is-${kindOf(chapter)}`}
+                    className={`plan-bar is-${kind}`}
                     onClick={() => onOpen(chapter.id)}
+                    style={{ position: "relative", overflow: "hidden", height: 52, border: 0, borderRadius: 14, textAlign: "left", padding: "0 12px", background: WASH[kind], color: "#202020", cursor: "pointer", fontFamily: SANS }}
                   >
-                    <i style={{ width: `${Math.min(100, percent)}%` }} />
-                    <span>{numbers.get(chapter.id)} {chapter.title || "Глава"}</span>
+                    <i style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${Math.min(100, percent)}%`, background: FILL[kind], opacity: 0.55 }} />
+                    <span style={{ position: "relative", display: "flex", alignItems: "center", height: "100%", gap: 8, fontWeight: 650, fontSize: 14 }}>
+                      <span>{numbers.get(chapter.id)}</span>
+                      <span style={{ fontWeight: 600 }}>{chapter.title || "Глава"}</span>
+                    </span>
                   </button>
                 );
               })}
@@ -554,12 +590,12 @@ function Tiles({
   onActTitle: (id: string, title: string) => void;
 }) {
   return (
-    <div className="plan-tiles">
+    <div className="plan-tiles" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>
       {columns.map(({ act, chapters }) => {
         const progress = percentOf(chapters);
         return (
-          <section key={act.id || "loose"} className="plan-tile">
-            <div className="plan-tile-top">
+          <section key={act.id || "loose"} className="plan-tile" style={{ border: "1px solid #ececec", borderRadius: 24, padding: 16, background: "#fff" }}>
+            <div className="plan-tile-top" style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
               <Ring percent={progress} />
               <ActHead
                 act={act}
@@ -571,18 +607,22 @@ function Tiles({
                 onAdd={() => onAdd(act.id)}
               />
             </div>
-            <div className="plan-mosaic">
-              {chapters.map((chapter) => (
-                <button
-                  key={chapter.id}
-                  type="button"
-                  className={`plan-chip is-${kindOf(chapter)}`}
-                  onClick={() => onOpen(chapter.id)}
-                >
-                  <b>{numbers.get(chapter.id)}</b>
-                  <span>{chapter.title || "Глава"}</span>
-                </button>
-              ))}
+            <div className="plan-mosaic" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+              {chapters.map((chapter) => {
+                const kind = kindOf(chapter);
+                return (
+                  <button
+                    key={chapter.id}
+                    type="button"
+                    className={`plan-chip is-${kind}`}
+                    onClick={() => onOpen(chapter.id)}
+                    style={{ background: WASH[kind], border: 0, borderRadius: 12, minWidth: 92, maxWidth: 150, padding: "8px 10px", textAlign: "left", cursor: "pointer", color: "#202020", fontFamily: SANS }}
+                  >
+                    <b style={{ display: "block", fontSize: 12, color: "#8a8a8a", fontWeight: 650 }}>{numbers.get(chapter.id)}</b>
+                    <span style={{ display: "block", fontSize: 13, fontWeight: 650, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{chapter.title || "Глава"}</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
         );
@@ -618,14 +658,14 @@ function PlotMap({
   const covered = new Set<string>();
 
   return (
-    <div className="plan-map">
-      <table>
+    <div className="plan-map" style={{ overflowX: "auto", paddingBottom: 12 }}>
+      <table style={{ borderCollapse: "separate", borderSpacing: 8, minWidth: "100%" }}>
         <thead>
           <tr>
             <th />
             {columns.map(({ act, chapters: items }) => (
-              <th key={act.id || "loose"} colSpan={Math.max(1, items.length)} className="plan-map-act">
-                <span>{act.title || "Акт"}</span>
+              <th key={act.id || "loose"} colSpan={Math.max(1, items.length)} className="plan-map-act" style={{ color: "#6553E8", fontWeight: 650, fontSize: 13, textAlign: "left", whiteSpace: "nowrap", fontFamily: SANS, paddingBottom: 4 }}>
+                <span style={{ marginRight: 8 }}>{act.title || "Акт"}</span>
                 {act.id ? (
                   <button type="button" className="chapter-tool" onClick={() => onAdd(act.id)}>Глава</button>
                 ) : null}
@@ -636,9 +676,9 @@ function PlotMap({
             <th />
             {flat.map((chapter) => (
               <th key={chapter.id}>
-                <button type="button" className={`plan-map-chapter is-${kindOf(chapter)}`} onClick={() => onOpen(chapter.id)}>
-                  <b>{numbers.get(chapter.id)}</b>
-                  <span>{chapter.title || "Глава"}</span>
+                <button type="button" className={`plan-map-chapter is-${kindOf(chapter)}`} onClick={() => onOpen(chapter.id)} style={{ background: WASH[kindOf(chapter)], border: 0, borderRadius: 12, minWidth: 108, padding: "10px 12px", textAlign: "left", cursor: "pointer", color: "#202020", fontFamily: SANS, display: "block" }}>
+                  <b style={{ display: "block", fontSize: 12, color: "#8a8a8a", fontWeight: 650 }}>{numbers.get(chapter.id)}</b>
+                  <span style={{ display: "block", fontSize: 13, fontWeight: 650 }}>{chapter.title || "Глава"}</span>
                 </button>
               </th>
             ))}
@@ -647,7 +687,7 @@ function PlotMap({
         <tbody>
           {rows.map((row) => (
             <tr key={row.key}>
-              <th className="plan-map-line">{row.name}</th>
+              <th className="plan-map-line" style={{ color: "#555", fontWeight: 650, fontSize: 13, textAlign: "left", whiteSpace: "nowrap", fontFamily: SANS }}>{row.name}</th>
               {flat.map((chapter) => {
                 const token = `${row.key}:${chapter.id}`;
                 if (covered.has(token)) return null;
@@ -678,7 +718,7 @@ function PlotMap({
                       type="button"
                       className="plan-scene"
                       draggable
-                      style={{ background: tone.bg, color: tone.fg }}
+                      style={{ background: tone.bg, color: tone.fg, border: 0, borderRadius: 12, width: "100%", minHeight: 42, padding: "8px 10px", textAlign: "left", fontWeight: 650, fontSize: 13, fontFamily: SANS }}
                       onDragStart={(event) => event.dataTransfer.setData("text/plain", `${block.id}|${chapter.id}`)}
                       onClick={() => onOpen(chapter.id)}
                     >
@@ -732,7 +772,7 @@ function ChapterSheet(props: {
   return (
     <>
       <button type="button" className="plan-sheet-back" aria-label="Закрыть" onClick={props.onClose} />
-      <aside className="plan-sheet" role="dialog" aria-label={chapter.title || "Глава"}>
+      <aside className="plan-sheet" role="dialog" aria-label={chapter.title || "Глава"} style={{ position: "fixed", top: 0, right: 0, zIndex: 41, width: "min(440px, 100%)", height: "100dvh", overflow: "auto", background: "#fff", borderLeft: "1px solid #ececec", padding: "22px 22px 48px", fontFamily: SANS }}>
         <div className="plan-sheet-top">
           <span className="chapter-card-n">Глава {props.number}</span>
           <button type="button" className="chapter-tool chapter-tool-icon" onClick={props.onClose} aria-label="Закрыть">
@@ -747,31 +787,32 @@ function ChapterSheet(props: {
           suggestion={chapterSuggestions.title}
           placeholder="Название"
           className="plan-sheet-title"
+          style={{ fontFamily: SANS, fontWeight: 650, fontSize: 28, letterSpacing: "-0.03em", border: 0, width: "100%", background: "transparent", display: "block" }}
           onSaved={props.onTitle}
         />
-        <div className="chapter-card-figures plan-sheet-figures">
+        <div className="chapter-card-figures plan-sheet-figures" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12, fontVariantNumeric: "tabular-nums", fontFamily: SANS }}>
           <input
-            type="number"
-            min={0}
-            defaultValue={chapter.writtenChars || ""}
             key={`${chapter.id}-w-${chapter.writtenChars}`}
-            onBlur={(event) => props.onNumber("writtenChars", Number(event.target.value))}
+            defaultValue={formatChars(chapter.writtenChars)}
+            onBlur={(event) => props.onNumber("writtenChars", parseChars(event.target.value))}
             onKeyDown={blurOnEnter}
+            inputMode="numeric"
             aria-label="Написано знаков"
             placeholder="0"
             className="chapter-num"
+            style={{ width: "8ch", fontFamily: SANS }}
           />
           <span aria-hidden="true">/</span>
           <input
-            type="number"
-            min={0}
-            defaultValue={chapter.plannedChars || ""}
             key={`${chapter.id}-p-${chapter.plannedChars}`}
-            onBlur={(event) => props.onNumber("plannedChars", Number(event.target.value))}
+            defaultValue={formatChars(chapter.plannedChars)}
+            onBlur={(event) => props.onNumber("plannedChars", parseChars(event.target.value))}
             onKeyDown={blurOnEnter}
+            inputMode="numeric"
             aria-label="План знаков"
             placeholder="0"
             className="chapter-num"
+            style={{ width: "8ch", fontFamily: SANS }}
           />
           <span className={`chapter-pct is-${kindOf(chapter)}`}>
             {chapter.plannedChars > 0 ? `${progressPercent(chapter.writtenChars, chapter.plannedChars)}%` : "—"}
@@ -786,6 +827,7 @@ function ChapterSheet(props: {
           suggestion={chapterSuggestions.description}
           placeholder="Описание"
           className="plan-sheet-prose"
+          style={{ fontFamily: "var(--font-serif), Literata, Georgia, serif", fontSize: 17, lineHeight: 1.45, border: 0, width: "100%", background: "transparent", display: "block", marginTop: 16 }}
           onSaved={props.onDescription}
         />
 

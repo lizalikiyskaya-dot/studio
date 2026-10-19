@@ -6,6 +6,17 @@ export function normalizePlanView(value: string | null | undefined): PlanView {
   return "ribbon";
 }
 
+export function formatChars(value: number) {
+  return Math.max(0, Math.round(value || 0))
+    .toLocaleString("ru-RU")
+    .replace(/[\u00A0\u202F]/g, " ");
+}
+
+export function parseChars(raw: string) {
+  const digits = raw.replace(/[^\d]/g, "");
+  return digits ? Number(digits) : 0;
+}
+
 export function progressPercent(written: number, planned: number) {
   if (planned <= 0) return 0;
   return Math.round((written / planned) * 100);
