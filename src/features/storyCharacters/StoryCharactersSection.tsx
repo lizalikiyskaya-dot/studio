@@ -135,9 +135,6 @@ export default function StoryCharactersSection({
     return (
       <div>
         <h3 className="text-[14px] font-semibold mb-3">Персонажи</h3>
-        <p className="text-[12.5px] mb-3" style={{ color: "var(--faded)" }}>
-          Используются персонажи цикла. Чтобы завести своих для этого рассказа — переключите тумблер выше.
-        </p>
         <div className="flex flex-wrap gap-2.5">
           {cycleCharacters.length === 0 && (
             <EmptyState compact cue="Самое время собрать героев" detail="Персонажи цикла появятся здесь." />
@@ -209,10 +206,7 @@ export default function StoryCharactersSection({
       </section>
 
       <section>
-        <h3 className="text-[16px] font-semibold mb-1">Второстепенные персонажи</h3>
-        <p className="text-[12.5px] mb-4" style={{ color: "var(--ink-faint)" }}>
-          Катализатор · Контраст · Голос темы · Ритм и масштаб
-        </p>
+        <h3 className="text-[16px] font-semibold mb-4">Второстепенные персонажи</h3>
         {secondary.map((character) => (
           <SecondaryCard
             key={character.id}

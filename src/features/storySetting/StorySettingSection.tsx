@@ -33,9 +33,6 @@ const GRAPES_LABELS: [Exclude<keyof CycleSettingSnap, "settingMapX" | "settingMa
 function SharedGrapes({ cycle }: { cycle: CycleSettingSnap }) {
   return (
     <div>
-      <p className="text-[12.5px] mb-4" style={{ color: "var(--ink-faint)" }}>
-        Используется GRAPES цикла (только чтение).
-      </p>
       {GRAPES_LABELS.map(([field, letter, label]) => (
         <div key={field} className="flex flex-col sm:flex-row gap-4 py-3 border-b" style={{ borderColor: "var(--border)" }}>
           <div className="heading w-full sm:w-[180px] flex-shrink-0 font-semibold text-[15px] pr-4 border-r" style={{ color: "var(--accent)", borderColor: "var(--border)" }}>
@@ -54,9 +51,6 @@ function SharedGrapes({ cycle }: { cycle: CycleSettingSnap }) {
 function SharedSettingType({ cycle }: { cycle: CycleSettingSnap }) {
   return (
     <div>
-      <p className="text-[12.5px] mb-4" style={{ color: "var(--ink-faint)" }}>
-        Используется тип сеттинга цикла (только чтение).
-      </p>
       {cycle.settingPhotoUrl && (
         <div
           className="w-full max-w-[420px] h-[170px] rounded-[14px] mb-5 bg-cover bg-center"
@@ -99,9 +93,6 @@ export default function StorySettingSection({
       content: isShared
         ? (
           <div>
-            <p className="text-[12.5px] mb-3" style={{ color: "var(--ink-faint)" }}>
-              Используется фэнтези мир цикла (только чтение).
-            </p>
             <div className="flex flex-wrap gap-2.5">
               {cycleWorldEntries.length === 0 && (
                 <EmptyState compact cue="Самое время описать мир" detail="Записи сеттинга цикла появятся здесь." />

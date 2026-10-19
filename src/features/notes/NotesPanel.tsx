@@ -296,10 +296,7 @@ function ComposeArea({
         className="w-full outline-none text-[13px] leading-relaxed resize-none rounded-[9px] px-3 py-2"
         style={{ color: "var(--ink)", border: "1px solid var(--border)", background: "#fff" }}
       />
-      <div className="flex items-center justify-between mt-2">
-        <span className="text-[11px]" style={{ color: "var(--ink-faint)" }}>
-          Shift+Enter — перенос строки
-        </span>
+      <div className="flex items-center justify-end mt-2">
         <button
           onClick={submit}
           className="text-[12.5px] px-3.5 py-1.5 rounded-full font-medium"

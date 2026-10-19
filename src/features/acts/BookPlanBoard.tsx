@@ -384,7 +384,6 @@ export default function BookPlanBoard({
         <div className="mt-3 flex flex-wrap items-center gap-5 text-[13.5px]" style={{ color: "var(--muted)" }}>
           <button type="button" className="inline-flex items-center gap-1.5" onClick={handleAddLine}><Plus size={14} /> Новая линия</button>
           <button type="button" className="inline-flex items-center gap-1.5" onClick={handleAddChapter}><Plus size={14} /> Глава</button>
-          <span className="ml-auto">сцены перетаскиваются между главами</span>
         </div>
         <div className="mt-2 grid gap-1" style={{ gridTemplateColumns: grid }}>
           <div />
@@ -562,7 +561,6 @@ export default function BookPlanBoard({
 
       <div className="mt-5 flex items-center gap-3">
         <span className="text-[20px] font-semibold">Акты</span>
-        <span className="text-[13px]" style={{ color: "var(--muted)" }}>название, подзаголовок и общее описание</span>
         <button type="button" className="ml-auto inline-flex items-center gap-1 h-9 px-3 rounded-full border text-[13.5px]" style={{ borderColor: "var(--border)" }} onClick={handleAddAct}>
           <Plus size={14} /> Акт
         </button>

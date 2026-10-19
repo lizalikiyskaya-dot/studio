@@ -140,9 +140,6 @@ export default function CharacterCard({
           </Button>
         </div>
 
-        <p className="text-[12.5px] mb-3" style={{ color: "var(--faded)" }}>
-          Выберите тип арки — она подсветится цветом, и можно заполнять.
-        </p>
         <div className="flex gap-2.5 mb-5 flex-wrap">
           {ARC_TYPES.map((type) => (
             <button

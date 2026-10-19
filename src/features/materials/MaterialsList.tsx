@@ -264,8 +264,7 @@ function HandoutsList({
         <div className="mb-8">
           <h2 className="heading text-[18px] mb-1">{canManage ? "Общая библиотека" : "Методички студии"}</h2>
           {canManage ? (
-            <p className="text-[13px] mb-3" style={{ color: "var(--muted)" }}>
-              Скрытая методичка в этом кабинете не видна и не скачивается.{" "}
+            <p className="text-[13px] mb-3">
               <Link href="/mentor/guides" className="lnk">
                 К библиотеке
               </Link>

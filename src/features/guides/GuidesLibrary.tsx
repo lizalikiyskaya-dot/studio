@@ -234,14 +234,7 @@ export default function GuidesLibrary({
                     checked={guide.notifyOnOpen}
                     onChange={(event) => void handleNotify(guide.id, event.target.checked)}
                   />
-                  <span>
-                    Письмо ученику, когда методичка открывается
-                    <span className="block text-[12.5px]" style={{ color: "var(--muted)" }}>
-                      {guide.notifyOnOpen
-                        ? "Письмо уйдёт один раз, когда методичка станет видна. Кому уже открыто — повторно не пишем."
-                        : "Сейчас письма нет. Если отметить, оно уйдёт в момент открытия."}
-                    </span>
-                  </span>
+                  <span>Письмо ученику, когда методичка открывается</span>
                 </label>
               </div>
             </div>

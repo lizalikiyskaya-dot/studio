@@ -233,11 +233,6 @@ export default function ProfileForm({
             onChange={handleToggleNotifications}
             label={isMentor ? "Письма об изменениях у учеников" : "Письма о правках наставника"}
           />
-          <p className="text-[12px] mt-2" style={{ color: "var(--ink-faint)" }}>
-            {isMentor
-              ? "Когда в кабинете появляются правки, приходит короткое письмо. Не чаще одного раза в час."
-              : "Когда наставник вносит правки в ваш кабинет, приходит короткое письмо. Не чаще одного раза в час."}
-          </p>
         </div>
       </div>
 
@@ -249,10 +244,7 @@ export default function ProfileForm({
           if (!savingPw) handleSavePassword();
         }}
       >
-        <div className="text-[14px] font-semibold mb-1" style={{ color: "var(--ink)" }}>Пароль</div>
-        <p className="text-[12px] mb-3" style={{ color: "var(--ink-faint)" }}>
-          Не короче 8 символов. После смены остальные сессии завершатся.
-        </p>
+        <div className="text-[14px] font-semibold mb-3" style={{ color: "var(--ink)" }}>Пароль</div>
         {passwordMsg && (
           <div
             className="mb-3 px-4 py-2.5 rounded-[14px] text-[13px]"

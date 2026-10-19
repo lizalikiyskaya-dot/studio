@@ -154,12 +154,9 @@ export default function CharactersList({
       </section>
 
       <section>
-        <h2 className="text-[16px] font-semibold mb-1" style={{ color: "var(--ink)" }}>
+        <h2 className="text-[16px] font-semibold mb-4" style={{ color: "var(--ink)" }}>
           Второстепенные персонажи
         </h2>
-        <p className="text-[12.5px] mb-4" style={{ color: "var(--ink-faint)" }}>
-          Катализатор · Контраст · Голос темы · Ритм и масштаб
-        </p>
         <CharacterSection
           bookId={bookId}
           characters={secondary}
