@@ -143,6 +143,10 @@ model User {
   role          UserRole      @default(STUDENT)
   status        UserStatus    @default(PENDING)
   paymentDay    Int?
+  // Сумма в рублях. Пусто — в письме суммы нет.
+  paymentAmount Int?
+  // Письмо утром в день оплаты. Выключает наставник. Без paymentDay письмо не уходит.
+  paymentReminders Boolean @default(true)
   paymentStatus PaymentStatus @default(PENDING)
   reviewModeEnabled Boolean   @default(true)
   bookWorkshopUnlocked Boolean @default(true)
@@ -177,6 +181,7 @@ model User {
   passwordResets    PasswordResetToken[]
   guideAccess       GuideAccess[]
   guideProgress     GuideProgress[]
+  paymentReminderLogs PaymentReminderLog[]
 }
 
 // Одноразовая ссылка «Забыли пароль?». В базе лежит только SHA-256 от
@@ -765,4 +770,17 @@ model StoryWorldEntry {
   createdAt DateTime      @default(now())
 
   @@index([storyId])
+}
+
+// Журнал писем «сегодня день оплаты». Одна строка на человека и календарный
+// день срабатывания. Повторный запуск в тот же день упирается в уникальный ключ.
+model PaymentReminderLog {
+  id        String   @id @default(cuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  dueOn     DateTime @db.Date
+  sentAt    DateTime @default(now())
+
+  @@unique([studentId, dueOn])
+  @@index([dueOn])
 }

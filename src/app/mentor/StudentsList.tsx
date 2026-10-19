@@ -35,6 +35,8 @@ type Student = {
   status: string;
   paymentStatus: string;
   paymentDay: number | null;
+  paymentAmount: number | null;
+  paymentReminders: boolean;
   bookWorkshopUnlocked: boolean;
   storyWorkshopUnlocked: boolean;
   avatarUrl: string | null;
@@ -195,7 +197,12 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
               <Reorder id={s.id} idx={idx} total={students.length} onMove={handleMove} />
               <Person student={s} />
               <AccessButton access={access} onClick={() => handleCycleAccess(s.id)} />
-              <PaymentControls userId={s.id} paymentDay={s.paymentDay} />
+              <PaymentControls
+                userId={s.id}
+                paymentDay={s.paymentDay}
+                paymentAmount={s.paymentAmount}
+                paymentReminders={s.paymentReminders}
+              />
               <PresenceIndicator lastSeenAt={s.lastSeenAt} />
               <WorkshopLockControls
                 userId={s.id}
@@ -236,10 +243,15 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                   storyUnlocked={s.storyWorkshopUnlocked}
                 />
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[12px]" style={{ color: "var(--muted)" }}>День оплаты</span>
-                  <PaymentControls userId={s.id} paymentDay={s.paymentDay} />
+              <div className="mentor-card-meta">
+                <div className="mentor-card-pay">
+                  <span className="mentor-card-kicker">День оплаты</span>
+                  <PaymentControls
+                    userId={s.id}
+                    paymentDay={s.paymentDay}
+                    paymentAmount={s.paymentAmount}
+                    paymentReminders={s.paymentReminders}
+                  />
                 </div>
                 <PresenceIndicator lastSeenAt={s.lastSeenAt} />
               </div>
