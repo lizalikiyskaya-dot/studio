@@ -11,9 +11,17 @@ import type { SubmissionStatus, TaskStatus } from "@/generated/prisma/client";
  *     «Не отправлено» звёзды не даёт. Снятие отметки звёзды не забирает.
  *
  * Уже начисленные звёзды не снимаются, если статус или текст потом меняют.
- * Прошлые задания, конкурсы и заявки задним числом не пересчитываются:
- * звёзды появляются только в момент события после включения этой системы.
+ * Уже сделанная работа один раз дописывается файлом
+ * docs/sql/2026-10-20-star-backfill.sql. Дальше звёзды появляются только
+ * в момент события. Повтор того же источника очки не удваивает.
  */
+
+/** Разовая строка журнала: доплата до 100 за завершённую книгу, не задание. */
+export const BOOK_COMPLETE_SOURCE_ID = "book-complete";
+export const BOOK_COMPLETE_NOTE = "завершение книги";
+export const BOOK_COMPLETE_TOTAL = 100;
+/** Сверяется по имени «Надежда». Если id другой, берётся единственная Надежда. */
+export const NADEZHDA_USER_ID = "cmqz75vnn000v0qmokx9zgt89";
 
 export const STAR_POINTS = {
   WEEKLY: 2,
@@ -21,6 +29,14 @@ export const STAR_POINTS = {
   CONTEST: 5,
   PUBLISHER: 10,
 } as const;
+
+/** Короткая легенда под счётчиком. Те же суммы, что в окне «За что дают звёзды». */
+export const STAR_LEGEND = [
+  { points: STAR_POINTS.WEEKLY, label: "задание недели" },
+  { points: STAR_POINTS.MAIN_TASK, label: "основное задание" },
+  { points: STAR_POINTS.CONTEST, label: "отправка на конкурс" },
+  { points: STAR_POINTS.PUBLISHER, label: "отправка в издательство" },
+] as const;
 
 export type StarKindName = keyof typeof STAR_POINTS;
 

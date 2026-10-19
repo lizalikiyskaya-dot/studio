@@ -10,8 +10,13 @@ export function moscowDateKey(date = new Date()): string {
   }).format(date);
 }
 
-export function quoteForDate(date = new Date()): DailyQuote {
+export function quoteIndexForDate(date: Date, length: number): number {
+  if (length <= 0) return 0;
   const [year, month, day] = moscowDateKey(date).split("-").map(Number);
-  const index = Math.floor(Date.UTC(year, month - 1, day) / 86_400_000) % DAILY_QUOTES.length;
-  return DAILY_QUOTES[index];
+  return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000) % length;
+}
+
+export function quoteForDate(date = new Date(), quotes: readonly DailyQuote[] = DAILY_QUOTES): DailyQuote {
+  const list = quotes.length > 0 ? quotes : DAILY_QUOTES;
+  return list[quoteIndexForDate(date, list.length)];
 }
