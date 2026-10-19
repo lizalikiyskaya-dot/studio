@@ -362,6 +362,29 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   margin-top: 18px;
 }
 .auth-quote-main i { font-weight: 400; font-style: italic; }
+/* Строки цитаты не переносим. «Главные правила» чуть шире колонки:
+   на 1440 это 1px, ниже — больше, потому что кегль от vw, а поля героя фиксированные.
+   Трекинг только у первой строки и только в двухколоночном герое. */
+.auth-quote-line { white-space: nowrap; }
+@media (min-width: 981px) {
+  .auth-quote-line:first-child {
+    letter-spacing: clamp(
+      -0.095em,
+      calc(-0.027em + (50vw - 128px - 592px) / 1px * 0.00027em),
+      -0.025em
+    );
+  }
+}
+.mk {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M3 22 L60 15 L130 8 L198 2 L196 40 L199 70 L197 96 L120 98 L50 99 L1 100 L4 66 L0 44 Z' fill='%23ffd43b'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 100% 62%;
+  background-position: 0 88%;
+  padding: 0 0.08em 0 0.05em;
+  margin: 0 -0.06em 0 -0.01em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
 .auth-attrib {
   margin-top: 22px;
   font-size: 14px;
@@ -513,17 +536,23 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   gap: 12px;
   align-self: flex-start;
   position: sticky;
-  top: calc(var(--chrome-h, 64px) + 32px);
-  max-height: calc(100vh - var(--chrome-h, 64px) - 56px);
-  overflow: auto;
+  overflow: visible;
+  /* Короткая колонка липнет под шапкой. Высокая едет вместе со страницей
+     и прилипает нижним краем — без своего overflow, чтобы колесо не застревало. */
+  top: min(
+    calc(var(--chrome-h, 64px) + 32px),
+    calc(100vh - var(--sidebar-h, 480px) - 24px)
+  );
 }
 .collapse-desktop { display: none; }
 @media (min-width: 981px) {
   .studio-sidebar.is-collapsed { display: none; }
   .collapse-desktop { display: grid; }
   .studio-shell.has-mentor .studio-sidebar {
-    top: calc(var(--chrome-h, 112px) + 32px);
-    max-height: calc(100vh - var(--chrome-h, 112px) - 56px);
+    top: min(
+      calc(var(--chrome-h, 112px) + 32px),
+      calc(100vh - var(--sidebar-h, 480px) - 24px)
+    );
   }
 }
 .side-card { border-radius: 16px; background: #fff; padding: 14px; }

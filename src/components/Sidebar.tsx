@@ -248,13 +248,19 @@ export default function Sidebar({
 
   useEffect(() => {
     const chrome = document.querySelector<HTMLElement>(".studio-chrome");
-    if (!chrome) return;
+    const sidebar = document.querySelector<HTMLElement>(".studio-sidebar");
     const apply = () => {
-      document.documentElement.style.setProperty("--chrome-h", `${Math.ceil(chrome.getBoundingClientRect().height)}px`);
+      if (chrome) {
+        document.documentElement.style.setProperty("--chrome-h", `${Math.ceil(chrome.getBoundingClientRect().height)}px`);
+      }
+      if (sidebar && sidebar.getClientRects().length > 0) {
+        document.documentElement.style.setProperty("--sidebar-h", `${Math.ceil(sidebar.scrollHeight)}px`);
+      }
     };
     apply();
     const observer = new ResizeObserver(apply);
-    observer.observe(chrome);
+    if (chrome) observer.observe(chrome);
+    if (sidebar) observer.observe(sidebar);
     return () => observer.disconnect();
   }, []);
 
