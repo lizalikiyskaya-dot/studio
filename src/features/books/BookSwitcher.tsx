@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { createBook, deleteBook } from "./actions";
 import { Button } from "@/components/ui/Button";
+import PillSelect from "@/components/PillSelect";
 
 export default function BookSwitcher({
   studentId,
@@ -51,18 +52,13 @@ export default function BookSwitcher({
           Книга:
         </label>
       )}
-      <select
-        value={activeBookId}
-        onChange={(e) => handleChange(e.target.value)}
-        className="min-w-0 max-w-full text-[14px] bg-white rounded-full px-4 h-11"
-        style={{ border: "1px solid var(--border)" }}
-      >
+      <PillSelect value={activeBookId} onChange={(e) => handleChange(e.target.value)}>
         {books.map((b) => (
           <option key={b.id} value={b.id}>
             {b.title || "Без названия"}
           </option>
         ))}
-      </select>
+      </PillSelect>
       <Button onClick={handleAddBook} variant="secondary" size="sm" pill>
         + новая книга
       </Button>

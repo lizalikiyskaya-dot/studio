@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import PillSelect from "@/components/PillSelect";
 
 export default function BookSelect({
   books,
@@ -24,18 +25,17 @@ export default function BookSelect({
           Книга:
         </label>
       )}
-      <select
+      <PillSelect
         value={activeBookId}
         onChange={(e) => handleChange(e.target.value)}
-        className="text-[14px] bg-white rounded-full px-4 h-11"
-        style={{ border: "1px solid var(--border)", maxWidth: compact ? 220 : undefined }}
+        style={{ maxWidth: compact ? 220 : undefined }}
       >
         {books.map((b) => (
           <option key={b.id} value={b.id}>
             {b.title || "Без названия"}
           </option>
         ))}
-      </select>
+      </PillSelect>
     </div>
   );
 }
