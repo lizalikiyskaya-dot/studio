@@ -30,6 +30,14 @@ export const STAR_POINTS = {
   PUBLISHER: 10,
 } as const;
 
+/** Короткая легенда под счётчиком. Те же суммы, что в окне «За что дают звёзды». */
+export const STAR_LEGEND = [
+  { points: STAR_POINTS.WEEKLY, label: "задание недели" },
+  { points: STAR_POINTS.MAIN_TASK, label: "основное задание" },
+  { points: STAR_POINTS.CONTEST, label: "отправка на конкурс" },
+  { points: STAR_POINTS.PUBLISHER, label: "отправка в издательство" },
+] as const;
+
 export type StarKindName = keyof typeof STAR_POINTS;
 
 export const AUTHOR_RANKS = [

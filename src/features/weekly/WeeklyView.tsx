@@ -1,6 +1,5 @@
 import PageHeader from "@/components/PageHeader";
 import StarsStatus from "@/features/stars/StarsStatus";
-import { STAR_POINTS } from "@/features/stars/rules";
 import { formatWeeklyDate, pickWeekly, weekPhase } from "./schedule";
 import WeeklyForm from "./WeeklyForm";
 
@@ -54,20 +53,6 @@ export default function WeeklyView({
         description="Необязательное короткое задание. Сдаётся здесь и сразу даёт 2 звёздочки. С основными заданиями не пересекается."
       />
       <StarsStatus total={total} />
-      <ul className="mt-4 flex flex-wrap gap-2 text-[13px]" style={{ color: "var(--ink2)" }}>
-        <li className="rounded-full px-3 py-1" style={{ background: "var(--soft)" }}>
-          {STAR_POINTS.WEEKLY} — задание недели
-        </li>
-        <li className="rounded-full px-3 py-1" style={{ background: "var(--soft)" }}>
-          {STAR_POINTS.MAIN_TASK} — основное задание
-        </li>
-        <li className="rounded-full px-3 py-1" style={{ background: "var(--soft)" }}>
-          {STAR_POINTS.CONTEST} — отправка на конкурс
-        </li>
-        <li className="rounded-full px-3 py-1" style={{ background: "var(--soft)" }}>
-          {STAR_POINTS.PUBLISHER} — отправка в издательство
-        </li>
-      </ul>
 
       {!focus ? (
         <p className="mt-8 text-[16px]" style={{ color: "var(--ink2)" }}>
