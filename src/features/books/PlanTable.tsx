@@ -234,7 +234,7 @@ export default function PlanTable({
                     style={{ background: chapter.color ?? "#fff" }}
                   >
                     <div className="chapter-card-top">
-                      <span className="chapter-card-n">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="chapter-card-n">{index + 1}</span>
                       <div className="chapter-card-tools">
                         <ColorPicker
                           current={chapter.color ?? null}

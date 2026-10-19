@@ -42,17 +42,17 @@ const TOP_ITEMS = [
 ];
 
 const WORKSHOP_ITEMS = [
-  { path: "about", n: "01", label: "О книге" },
-  { path: "plan", n: "02", label: "Трекер по главам" },
-  { path: "acts", n: "03", label: "План книги" },
-  { path: "dossier", n: "04", label: "Досье персонажей" },
-  { path: "arcs", n: "05", label: "Арки персонажей" },
-  { path: "setting", n: "06", label: "Сеттинг" },
+  { path: "about", n: "1", label: "О книге" },
+  { path: "plan", n: "2", label: "Трекер по главам" },
+  { path: "acts", n: "3", label: "План книги" },
+  { path: "dossier", n: "4", label: "Досье персонажей" },
+  { path: "arcs", n: "5", label: "Арки персонажей" },
+  { path: "setting", n: "6", label: "Сеттинг" },
 ];
 
 const STORY_WORKSHOP_ITEMS = [
-  { path: "cycles", n: "01", label: "Циклы рассказов" },
-  { path: "stories", n: "02", label: "Отдельные рассказы" },
+  { path: "cycles", n: "1", label: "Циклы рассказов" },
+  { path: "stories", n: "2", label: "Отдельные рассказы" },
 ];
 
 const BOOK_PATHS = new Set(WORKSHOP_ITEMS.map((item) => item.path));
