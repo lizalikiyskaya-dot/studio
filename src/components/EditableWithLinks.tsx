@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import AutoGrowTextarea from "@/components/AutoGrowTextarea";
+import { useLayoutEffect, useRef, useState } from "react";
 
 const URL_RE = /https?:\/\/[^\s]+/g;
 
@@ -45,10 +44,22 @@ export function LinkifiedText({ text, className, style }: { text: string; classN
   );
 }
 
+function mirrorText(value: string, placeholder?: string) {
+  const shown = value || placeholder || "\u00a0";
+  // A trailing newline does not give a div a last line; the textarea still has one.
+  return value.endsWith("\n") ? `${shown}\u00a0` : shown;
+}
+
 /**
  * Text field that shows pasted URLs as the word "ссылка" while idle, and
  * turns into a normal editable textarea on click (saving on blur). Lets a
  * note/description field hold links without showing the raw URL.
+ *
+ * The textarea is taken out of flow and painted over a mirror of the same
+ * text. A real textarea inside a table has its own preferred width (the
+ * cols default), so swapping the div for it resizes the column and slides
+ * the rest of the row sideways. The mirror keeps that width, font, and
+ * line-height, and focus does not scroll the page.
  */
 export default function EditableWithLinks({
   defaultValue,
@@ -65,34 +76,74 @@ export default function EditableWithLinks({
 }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(defaultValue);
+  const mirrorRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const textClass = ["whitespace-pre-wrap", "break-words", className].filter(Boolean).join(" ");
 
-  useEffect(() => {
-    if (editing) taRef.current?.focus();
+  useLayoutEffect(() => {
+    if (!editing) return;
+    const mirror = mirrorRef.current;
+    const ta = taRef.current;
+    if (!mirror || !ta) return;
+    const cs = getComputedStyle(mirror);
+    ta.style.fontSize = cs.fontSize;
+    ta.style.fontFamily = cs.fontFamily;
+    ta.style.fontWeight = cs.fontWeight;
+    ta.style.fontStyle = cs.fontStyle;
+    ta.style.lineHeight = cs.lineHeight;
+    ta.style.letterSpacing = cs.letterSpacing;
+    ta.style.wordBreak = cs.wordBreak;
+    ta.style.overflowWrap = cs.overflowWrap;
+    ta.style.whiteSpace = "pre-wrap";
+    ta.style.padding = "0";
+    ta.style.border = "0";
+    ta.focus({ preventScroll: true });
   }, [editing]);
 
-  if (editing) {
-    return (
-      <AutoGrowTextarea
-        ref={taRef}
-        defaultValue={value}
-        onBlur={(v) => { setValue(v); setEditing(false); onSave(v); }}
-        placeholder={placeholder}
-        className={className}
-        style={style}
-      />
-    );
+  function commit(next: string) {
+    setValue(next);
+    setEditing(false);
+    onSave(next);
   }
 
   return (
-    <div
-      onClick={() => setEditing(true)}
-      className={`cursor-text whitespace-pre-wrap break-words ${className ?? ""}`}
-      style={{ minHeight: "1.4em", ...style }}
-    >
-      {value
-        ? <LinkifiedText text={value} />
-        : <span style={{ color: "var(--faded)" }}>{placeholder}</span>}
+    <div className="inline-edit" data-editing={editing ? "true" : "false"}>
+      <div
+        ref={mirrorRef}
+        onClick={() => {
+          if (!editing) setEditing(true);
+        }}
+        className={`${editing ? "" : "cursor-text"} ${textClass}`}
+        style={{ minHeight: "1.4em", visibility: editing ? "hidden" : "visible", ...style }}
+        aria-hidden={editing || undefined}
+      >
+        {editing ? (
+          mirrorText(value, placeholder)
+        ) : value ? (
+          <LinkifiedText text={value} />
+        ) : (
+          <span style={{ color: "var(--faded)" }}>{placeholder}</span>
+        )}
+      </div>
+      {editing ? (
+        <textarea
+          ref={taRef}
+          className={`inline-edit-control ${textClass}`}
+          value={value}
+          placeholder={placeholder}
+          rows={1}
+          onChange={(event) => setValue(event.target.value)}
+          onBlur={(event) => commit(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              commit(event.currentTarget.value);
+              event.currentTarget.blur();
+            }
+          }}
+          style={style}
+        />
+      ) : null}
     </div>
   );
 }
