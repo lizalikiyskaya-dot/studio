@@ -1,5 +1,5 @@
 import Wordmark from "@/components/Wordmark";
-import Mark from "@/components/Mark";
+import AuthQuote from "@/components/AuthQuote";
 
 export default function AuthShowcase() {
   return (
@@ -10,12 +10,7 @@ export default function AuthShowcase() {
       </div>
       <div className="auth-hero-copy">
         <div className="auth-kicker">Студия художественной прозы</div>
-        <div className="auth-quote-main">
-          <span className="auth-quote-line">«Главные правила</span><br />
-          <span className="auth-quote-line">для писателя:</span><br />
-          <span className="auth-quote-line"><Mark><i>много читать</i></Mark></span><br />
-          <span className="auth-quote-line"><Mark><i>и писать»</i></Mark></span>
-        </div>
+        <AuthQuote />
         <div className="auth-attrib">
           <span className="auth-attrib-rule" />
           Стивен Кинг
