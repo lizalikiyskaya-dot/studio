@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useMemo, useState, useTransition, type ReactNode } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import type { Comment } from "@/generated/prisma/client";
@@ -270,15 +272,15 @@ export default function BookPlanBoard({
     });
   }
 
-  function removeChapter(chapterId: string) {
-    if (!window.confirm("Удалить главу?")) return;
+  async function removeChapter(chapterId: string) {
+    if (!(await siteConfirm("Удалить главу?"))) return;
     setChapters((prev) => prev.filter((chapter) => chapter.id !== chapterId));
     if (openId === chapterId) setOpenId(null);
     startTransition(() => deletePlanChapter(chapterId));
   }
 
-  function removeAct(actId: string) {
-    if (!window.confirm("Удалить акт?")) return;
+  async function removeAct(actId: string) {
+    if (!(await siteConfirm("Удалить акт?"))) return;
     const neighbor = acts.find((act) => act.id !== actId);
     setActs((prev) => prev.filter((act) => act.id !== actId));
     setChapters((prev) => prev.map((chapter) => (

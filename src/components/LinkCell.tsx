@@ -1,5 +1,7 @@
 "use client";
 
+import { sitePrompt } from "@/components/SiteDialog";
+
 import { Pencil, X } from "lucide-react";
 import { shortenUrl } from "@/lib/shortenUrl";
 
@@ -17,8 +19,8 @@ export default function LinkCell({
   onSave: (value: string) => void;
   maxLength?: number;
 }) {
-  function promptEdit() {
-    const url = window.prompt("Ссылка", value ?? "");
+  async function promptEdit() {
+    const url = await sitePrompt("Ссылка", value ?? "");
     if (url !== null) onSave(url.trim());
   }
 

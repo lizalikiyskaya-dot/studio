@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { createBook, deleteBook } from "./actions";
@@ -30,9 +32,9 @@ export default function BookSwitcher({
     });
   }
 
-  function handleDeleteBook() {
+  async function handleDeleteBook() {
     const activeTitle = books.find((b) => b.id === activeBookId)?.title || "Без названия";
-    if (!window.confirm(`Удалить книгу «${activeTitle}» вместе с планом глав? Это нельзя отменить.`)) {
+    if (!(await siteConfirm(`Удалить книгу «${activeTitle}» вместе с планом глав? Это нельзя отменить.`))) {
       return;
     }
     startTransition(async () => {

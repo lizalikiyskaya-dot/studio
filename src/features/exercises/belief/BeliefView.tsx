@@ -4,6 +4,7 @@ import { BeliefExamplesList, BeliefOwnList } from "./BeliefList";
 import { BELIEF_SEED } from "./seedData";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
+import { attachPortrait, photoIds } from "@/lib/portraits";
 
 export default async function BeliefView({
   studentId,
@@ -15,6 +16,7 @@ export default async function BeliefView({
   let examples = await prisma.beliefCard.findMany({
     where: { studentId, isExample: true },
     orderBy: { order: "asc" },
+    omit: { photoUrl: true },
   });
 
   if (examples.length === 0) {
@@ -24,17 +26,24 @@ export default async function BeliefView({
     examples = await prisma.beliefCard.findMany({
       where: { studentId, isExample: true },
       orderBy: { order: "asc" },
+      omit: { photoUrl: true },
     });
   }
 
-  const ownCards = await prisma.beliefCard.findMany({
-    where: { studentId, isExample: false },
-    orderBy: { order: "asc" },
-  });
-  const ownSuggestions = await getSuggestionsForRecords("BeliefCard", ownCards.map((c) => c.id));
+  const [ownCards, portraits] = await Promise.all([
+    prisma.beliefCard.findMany({
+      where: { studentId, isExample: false },
+      orderBy: { order: "asc" },
+      omit: { photoUrl: true },
+    }),
+    photoIds("belief", studentId),
+  ]);
+  const exampleCards = attachPortrait(examples, portraits, "belief");
+  const own = attachPortrait(ownCards, portraits, "belief");
+  const ownSuggestions = await getSuggestionsForRecords("BeliefCard", own.map((c) => c.id));
   const allComments = await getCommentsForRecords(
     "BeliefCard",
-    [...examples, ...ownCards].map((c) => c.id)
+    [...exampleCards, ...own].map((c) => c.id)
   );
 
   return (
@@ -46,7 +55,7 @@ export default async function BeliefView({
           content: (
             <BeliefExamplesList
               studentId={studentId}
-              initialCards={examples}
+              initialCards={exampleCards}
               isMentorViewer={isMentorViewer}
               comments={allComments}
             />
@@ -57,7 +66,7 @@ export default async function BeliefView({
           content: (
             <BeliefOwnList
               studentId={studentId}
-              initialCards={ownCards}
+              initialCards={own}
               suggestions={ownSuggestions}
               comments={allComments}
             />

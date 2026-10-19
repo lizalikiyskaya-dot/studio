@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Plus, Trash2 } from "lucide-react";
@@ -159,8 +161,8 @@ export default function WorkPlanTable({
     });
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить строку плана?")) return;
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить строку плана?"))) return;
     setPlans((prev) => prev.filter((p) => p.id !== id));
     startTransition(() => deleteWorkPlan(id));
   }

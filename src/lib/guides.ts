@@ -1,4 +1,5 @@
 import { Prisma } from "@/generated/prisma/client";
+import { withStatementTimeout } from "@/lib/dbBudget";
 import { prisma } from "@/lib/prisma";
 import type { CabinetGuide, LibraryGuide, ReaderGuide } from "@/features/guides/types";
 
@@ -76,15 +77,17 @@ async function guideByteSizes(ids: string[]): Promise<Map<string, number | null>
   const sizes = new Map<string, number | null>();
   if (ids.length === 0) return sizes;
   try {
-    const rows = await prisma.$queryRaw<Array<{ id: string; bytes: number | null }>>`
-      SELECT id,
-        CASE
-          WHEN "fileUrl" IS NULL OR position(';base64,' IN "fileUrl") = 0 THEN NULL
-          ELSE GREATEST(1, ((octet_length("fileUrl") - position(';base64,' IN "fileUrl") - 7) * 3 / 4))::int
-        END AS bytes
-      FROM "Guide"
-      WHERE id IN (${Prisma.join(ids)})
-    `;
+    const rows = await withStatementTimeout("guide-bytes", 2000, (tx) =>
+      tx.$queryRaw<Array<{ id: string; bytes: number | null }>>`
+        SELECT id,
+          CASE
+            WHEN "fileUrl" IS NULL OR position(';base64,' IN "fileUrl") = 0 THEN NULL
+            ELSE LEAST(2000000000, GREATEST(1, ((octet_length("fileUrl") - position(';base64,' IN "fileUrl") - 7) * 3 / 4)))::int
+          END AS bytes
+        FROM "Guide"
+        WHERE id IN (${Prisma.join(ids)})
+      `,
+    );
     for (const row of rows) sizes.set(row.id, row.bytes);
   } catch (error) {
     console.error("[guides] не удалось посчитать размер файлов", error);

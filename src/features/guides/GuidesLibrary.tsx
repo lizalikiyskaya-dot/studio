@@ -1,5 +1,7 @@
 "use client";
 
+import { siteAlert, siteConfirm } from "@/components/SiteDialog";
+
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, GripVertical } from "lucide-react";
@@ -42,8 +44,8 @@ export default function GuidesLibrary({
   const [busy, setBusy] = useState(false);
   const [openIds, setOpenIds] = useState<Record<string, boolean>>({});
   const { dropTarget, dragHandle } = useDragReorder(guides, setGuides, (ids) => {
-    void reorderGuides(ids).then((result) => {
-      if (!result.ok) window.alert(result.error);
+    void reorderGuides(ids).then(async (result) => {
+      if (!result.ok) await siteAlert(result.error);
     });
   });
 
@@ -52,7 +54,7 @@ export default function GuidesLibrary({
     const result = await createGuide();
     setBusy(false);
     if (!result.ok) {
-      window.alert(result.error);
+      await siteAlert(result.error);
       return;
     }
     setGuides((prev) => [...prev, result.guide]);
@@ -64,17 +66,17 @@ export default function GuidesLibrary({
 
   async function saveTitle(id: string, title: string) {
     const result = await updateGuideTitle(id, title);
-    if (!result.ok) window.alert(result.error);
+    if (!result.ok) await siteAlert(result.error);
   }
 
   async function saveDescription(id: string, description: string) {
     const result = await updateGuideDescription(id, description);
-    if (!result.ok) window.alert(result.error);
+    if (!result.ok) await siteAlert(result.error);
   }
 
   async function handleFile(id: string, file: File) {
     if (file.size > 8 * 1024 * 1024) {
-      window.alert("Файл слишком большой (максимум 8 МБ)");
+      await siteAlert("Файл слишком большой (максимум 8 МБ)");
       return;
     }
     try {
@@ -87,7 +89,7 @@ export default function GuidesLibrary({
         isPdf: uploaded.mime === "application/pdf",
       });
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Не удалось загрузить файл");
+      await siteAlert(error instanceof Error ? error.message : "Не удалось загрузить файл");
     }
   }
 
@@ -96,28 +98,28 @@ export default function GuidesLibrary({
     const result = await setGuideNotify(id, notifyOnOpen);
     if (!result.ok) {
       patch(id, { notifyOnOpen: !notifyOnOpen });
-      window.alert(result.error);
+      await siteAlert(result.error);
     }
   }
 
   async function handleAll(id: string, visible: boolean) {
-    if (!visible && !window.confirm("Скрыть эту методичку у всех учеников? Скачать её они больше не смогут.")) return;
+    if (!visible && !(await siteConfirm("Скрыть эту методичку у всех учеников? Скачать её они больше не смогут."))) return;
     const result = await setGuideVisibleForAll(id, visible);
     if (!result.ok) {
-      window.alert(result.error);
+      await siteAlert(result.error);
       return;
     }
     patch(id, { visibleCount: result.visibleCount });
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Удалить методичку из библиотеки? У учеников она тоже пропадёт. Личные файлы учеников останутся.")) return;
+    if (!(await siteConfirm("Удалить методичку из библиотеки? У учеников она тоже пропадёт. Личные файлы учеников останутся."))) return;
     const previous = guides;
     setGuides((prev) => prev.filter((guide) => guide.id !== id));
     const result = await deleteGuide(id);
     if (!result.ok) {
       setGuides(previous);
-      window.alert(result.error);
+      await siteAlert(result.error);
     }
   }
 

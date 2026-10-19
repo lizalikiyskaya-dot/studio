@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useRef } from "react";
 import Accordion from "@/components/Accordion";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
@@ -99,8 +101,8 @@ export default function CharacterProfile({
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
-  function handleDelete() {
-    if (!window.confirm(`Удалить «${name || "без имени"}»?`)) return;
+  async function handleDelete() {
+    if (!(await siteConfirm(`Удалить «${name || "без имени"}»?`))) return;
     onDelete();
   }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useState, useTransition, useRef, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import type { PlanChapter } from "@/generated/prisma/client";
@@ -142,8 +144,8 @@ export default function PlanTable({
     startTransition(() => updatePlanChapterColor(chapterId, color));
   }
 
-  function handleDelete(chapterId: string) {
-    if (!window.confirm("Удалить главу?")) return;
+  async function handleDelete(chapterId: string) {
+    if (!(await siteConfirm("Удалить главу?"))) return;
     setChapters((prev) => prev.filter((c) => c.id !== chapterId));
     startTransition(() => deletePlanChapter(chapterId));
   }

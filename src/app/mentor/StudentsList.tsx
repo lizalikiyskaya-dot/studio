@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useTransition, useState } from "react";
 import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { cycleStudentAccess, deleteStudent, moveStudent } from "./actions";
@@ -45,6 +47,8 @@ type Student = {
   lastActivityAt: Date | null;
   /** Время самой свежей правки ученика, которую наставник ещё не открывал. */
   unseenAt: Date | null;
+  /** Задание, глава или рукопись, которые сейчас в работе. Пусто — «—». */
+  currentWork: string | null;
 };
 
 function initials(name: string) {
@@ -141,8 +145,8 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
     });
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить ученика и все его данные? Это необратимо.")) return;
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить ученика и все его данные? Это необратимо."))) return;
     setStudents((prev) => prev.filter((s) => s.id !== id));
     startTransition(() => deleteStudent(id));
   }
@@ -188,6 +192,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
         <div className="mentor-row mentor-head" role="row">
           <div />
           <div>Ученик</div>
+          <div className="mentor-h-now">Сейчас в работе</div>
           <div>Доступ</div>
           <div className="mentor-h-pay">День оплаты</div>
           <div>В сети</div>
@@ -202,6 +207,9 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
             <div key={s.id} className="mentor-row mentor-data" role="row">
               <Reorder id={s.id} idx={idx} total={students.length} onMove={handleMove} />
               <Person student={s} />
+              <div className={s.currentWork ? "mentor-now" : "mentor-now is-empty"} title={s.currentWork ?? "Нет текущей работы"}>
+                {s.currentWork ?? "—"}
+              </div>
               <AccessButton access={access} onClick={() => handleCycleAccess(s.id)} />
               <PaymentControls
                 userId={s.id}
@@ -239,6 +247,10 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                     <ActivityBeacon unseenAt={s.unseenAt} />
                   </div>
                   <div className="mt-0.5 truncate text-[12.5px]" style={{ color: "var(--muted)" }} title={s.email}>{s.email}</div>
+                  <div className="mt-1.5">
+                    <div className="mentor-card-kicker">Сейчас в работе</div>
+                    <div className={s.currentWork ? "mentor-now" : "mentor-now is-empty"}>{s.currentWork ?? "—"}</div>
+                  </div>
                 </div>
               </div>
               <div className="mt-3 flex flex-nowrap items-center gap-1.5">

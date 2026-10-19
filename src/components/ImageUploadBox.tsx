@@ -1,5 +1,7 @@
 "use client";
 
+import { siteAlert, siteConfirm } from "@/components/SiteDialog";
+
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { Pencil, Trash2, Maximize2, X } from "lucide-react";
@@ -32,20 +34,20 @@ export default function ImageUploadBox({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [showDefaults, setShowDefaults] = useState(false);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > MAX_SIZE) {
-      window.alert("Файл слишком большой (максимум 4 МБ)");
+      await siteAlert("Файл слишком большой (максимум 4 МБ)");
       return;
     }
     setPreview(URL.createObjectURL(file));
     onUpload(file);
   }
 
-  function handleDelete(e: React.MouseEvent) {
+  async function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!window.confirm("Удалить фото?")) return;
+    if (!(await siteConfirm("Удалить фото?"))) return;
     setPreview("");
     onDelete?.();
   }

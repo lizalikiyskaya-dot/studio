@@ -4,6 +4,7 @@ import { ExamplesList, OwnHeroesList } from "./PopArcsList";
 import { POP_ARC_SEED } from "./seedData";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
+import { attachPortrait, photoIds } from "@/lib/portraits";
 
 export default async function PopArcsView({
   studentId,
@@ -15,6 +16,7 @@ export default async function PopArcsView({
   let examples = await prisma.popArcCharacter.findMany({
     where: { studentId, isExample: true },
     orderBy: { order: "asc" },
+    omit: { photoUrl: true },
   });
 
   if (examples.length === 0) {
@@ -31,15 +33,22 @@ export default async function PopArcsView({
     examples = await prisma.popArcCharacter.findMany({
       where: { studentId, isExample: true },
       orderBy: { order: "asc" },
+      omit: { photoUrl: true },
     });
   }
 
-  const ownHeroes = await prisma.popArcCharacter.findMany({
-    where: { studentId, isExample: false },
-    orderBy: { order: "asc" },
-  });
-  const ownSuggestions = await getSuggestionsForRecords("PopArcCharacter", ownHeroes.map((c) => c.id));
-  const allIds = [...examples, ...ownHeroes].map((c) => c.id);
+  const [ownHeroes, portraits] = await Promise.all([
+    prisma.popArcCharacter.findMany({
+      where: { studentId, isExample: false },
+      orderBy: { order: "asc" },
+      omit: { photoUrl: true },
+    }),
+    photoIds("pop-arc", studentId),
+  ]);
+  const exampleCards = attachPortrait(examples, portraits, "pop-arc");
+  const heroes = attachPortrait(ownHeroes, portraits, "pop-arc");
+  const ownSuggestions = await getSuggestionsForRecords("PopArcCharacter", heroes.map((c) => c.id));
+  const allIds = [...exampleCards, ...heroes].map((c) => c.id);
   const allComments = await getCommentsForRecords("PopArcCharacter", allIds);
 
   return (
@@ -51,7 +60,7 @@ export default async function PopArcsView({
           content: (
             <ExamplesList
               studentId={studentId}
-              initialCharacters={examples}
+              initialCharacters={exampleCards}
               isMentorViewer={isMentorViewer}
               comments={allComments}
             />
@@ -62,7 +71,7 @@ export default async function PopArcsView({
           content: (
             <OwnHeroesList
               studentId={studentId}
-              initialCharacters={ownHeroes}
+              initialCharacters={heroes}
               suggestions={ownSuggestions}
               comments={allComments}
             />

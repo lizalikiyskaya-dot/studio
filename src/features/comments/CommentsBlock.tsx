@@ -1,5 +1,7 @@
 "use client";
 
+import { siteConfirm } from "@/components/SiteDialog";
+
 import { useState, useTransition } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 import type { Comment } from "@/generated/prisma/client";
@@ -105,8 +107,8 @@ export default function CommentsBlock({
     startTransition(() => updateComment(id, text));
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить комментарий?")) return;
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить комментарий?"))) return;
     setComments((prev) => prev.filter((c) => c.id !== id));
     startTransition(() => deleteComment(id));
   }

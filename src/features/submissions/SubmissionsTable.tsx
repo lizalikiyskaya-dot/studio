@@ -2,25 +2,21 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
-import type { Submission, SubmissionType, SubmissionStatus } from "@/generated/prisma/client";
+import type { Submission, SubmissionStatus, SubmissionType } from "@/generated/prisma/client";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
-import EditableWithLinks from "@/components/EditableWithLinks";
-import LinkCell from "@/components/LinkCell";
-import DateField from "@/components/DateField";
-import { createSubmission, deleteSubmission, updateSubmissionField, cycleSubmissionStatus } from "./actions";
+import ChoiceMenu from "@/components/ChoiceMenu";
+import SiteDateField from "@/components/SiteDateField";
+import { siteConfirm } from "@/components/SiteDialog";
+import { EntryLink, EntryNote, EntryTitle } from "@/features/entries/EntryParts";
 import EmptyState from "@/components/EmptyState";
+import { createSubmission, deleteSubmission, setSubmissionStatus, updateSubmissionField } from "./actions";
+import { SUBMISSION_STATUSES, SUBMISSION_STATUS_LABEL, SUBMISSION_STATUS_STYLE } from "./status";
 
-const STATUS_LABEL: Record<SubmissionStatus, string> = {
-  WAITING: "ждём ответа",
-  ACCEPTED: "принято",
-  REJECTED: "отклонено",
-};
-
-const STATUS_STYLE: Record<SubmissionStatus, React.CSSProperties> = {
-  WAITING: { background: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)", border: "none" },
-  ACCEPTED: { background: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)", border: "none" },
-  REJECTED: { background: "var(--pill-red-bg)", color: "var(--pill-red-fg)", border: "none" },
-};
+const STATUS_CHOICES = SUBMISSION_STATUSES.map((id) => ({
+  id,
+  label: SUBMISSION_STATUS_LABEL[id],
+  style: SUBMISSION_STATUS_STYLE[id],
+}));
 
 export default function SubmissionsTable({
   studentId,
@@ -35,8 +31,7 @@ export default function SubmissionsTable({
 }) {
   const [rows, setRows] = useState(initial);
   const [, startTransition] = useTransition();
-
-  const targetLabel = type === "CONTEST" ? "Название конкурса" : "Издательство";
+  const targetPlaceholder = type === "CONTEST" ? "название конкурса" : "название издательства";
 
   function handleAdd() {
     startTransition(async () => {
@@ -49,21 +44,22 @@ export default function SubmissionsTable({
     registerAdd?.(handleAdd);
   });
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Удалить заявку?")) return;
-    setRows((prev) => prev.filter((r) => r.id !== id));
+  async function handleDelete(id: string) {
+    if (!(await siteConfirm("Удалить заявку?"))) return;
+    setRows((prev) => prev.filter((row) => row.id !== id));
     startTransition(() => deleteSubmission(id));
   }
 
   function handleField(id: string, field: "target" | "work" | "date" | "note" | "link", value: string) {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+    setRows((prev) => prev.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
     startTransition(() => updateSubmissionField(id, field, value));
   }
 
-  function handleStatus(id: string) {
-    const next: Record<SubmissionStatus, SubmissionStatus> = { WAITING: "ACCEPTED", ACCEPTED: "REJECTED", REJECTED: "WAITING" };
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: next[r.status] } : r)));
-    startTransition(async () => { await cycleSubmissionStatus(id); });
+  function handleStatus(id: string, status: SubmissionStatus) {
+    setRows((prev) => prev.map((row) => (row.id === id ? { ...row, status } : row)));
+    startTransition(() => {
+      void setSubmissionStatus(id, status);
+    });
   }
 
   if (rows.length === 0) {
@@ -76,45 +72,42 @@ export default function SubmissionsTable({
   }
 
   return (
-    <div className="sheet px-3 pt-2 pb-1">
-      <table>
-        <thead>
-          <tr>
-            <th>{targetLabel}</th>
-            <th>Произведение</th>
-            <th>Дата подачи</th>
-            <th>Статус</th>
-            <th>Примечание</th>
-            <th>Ссылка</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.id}>
-              <td className="min-w-[160px]">
-                <AutoGrowTextarea defaultValue={row.target} onBlur={(v) => handleField(row.id, "target", v)} placeholder={type === "CONTEST" ? "название конкурса" : "название издательства"} className="w-full outline-none bg-transparent text-[14px] font-semibold" />
-              </td>
-              <td className="min-w-[140px]">
-                <AutoGrowTextarea defaultValue={row.work} onBlur={(v) => handleField(row.id, "work", v)} placeholder="что отправлено" className="w-full outline-none bg-transparent text-[14px]" />
-              </td>
-              <td><DateField value={row.date} onChange={(v) => handleField(row.id, "date", v)} /></td>
-              <td>
-                <button onClick={() => handleStatus(row.id)} className="text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap" style={STATUS_STYLE[row.status]}>
-                  {STATUS_LABEL[row.status]}
-                </button>
-              </td>
-              <td className="min-w-[120px]">
-                <EditableWithLinks defaultValue={row.note} onSave={(v) => handleField(row.id, "note", v)} placeholder="примечание..." className="w-full outline-none bg-transparent text-[13px]" />
-              </td>
-              <td><LinkCell value={row.link} onSave={(v) => handleField(row.id, "link", v)} /></td>
-              <td>
-                <button onClick={() => handleDelete(row.id)} style={{ color: "var(--muted)" }} title="Удалить заявку"><Trash2 size={15} /></button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="entry-list">
+      {rows.map((row) => (
+        <article key={row.id} className="entry-card">
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <EntryTitle
+                value={row.target}
+                placeholder={targetPlaceholder}
+                onSave={(value) => handleField(row.id, "target", value)}
+              />
+              <AutoGrowTextarea
+                defaultValue={row.work}
+                onBlur={(value) => handleField(row.id, "work", value)}
+                placeholder="что отправлено"
+                className="entry-work"
+              />
+            </div>
+            <ChoiceMenu
+              value={row.status}
+              choices={STATUS_CHOICES}
+              menuLabel="Статус заявки"
+              onChange={(status) => handleStatus(row.id, status)}
+            />
+            <button type="button" className="entry-delete" aria-label="Удалить заявку" onClick={() => handleDelete(row.id)}>
+              <Trash2 size={16} />
+            </button>
+          </div>
+          <div className="mt-3">
+            <SiteDateField value={row.date} onChange={(value) => handleField(row.id, "date", value)} />
+          </div>
+          <EntryNote value={row.note} onSave={(value) => handleField(row.id, "note", value)} />
+          <div className="mt-3">
+            <EntryLink value={row.link} onSave={(value) => handleField(row.id, "link", value)} />
+          </div>
+        </article>
+      ))}
     </div>
   );
 }

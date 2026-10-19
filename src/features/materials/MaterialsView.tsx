@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { loadCabinetGuides } from "@/lib/guides";
+import { loadStudentMaterials } from "./loadMaterials";
 import MaterialsList from "./MaterialsList";
 import PageHeader from "@/components/PageHeader";
 
@@ -13,10 +13,7 @@ export default async function MaterialsView({
   initialTab?: number;
 }) {
   const [materials, guides] = await Promise.all([
-    prisma.material.findMany({
-      where: { studentId },
-      orderBy: [{ order: "asc" }, { id: "asc" }],
-    }),
+    loadStudentMaterials(studentId),
     loadCabinetGuides(studentId, canManage),
   ]);
 

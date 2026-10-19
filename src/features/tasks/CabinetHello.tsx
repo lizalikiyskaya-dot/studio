@@ -1,4 +1,5 @@
 import Mark from "@/components/Mark";
+import StarsStatus from "@/features/stars/StarsStatus";
 import type { Task } from "@/generated/prisma/client";
 
 function ru(n: number, one: string, few: string, many: string) {
@@ -24,7 +25,17 @@ function part(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTyp
   return parts.find((item) => item.type === type)?.value ?? "";
 }
 
-export default function CabinetHello({ name, tasks }: { name: string; tasks: Task[] }) {
+export default function CabinetHello({
+  name,
+  tasks,
+  stars,
+  basePath,
+}: {
+  name: string;
+  tasks: Task[];
+  stars: number;
+  basePath: string;
+}) {
   const now = new Date();
   const parts = moscowParts(now);
   const weekday = part(parts, "weekday");
@@ -60,6 +71,7 @@ export default function CabinetHello({ name, tasks }: { name: string; tasks: Tas
           Принято · {accepted}
         </span>
       </div>
+      <StarsStatus total={stars} href={`${basePath}/weekly`} />
     </section>
   );
 }
