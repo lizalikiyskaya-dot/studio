@@ -60,7 +60,7 @@ const AutoGrowTextarea = forwardRef<
           e.currentTarget.blur();
         }
       }}
-      className={`field-literary${className ? ` ${className}` : ""}`}
+      className={className}
       style={{
         resize: resizable ? "vertical" : "none",
         overflowY: resizable ? "auto" : "hidden",

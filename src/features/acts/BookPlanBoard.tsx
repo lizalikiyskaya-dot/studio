@@ -577,7 +577,7 @@ export default function BookPlanBoard({
           return (
             <div key={act.id} className="rounded-[20px] p-5" style={{ background: tint }}>
               <div className="flex items-center gap-2">
-                <SuggestableField model="Act" recordId={act.id} field="title" value={act.title} suggestion={suggestions[act.id]?.title} as="input" className="serif flex-1 bg-transparent outline-none text-[17px] font-medium" placeholder="Название акта" />
+                <SuggestableField model="Act" recordId={act.id} field="title" value={act.title} suggestion={suggestions[act.id]?.title} as="input" className="flex-1 bg-transparent outline-none text-[17px] font-medium" placeholder="Название акта" />
                 <button
                   type="button"
                   className="rounded-full bg-white/70 px-2 py-0.5 text-[11.5px]"
