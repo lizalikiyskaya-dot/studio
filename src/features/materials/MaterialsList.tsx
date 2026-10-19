@@ -14,6 +14,7 @@ import {
   cycleMaterialStatus,
   deleteMaterial,
   reorderMaterials,
+  setMaterialOptional,
 } from "./actions";
 import { appendMaterial, applyMaterialTitles, enqueueById, enqueueCreate, titleSaveFromField } from "./materialRows";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
@@ -168,6 +169,11 @@ function BooksList({
     startTransition(() => deleteMaterial(id));
   }
 
+  function handleOptional(id: string, optional: boolean) {
+    setBooks((prev) => prev.map((m) => (m.id === id ? { ...m, optional } : m)));
+    startTransition(() => setMaterialOptional(id, optional));
+  }
+
   return (
     <div>
       {books.map((material) => (
@@ -183,7 +189,7 @@ function BooksList({
         >
           <Accordion
             key={material.id}
-            title={material.title || "Без названия"}
+            title={<span className="block truncate">{material.title || "Без названия"}</span>}
             headerPrefix={
               canManage ? (
                 <GripVertical
@@ -195,16 +201,39 @@ function BooksList({
               ) : undefined
             }
             headerExtra={
-              <span
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleStatus(material.id, material.status);
-                }}
-                className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
-                style={MATERIAL_STATUS_STYLE[material.status]}
-              >
-                {MATERIAL_STATUS_LABEL[material.status]}
-              </span>
+              <>
+                {canManage ? (
+                  <label
+                    className="inline-flex items-center gap-1.5 text-[12px] whitespace-nowrap"
+                    style={{ color: "var(--muted)", fontWeight: 500 }}
+                    onClick={(event) => event.stopPropagation()}
+                    onMouseDown={(event) => event.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={material.optional}
+                      onChange={(event) => handleOptional(material.id, event.target.checked)}
+                      aria-label="по желанию"
+                      style={{ width: 14, height: 14, accentColor: "var(--ink)" }}
+                    />
+                    по желанию
+                  </label>
+                ) : material.optional ? (
+                  <span className="text-[12px] whitespace-nowrap" style={{ color: "var(--muted)", fontWeight: 500 }}>
+                    по желанию
+                  </span>
+                ) : null}
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStatus(material.id, material.status);
+                  }}
+                  className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
+                  style={MATERIAL_STATUS_STYLE[material.status]}
+                >
+                  {MATERIAL_STATUS_LABEL[material.status]}
+                </span>
+              </>
             }
           >
             {canManage && (

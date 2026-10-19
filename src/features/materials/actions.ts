@@ -45,6 +45,13 @@ export async function deleteMaterial(materialId: string) {
   await prisma.material.delete({ where: { id: materialId } });
 }
 
+export async function setMaterialOptional(materialId: string, optional: boolean) {
+  const material = await prisma.material.findUniqueOrThrow({ where: { id: materialId } });
+  await requireMentor(material.studentId);
+  if (material.category !== "BOOK") return;
+  await prisma.material.update({ where: { id: materialId }, data: { optional } });
+}
+
 export async function reorderMaterials(studentId: string, ids: string[]) {
   await requireMentor(studentId);
   await Promise.all(ids.map((id, order) => prisma.material.update({ where: { id }, data: { order } })));

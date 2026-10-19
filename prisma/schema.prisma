@@ -231,6 +231,8 @@ model Material {
   epubName  String?
   fileUrl   String?
   fileName  String?
+  // Книга «по желанию». Методички поле не показывают. Старые строки — false.
+  optional  Boolean  @default(false)
 
   @@index([studentId])
 }
