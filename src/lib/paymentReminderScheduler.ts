@@ -79,7 +79,7 @@ export async function runScheduledPaymentReminders(now = new Date()) {
           where: { studentId, dueOn: dueDate(dueOn) },
         });
       },
-      send: async ({ to, subject, html }) => sendMail({ to, subject, html }),
+      send: async ({ to, subject, html, text }) => sendMail({ to, subject, html, text }),
     })
   );
 }

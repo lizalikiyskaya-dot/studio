@@ -1,4 +1,4 @@
-import { appUrl, escapeHtml, renderEmail } from "@/lib/mail";
+import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail } from "@/lib/mail";
 
 /** Утро по Москве, когда письмо ещё уместно. Час 9 включительно, 12 уже нет. */
 export const MORNING_FROM_HOUR = 9;
@@ -111,19 +111,21 @@ function dateLabel(parts: MoscowParts): string {
 export function buildPaymentReminder(person: { name: string; paymentAmount: number | null }, parts: MoscowParts): {
   subject: string;
   html: string;
+  text: string;
 } {
   const when = dateLabel(parts);
   const paragraphs = [`${escapeHtml(person.name)}, сегодня ${when} — день оплаты.`];
   if (person.paymentAmount != null) paragraphs.push(`Сумма — ${rubles(person.paymentAmount)}.`);
   paragraphs.push("Если дата или сумма изменились, напишите мне в Телеграме.");
   const subject = "Сегодня день оплаты";
-  const html = renderEmail({
+  const letter = renderEmail({
     title: subject,
     paragraphs,
     action: { label: "Открыть платформу", url: `${appUrl()}/login` },
     footnote: "Письмо приходит утром в день оплаты. Отключить его может наставник.",
+    signature: EMAIL_SIGNATURE,
   });
-  return { subject, html };
+  return { subject, html: letter.html, text: letter.text };
 }
 
 export function reminderCopyHasGenderedForms(text: string): string[] {
@@ -138,7 +140,7 @@ export async function runPaymentReminders(options: {
   list: () => Promise<ReminderPerson[]>;
   claim: (studentId: string, dueOn: string) => Promise<boolean>;
   release: (studentId: string, dueOn: string) => Promise<void>;
-  send: (input: { to: string; subject: string; html: string }) => Promise<boolean>;
+  send: (input: { to: string; subject: string; html: string; text: string }) => Promise<boolean>;
 }): Promise<ReminderRunResult> {
   const now = options.now ?? new Date();
   const parts = moscowParts(now);
@@ -162,7 +164,7 @@ export async function runPaymentReminders(options: {
       alreadySent += 1;
       continue;
     }
-    const ok = await options.send({ to: person.email, subject: letter.subject, html: letter.html });
+    const ok = await options.send({ to: person.email, subject: letter.subject, html: letter.html, text: letter.text });
     if (!ok) {
       failed += 1;
       await options.release(person.id, dueOn);
