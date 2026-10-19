@@ -65,10 +65,10 @@ function LinkCell({ value, onSave }: { value: string | null; onSave: (value: str
 
 const TABS: { id: string; label: string; status: TaskStatus | null; bg: string; color: string }[] = [
   { id: "progress", label: "В процессе", status: "IN_PROGRESS", bg: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)" },
-  { id: "all", label: "Все задания", status: null, bg: "var(--deep)", color: "#fff" },
   { id: "submitted", label: "Сдано на проверку", status: "SUBMITTED", bg: "var(--pill-vio-bg)", color: "var(--pill-vio-fg)" },
   { id: "revision", label: "На доработке", status: "NEEDS_REVISION", bg: "var(--pill-or-bg)", color: "var(--pill-or-fg)" },
   { id: "accepted", label: "Принято", status: "ACCEPTED", bg: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)" },
+  { id: "all", label: "Все задания", status: null, bg: "var(--deep)", color: "#fff" },
 ];
 
 function toDateInputValue(date: Date | string | null): string {
