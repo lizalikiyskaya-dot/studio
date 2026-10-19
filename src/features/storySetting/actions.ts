@@ -3,6 +3,21 @@
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import type { WorldCategory } from "@/generated/prisma/client";
+import { resolveShares } from "@/features/setting/settingMix";
+
+function clampMix(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function cleanShares(shares: { manifest: number; filter: number; conflict: number; magnet: number }) {
+  return {
+    manifest: clampMix(shares.manifest),
+    filter: clampMix(shares.filter),
+    conflict: clampMix(shares.conflict),
+    magnet: clampMix(shares.magnet),
+  };
+}
 
 // --- Cycle-level GRAPES / setting type / fantasy world ---
 
@@ -68,6 +83,88 @@ export async function updateCycleSettingMap(cycleId: string, x: number, y: numbe
   const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: cycleId } });
   await requireCabinetAccess(cycle.studentId);
   await prisma.cycle.update({ where: { id: cycleId }, data: { settingMapX: x, settingMapY: y } });
+}
+
+export async function saveCycleSettingMix(
+  cycleId: string,
+  shares: { manifest: number; filter: number; conflict: number; magnet: number }
+) {
+  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: cycleId } });
+  const session = await requireCabinetAccess(cycle.studentId);
+  const clean = cleanShares(shares);
+
+  if (session.role === "MENTOR") {
+    const student = await prisma.user.findUniqueOrThrow({ where: { id: cycle.studentId } });
+    const current = resolveShares(cycle);
+    const filled = current.manifest + current.filter + current.conflict + current.magnet > 0;
+    if (student.reviewModeEnabled && filled) {
+      const value = JSON.stringify(clean);
+      await prisma.fieldSuggestion.upsert({
+        where: { model_recordId_field: { model: "Cycle", recordId: cycleId, field: "settingMix" } },
+        update: { value },
+        create: { model: "Cycle", recordId: cycleId, field: "settingMix", value },
+      });
+      return { suggested: true as const };
+    }
+  }
+
+  await prisma.cycle.update({
+    where: { id: cycleId },
+    data: {
+      settingManifest: clean.manifest,
+      settingFilter: clean.filter,
+      settingConflict: clean.conflict,
+      settingMagnet: clean.magnet,
+    },
+  });
+  await prisma.fieldSuggestion.deleteMany({ where: { model: "Cycle", recordId: cycleId, field: "settingMix" } });
+  return { suggested: false as const };
+}
+
+export async function acceptCycleSettingMix(cycleId: string) {
+  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: cycleId } });
+  await requireCabinetAccess(cycle.studentId);
+  const suggestion = await prisma.fieldSuggestion.findUnique({
+    where: { model_recordId_field: { model: "Cycle", recordId: cycleId, field: "settingMix" } },
+  });
+  if (!suggestion) return;
+  const data = JSON.parse(suggestion.value) as { manifest: number; filter: number; conflict: number; magnet: number };
+  const clean = cleanShares(data);
+  await prisma.cycle.update({
+    where: { id: cycleId },
+    data: {
+      settingManifest: clean.manifest,
+      settingFilter: clean.filter,
+      settingConflict: clean.conflict,
+      settingMagnet: clean.magnet,
+    },
+  });
+  await prisma.fieldSuggestion.delete({ where: { id: suggestion.id } });
+}
+
+export async function rejectCycleSettingMix(cycleId: string) {
+  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: cycleId } });
+  await requireCabinetAccess(cycle.studentId);
+  await prisma.fieldSuggestion.deleteMany({ where: { model: "Cycle", recordId: cycleId, field: "settingMix" } });
+}
+
+export async function saveStorySettingMix(
+  storyId: string,
+  shares: { manifest: number; filter: number; conflict: number; magnet: number }
+) {
+  const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
+  await requireCabinetAccess(story.studentId);
+  const clean = cleanShares(shares);
+  await prisma.story.update({
+    where: { id: storyId },
+    data: {
+      settingManifest: clean.manifest,
+      settingFilter: clean.filter,
+      settingConflict: clean.conflict,
+      settingMagnet: clean.magnet,
+    },
+  });
+  return { suggested: false as const };
 }
 
 export async function updateStorySettingMap(storyId: string, x: number, y: number) {

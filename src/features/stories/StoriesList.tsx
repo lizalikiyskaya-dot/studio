@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Plus } from "lucide-react";
 import type { Story, CycleCharacter, CycleWorldEntry, StoryCharacter, StoryWorldEntry } from "@/generated/prisma/client";
 import { createStory, createStandaloneStory, deleteStory } from "./actions";
 import StoryDetail from "./StoryDetail";
-import { Button } from "@/components/ui/Button";
 import EmptyState from "@/components/EmptyState";
 import { useHeaderAction } from "@/components/headerAction";
 
@@ -20,6 +20,10 @@ type CycleSettingSnap = {
   settingChips: string[];
   settingMapX: number | null;
   settingMapY: number | null;
+  settingManifest?: number | null;
+  settingFilter?: number | null;
+  settingConflict?: number | null;
+  settingMagnet?: number | null;
 };
 
 export default function StoriesList({
@@ -44,7 +48,10 @@ export default function StoriesList({
   headerAdd?: boolean;
 }) {
   const router = useRouter();
-  const [openId, setOpenId] = useState<string | null>(stories[0]?.id ?? null);
+  const requested = useSearchParams().get("story");
+  const [openId, setOpenId] = useState<string | null>(
+    requested && stories.some((story) => story.id === requested) ? requested : stories[0]?.id ?? null
+  );
   const [, startTransition] = useTransition();
 
   function handleAdd() {
@@ -72,9 +79,9 @@ export default function StoriesList({
         detail={cycleId ? "Рассказы этого цикла появятся здесь." : "Отдельные рассказы появятся здесь."}
         action={
           headerAdd ? undefined : (
-            <Button onClick={handleAdd} variant="primary" size="sm" pill>
-              + новый рассказ
-            </Button>
+            <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+              <Plus size={16} /> Новый рассказ
+            </button>
           )
         }
       />
@@ -83,25 +90,28 @@ export default function StoriesList({
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2 mb-6">
-        {stories.map((story) => (
-          <button
-            key={story.id}
-            onClick={() => setOpenId(story.id === openId ? null : story.id)}
-            className="text-[13px] px-4 py-1.5 rounded-full transition-colors"
-            style={{
-              border: `1px solid var(--v)`,
-              background: openId === story.id ? "var(--v)" : "transparent",
-              color: openId === story.id ? "#fff" : "var(--v)",
-            }}
-          >
-            {story.title || "Без названия"}
-          </button>
-        ))}
+      <div className="mb-4 flex flex-col gap-2">
+        {stories.map((story) => {
+          const open = story.id === openId;
+          return (
+            <button
+              key={story.id}
+              type="button"
+              onClick={() => setOpenId(open ? null : story.id)}
+              className={`hover-lift rounded-[18px] px-4 py-3 text-left${open ? " is-on" : ""}`}
+              style={{ border: "1px solid var(--border)", background: "#fff" }}
+            >
+              <span className="heading block text-[18px] font-semibold leading-tight">{story.title || "Без названия"}</span>
+              {(story.logline || story.genre) ? (
+                <span className="mt-1 block text-[13px] leading-snug" style={{ color: "var(--ink2)" }}>{story.logline || story.genre}</span>
+              ) : null}
+            </button>
+          );
+        })}
         {!headerAdd && (
-          <Button onClick={handleAdd} variant="primary" size="sm" pill>
-            + новый рассказ
-          </Button>
+          <button type="button" onClick={handleAdd} className="btn-y mt-1 px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+            <Plus size={16} /> Новый рассказ
+          </button>
         )}
       </div>
 

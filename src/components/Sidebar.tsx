@@ -25,7 +25,9 @@ import DailyQuote from "./DailyQuote";
 import Wordmark from "./Wordmark";
 import ToggleSwitch from "./ToggleSwitch";
 import WorkshopBookCard from "./WorkshopBookCard";
+import WorkshopCycleCard from "./WorkshopCycleCard";
 import type { WorkshopBook } from "@/lib/workshopBooks";
+import type { WorkshopCycle } from "@/lib/workshopCycles";
 import { setReviewMode } from "@/features/reviewMode/actions";
 import { useCanSuggest, useSetCanSuggest } from "@/features/suggestions/SuggestionContext";
 import { useSheetSwipe } from "@/components/useSheetSwipe";
@@ -97,6 +99,7 @@ export default function Sidebar({
   beacons,
   notesCount,
   books,
+  cycles,
   children,
 }: {
   basePath: string;
@@ -116,6 +119,7 @@ export default function Sidebar({
   beacons?: string[];
   notesCount?: number;
   books?: WorkshopBook[];
+  cycles?: WorkshopCycle[];
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -416,6 +420,7 @@ export default function Sidebar({
           )}
 
           {onBook && bookWorkshopUnlocked && <WorkshopBookCard books={books ?? []} />}
+          {onStory && storyWorkshopUnlocked && <WorkshopCycleCard cycles={cycles ?? []} basePath={basePath} />}
 
           {subItems && (
             <nav className="side-card !p-2" aria-label="Разделы мастерской">
@@ -616,6 +621,9 @@ export default function Sidebar({
                     {storyWorkshopUnlocked && !mentorMenuOnly && (
                       <>
                         <div className="studio-sheet-kicker">Мастерская рассказов</div>
+                        <div className="mb-3">
+                          <WorkshopCycleCard cycles={cycles ?? []} basePath={basePath} />
+                        </div>
                         {STORY_WORKSHOP_ITEMS.map((item) => (
                           <Link key={item.path} href={hrefFor(item.path)} className={`studio-sheet-link${section === item.path ? " active" : ""}`}>
                             <span className="w-4 text-[12px]" style={{ color: "var(--muted)" }}>{item.n}</span>

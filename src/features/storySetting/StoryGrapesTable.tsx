@@ -7,32 +7,30 @@ import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import { useTransition } from "react";
 
 const ROWS: { field: StoryGrapesField; letter: string; label: string }[] = [
-  { field: "grapesGeography", letter: "G", label: "География" },
-  { field: "grapesReligion", letter: "R", label: "Религия / верования" },
-  { field: "grapesAchievements", letter: "A", label: "Достижения" },
-  { field: "grapesPolitics", letter: "P", label: "Политика" },
-  { field: "grapesEconomy", letter: "E", label: "Экономика" },
-  { field: "grapesSocial", letter: "S", label: "Соц. структура" },
+  { field: "grapesGeography", letter: "Г", label: "География" },
+  { field: "grapesReligion", letter: "Р", label: "Религия / верования" },
+  { field: "grapesAchievements", letter: "Д", label: "Достижения" },
+  { field: "grapesPolitics", letter: "П", label: "Политика" },
+  { field: "grapesEconomy", letter: "Э", label: "Экономика" },
+  { field: "grapesSocial", letter: "С", label: "Соц. структура" },
 ];
 
 export default function StoryGrapesTable({ story }: { story: Story }) {
   const [, startTransition] = useTransition();
 
   return (
-    <div>
+    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
       {ROWS.map(({ field, letter, label }) => (
-        <div key={field} className="flex flex-col sm:flex-row gap-4 py-3 border-b" style={{ borderColor: "var(--border)" }}>
-          <div
-            className="heading w-full sm:w-[180px] flex-shrink-0 font-semibold text-[15px] pr-4 border-r"
-            style={{ color: "var(--accent)", borderColor: "var(--border)" }}
-          >
-            <span className="font-bold mr-2" style={{ color: "var(--ink)" }}>{letter}</span>
+        <div key={field} className="rounded-[16px] p-3" style={{ background: "var(--soft)" }}>
+          <div className="flex items-center gap-1.5 text-[12.5px] font-semibold">
+            <span className="grid h-5 w-5 place-items-center rounded-[14px] bg-white text-[11px] font-bold">{letter}</span>
             {label}
           </div>
           <AutoGrowTextarea
             defaultValue={story[field]}
-            onBlur={(v) => startTransition(() => updateStoryGrapesField(story.id, field, v))}
-            className="flex-1 outline-none bg-transparent text-[13.5px] leading-snug py-0.5"
+            onBlur={(value) => startTransition(() => updateStoryGrapesField(story.id, field, value))}
+            placeholder="Коротко, своими словами"
+            className="mt-1.5 w-full bg-transparent text-[13px] leading-snug outline-none"
           />
         </div>
       ))}

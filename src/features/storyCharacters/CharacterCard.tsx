@@ -70,7 +70,7 @@ export default function CharacterCard({
 
   return (
     <div
-      className="rounded-[14px] mb-4 overflow-hidden max-w-[760px]"
+      className="hover-lift rounded-[18px] mb-4 overflow-hidden max-w-[760px]"
       style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "var(--soft)" }}
     >
       <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3 cursor-pointer">
@@ -88,7 +88,7 @@ export default function CharacterCard({
         <span className="heading flex-1 font-semibold text-[14.5px]">{character.name || "Без имени"}</span>
         {character.arcType && (
           <span
-            className="font-mono-label text-[9.5px] uppercase px-2 py-1 rounded-full"
+            className="text-[12px] px-2.5 py-1 rounded-full"
             style={{ background: ARC_TYPE_COLOR[character.arcType].bg, color: ARC_TYPE_COLOR[character.arcType].fg }}
           >
             {ARC_TYPE_LABEL[character.arcType]}
