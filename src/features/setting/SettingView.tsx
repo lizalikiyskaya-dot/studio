@@ -56,10 +56,7 @@ export default async function SettingView({
         actions={<BookSelect books={books} activeBookId={activeBook.id} compact />}
       />
 
-      <div className="mt-1 flex items-center gap-2">
-        <h2 className="text-[17px] font-semibold">Метод GRAPES</h2>
-        <span className="soon">скоро: подсказки и примеры</span>
-      </div>
+      <h2 className="mt-1 text-[17px] font-semibold">Метод GRAPES</h2>
       <div className="mt-2.5">
         <div className="mb-2">
           <SuggestableField

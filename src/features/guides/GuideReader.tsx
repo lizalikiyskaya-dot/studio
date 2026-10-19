@@ -25,11 +25,6 @@ export default function GuideReader({ guide, backHref, backLabel }: { guide: Rea
           >
             Скачать
           </a>
-          {guide.fileName ? (
-            <span className="text-[13.5px]" style={{ color: "var(--muted)" }}>
-              {guide.fileName}
-            </span>
-          ) : null}
         </div>
       ) : (
         <p className="text-[14.5px] mb-5" style={{ color: "var(--muted)" }}>

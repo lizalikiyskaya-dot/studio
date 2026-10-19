@@ -122,9 +122,6 @@ export default async function MentorPage() {
               <Badge tone={u.status === "APPROVED" ? "mint" : "danger"}>{u.status === "APPROVED" ? "одобрено" : "отклонено"}</Badge>
             </div>
           ))}
-          <p className="mt-3 text-[13px] leading-snug" style={{ color: "var(--muted)" }}>
-            Письма о новых заявках и сданных работах будут приходить на почту <span className="soon">скоро</span>
-          </p>
         </section>
       </div>
 
