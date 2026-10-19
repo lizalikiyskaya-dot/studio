@@ -465,15 +465,6 @@ export default function Sidebar({
             </div>
           )}
 
-          {studentId && isMentor && mentorViewLabel && (
-            <div className="side-card">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-[14px] font-semibold">Режим правок</span>
-                <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
-              </div>
-            </div>
-          )}
-
           {calendar && (
             <div className="px-1 flex items-center gap-2 text-[12.5px]">
               <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1" style={{ background: calendar.paymentStatus === "PAID" ? "var(--pill-mint-bg)" : "var(--pill-or-bg)", color: calendar.paymentStatus === "PAID" ? "var(--pill-mint-fg)" : "var(--pill-or-fg)" }}>
@@ -649,14 +640,6 @@ export default function Sidebar({
                 </>
               ) : (
                 <>
-                  {studentId && isMentor && mentorViewLabel && (
-                    <div className="side-card mb-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-[14px] font-semibold">Режим правок</span>
-                        <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
-                      </div>
-                    </div>
-                  )}
                   <nav aria-label="Разделы кабинета">
                     {topLinks.filter((item) => item.key !== "book" && item.key !== "stories").map((item) => {
                       const Icon = item.icon;

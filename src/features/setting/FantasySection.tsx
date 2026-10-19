@@ -200,7 +200,7 @@ export default function FantasySection({
               ref={bodyRef}
               defaultValue={openEntry.body}
               placeholder="Описание, детали, всё, что нужно об этой записи..."
-              className="field-literary w-full text-[14.5px] leading-relaxed rounded-[14px] p-3.5 resize-none"
+              className="w-full text-[14.5px] leading-relaxed rounded-[14px] p-3.5 resize-none"
               style={{ border: "1px solid var(--rule)", minHeight: "calc(100vh - 480px)" }}
             />
 
