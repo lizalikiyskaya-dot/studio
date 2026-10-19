@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronUp, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
-import Mark from "@/components/Mark";
 import EmptyState from "@/components/EmptyState";
 import type { Task, TaskStatus } from "@/generated/prisma/client";
 import {
@@ -12,27 +11,14 @@ import {
   updateTaskLink,
   updateTaskDeadline,
   updateTaskNotes,
-  cycleTaskStatus,
+  setTaskStatus,
   deleteTask,
   reorderTasks,
 } from "./actions";
 import { moveBy, moveWithin, taskRowNumber } from "./order";
-import { nextTaskStatus } from "./status";
+import TaskStatusMenu from "./TaskStatusMenu";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import DateField from "@/components/DateField";
-const STATUS_LABEL: Record<TaskStatus, string> = {
-  IN_PROGRESS: "в процессе",
-  SUBMITTED: "сдано на проверку",
-  NEEDS_REVISION: "на доработке",
-  ACCEPTED: "принято",
-};
-
-const STATUS_STYLE: Record<TaskStatus, React.CSSProperties> = {
-  IN_PROGRESS: { background: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)", border: "none" },
-  SUBMITTED: { background: "var(--pill-vio-bg)", color: "var(--pill-vio-fg)", border: "none" },
-  NEEDS_REVISION: { background: "var(--pill-or-bg)", color: "var(--pill-or-fg)", border: "none" },
-  ACCEPTED: { background: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)", border: "none" },
-};
 
 function LinkCell({ value, onSave }: { value: string | null; onSave: (value: string) => void }) {
   function promptEdit() {
@@ -131,11 +117,10 @@ export default function TasksTable({
     startTransition(() => updateTaskNotes(taskId, value));
   }
 
-  function handleStatus(taskId: string, current: TaskStatus) {
-    const next = nextTaskStatus(current);
-    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: next } : t)));
+  function handleStatus(taskId: string, status: TaskStatus) {
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status } : t)));
     startTransition(() => {
-      cycleTaskStatus(taskId);
+      void setTaskStatus(taskId, status);
     });
   }
 
@@ -324,13 +309,7 @@ export default function TasksTable({
                   )}
                 </td>
                 <td>
-                  <button
-                    onClick={() => handleStatus(task.id, task.status)}
-                    className={task.status === "ACCEPTED" ? "text-[14px] font-medium whitespace-nowrap" : "text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap"}
-                    style={task.status === "ACCEPTED" ? undefined : STATUS_STYLE[task.status]}
-                  >
-                    {task.status === "ACCEPTED" ? <Mark>Принято</Mark> : STATUS_LABEL[task.status]}
-                  </button>
+                  <TaskStatusMenu status={task.status} onChange={(status) => handleStatus(task.id, status)} />
                 </td>
                 <td>
                   <button onClick={() => handleDelete(task.id)} style={{ color: "var(--muted)" }} title="Удалить задание">

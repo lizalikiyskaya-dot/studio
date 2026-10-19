@@ -2,8 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, AccessDeniedError } from "@/lib/access";
-import type { FreeSection, FreeSectionType } from "@/generated/prisma/client";
-import { nextTaskStatus } from "@/features/tasks/status";
+import type { FreeSection, FreeSectionType, TaskStatus } from "@/generated/prisma/client";
+import { isTaskStatus } from "@/features/tasks/status";
 
 export async function createAdditionalSection(
   studentId: string,
@@ -79,10 +79,11 @@ export async function deleteAdditionalSection(sectionId: string) {
   await prisma.freeSection.delete({ where: { id: sectionId } });
 }
 
-export async function cycleSectionStatus(sectionId: string) {
+export async function setSectionStatus(sectionId: string, status: TaskStatus) {
+  if (!isTaskStatus(status)) return null;
   const section = await prisma.freeSection.findUniqueOrThrow({ where: { id: sectionId } });
   await requireCabinetAccess(section.studentId);
-  const next = nextTaskStatus(section.status);
-  await prisma.freeSection.update({ where: { id: sectionId }, data: { status: next } });
-  return next;
+  if (section.status === status) return status;
+  await prisma.freeSection.update({ where: { id: sectionId }, data: { status } });
+  return status;
 }

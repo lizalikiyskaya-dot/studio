@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
-import { nextTaskStatus } from "./status";
+import { isTaskStatus } from "./status";
+import type { TaskStatus } from "@/generated/prisma/client";
 
 export async function createTask(studentId: string) {
   await requireCabinetAccess(studentId);
@@ -62,10 +63,11 @@ export async function reorderTasks(studentId: string, ids: string[]) {
   await prisma.$transaction(ids.map((id, order) => prisma.task.update({ where: { id }, data: { order } })));
 }
 
-export async function cycleTaskStatus(taskId: string) {
+export async function setTaskStatus(taskId: string, status: TaskStatus) {
+  if (!isTaskStatus(status)) return null;
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
   await requireCabinetAccess(task.studentId);
-  const status = nextTaskStatus(task.status);
+  if (task.status === status) return status;
   await prisma.task.update({ where: { id: taskId }, data: { status } });
   return status;
 }
