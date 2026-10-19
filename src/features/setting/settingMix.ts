@@ -188,7 +188,7 @@ export function describeShares(shares: SettingShares): { title: string; meaning:
   const total = rows.reduce((sum, row) => sum + row.value, 0);
   const ranked = [...rows].sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, "ru"));
   if (total <= 0) {
-    return { title: "Тип пока не задан", meaning: "Двиньте ползунки или нажмите четверть квадранта.", rows: ranked };
+    return { title: "Тип пока не задан", meaning: "", rows: ranked };
   }
   const positive = ranked.filter((row) => row.value > 0);
   let assigned = 0;

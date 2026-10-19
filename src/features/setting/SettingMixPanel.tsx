@@ -182,7 +182,7 @@ export default function SettingMixPanel({
             </div>
           ))}
         </div>
-        <p className="mt-2 text-[12.5px] leading-snug" style={{ color: "var(--ink2)" }}>{view.meaning}</p>
+        {view.meaning ? <p className="mt-2 text-[12.5px] leading-snug" style={{ color: "var(--ink2)" }}>{view.meaning}</p> : null}
         {children}
       </div>
     </div>

@@ -378,9 +378,6 @@ export default function Sidebar({
         <span className="mentor-review">
           <span style={{ color: "rgba(255,255,255,0.7)" }}>Режим правок</span>
           <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
-          <span className="text-[13px]" style={{ color: "rgba(255,255,255,0.7)" }}>
-            {reviewMode ? "правки сохраняются как предложения" : "правки сохраняются сразу"}
-          </span>
         </span>
       )}
     </div>
@@ -474,9 +471,6 @@ export default function Sidebar({
                 <span className="text-[14px] font-semibold">Режим правок</span>
                 <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
               </div>
-              <p className="mt-1.5 text-[12.5px] leading-snug" style={{ color: "var(--muted)" }}>
-                {reviewMode ? "Правки сохраняются как предложения: их можно принять или отклонить." : "Правки сохраняются сразу, в текст кабинета."}
-              </p>
             </div>
           )}
 
@@ -551,9 +545,6 @@ export default function Sidebar({
           {mentorMenuOnly && (
             <div className="side-card">
               <div className="text-[16px] font-semibold">Кабинет наставника</div>
-              <p className="mt-1 text-[13px] leading-snug" style={{ color: "var(--muted)" }}>
-                Заявки, доступ учеников и мастерские. Письма о новых заявках приходят на почту, если уведомления включены в профиле.
-              </p>
               <Link href="/mentor/profile" className="lnk mt-3 inline-flex text-[13.5px]">Мой профиль</Link>
             </div>
           )}
@@ -664,9 +655,6 @@ export default function Sidebar({
                         <span className="text-[14px] font-semibold">Режим правок</span>
                         <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
                       </div>
-                      <p className="mt-1.5 text-[12.5px] leading-snug" style={{ color: "var(--muted)" }}>
-                        {reviewMode ? "Правки сохраняются как предложения: их можно принять или отклонить." : "Правки сохраняются сразу, в текст кабинета."}
-                      </p>
                     </div>
                   )}
                   <nav aria-label="Разделы кабинета">

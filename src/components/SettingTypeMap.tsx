@@ -55,12 +55,6 @@ export default function SettingTypeMap({
 
   return (
     <div style={{ maxWidth: 480 }}>
-      {!readOnly && (
-        <div className="text-[12.5px] mb-3" style={{ color: "var(--faded)" }}>
-          Перетащите маркер по карте
-        </div>
-      )}
-
       <div className={AXIS} style={AXIS_STYLE}>логика · hardworldbuilding</div>
       <div className="flex items-stretch gap-2 my-2">
         <div className="flex items-center">
