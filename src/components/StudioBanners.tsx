@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import AddToTrackerButton from "@/features/submissions/AddToTrackerButton";
+import WeekCallNote from "@/components/WeekCallNote";
+import { bannerNoteIsLong } from "@/components/bannerNote";
 
 function parseDeadline(value: string): Date | null {
   const text = value.trim();
@@ -97,9 +99,13 @@ export default async function StudioBanners({
           <div className="serif mt-2 text-[19px] font-medium leading-snug pr-10">
             {nearest.call.target || "Опен-колл"} — приём до {formatShort(nearest.date)}
           </div>
-          <div className="mt-1.5 text-[13px] text-white/60">
-            {[nearest.call.note, untilLabel].filter(Boolean).join(" · ")}
-          </div>
+          {bannerNoteIsLong(nearest.call.note) ? (
+            <WeekCallNote note={nearest.call.note} untilLabel={untilLabel} />
+          ) : (
+            <div className="mt-1.5 text-[13px] text-white/60">
+              {[nearest.call.note, untilLabel].filter(Boolean).join(" · ")}
+            </div>
+          )}
           <div className="mt-3.5 flex flex-wrap gap-2">
             <AddToTrackerButton openCallId={nearest.call.id} tracked={inTracker} />
             {nearest.call.link ? (

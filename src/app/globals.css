@@ -184,6 +184,46 @@ input, textarea, select, [contenteditable="true"] {
   color: #fff;
   padding: 20px;
 }
+.banner-call-body { margin-top: 6px; }
+.banner-call-note,
+.banner-call-until {
+  margin: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.6);
+  overflow-wrap: anywhere;
+}
+.banner-call-note { white-space: pre-wrap; }
+.banner-call-note.is-clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  max-height: calc(1.55em * 3);
+}
+.banner-call-toggle {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  margin-top: 8px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--y);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.banner-call-toggle:hover { background: rgba(255, 255, 255, 0.16); }
+.banner-call-toggle:focus-visible {
+  outline: 2px solid var(--y);
+  outline-offset: 2px;
+}
+.banner-call-until { margin-top: 8px; }
 .mentor-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 22px; align-items: start; }
 .plan-board { overflow-x: auto; }
 .plan-mobile { display: none; }
