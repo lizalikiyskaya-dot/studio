@@ -189,6 +189,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
       )}
 
       <div className="sheet mentor-sheet">
+        <div className="mentor-grid">
         <div className="mentor-row mentor-head" role="row">
           <div />
           <div>Ученик</div>
@@ -230,6 +231,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
             </div>
           );
         })}
+        </div>
       </div>
 
       <div className="mentor-cards">
