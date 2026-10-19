@@ -27,19 +27,10 @@ export default function GuideReader({ guide, backHref, backLabel }: { guide: Rea
           </a>
         </div>
       ) : (
-        <p className="text-[14.5px] mb-5" style={{ color: "var(--muted)" }}>
+        <p className="text-[14.5px]" style={{ color: "var(--muted)" }}>
           Файл ещё не загружен.
         </p>
       )}
-
-      {guide.isPdf && guide.hasFile ? (
-        <iframe
-          title={guide.title || "Методичка"}
-          src={`/api/guides/${guide.id}/file?inline=1`}
-          className="w-full rounded-[24px] bg-white"
-          style={{ height: "min(78vh, 900px)", border: "1px solid var(--border)" }}
-        />
-      ) : null}
     </div>
   );
 }
