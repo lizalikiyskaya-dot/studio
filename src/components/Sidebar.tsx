@@ -9,6 +9,7 @@ import {
   Bookmark,
   CalendarDays,
   FileText,
+  LayoutGrid,
   ListChecks,
   LogOut,
   Megaphone,
@@ -122,7 +123,7 @@ export default function Sidebar({
   const setReviewModeState = useSetCanSuggest();
   const [, startTransition] = useTransition();
   const [desktopCollapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [sheet, setSheet] = useState<null | "calendar" | "sections">(null);
   const section = sectionOf(pathname, basePath);
   const onBook = BOOK_PATHS.has(section);
   const onStory = STORY_PATHS.has(section);
@@ -135,10 +136,111 @@ export default function Sidebar({
   }, []);
 
   useEffect(() => {
-    // Close the mobile sheet after a navigation.
+    // Close the phone sheets after a navigation.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMobileOpen(false);
+    setSheet(null);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!sheet) return;
+    const html = document.documentElement;
+    const body = document.body;
+    const savedY = window.scrollY;
+    const gap = 10;
+
+    const metrics = () => {
+      const chrome = document.querySelector(".studio-chrome")?.getBoundingClientRect().bottom ?? 0;
+      const bar = document.querySelector(".studio-tabbar");
+      const barShown = !!bar && getComputedStyle(bar).display !== "none";
+      const barTop = barShown ? bar!.getBoundingClientRect().top : window.innerHeight;
+      const banners = [...document.querySelectorAll<HTMLElement>(".banner-call, .banner-deadlines")]
+        .map((el) => el.getBoundingClientRect())
+        .filter((rect) => {
+          if (rect.width < 2 || rect.height < 2) return false;
+          const visible = Math.min(rect.bottom, barTop) - Math.max(rect.top, chrome);
+          return visible > 48;
+        })
+        .sort((a, b) => a.top - b.top);
+      return { chrome, barTop, first: banners[0] };
+    };
+
+    // Banners sit at the bottom of a short page, so a real bottom sheet always
+    // lands on them once they are scrolled into view. Ease the scroll back until
+    // they sit behind the tab bar, then open the sheet over the page itself.
+    let guard = 0;
+    while (guard < 4) {
+      guard += 1;
+      const { barTop, first } = metrics();
+      if (!first || window.scrollY <= 0) break;
+      const shift = barTop - first.top;
+      if (shift <= 0) break;
+      const next = Math.max(0, window.scrollY - shift);
+      if (next === window.scrollY) break;
+      window.scrollTo(0, next);
+    }
+    const viewY = window.scrollY;
+
+    html.classList.add("studio-sheet-open");
+    body.style.position = "fixed";
+    body.style.top = `-${viewY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSheet(null);
+    };
+    window.addEventListener("keydown", onKey);
+
+    const frame = window.requestAnimationFrame(() => {
+      const root = document.querySelector<HTMLElement>(".studio-sheet-root");
+      const panel = document.querySelector<HTMLElement>(".studio-sheet");
+      const outside = document.querySelector<HTMLElement>(".studio-sheet-outside");
+      if (!root || !panel) return;
+      const { chrome, barTop, first } = metrics();
+      const tabOffset = Math.max(0, window.innerHeight - barTop);
+      root.style.top = `${chrome}px`;
+      panel.style.flex = "";
+      if (!first) {
+        root.classList.remove("avoids-banner");
+        root.style.bottom = `${tabOffset}px`;
+        root.style.height = "";
+        panel.style.height = "";
+        panel.style.maxHeight = "";
+        if (outside) outside.hidden = true;
+        return;
+      }
+      const space = Math.max(160, Math.floor(first.top - chrome - gap));
+      const scrim = space > 300 ? 44 : 0;
+      const sheetH = Math.min(480, space - scrim);
+      root.classList.add("avoids-banner");
+      root.style.bottom = "auto";
+      root.style.height = `${space}px`;
+      panel.style.height = `${sheetH}px`;
+      panel.style.maxHeight = `${sheetH}px`;
+      panel.style.flex = "0 0 auto";
+      if (outside) {
+        outside.hidden = false;
+        outside.style.top = `${Math.round(chrome + space)}px`;
+        outside.style.bottom = `${tabOffset}px`;
+      }
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      html.classList.remove("studio-sheet-open");
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.width = "";
+      window.scrollTo(0, savedY);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [sheet]);
+
+  function toggleSheet(name: "calendar" | "sections") {
+    setSheet((open) => (open === name ? null : name));
+  }
 
   useEffect(() => {
     const chrome = document.querySelector<HTMLElement>(".studio-chrome");
@@ -271,7 +373,7 @@ export default function Sidebar({
   ) : null;
 
   return (
-    <div className={`studio-shell${mentorViewLabel ? " has-mentor" : ""}`}>
+    <div className={`studio-shell${mentorViewLabel ? " has-mentor" : ""}${!mentorMenuOnly ? " has-tabs" : ""}`}>
       <div className="studio-chrome">
         {mentorBar}
       <header className="studio-topbar">
@@ -313,20 +415,20 @@ export default function Sidebar({
             type="button"
             className="studio-menu-btn items-center gap-2 rounded-full px-3 h-10"
             style={{ background: "var(--soft)" }}
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-expanded={mobileOpen}
+            onClick={() => toggleSheet("sections")}
+            aria-expanded={sheet === "sections"}
           >
-            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-            {mobileOpen ? "Закрыть" : "Меню"}
+            {sheet === "sections" ? <X size={18} /> : <Menu size={18} />}
+            {sheet === "sections" ? "Закрыть" : "Меню"}
           </button>
         </div>
       </header>
       </div>
 
       <div className="studio-body">
-        <aside id="studio-navigation" className={`studio-sidebar${mobileOpen ? " mobile-open" : ""}${desktopCollapsed && !mentorMenuOnly ? " is-collapsed" : ""}`}>
+        <aside id="studio-navigation" className={`studio-sidebar${desktopCollapsed && !mentorMenuOnly ? " is-collapsed" : ""}`}>
           <div className="flex justify-end studio-menu-btn">
-            <button type="button" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-2 rounded-full px-3 h-9" style={{ background: "#fff" }}>
+            <button type="button" onClick={() => setSheet(null)} className="inline-flex items-center gap-2 rounded-full px-3 h-9" style={{ background: "#fff" }}>
               <X size={16} /> Закрыть
             </button>
           </div>
@@ -468,15 +570,138 @@ export default function Sidebar({
             <Tab href={`${basePath}/materials`} label="Материалы" icon={BookOpen} active={section === "materials"} />
           )}
           <Tab href={`${basePath}/exercises`} label="Упражнения" icon={PenLine} active={section === "exercises"} beacon={beaconSet.has("exercises")} />
-          <button type="button" onClick={() => setMobileOpen(true)} className="flex-1 flex flex-col items-center gap-1 text-[11px]" style={{ color: "var(--muted)" }}>
-            <span className="h-8 w-12 rounded-full grid place-items-center"><CalendarDays size={16} /></span>
+          <button
+            type="button"
+            onClick={() => toggleSheet("calendar")}
+            aria-expanded={sheet === "calendar"}
+            className="studio-tab flex-1 flex flex-col items-center gap-1 text-[11px]"
+            style={{ color: sheet === "calendar" ? "var(--ink)" : "var(--muted)", fontWeight: sheet === "calendar" ? 600 : 400 }}
+          >
+            <span className="h-8 w-12 rounded-full grid place-items-center" style={{ background: sheet === "calendar" ? "var(--y)" : "transparent" }}><CalendarDays size={16} /></span>
             Календарь
           </button>
-          <button type="button" onClick={() => setMobileOpen(true)} className="flex-1 flex flex-col items-center gap-1 text-[11px]" style={{ color: mobileOpen ? "var(--ink)" : "var(--muted)", fontWeight: mobileOpen ? 600 : 400 }}>
-            <span className="h-8 w-12 rounded-full grid place-items-center" style={{ background: mobileOpen ? "var(--y)" : "transparent" }}><Menu size={16} /></span>
-            Ещё
+          <button
+            type="button"
+            onClick={() => toggleSheet("sections")}
+            aria-expanded={sheet === "sections"}
+            className="studio-tab flex-1 flex flex-col items-center gap-1 text-[11px]"
+            style={{ color: sheet === "sections" ? "var(--ink)" : "var(--muted)", fontWeight: sheet === "sections" ? 600 : 400 }}
+          >
+            <span className="h-8 w-12 rounded-full grid place-items-center" style={{ background: sheet === "sections" ? "var(--y)" : "transparent" }}><LayoutGrid size={16} /></span>
+            Разделы
           </button>
         </nav>
+      )}
+
+      {sheet && (
+        <div className="studio-sheet-root">
+          <button type="button" className="studio-sheet-backdrop" aria-label="Закрыть" onClick={() => setSheet(null)} />
+          <button type="button" className="studio-sheet-outside" aria-label="Закрыть" hidden onClick={() => setSheet(null)} />
+          <div
+            className="studio-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label={sheet === "calendar" ? "Календарь" : "Разделы"}
+          >
+            <div className="studio-sheet-head">
+              <div className="text-[16px] font-semibold">{sheet === "calendar" ? "Календарь" : "Разделы"}</div>
+              <button type="button" className="studio-sheet-close" onClick={() => setSheet(null)}>
+                <X size={16} /> Закрыть
+              </button>
+            </div>
+            <div className="studio-sheet-body">
+              {sheet === "calendar" ? (
+                <>
+                  {calendar && (
+                    <div className="mb-3 flex flex-wrap items-center gap-2 px-1 text-[12.5px]">
+                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1" style={{ background: calendar.paymentStatus === "PAID" ? "var(--pill-mint-bg)" : "var(--pill-or-bg)", color: calendar.paymentStatus === "PAID" ? "var(--pill-mint-fg)" : "var(--pill-or-fg)" }}>
+                        {calendar.paymentStatus === "PAID" ? "доступ открыт" : "ожидает платежа"}
+                      </span>
+                      {calendar.paymentDay != null && (
+                        <span style={{ color: "var(--muted)" }}>оплата {calendar.paymentDay}-го</span>
+                      )}
+                    </div>
+                  )}
+                  {calendar && (
+                    <CalendarWidget
+                      tasks={calendar.tasks}
+                      paymentDay={calendar.paymentDay}
+                      paymentStatus={calendar.paymentStatus}
+                    />
+                  )}
+                  {upcoming && (
+                    <div className="deadline-card mt-3">
+                      <span className="deadline-ribbon" aria-hidden="true" />
+                      <div className="deadline-kicker">{onBook || onStory || section === "exercises" ? "Разбор в четверг" : "Ближайший дедлайн"}</div>
+                      <div className="serif deadline-title">{upcoming.title || "Задание"}</div>
+                      <div className="deadline-when">{formatDeadline(upcoming.deadline)}</div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {studentId && isMentor && mentorViewLabel && (
+                    <div className="side-card mb-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-[14px] font-semibold">Режим правок</span>
+                        <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
+                      </div>
+                      <p className="mt-1.5 text-[12.5px] leading-snug" style={{ color: "var(--muted)" }}>
+                        {reviewMode ? "Правки сохраняются как предложения. Ученик принимает или отклоняет их." : "Правки сохраняются сразу, в текст ученика."}
+                      </p>
+                    </div>
+                  )}
+                  <nav aria-label="Разделы кабинета">
+                    {topLinks.filter((item) => item.key !== "book" && item.key !== "stories").map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link key={item.key} href={item.href} className={`studio-sheet-link${item.active ? " active" : ""}`}>
+                          <Icon size={16} />
+                          <span>{item.label}</span>
+                          {item.beacon && <span className="ml-auto h-2 w-2 rounded-full" style={{ background: "var(--danger)" }} title="Есть обновления" />}
+                        </Link>
+                      );
+                    })}
+                    {bookWorkshopUnlocked && !mentorMenuOnly && (
+                      <>
+                        <div className="studio-sheet-kicker">Мастерская книги</div>
+                        {WORKSHOP_ITEMS.map((item) => (
+                          <Link key={item.path} href={hrefFor(item.path)} className={`studio-sheet-link${section === item.path ? " active" : ""}`}>
+                            <span className="w-4 text-[12px]" style={{ color: "var(--muted)" }}>{item.n}</span>
+                            <span>{item.label}</span>
+                            {beaconSet.has(item.path) && <span className="ml-auto h-2 w-2 rounded-full" style={{ background: "var(--danger)" }} title="Есть обновления" />}
+                          </Link>
+                        ))}
+                      </>
+                    )}
+                    {storyWorkshopUnlocked && !mentorMenuOnly && (
+                      <>
+                        <div className="studio-sheet-kicker">Мастерская рассказов</div>
+                        {STORY_WORKSHOP_ITEMS.map((item) => (
+                          <Link key={item.path} href={hrefFor(item.path)} className={`studio-sheet-link${section === item.path ? " active" : ""}`}>
+                            <span className="w-4 text-[12px]" style={{ color: "var(--muted)" }}>{item.n}</span>
+                            <span>{item.label}</span>
+                            {beaconSet.has(item.path) && <span className="ml-auto h-2 w-2 rounded-full" style={{ background: "var(--danger)" }} title="Есть обновления" />}
+                          </Link>
+                        ))}
+                      </>
+                    )}
+                  </nav>
+                  {!mentorViewLabel && (
+                    <div className="mt-3 flex items-center px-3 pb-1">
+                      {!mentorMenuOnly && (
+                        <Link href={profileHref} className="text-[14.5px] font-medium" style={{ color: "var(--ink)" }}>Профиль</Link>
+                      )}
+                      <button type="button" onClick={logout} className="ml-auto inline-flex items-center gap-1.5 text-[13.5px]" style={{ color: "var(--muted)" }}>
+                        <LogOut size={14} /> Выйти
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
