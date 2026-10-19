@@ -25,6 +25,7 @@ enum UserStatus {
 }
 
 enum TaskStatus {
+  PLANNED
   IN_PROGRESS
   SUBMITTED
   NEEDS_REVISION

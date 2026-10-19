@@ -7,6 +7,7 @@ import type { SubmissionStatus, SubmissionType } from "@/generated/prisma/client
 import { awardStars } from "@/features/stars/award";
 import { submissionReadyForStars } from "@/features/stars/rules";
 import { isSubmissionStatus, openCallSentForStatus, planOpenCallAdd } from "./status";
+import { openCallTrackerFields } from "./tracker";
 
 function revalidateCabinet(studentId: string) {
   revalidatePath("/dashboard", "layout");
@@ -22,8 +23,13 @@ async function awardSubmissionIfSent(row: { id: string; studentId: string; type:
   await awardStars(row.studentId, row.type === "PUBLISHER" ? "PUBLISHER" : "CONTEST", row.id);
 }
 
-export async function addOpenCallToTracker(openCallId: string): Promise<"added" | "exists"> {
+export async function addOpenCallToTracker(
+  openCallId: string,
+  type: SubmissionType,
+): Promise<"added" | "exists"> {
   const call = await prisma.openCall.findUniqueOrThrow({ where: { id: openCallId } });
+  const fields = openCallTrackerFields(call.sent, type);
+  if (!fields) return "exists";
   await requireCabinetAccess(call.studentId);
   const linked = await prisma.submission.findUnique({ where: { openCallId } });
   const target = call.target.trim();
@@ -60,18 +66,18 @@ export async function addOpenCallToTracker(openCallId: string): Promise<"added" 
     return "exists";
   }
 
-  const count = await prisma.submission.count({ where: { studentId: call.studentId, type: "CONTEST" } });
+  const count = await prisma.submission.count({ where: { studentId: call.studentId, type: fields.type } });
   try {
     const row = await prisma.submission.create({
       data: {
         studentId: call.studentId,
-        type: "CONTEST",
+        type: fields.type,
         order: count,
         target: call.target,
         date: call.deadline,
         note: call.note,
         link: call.link,
-        status: plan.status,
+        status: fields.status,
         openCallId: call.id,
       },
     });
