@@ -1,3 +1,4 @@
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { CabinetGuide, LibraryGuide, ReaderGuide } from "@/features/guides/types";
 
@@ -71,6 +72,26 @@ const guideListSelect = {
   notifyOnOpen: true,
 } as const;
 
+async function guideByteSizes(ids: string[]): Promise<Map<string, number | null>> {
+  const sizes = new Map<string, number | null>();
+  if (ids.length === 0) return sizes;
+  try {
+    const rows = await prisma.$queryRaw<Array<{ id: string; bytes: number | null }>>`
+      SELECT id,
+        CASE
+          WHEN "fileUrl" IS NULL OR position(';base64,' IN "fileUrl") = 0 THEN NULL
+          ELSE GREATEST(1, ((octet_length("fileUrl") - position(';base64,' IN "fileUrl") - 7) * 3 / 4))::int
+        END AS bytes
+      FROM "Guide"
+      WHERE id IN (${Prisma.join(ids)})
+    `;
+    for (const row of rows) sizes.set(row.id, row.bytes);
+  } catch (error) {
+    console.error("[guides] не удалось посчитать размер файлов", error);
+  }
+  return sizes;
+}
+
 function toLibraryGuide(
   guide: {
     id: string;
@@ -81,13 +102,16 @@ function toLibraryGuide(
     order: number;
     notifyOnOpen: boolean;
     _count: { access: number };
-  }
+  },
+  fileBytes: number | null
 ): LibraryGuide {
   return {
     id: guide.id,
     title: guide.title,
     description: guide.description,
     fileName: guide.fileName,
+    fileMime: guide.fileMime,
+    fileBytes,
     hasFile: Boolean(guide.fileName),
     isPdf: guide.fileMime === "application/pdf",
     order: guide.order,
@@ -109,7 +133,8 @@ export async function loadLibrary(): Promise<{ ready: true; guides: LibraryGuide
       }),
       prisma.user.count({ where: GUIDE_AUDIENCE }),
     ]);
-    return { ready: true, studentCount, guides: guides.map(toLibraryGuide) };
+    const sizes = await guideByteSizes(guides.map((guide) => guide.id));
+    return { ready: true, studentCount, guides: guides.map((guide) => toLibraryGuide(guide, sizes.get(guide.id) ?? null)) };
   } catch (error) {
     const fallback = mapMissing(error, { ready: false as const });
     if (fallback) return fallback;
@@ -137,11 +162,14 @@ export async function loadCabinetGuides(studentId: string, includeHidden: boolea
         progress: { where: { studentId }, select: { status: true } },
       },
     });
+    const sizes = await guideByteSizes(guides.map((guide) => guide.id));
     const rows: CabinetGuide[] = guides.map((guide) => ({
       id: guide.id,
       title: guide.title,
       description: guide.description,
       fileName: guide.fileName,
+      fileMime: guide.fileMime,
+      fileBytes: sizes.get(guide.id) ?? null,
       hasFile: Boolean(guide.fileName),
       isPdf: guide.fileMime === "application/pdf",
       visible: guide.access[0]?.visible ?? false,

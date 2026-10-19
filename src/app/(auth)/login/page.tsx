@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CircleAlert } from "lucide-react";
 import PasswordInput from "@/components/PasswordInput";
+import { markedTitle } from "@/components/markedTitle";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function LoginPage() {
         <Link href="/login" className="on">Вход</Link>
         <Link href="/register">Регистрация</Link>
       </div>
-      <h1 className="auth-title">С возвращением</h1>
+      <h1 className="auth-title">{markedTitle("С возвращением")}</h1>
       <p className="auth-sub">Войдите, чтобы продолжить работу над текстом.</p>
 
       <label className="fld-label">

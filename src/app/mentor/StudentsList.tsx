@@ -6,6 +6,7 @@ import { cycleStudentAccess, deleteStudent, moveStudent } from "./actions";
 import PaymentControls from "./PaymentControls";
 import WorkshopLockControls from "./WorkshopLockControls";
 import { LinkButton } from "@/components/ui/Button";
+import EmptyState from "@/components/EmptyState";
 import { PresenceIndicator, ActivityBeacon } from "./StudentBeacons";
 
 type AccessStatus = "OPEN" | "AWAITING" | "SUSPENDED";
@@ -159,7 +160,12 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
   }
 
   if (students.length === 0) {
-    return <p className="text-[14px] mb-8" style={{ color: "var(--muted)" }}>Пока нет учеников.</p>;
+    return (
+      <EmptyState
+        cue="Самое время открыть студию"
+        detail="Когда появится первый ученик, кабинет будет здесь."
+      />
+    );
   }
 
   return (

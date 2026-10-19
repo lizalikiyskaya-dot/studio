@@ -8,6 +8,7 @@ import { blurOnEnter } from "@/lib/blurOnEnter";
 import { shortenUrl } from "@/lib/shortenUrl";
 import { createDraft, updateDraftField, deleteDraft, reorderDrafts } from "./actions";
 import { Button } from "@/components/ui/Button";
+import EmptyState from "@/components/EmptyState";
 import PageHeader from "@/components/PageHeader";
 import { ChevronDown, ChevronRight, GripVertical, Pencil, Plus } from "lucide-react";
 
@@ -92,13 +93,23 @@ export default function DraftsList({
     <div>
       <PageHeader
         title="Рукописи"
-        description="Черновики и чистовики: ссылка на документ или файл до 8 МБ."
         actions={
           <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
             <Plus size={16} /> Добавить рукопись
           </button>
         }
       />
+      {drafts.length === 0 ? (
+        <EmptyState
+          cue="Самое время писать"
+          detail="Черновики и рукописи появятся здесь."
+          action={
+            <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+              <Plus size={16} /> Добавить рукопись
+            </button>
+          }
+        />
+      ) : (
       <div className="grid gap-4 md:grid-cols-2">
       {drafts.map((draft) => {
         const isCollapsed = collapsed[draft.id] ?? false;
@@ -182,7 +193,7 @@ export default function DraftsList({
                   ) : (
                     <Button
                       onClick={(e) => { e.stopPropagation(); handleEditLink(draft.id, null); }}
-                      variant="dashed-sage"
+                      variant="dashed-accent"
                       size="sm"
                       pill
                     >
@@ -196,7 +207,7 @@ export default function DraftsList({
                       href={draft.fileData}
                       download={draft.fileName ?? "файл"}
                       className="text-[13px] px-4 py-1.5 rounded-full inline-block"
-                      style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
+                      style={{ color: "var(--vi)", border: "1px solid var(--v)" }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {draft.fileName ?? "скачать"}
@@ -215,6 +226,7 @@ export default function DraftsList({
         );
       })}
       </div>
+      )}
     </div>
   );
 }

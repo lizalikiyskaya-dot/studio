@@ -21,7 +21,7 @@ export default async function ArcsView({
   if (!activeBook) {
     return (
       <div>
-        <PageHeader title="Арки персонажей" description="Выберите тип арки — этапы подстроятся. Для каждого этапа укажите сцену." />
+        <PageHeader title="Арки персонажей" />
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -38,7 +38,6 @@ export default async function ArcsView({
     <div>
       <PageHeader
         title="Арки персонажей"
-        description="Выберите тип арки — этапы подстроятся. Для каждого этапа укажите сцену."
         actions={<BookSelect books={books} activeBookId={activeBook.id} compact />}
       />
       <ArcCharactersList

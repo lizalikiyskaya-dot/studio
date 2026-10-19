@@ -16,7 +16,6 @@ export default function ExercisesView({
     <div>
       <PageHeader
         title="Упражнения"
-        description="Четыре техники работы с персонажем и сюжетом. Наставник видит ваши ответы и комментирует их."
       />
       <div>
         <Subtabs

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import StudentsList from "./StudentsList";
 import { getUnseenActivity } from "@/lib/unseenActivity";
+import { markedTitle } from "@/components/markedTitle";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -86,11 +87,11 @@ export default async function MentorPage() {
   return (
     <div>
       <div className="text-[14px] capitalize" style={{ color: "var(--muted)" }}>{dateLabel}</div>
-      <h1 className="page-title mt-1 mb-5">Ученики</h1>
+      <h1 className="page-title mt-1 mb-5">{markedTitle("Ученики")}</h1>
       <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <section className="sheet p-4">
           <div className="flex items-center gap-2 mb-3">
-            <h2 className="serif text-[18px] font-medium">Новые заявки</h2>
+            <h2 className="text-[18px] font-semibold">Новые заявки</h2>
             {pending.length > 0 && (
               <span className="rounded-full px-2 text-[12px] font-semibold text-white" style={{ background: "var(--v)" }}>{pending.length}</span>
             )}
@@ -98,7 +99,7 @@ export default async function MentorPage() {
           {pending.length === 0 && <p className="text-[13.5px]" style={{ color: "var(--muted)" }}>Новых заявок нет.</p>}
           <div className="flex flex-col gap-3">
             {pending.map((u) => (
-              <div key={u.id} className="rounded-[16px] p-3" style={{ background: "#F7FBF8" }}>
+              <div key={u.id} className="rounded-[16px] p-3" style={{ background: "var(--soft)" }}>
                 <div className="text-[14.5px] font-semibold break-words">{u.name}</div>
                 <div className="truncate text-[12.5px]" style={{ color: "var(--muted)" }}>{u.email}</div>
                 <div className="mt-2 flex items-center gap-3">
@@ -114,16 +115,13 @@ export default async function MentorPage() {
           </div>
         </section>
         <section className="sheet p-4">
-          <h2 className="serif text-[18px] font-medium mb-2">Недавние решения</h2>
+          <h2 className="text-[18px] font-semibold mb-2">Недавние решения</h2>
           {decided.slice(0, 6).map((u) => (
             <div key={u.id} className="flex items-center gap-2 py-2" style={{ borderTop: "1px solid var(--line)" }}>
               <span className="min-w-0 flex-1 truncate text-[13.5px]">{u.name}</span>
-              <Badge tone={u.status === "APPROVED" ? "success" : "danger"}>{u.status === "APPROVED" ? "одобрено" : "отклонено"}</Badge>
+              <Badge tone={u.status === "APPROVED" ? "mint" : "danger"}>{u.status === "APPROVED" ? "одобрено" : "отклонено"}</Badge>
             </div>
           ))}
-          <p className="mt-3 text-[13px] leading-snug" style={{ color: "var(--muted)" }}>
-            Письма о новых заявках и сданных работах будут приходить на почту <span className="soon">скоро</span>
-          </p>
         </section>
       </div>
 

@@ -22,7 +22,7 @@ export default async function PlanBookView({
   if (!activeBook) {
     return (
       <div>
-        <PageHeader title="Трекер по главам" description="Суть каждой главы, её драматическое ядро и объём в знаках." />
+        <PageHeader title="Трекер по главам" />
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -38,7 +38,6 @@ export default async function PlanBookView({
     <div>
       <PageHeader
         title="Трекер по главам"
-        description="Суть каждой главы, её драматическое ядро и объём в знаках."
         actions={
           <>
             <BookSelect books={books} activeBookId={activeBook.id} compact />

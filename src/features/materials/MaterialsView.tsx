@@ -24,7 +24,6 @@ export default async function MaterialsView({
     <div>
       <PageHeader
         title="Материалы"
-        description="Книги и методички от Лизы. Отмечайте, что уже прочитано."
       />
       <MaterialsList
         studentId={studentId}

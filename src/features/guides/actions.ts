@@ -74,6 +74,8 @@ export async function createGuide(): Promise<ActionResult<{ guide: LibraryGuide 
         title: guide.title,
         description: guide.description,
         fileName: guide.fileName,
+        fileMime: guide.fileMime,
+        fileBytes: null,
         hasFile: false,
         isPdf: false,
         order: guide.order,

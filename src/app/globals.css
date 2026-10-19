@@ -1,8 +1,6 @@
 @import "tailwindcss";
 
-/* Палитра «Солнечная». Старые имена (--wine, --sage, --gold, --paper)
-   оставлены как алиасы, чтобы существующие экраны подхватили новый вид
-   без поэкранной перекраски. */
+/* Палитра «Солнечная»: чернила, жёлтый маркер, фиолетовый акцент, мятные статусы. */
 :root {
   --ink: #202020;
   --ink2: #555555;
@@ -13,8 +11,6 @@
   --soft: #f4f4f4;
   --bg-surface-2: #f4f4f4;
   --bg-card: #ffffff;
-  --paper: #ffffff;
-  --paper-light: #ffffff;
   --line: #ececec;
   --rule: #ececec;
   --border: #ececec;
@@ -25,15 +21,12 @@
   --accent: #6553e8;
   --accent-soft: #e6e2ff;
   --vi: #7b6cf6;
-  --wine: #4b3fc0;
-  --wine-soft: #dadada;
+  --link: #4b3fc0;
   --deep: #2b2d5c;
   --danger: #e0592a;
-  --sage: #14684b;
+  --sage: #2fb083;
   --sage-bright: #2fb083;
   --sage-soft: #d5f3e7;
-  --gold: #6553e8;
-  --gold-soft: #fff5cc;
   --note: #fff5cc;
   --noteink: #7a6a1e;
   --neutral-active: #f4f4f4;
@@ -99,8 +92,8 @@ body {
 }
 
 .page-title {
-  font-family: var(--font-serif), Georgia, serif !important;
-  font-weight: 500 !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  font-weight: 650 !important;
   font-style: normal;
   text-transform: none !important;
   letter-spacing: -0.02em !important;
@@ -109,16 +102,16 @@ body {
 }
 
 .heading, h1, h2, h3, h4 {
-  font-family: var(--font-serif), Georgia, serif;
-  font-weight: 600;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 650;
   font-style: normal;
   text-transform: none;
   letter-spacing: -0.02em;
 }
 
 .entry-title {
-  font-family: var(--font-serif), Georgia, serif;
-  font-weight: 500;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 650;
   letter-spacing: -0.01em;
 }
 
@@ -137,7 +130,7 @@ body {
   max-width: 640px;
   line-height: 1.45;
 }
-.page-actions { margin-left: auto; display: flex; gap: 10px; flex-shrink: 0; align-items: center; }
+.page-actions { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; flex-shrink: 1; align-items: center; justify-content: flex-end; min-width: 0; max-width: 100%; }
 .sheet {
   border: 1px solid var(--border);
   border-radius: 24px;
@@ -169,18 +162,6 @@ body {
   color: #fff;
   padding: 20px;
 }
-.soon {
-  display: inline-flex;
-  align-items: center;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 99px;
-  background: var(--note);
-  color: var(--noteink);
-  border: 1px dashed #E5CF6A;
-  white-space: nowrap;
-}
 .mentor-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 22px; align-items: start; }
 .plan-board { overflow-x: auto; }
 .plan-mobile { display: none; }
@@ -191,7 +172,7 @@ body {
 }
 @media (max-width: 980px) {
   .banner-row, .mentor-layout { grid-template-columns: minmax(0, 1fr); }
-  .page-actions { margin-left: 0; }
+  .page-actions { margin-left: 0; width: 100%; justify-content: flex-start; }
 }
 
 .masthead-title {
@@ -229,6 +210,25 @@ body {
   cursor: pointer;
 }
 .btn-y:disabled { opacity: 0.6; cursor: default; }
+
+.hover-lift.is-on { box-shadow: 0 0 0 2px #202020; }
+.photo-tools { opacity: 1; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .photo-tools { opacity: 0; transition: opacity 200ms ease; }
+  .group:hover .photo-tools { opacity: 1; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .hover-lift {
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(32, 32, 32, 0.1);
+  }
+  .hover-lift.is-on:hover {
+    box-shadow: 0 0 0 2px #202020, 0 12px 28px rgba(32, 32, 32, 0.1);
+  }
+}
 
 .lnk { color: var(--vi); font-weight: 500; }
 .lnk:hover { text-decoration: underline; }
@@ -276,9 +276,9 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 
 .auth-title {
   margin-top: 34px;
-  font-family: var(--font-serif), Georgia, serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: clamp(34px, 3vw, 42px);
-  font-weight: 500;
+  font-weight: 650;
   font-style: normal;
   letter-spacing: -0.02em;
   line-height: 1.08;
@@ -310,8 +310,8 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 .wordmark-name {
   position: relative;
   display: inline-block;
-  font-family: var(--font-serif), Georgia, serif;
-  font-weight: 600;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 700;
   font-size: 21px;
   letter-spacing: -0.01em;
   line-height: 1;
@@ -343,6 +343,29 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   margin-top: 18px;
 }
 .auth-quote-main i { font-weight: 400; font-style: italic; }
+/* Строки цитаты не переносим. «Главные правила» чуть шире колонки:
+   на 1440 это 1px, ниже — больше, потому что кегль от vw, а поля героя фиксированные.
+   Трекинг только у первой строки и только в двухколоночном герое. */
+.auth-quote-line { white-space: nowrap; }
+@media (min-width: 981px) {
+  .auth-quote-line:first-child {
+    letter-spacing: clamp(
+      -0.095em,
+      calc(-0.027em + (50vw - 128px - 592px) / 1px * 0.00027em),
+      -0.025em
+    );
+  }
+}
+.mk {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M3 22 L60 15 L130 8 L198 2 L196 40 L199 70 L197 96 L120 98 L50 99 L1 100 L4 66 L0 44 Z' fill='%23ffd43b'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 100% 62%;
+  background-position: 0 88%;
+  padding: 0 0.08em 0 0.05em;
+  margin: 0 -0.06em 0 -0.01em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
 .auth-attrib {
   margin-top: 22px;
   font-size: 14px;
@@ -364,7 +387,7 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   position: relative;
   z-index: 1;
 }
-.auth-hero-slash { color: #c9c1ae; }
+.auth-hero-slash { color: var(--muted); }
 .auth-panel {
   flex: 1;
   display: grid;
@@ -480,7 +503,7 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   z-index: 1;
 }
 .mentor-bar a { color: var(--y); font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
-.mentor-review { margin-left: auto; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.mentor-review { margin-left: auto; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; min-width: 0; max-width: 100%; }
 
 .studio-body { display: flex; gap: 24px; padding: 24px 40px 40px; flex: 1; min-width: 0; }
 .studio-sidebar {
@@ -494,17 +517,23 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   gap: 12px;
   align-self: flex-start;
   position: sticky;
-  top: calc(var(--chrome-h, 64px) + 32px);
-  max-height: calc(100vh - var(--chrome-h, 64px) - 56px);
-  overflow: auto;
+  overflow: visible;
+  /* Короткая колонка липнет под шапкой. Высокая едет вместе со страницей
+     и прилипает нижним краем — без своего overflow, чтобы колесо не застревало. */
+  top: min(
+    calc(var(--chrome-h, 64px) + 32px),
+    calc(100vh - var(--sidebar-h, 480px) - 24px)
+  );
 }
 .collapse-desktop { display: none; }
 @media (min-width: 981px) {
   .studio-sidebar.is-collapsed { display: none; }
   .collapse-desktop { display: grid; }
   .studio-shell.has-mentor .studio-sidebar {
-    top: calc(var(--chrome-h, 112px) + 32px);
-    max-height: calc(100vh - var(--chrome-h, 112px) - 56px);
+    top: min(
+      calc(var(--chrome-h, 112px) + 32px),
+      calc(100vh - var(--sidebar-h, 480px) - 24px)
+    );
   }
 }
 .side-card { border-radius: 16px; background: #fff; padding: 14px; }
@@ -864,7 +893,81 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   justify-content: space-between;
   gap: 12px;
   flex-shrink: 0;
-  padding: 14px 16px 8px;
+  flex-wrap: wrap;
+  padding: 6px 16px 8px;
+}
+/* Ручка шторки: высота фиксирована, иначе в колонке flex-basis растянет её на всю панель. */
+.sheet-grab {
+  order: -1;
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  padding: 8px 0 2px;
+  border: 0;
+  background: transparent;
+  touch-action: none;
+  cursor: grab;
+}
+.sheet-grab span {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: #c8c8c8;
+}
+.notes-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  justify-content: flex-end;
+  overflow: hidden;
+  background: transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s ease, visibility 0.22s ease;
+}
+.notes-layer.is-open {
+  background: rgba(30, 28, 24, 0.28);
+  opacity: 1;
+  visibility: visible;
+}
+.notes-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(400px, 92vw);
+  height: 100%;
+  background: var(--bg-card);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.13);
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.22, 0.9, 0.32, 1);
+}
+.notes-layer.is-open .notes-panel { transform: translateX(0); }
+.notes-panel .sheet-grab { display: none; }
+.notes-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.notes-close {
+  display: inline-flex;
+  border: 0;
+  background: transparent;
+  color: var(--ink-faint);
+  padding: 4px;
+}
+.notes-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 .studio-sheet-close {
   display: inline-flex;
@@ -905,7 +1008,7 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--gold);
+  color: var(--v);
 }
 html.studio-sheet-open .notes-fab { visibility: hidden; }
 .studio-menu-btn { display: none; }
@@ -939,6 +1042,7 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .studio-menu-btn { display: inline-flex; flex-shrink: 0; }
   .mentor-side-nav { display: block; }
   .mentor-bar { padding: 10px 16px; flex-wrap: wrap; }
+  .mentor-review { margin-left: 0; flex-basis: 100%; }
   .studio-body { padding: 16px 16px 108px; }
   .studio-sidebar {
     display: none;
@@ -978,6 +1082,17 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .studio-content :where(.flex.items-center.justify-between, .flex.items-start.justify-between) { flex-wrap: wrap; gap: 12px; }
   .studio-content :where(input, textarea, select, [contenteditable="true"]) { font-size: 16px; }
   .notes-fab { bottom: 96px !important; }
+  .notes-layer { align-items: flex-end; justify-content: stretch; }
+  .notes-panel {
+    width: 100%;
+    height: min(88dvh, 100%);
+    max-height: calc(100% - 8px);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -12px 40px rgba(32, 32, 32, 0.18);
+    transform: translateY(110%);
+  }
+  .notes-layer.is-open .notes-panel { transform: translateY(0); }
+  .notes-panel .sheet-grab { display: flex; }
 }
 @media (max-width: 720px) {
   .studio-logo-note { display: none; }

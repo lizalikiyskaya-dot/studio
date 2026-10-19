@@ -18,7 +18,7 @@ export default async function AboutBookView({
   if (!activeBook) {
     return (
       <div>
-        <PageHeader title="О книге" description="Замысел, жанр и рабочее название. Книгу можно сменить в любой момент." />
+        <PageHeader title="О книге" />
         <NoBookYet studentId={studentId} />
       </div>
     );
@@ -31,7 +31,6 @@ export default async function AboutBookView({
     <div>
       <PageHeader
         title="О книге"
-        description="Замысел, жанр и рабочее название. Отсюда же можно добавить ещё одну книгу."
         actions={<BookSwitcher studentId={studentId} books={books} activeBookId={activeBook.id} inline />}
       />
       <AboutBookForm

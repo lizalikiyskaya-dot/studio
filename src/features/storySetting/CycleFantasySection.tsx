@@ -6,6 +6,7 @@ import type { Cycle, CycleWorldEntry, WorldCategory } from "@/generated/prisma/c
 import Accordion from "@/components/Accordion";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import ImageUploadBox from "@/components/ImageUploadBox";
+import { Button } from "@/components/ui/Button";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import {
   toggleCycleFantasyLock,
@@ -109,17 +110,16 @@ export default function CycleFantasySection({
   if (!unlocked) {
     return (
       <div
-        className="rounded-md p-9 text-center max-w-[480px]"
+        className="rounded-[14px] p-9 text-center max-w-[480px]"
         style={{ border: "1px dashed var(--rule)", color: "var(--faded)" }}
       >
         <span className="flex justify-center mb-2.5"><Lock size={26} /></span>
-        <span className="text-[13.5px]">Раздел скрыт от ученика — открой, если он пишет фэнтези</span>
+        <span className="text-[13.5px]">Раздел скрыт — откройте, если в тексте есть фэнтези</span>
         {isMentor && (
           <div className="mt-3.5">
             <button
               onClick={handleToggleLock}
-              className="text-[12.5px] px-3 py-1.5 rounded-full"
-              style={{ border: "1px solid var(--sage)", color: "var(--sage)" }}
+              className="btn-y !h-9 !w-auto px-4 text-[13px]"
             >
               Открыть мир
             </button>
@@ -138,9 +138,9 @@ export default function CycleFantasySection({
           <button
             onClick={handleToggleLock}
             className="flex items-center gap-1.5 text-[12.5px] px-3 py-1.5 rounded-full"
-            style={{ border: "1px solid var(--sage)", color: "var(--sage)" }}
+            style={{ border: "1px solid var(--border)", color: "var(--ink)", background: "#fff" }}
           >
-            <Unlock size={13} /> Открыто для ученика — закрыть
+            <Unlock size={13} /> Открыто — закрыть
           </button>
         </div>
       )}
@@ -149,7 +149,7 @@ export default function CycleFantasySection({
         <AutoGrowTextarea
           defaultValue={cycle.fantasyNotes}
           placeholder="общий черновик по миру..."
-          className="w-full text-[13.5px] leading-relaxed rounded-md p-2.5"
+          className="w-full text-[13.5px] leading-relaxed rounded-[14px] p-2.5"
           style={{ border: "1px solid var(--rule)" }}
           onBlur={(value) => startTransition(() => updateCycleFantasyText(cycleId, "fantasyNotes", value))}
         />
@@ -164,7 +164,7 @@ export default function CycleFantasySection({
                 <div
                   key={entry.id}
                   onClick={() => setOpenEntryId(entry.id)}
-                  className="rounded-md p-2.5 bg-white cursor-pointer"
+                  className="rounded-[14px] p-2.5 bg-white cursor-pointer"
                   style={{ border: "1px solid var(--rule)" }}
                 >
                   <div
@@ -181,7 +181,7 @@ export default function CycleFantasySection({
               ))}
               <div
                 onClick={() => handleAddEntry(category)}
-                className="rounded-md flex items-center justify-center cursor-pointer text-center"
+                className="rounded-[14px] flex items-center justify-center cursor-pointer text-center"
                 style={{ border: "1px dashed var(--rule)", minHeight: 124, color: "var(--faded)" }}
               >
                 <span className="text-[12.5px]">+ добавить</span>
@@ -195,7 +195,7 @@ export default function CycleFantasySection({
         <AutoGrowTextarea
           defaultValue={cycle.fantasyGeneral}
           placeholder="всё остальное..."
-          className="w-full text-[13.5px] leading-relaxed rounded-md p-2.5"
+          className="w-full text-[13.5px] leading-relaxed rounded-[14px] p-2.5"
           style={{ border: "1px solid var(--rule)" }}
           onBlur={(value) => startTransition(() => updateCycleFantasyText(cycleId, "fantasyGeneral", value))}
         />
@@ -229,7 +229,7 @@ export default function CycleFantasySection({
                 startTransition(() => { void deletePhoto("cycle-world-entry-photo", openEntry.id, "photoUrl"); });
               }}
               placeholder="нажмите, чтобы добавить изображение"
-              className="w-full h-[200px] rounded-md mb-5 mt-3.5"
+              className="w-full h-[200px] rounded-[14px] mb-5 mt-3.5"
             />
 
             <div
@@ -248,18 +248,14 @@ export default function CycleFantasySection({
               ref={bodyRef}
               defaultValue={openEntry.body}
               placeholder="Описание, детали, всё, что нужно об этой записи..."
-              className="field-literary w-full text-[14.5px] leading-relaxed rounded-md p-3.5 resize-none"
+              className="field-literary w-full text-[14.5px] leading-relaxed rounded-[14px] p-3.5 resize-none"
               style={{ border: "1px solid var(--rule)", minHeight: "calc(100vh - 480px)" }}
             />
 
             <div className="mt-3.5 flex items-center gap-3">
-              <button
-                onClick={() => handleSaveEntry(openEntry.id)}
-                className="text-[12.5px] px-4 py-1.5 rounded-full"
-                style={{ border: "1px solid var(--sage)", color: "#fff", background: "var(--sage)" }}
-              >
+              <Button type="button" variant="primary" size="sm" pill onClick={() => handleSaveEntry(openEntry.id)}>
                 Сохранить
-              </button>
+              </Button>
               {justSaved && (
                 <span className="flex items-center gap-1 text-[12.5px]" style={{ color: "var(--sage)" }}>
                   <Check size={13} /> сохранено
@@ -268,7 +264,7 @@ export default function CycleFantasySection({
               <button
                 onClick={() => handleDeleteEntry(openEntry.id)}
                 className="text-[12.5px] px-3 py-1.5 rounded-full"
-                style={{ border: "1px dashed var(--wine-soft)", color: "var(--wine)" }}
+                style={{ border: "1px dashed var(--border)", color: "var(--link)" }}
               >
                 удалить запись
               </button>

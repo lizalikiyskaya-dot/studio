@@ -17,43 +17,11 @@ import {
 } from "./actions";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
 import { Button } from "@/components/ui/Button";
+import EmptyState from "@/components/EmptyState";
+import DownloadButton from "@/components/DownloadButton";
+import { dataUrlBytes } from "@/lib/fileMeta";
 import LibraryGuides from "./LibraryGuides";
 import type { CabinetGuide } from "@/features/guides/types";
-
-function DownloadOrUpload({
-  label,
-  fileUrl,
-  fileName,
-  canManage,
-  onUpload,
-}: {
-  label: string;
-  fileUrl: string | null;
-  fileName: string | null;
-  canManage: boolean;
-  onUpload: (file: File) => void;
-}) {
-  if (fileUrl) {
-    return (
-      <a
-        href={fileUrl}
-        download={fileName ?? undefined}
-        className="text-[13px] px-4 py-1.5 rounded-full inline-block transition-colors"
-        style={{ color: "var(--sage)", border: "1px solid var(--sage)" }}
-      >
-        скачать {label}
-      </a>
-    );
-  }
-  if (canManage) {
-    return <FileAttachBox label={label === "файл" ? "+ файл" : `+ файл ${label}`} onUpload={onUpload} />;
-  }
-  return (
-    <span className="text-[13px]" style={{ color: "var(--ink-faint)" }}>
-      файл пока не загружен
-    </span>
-  );
-}
 
 function useDrag<T extends { id: string }>(
   items: T[],
@@ -200,20 +168,18 @@ function BooksList({
               />
             )}
             <div className="flex items-center gap-2 flex-wrap">
-              <DownloadOrUpload
-                label="PDF"
-                fileUrl={material.pdfUrl}
-                fileName={material.pdfName}
-                canManage={canManage}
-                onUpload={(file) => handleFile(material.id, "pdf", file)}
-              />
-              <DownloadOrUpload
-                label="EPUB"
-                fileUrl={material.epubUrl}
-                fileName={material.epubName}
-                canManage={canManage}
-                onUpload={(file) => handleFile(material.id, "epub", file)}
-              />
+              {material.pdfUrl ? (
+                <DownloadButton href={material.pdfUrl} fileName={material.pdfName} mime="application/pdf" bytes={dataUrlBytes(material.pdfUrl)} />
+              ) : canManage ? (
+                <FileAttachBox label="+ файл PDF" onUpload={(file) => handleFile(material.id, "pdf", file)} />
+              ) : (
+                <span className="text-[13px]" style={{ color: "var(--ink-faint)" }}>PDF пока не загружен</span>
+              )}
+              {material.epubUrl ? (
+                <DownloadButton href={material.epubUrl} fileName={material.epubName} mime="application/epub+zip" bytes={dataUrlBytes(material.epubUrl)} />
+              ) : canManage ? (
+                <FileAttachBox label="+ файл EPUB" onUpload={(file) => handleFile(material.id, "epub", file)} />
+              ) : null}
               {canManage && (
                 <Button onClick={() => handleDelete(material.id)} variant="secondary" size="sm" pill className="ml-auto">
                   удалить
@@ -289,25 +255,28 @@ function HandoutsList({
   return (
     <div>
       {!canManage && guides.length === 0 && handouts.length === 0 ? (
-        <p className="text-[14px]" style={{ color: "var(--muted)" }}>
-          Методичек пока нет.
-        </p>
+        <EmptyState
+          cue="Самое время читать"
+          detail="Здесь появятся методички студии и личные файлы."
+        />
       ) : null}
       {showLibrary && (
         <div className="mb-8">
           <h2 className="heading text-[18px] mb-1">{canManage ? "Общая библиотека" : "Методички студии"}</h2>
           {canManage ? (
             <p className="text-[13px] mb-3" style={{ color: "var(--muted)" }}>
-              Скрытая методичка этому ученику не видна и не скачивается.{" "}
+              Скрытая методичка в этом кабинете не видна и не скачивается.{" "}
               <Link href="/mentor/guides" className="lnk">
                 К библиотеке
               </Link>
             </p>
           ) : null}
           {guides.length === 0 ? (
-            <p className="text-[14px]" style={{ color: "var(--muted)" }}>
-              В библиотеке пока ничего нет.
-            </p>
+            <EmptyState
+              compact
+              cue={canManage ? "Самое время собрать библиотеку" : "Самое время читать"}
+              detail={canManage ? "Добавьте методичку — её увидят в кабинетах." : "Методички студии появятся здесь."}
+            />
           ) : (
             <LibraryGuides studentId={studentId} guides={guides} canManage={canManage} />
           )}
@@ -317,7 +286,7 @@ function HandoutsList({
       {showPersonalHeading ? <h2 className="heading text-[18px] mb-2">Личные методички</h2> : null}
 
       {handouts.map((material) => (
-        <div
+        <article
           key={material.id}
           draggable={canManage && armedId === material.id}
           onDragStart={() => drag.onDragStart(material.id)}
@@ -325,48 +294,54 @@ function HandoutsList({
           onDrop={drag.onDrop}
           onDragEnd={() => setArmedId(null)}
           onMouseUp={() => setArmedId(null)}
-          className="group flex items-center gap-3 py-3 border-b flex-wrap"
-          style={{ borderColor: "var(--border)" }}
+          className="hover-lift group mb-3 rounded-[24px] px-4 py-3.5"
+          style={{ background: "#fff", border: "1px solid var(--border)" }}
         >
-          {canManage && (
-            <GripVertical
-              size={14}
-              onMouseDown={() => setArmedId(material.id)}
-              className="shrink-0 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ color: "var(--ink-faint)" }}
-            />
-          )}
-          {canManage ? (
-            <input
-              defaultValue={material.title}
-              onBlur={(e) => handleTitle(material.id, e.target.value)}
-              onKeyDown={blurOnEnter}
-              placeholder="Название методички"
-              className="heading flex-1 min-w-0 outline-none bg-transparent text-[15px] font-semibold"
-            />
-          ) : (
-            <span className="heading flex-1 min-w-0 text-[15px] font-semibold">{material.title || "Без названия"}</span>
-          )}
-          <span
-            onClick={() => handleStatus(material.id, material.status)}
-            className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
-            style={MATERIAL_STATUS_STYLE[material.status]}
-          >
-            {MATERIAL_STATUS_LABEL[material.status]}
-          </span>
-          <DownloadOrUpload
-            label="файл"
-            fileUrl={material.fileUrl}
-            fileName={material.fileName}
-            canManage={canManage}
-            onUpload={(file) => handleFile(material.id, file)}
-          />
-          {canManage && (
-            <Button onClick={() => handleDelete(material.id)} variant="secondary" size="sm" pill>
-              удалить
-            </Button>
-          )}
-        </div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-start gap-2">
+              {canManage && (
+                <GripVertical
+                  size={14}
+                  onMouseDown={() => setArmedId(material.id)}
+                  className="mt-1 shrink-0 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ color: "var(--ink-faint)" }}
+                />
+              )}
+              {canManage ? (
+                <input
+                  defaultValue={material.title}
+                  onBlur={(e) => handleTitle(material.id, e.target.value)}
+                  onKeyDown={blurOnEnter}
+                  placeholder="Название методички"
+                  className="heading min-w-0 flex-1 bg-transparent text-[17px] font-semibold outline-none"
+                />
+              ) : (
+                <span className="heading min-w-0 flex-1 text-[17px] font-semibold">{material.title || "Без названия"}</span>
+              )}
+            </div>
+            <span
+              onClick={() => handleStatus(material.id, material.status)}
+              className="cursor-pointer whitespace-nowrap rounded-full px-2.5 py-1 text-[12px]"
+              style={MATERIAL_STATUS_STYLE[material.status]}
+            >
+              {MATERIAL_STATUS_LABEL[material.status]}
+            </span>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            {material.fileUrl ? (
+              <DownloadButton href={material.fileUrl} fileName={material.fileName} bytes={dataUrlBytes(material.fileUrl)} />
+            ) : canManage ? (
+              <FileAttachBox label="+ файл" onUpload={(file) => handleFile(material.id, file)} />
+            ) : (
+              <span className="text-[13px]" style={{ color: "var(--ink-faint)" }}>файл пока не загружен</span>
+            )}
+            {canManage && (
+              <Button onClick={() => handleDelete(material.id)} variant="secondary" size="sm" pill className="ml-auto">
+                удалить
+              </Button>
+            )}
+          </div>
+        </article>
       ))}
 
       {canManage && (
@@ -397,11 +372,11 @@ export default function MaterialsList({
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[1.5fr_1fr]">
       <section className="sheet px-5 pt-4 pb-3" style={{ order: initialTab === 1 ? 2 : 0 }}>
-        <h2 className="serif mb-2 text-[18px] font-medium">Книги</h2>
+        <h2 className="mb-2 text-[18px] font-semibold">Книги</h2>
         <BooksList studentId={studentId} materials={books} canManage={canManage} />
       </section>
       <section className="sheet px-5 pt-4 pb-3" style={{ order: initialTab === 1 ? 0 : 1 }}>
-        <h2 className="serif mb-2 text-[18px] font-medium">Методички</h2>
+        <h2 className="mb-2 text-[18px] font-semibold">Методички</h2>
         <HandoutsList studentId={studentId} materials={handouts} guides={guides} canManage={canManage} />
       </section>
     </div>

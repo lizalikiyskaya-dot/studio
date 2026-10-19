@@ -7,6 +7,7 @@ import SectionTracker from "@/features/sectionBeacons/SectionTracker";
 import { getSectionBeacons } from "@/features/sectionBeacons/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
 import { SuggestionProvider } from "@/features/suggestions/SuggestionContext";
+import { loadWorkshopBooks } from "@/lib/workshopBooks";
 
 export default async function StudentViewLayout({
   children,
@@ -23,12 +24,13 @@ export default async function StudentViewLayout({
   const student = await prisma.user.findUnique({ where: { id: studentId } });
   if (!student || student.role !== "STUDENT") notFound();
 
-  const [tasks, notes] = await Promise.all([
+  const [tasks, notes, books] = await Promise.all([
     prisma.task.findMany({
       where: { studentId: student.id, deadline: { not: null } },
       select: { id: true, title: true, deadline: true },
     }),
     prisma.note.findMany({ where: { studentId: student.id }, orderBy: { createdAt: "desc" } }),
+    loadWorkshopBooks(student.id),
   ]);
   const [noteComments, beacons] = await Promise.all([
     getCommentsForRecords("Note", notes.map((n) => n.id)),
@@ -48,6 +50,7 @@ export default async function StudentViewLayout({
         notesCount={notes.length}
         bookWorkshopUnlocked={student.bookWorkshopUnlocked}
         storyWorkshopUnlocked={student.storyWorkshopUnlocked}
+        books={books}
         calendar={{
           tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
           paymentDay: student.paymentDay,

@@ -379,6 +379,8 @@ model Book {
   synopsisText String       @default("")
   synopsisLink String       @default("")
 
+  // Название основной таблицы GRAPES. Пустая строка — в кабинете показываем «Сеттинг 1».
+  grapesTitle        String @default("")
   grapesGeography    String @default("")
   grapesReligion      String @default("")
   grapesAchievements String @default("")

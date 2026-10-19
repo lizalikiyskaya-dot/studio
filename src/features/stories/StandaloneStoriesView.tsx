@@ -19,7 +19,6 @@ export default async function StandaloneStoriesView({ studentId }: { studentId: 
     <div>
       <PageHeader
         title="Отдельные рассказы"
-        description="Рассказы вне циклов: у каждого свои персонажи и свой мир."
         actions={<HeaderButton actionId="story-add"><Plus size={16} /> Новый рассказ</HeaderButton>}
       />
       <StoriesList

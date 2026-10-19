@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef } from "react";
 import { uploadFile } from "@/lib/uploadFile";
 import ToggleSwitch from "@/components/ToggleSwitch";
+import { Button } from "@/components/ui/Button";
 import {
   updateProfileName,
   updateProfileEmail,
@@ -132,7 +133,7 @@ export default function ProfileForm({
     <div className="max-w-[480px]">
       {msg && (
         <div
-          className="mb-5 px-4 py-2.5 rounded-[9px] text-[13px]"
+          className="mb-5 px-4 py-2.5 rounded-[14px] text-[13px]"
           style={{ background: msg.ok ? "var(--sage-soft)" : "var(--accent-soft)", color: msg.ok ? "var(--sage)" : "var(--accent)" }}
         >
           {msg.text}
@@ -199,13 +200,9 @@ export default function ProfileForm({
             className={fieldCls}
             style={fieldStyle}
           />
-          <button
-            onClick={handleSaveName}
-            className="px-5 py-2 rounded-full text-[13px] font-medium flex-shrink-0"
-            style={{ background: "var(--y)", color: "var(--ink)", border: "none" }}
-          >
+          <Button type="button" variant="primary" size="sm" pill onClick={handleSaveName} className="flex-shrink-0">
             Сохранить
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -221,20 +218,16 @@ export default function ProfileForm({
             className={fieldCls}
             style={fieldStyle}
           />
-          <button
-            onClick={handleSaveEmail}
-            className="px-5 py-2 rounded-full text-[13px] font-medium flex-shrink-0"
-            style={{ background: "var(--y)", color: "var(--ink)", border: "none" }}
-          >
+          <Button type="button" variant="primary" size="sm" pill onClick={handleSaveEmail} className="flex-shrink-0">
             Сохранить
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Email notifications */}
       <div className={sectionCls}>
         <div className="text-[14px] font-semibold mb-3" style={{ color: "var(--ink)" }}>Уведомления на почту</div>
-        <div className="rounded-[9px] border px-3.5 py-3" style={{ borderColor: "var(--border)", background: "var(--bg-card)" }}>
+        <div className="rounded-[14px] border px-3.5 py-3" style={{ borderColor: "var(--border)", background: "var(--bg-card)" }}>
           <ToggleSwitch
             checked={notifications}
             onChange={handleToggleNotifications}
@@ -242,7 +235,7 @@ export default function ProfileForm({
           />
           <p className="text-[12px] mt-2" style={{ color: "var(--ink-faint)" }}>
             {isMentor
-              ? "Когда ученик поработал в кабинете, приходит короткое письмо. Не чаще одного раза в час на ученика."
+              ? "Когда в кабинете появляются правки, приходит короткое письмо. Не чаще одного раза в час."
               : "Когда наставник вносит правки в ваш кабинет, приходит короткое письмо. Не чаще одного раза в час."}
           </p>
         </div>
@@ -262,7 +255,7 @@ export default function ProfileForm({
         </p>
         {passwordMsg && (
           <div
-            className="mb-3 px-4 py-2.5 rounded-[9px] text-[13px]"
+            className="mb-3 px-4 py-2.5 rounded-[14px] text-[13px]"
             style={{
               background: passwordMsg.ok ? "var(--sage-soft)" : "var(--accent-soft)",
               color: passwordMsg.ok ? "var(--sage)" : "var(--accent)",

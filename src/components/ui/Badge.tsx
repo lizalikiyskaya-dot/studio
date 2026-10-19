@@ -1,11 +1,11 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type Tone = "neutral" | "success" | "danger" | "warning";
+type Tone = "neutral" | "mint" | "danger" | "warning";
 type Fill = "outline" | "solid" | "soft";
 
 const TONE_SOFT: Record<Tone, { background: string; color: string }> = {
   neutral: { background: "var(--soft)", color: "var(--ink2)" },
-  success: { background: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)" },
+  mint: { background: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)" },
   danger: { background: "var(--pill-red-bg)", color: "var(--pill-red-fg)" },
   warning: { background: "var(--pill-or-bg)", color: "var(--pill-or-fg)" },
 };

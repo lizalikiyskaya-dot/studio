@@ -6,6 +6,7 @@ import SettingTypeMap from "@/components/SettingTypeMap";
 import StoryGrapesTable from "./StoryGrapesTable";
 import StorySettingTypeSection from "./StorySettingTypeSection";
 import StoryFantasySection from "./StoryFantasySection";
+import EmptyState from "@/components/EmptyState";
 
 type CycleSettingSnap = {
   grapesGeography: string;
@@ -58,7 +59,7 @@ function SharedSettingType({ cycle }: { cycle: CycleSettingSnap }) {
       </p>
       {cycle.settingPhotoUrl && (
         <div
-          className="w-full max-w-[420px] h-[170px] rounded-md mb-5 bg-cover bg-center"
+          className="w-full max-w-[420px] h-[170px] rounded-[14px] mb-5 bg-cover bg-center"
           style={{ backgroundImage: `url(${cycle.settingPhotoUrl})`, border: "1px solid var(--border)" }}
         />
       )}
@@ -103,9 +104,7 @@ export default function StorySettingSection({
             </p>
             <div className="flex flex-wrap gap-2.5">
               {cycleWorldEntries.length === 0 && (
-                <span className="text-[13px]" style={{ color: "var(--ink-faint)" }}>
-                  В цикле пока нет записей сеттинга.
-                </span>
+                <EmptyState compact cue="Самое время описать мир" detail="Записи сеттинга цикла появятся здесь." />
               )}
               {cycleWorldEntries.map((e) => (
                 <span key={e.id} className="text-[13px] px-3 py-1.5 rounded-sm" style={{ border: "1px solid var(--border)" }}>

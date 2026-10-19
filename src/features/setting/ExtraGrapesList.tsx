@@ -41,12 +41,12 @@ export default function ExtraGrapesList({
               model="GrapesSetting"
               recordId={setting.id}
               field="title"
-              value={setting.title}
+              value={setting.title.trim() ? setting.title : `Сеттинг ${i + 2}`}
               suggestion={suggestions[setting.id]?.title}
               as="input"
-              placeholder={`Сеттинг ${i + 2}`}
               className="heading flex-1 outline-none bg-transparent text-[16px] font-semibold border-b pb-1"
               style={{ borderColor: "var(--rule)" }}
+              onSaved={(title) => setSettings((prev) => prev.map((row) => (row.id === setting.id ? { ...row, title } : row)))}
             />
             <Button onClick={() => handleDelete(setting.id)} variant="secondary" size="sm" pill>
               удалить

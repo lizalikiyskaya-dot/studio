@@ -4,7 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import DownloadButton from "@/components/DownloadButton";
 import { Badge } from "@/components/ui/Badge";
+import EmptyState from "@/components/EmptyState";
 import { useDragReorder } from "@/lib/useDragReorder";
 import {
   createGuide,
@@ -78,6 +80,8 @@ export default function GuidesLibrary({
       const uploaded = await uploadGuideFile(id, file);
       patch(id, {
         fileName: uploaded.fileName,
+        fileMime: uploaded.mime,
+        fileBytes: file.size,
         hasFile: true,
         isPdf: uploaded.mime === "application/pdf",
       });
@@ -119,9 +123,12 @@ export default function GuidesLibrary({
   return (
     <div>
       {guides.length === 0 && (
-        <p className="text-[14.5px] mb-4" style={{ color: "var(--muted)" }}>
-          Пока пусто. Добавьте первую методичку — файл, название и пара слов, о чём она.
-        </p>
+        <div className="mb-4">
+          <EmptyState
+            cue="Самое время поделиться методичкой"
+            detail="Файл, название и пара слов, о чём она."
+          />
+        </div>
       )}
 
       {guides.map((guide) => {
@@ -180,9 +187,12 @@ export default function GuidesLibrary({
                   </label>
                   {guide.hasFile ? (
                     <>
-                      <a href={`/api/guides/${guide.id}/file`} className="lnk text-[13.5px]">
-                        скачать{guide.fileName ? ` · ${guide.fileName}` : ""}
-                      </a>
+                      <DownloadButton
+                        href={`/api/guides/${guide.id}/file`}
+                        fileName={guide.fileName}
+                        mime={guide.fileMime}
+                        bytes={guide.fileBytes}
+                      />
                       {guide.isPdf ? (
                         <Link href={`/mentor/guides/${guide.id}`} className="lnk text-[13.5px]">
                           открыть
@@ -197,7 +207,7 @@ export default function GuidesLibrary({
                 </div>
 
                 <div className="mt-4 flex items-center gap-2 flex-wrap">
-                  <Badge tone={opened ? "success" : "neutral"}>{opened ? "открыта" : "скрыта"}</Badge>
+                  <Badge tone={opened ? "mint" : "neutral"}>{opened ? "открыта" : "скрыта"}</Badge>
                   <span className="text-[13px]" style={{ color: "var(--ink2)" }}>
                     {studentCount === 0
                       ? "учеников пока нет"

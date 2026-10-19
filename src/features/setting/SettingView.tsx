@@ -8,6 +8,7 @@ import ExtraGrapesList from "./ExtraGrapesList";
 import SettingTypeSection from "./SettingTypeSection";
 import FantasySection from "./FantasySection";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
+import SuggestableField from "@/features/suggestions/SuggestableField";
 import PageHeader from "@/components/PageHeader";
 
 export default async function SettingView({
@@ -24,7 +25,7 @@ export default async function SettingView({
   if (!activeBook) {
     return (
       <div>
-        <PageHeader title="Сеттинг" description="Мир книги по методу GRAPES, тип сеттинга и, если нужно, фэнтези-мир." />
+        <PageHeader title="Сеттинг" />
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );
@@ -52,15 +53,23 @@ export default async function SettingView({
     <div>
       <PageHeader
         title="Сеттинг"
-        description="Мир книги по методу GRAPES, тип сеттинга и, если нужно, фэнтези-мир."
         actions={<BookSelect books={books} activeBookId={activeBook.id} compact />}
       />
 
-      <div className="mt-1 flex items-center gap-2">
-        <h2 className="text-[17px] font-semibold">Метод GRAPES</h2>
-        <span className="soon">скоро: подсказки и примеры</span>
-      </div>
+      <h2 className="mt-1 text-[17px] font-semibold">Метод GRAPES</h2>
       <div className="mt-2.5">
+        <div className="mb-2">
+          <SuggestableField
+            model="Book"
+            recordId={activeBook.id}
+            field="grapesTitle"
+            value={(activeBook.grapesTitle ?? "").trim() ? activeBook.grapesTitle : "Сеттинг 1"}
+            suggestion={bookSuggestions.grapesTitle}
+            as="input"
+            className="heading w-full bg-transparent text-[16px] font-semibold outline-none border-b pb-1"
+            style={{ borderColor: "var(--rule)" }}
+          />
+        </div>
         <GrapesTable recordId={activeBook.id} values={activeBook} suggestions={bookSuggestions} />
       </div>
       <ExtraGrapesList

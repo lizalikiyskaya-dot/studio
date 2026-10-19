@@ -174,7 +174,7 @@ export default function CharacterProfile({
         if (!group.title) {
           return (
             <div key={i} className="mb-5">
-              <div className="text-[13px] font-medium mb-2" style={{ color: "var(--wine)" }}>
+              <div className="text-[13px] font-medium mb-2" style={{ color: "var(--link)" }}>
                 {group.subhead}
               </div>
               {group.fields.map((f) => (
@@ -194,14 +194,14 @@ export default function CharacterProfile({
         return (
           <Accordion key={i} title={group.title} defaultOpen={group.defaultOpen}>
             {group.subhead && (
-              <div className="text-[13px] font-medium mb-3" style={{ color: "var(--wine)" }}>
+              <div className="text-[13px] font-medium mb-3" style={{ color: "var(--link)" }}>
                 {group.subhead}
               </div>
             )}
             {group.fields.map((f) => (
               <div key={f.key}>
                 {f.subhead && (
-                  <div className="text-[13px] font-medium mb-2 mt-4" style={{ color: "var(--wine)" }}>
+                  <div className="text-[13px] font-medium mb-2 mt-4" style={{ color: "var(--link)" }}>
                     {f.subhead}
                   </div>
                 )}

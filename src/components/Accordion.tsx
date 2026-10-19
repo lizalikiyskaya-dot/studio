@@ -20,8 +20,8 @@ export default function Accordion({
 
   return (
     <div
-      className="rounded-md mb-3 overflow-hidden"
-      style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "#FAFAF9" }}
+      className="hover-lift rounded-[14px] mb-3 overflow-hidden"
+      style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "var(--soft)" }}
     >
       <div
         onClick={() => setOpen((v) => !v)}

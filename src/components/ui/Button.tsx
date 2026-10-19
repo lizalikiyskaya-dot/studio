@@ -4,28 +4,20 @@ import Link, { type LinkProps } from "next/link";
 type Variant =
   | "primary"
   | "secondary"
-  | "success"
-  | "success-outline"
   | "neutral"
   | "ghost"
   | "dashed"
-  | "dashed-sage"
-  | "gold"
-  | "gold-outline";
+  | "dashed-accent";
 
 type Size = "sm" | "md";
 
 const VARIANT_STYLE: Record<Variant, React.CSSProperties> = {
   primary: { background: "var(--y)", color: "var(--ink)", border: "none" },
   secondary: { background: "#fff", color: "var(--ink)", border: "1.5px solid var(--border)" },
-  success: { background: "var(--sage-bright)", color: "#fff", border: "none" },
-  "success-outline": { background: "transparent", color: "var(--sage)", border: "1px solid var(--sage)" },
   neutral: { background: "var(--soft)", color: "var(--ink)", border: "none" },
   ghost: { background: "transparent", color: "var(--muted)", border: "1px solid var(--border)" },
   dashed: { background: "transparent", color: "var(--muted)", border: "1.5px dashed #dadada" },
-  "dashed-sage": { background: "transparent", color: "var(--sage)", border: "1.5px dashed var(--sage)" },
-  gold: { background: "var(--y)", color: "var(--ink)", border: "none" },
-  "gold-outline": { background: "#fff", color: "var(--vi)", border: "1.5px solid var(--v)" },
+  "dashed-accent": { background: "transparent", color: "var(--vi)", border: "1.5px dashed var(--v)" },
 };
 
 const SIZE_CLASS: Record<Size, string> = {

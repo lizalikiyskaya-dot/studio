@@ -13,6 +13,11 @@ export default function CycleSettingTypeSection({ cycleId, cycle }: { cycleId: s
 
   return (
     <div>
+      <SettingTypeMap
+        x={cycle.settingMapX}
+        y={cycle.settingMapY}
+        onSave={(x, y) => startTransition(() => updateCycleSettingMap(cycleId, x, y))}
+      />
       <ImageUploadBox
         value={photoUrl}
         onUpload={(file) => {
@@ -24,13 +29,7 @@ export default function CycleSettingTypeSection({ cycleId, cycle }: { cycleId: s
           startTransition(() => { void deletePhoto("cycle-setting-photo", cycleId, "settingPhotoUrl"); });
         }}
         placeholder="нажмите, чтобы добавить фото настроения"
-        className="w-full max-w-[420px] h-[170px] rounded-md mb-5"
-      />
-
-      <SettingTypeMap
-        x={cycle.settingMapX}
-        y={cycle.settingMapY}
-        onSave={(x, y) => startTransition(() => updateCycleSettingMap(cycleId, x, y))}
+        className="mt-5 h-[220px] w-full rounded-[14px]"
       />
     </div>
   );

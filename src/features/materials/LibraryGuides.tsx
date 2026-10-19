@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { cycleGuideStatus, setGuideVisibleForStudent } from "@/features/guides/actions";
 import type { CabinetGuide } from "@/features/guides/types";
+import DownloadButton from "@/components/DownloadButton";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
 
 export default function LibraryGuides({
@@ -50,7 +51,7 @@ export default function LibraryGuides({
         return (
           <article
             key={guide.id}
-            className="rounded-[24px] px-4 py-3.5"
+            className="hover-lift rounded-[24px] px-4 py-3.5"
             style={{ background: "#fff", border: "1px solid var(--border)" }}
           >
             <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -74,9 +75,12 @@ export default function LibraryGuides({
 
             <div className="mt-3 flex items-center gap-3 flex-wrap">
               {canFetch && guide.hasFile ? (
-                <a href={`/api/guides/${guide.id}/file`} className="lnk text-[13.5px]">
-                  скачать{guide.fileName ? ` · ${guide.fileName}` : ""}
-                </a>
+                <DownloadButton
+                  href={`/api/guides/${guide.id}/file`}
+                  fileName={guide.fileName}
+                  mime={guide.fileMime}
+                  bytes={guide.fileBytes}
+                />
               ) : null}
               {canFetch && guide.isPdf ? (
                 <Link
@@ -89,7 +93,7 @@ export default function LibraryGuides({
               {canManage ? (
                 <span className="inline-flex items-center gap-2 ml-auto">
                   <ToggleSwitch checked={guide.visible} onChange={(checked) => void handleVisible(guide.id, checked)} />
-                  <Badge tone={guide.visible ? "success" : "neutral"}>{guide.visible ? "открыта" : "скрыта"}</Badge>
+                  <Badge tone={guide.visible ? "mint" : "neutral"}>{guide.visible ? "открыта" : "скрыта"}</Badge>
                 </span>
               ) : null}
             </div>

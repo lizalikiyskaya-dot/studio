@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -24,8 +24,11 @@ import {
 import CalendarWidget from "./CalendarWidget";
 import Wordmark from "./Wordmark";
 import ToggleSwitch from "./ToggleSwitch";
+import WorkshopBookCard from "./WorkshopBookCard";
+import type { WorkshopBook } from "@/lib/workshopBooks";
 import { setReviewMode } from "@/features/reviewMode/actions";
 import { useCanSuggest, useSetCanSuggest } from "@/features/suggestions/SuggestionContext";
+import { useSheetSwipe } from "@/components/useSheetSwipe";
 
 const TOP_ITEMS = [
   { path: "tasks", label: "Задания", icon: Bookmark },
@@ -94,6 +97,7 @@ export default function Sidebar({
   avatarUrl,
   beacons,
   notesCount,
+  books,
   children,
 }: {
   basePath: string;
@@ -112,6 +116,7 @@ export default function Sidebar({
   avatarUrl?: string | null;
   beacons?: string[];
   notesCount?: number;
+  books?: WorkshopBook[];
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -124,6 +129,9 @@ export default function Sidebar({
   const [, startTransition] = useTransition();
   const [desktopCollapsed, setCollapsed] = useState(false);
   const [sheet, setSheet] = useState<null | "calendar" | "sections">(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const sheetBodyRef = useRef<HTMLDivElement>(null);
+  useSheetSwipe(sheet != null, () => setSheet(null), sheetRef, sheetBodyRef);
   const section = sectionOf(pathname, basePath);
   const onBook = BOOK_PATHS.has(section);
   const onStory = STORY_PATHS.has(section);
@@ -244,13 +252,19 @@ export default function Sidebar({
 
   useEffect(() => {
     const chrome = document.querySelector<HTMLElement>(".studio-chrome");
-    if (!chrome) return;
+    const sidebar = document.querySelector<HTMLElement>(".studio-sidebar");
     const apply = () => {
-      document.documentElement.style.setProperty("--chrome-h", `${Math.ceil(chrome.getBoundingClientRect().height)}px`);
+      if (chrome) {
+        document.documentElement.style.setProperty("--chrome-h", `${Math.ceil(chrome.getBoundingClientRect().height)}px`);
+      }
+      if (sidebar && sidebar.getClientRects().length > 0) {
+        document.documentElement.style.setProperty("--sidebar-h", `${Math.ceil(sidebar.scrollHeight)}px`);
+      }
     };
     apply();
     const observer = new ResizeObserver(apply);
-    observer.observe(chrome);
+    if (chrome) observer.observe(chrome);
+    if (sidebar) observer.observe(sidebar);
     return () => observer.disconnect();
   }, []);
 
@@ -357,9 +371,9 @@ export default function Sidebar({
 
   const mentorBar = mentorViewLabel ? (
     <div className="mentor-bar">
-      <Link href="/mentor"><ArrowLeft size={16} /> к ученикам</Link>
+      <Link href="/mentor"><ArrowLeft size={16} /> к списку</Link>
       <span style={{ color: "rgba(255,255,255,0.4)" }}>·</span>
-      <span>Вы в кабинете ученицы <b className="font-semibold">{mentorViewLabel}</b></span>
+      <span>Кабинет: <b className="font-semibold">{mentorViewLabel}</b></span>
       {studentId && isMentor && (
         <span className="mentor-review">
           <span style={{ color: "rgba(255,255,255,0.7)" }}>Режим правок</span>
@@ -440,9 +454,7 @@ export default function Sidebar({
               </div>
               <div className="leading-tight min-w-0">
                 <div className="text-[14.5px] font-semibold truncate">{userName}</div>
-                <div className="text-[12.5px]" style={{ color: "var(--muted)" }}>
-                  {mentorViewLabel ? "ученик" : "кабинет ученика"}
-                </div>
+                <div className="text-[12.5px]" style={{ color: "var(--muted)" }}>личный кабинет</div>
               </div>
               <button
                 type="button"
@@ -463,7 +475,7 @@ export default function Sidebar({
                 <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
               </div>
               <p className="mt-1.5 text-[12.5px] leading-snug" style={{ color: "var(--muted)" }}>
-                {reviewMode ? "Правки сохраняются как предложения. Ученик принимает или отклоняет их." : "Правки сохраняются сразу, в текст ученика."}
+                {reviewMode ? "Правки сохраняются как предложения: их можно принять или отклонить." : "Правки сохраняются сразу, в текст кабинета."}
               </p>
             </div>
           )}
@@ -478,6 +490,8 @@ export default function Sidebar({
               )}
             </div>
           )}
+
+          {onBook && bookWorkshopUnlocked && <WorkshopBookCard books={books ?? []} />}
 
           {subItems && (
             <nav className="side-card !p-2" aria-label="Разделы мастерской">
@@ -598,18 +612,22 @@ export default function Sidebar({
           <button type="button" className="studio-sheet-backdrop" aria-label="Закрыть" onClick={() => setSheet(null)} />
           <button type="button" className="studio-sheet-outside" aria-label="Закрыть" hidden onClick={() => setSheet(null)} />
           <div
+            ref={sheetRef}
             className="studio-sheet"
             role="dialog"
             aria-modal="true"
             aria-label={sheet === "calendar" ? "Календарь" : "Разделы"}
           >
             <div className="studio-sheet-head">
+              <button type="button" className="sheet-grab" data-sheet-handle aria-label="Потяните вниз, чтобы закрыть">
+                <span />
+              </button>
               <div className="text-[16px] font-semibold">{sheet === "calendar" ? "Календарь" : "Разделы"}</div>
               <button type="button" className="studio-sheet-close" onClick={() => setSheet(null)}>
                 <X size={16} /> Закрыть
               </button>
             </div>
-            <div className="studio-sheet-body">
+            <div ref={sheetBodyRef} className="studio-sheet-body">
               {sheet === "calendar" ? (
                 <>
                   {calendar && (
@@ -647,7 +665,7 @@ export default function Sidebar({
                         <ToggleSwitch checked={reviewMode} onChange={handleToggleReviewMode} />
                       </div>
                       <p className="mt-1.5 text-[12.5px] leading-snug" style={{ color: "var(--muted)" }}>
-                        {reviewMode ? "Правки сохраняются как предложения. Ученик принимает или отклоняет их." : "Правки сохраняются сразу, в текст ученика."}
+                        {reviewMode ? "Правки сохраняются как предложения: их можно принять или отклонить." : "Правки сохраняются сразу, в текст кабинета."}
                       </p>
                     </div>
                   )}
@@ -665,6 +683,9 @@ export default function Sidebar({
                     {bookWorkshopUnlocked && !mentorMenuOnly && (
                       <>
                         <div className="studio-sheet-kicker">Мастерская книги</div>
+                        <div className="mb-3">
+                          <WorkshopBookCard books={books ?? []} />
+                        </div>
                         {WORKSHOP_ITEMS.map((item) => (
                           <Link key={item.path} href={hrefFor(item.path)} className={`studio-sheet-link${section === item.path ? " active" : ""}`}>
                             <span className="w-4 text-[12px]" style={{ color: "var(--muted)" }}>{item.n}</span>

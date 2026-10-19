@@ -21,7 +21,7 @@ export default async function CyclesView({
   if (!activeCycle) {
     return (
       <div>
-        <PageHeader title="Мастерская рассказов" description="Циклы рассказов с общими героями и миром — и отдельные рассказы." />
+        <PageHeader title="Мастерская рассказов" />
         <NoCycleYet studentId={studentId} />
       </div>
     );
@@ -43,7 +43,6 @@ export default async function CyclesView({
     <div>
       <PageHeader
         title="Мастерская рассказов"
-        description="Циклы рассказов с общими героями и миром — и отдельные рассказы."
         actions={<CycleSwitcher studentId={studentId} cycles={cycles} activeCycleId={activeCycle.id} inline />}
       />
 

@@ -6,6 +6,7 @@ import type { Story, CycleCharacter, CycleWorldEntry, StoryCharacter, StoryWorld
 import { createStory, createStandaloneStory, deleteStory } from "./actions";
 import StoryDetail from "./StoryDetail";
 import { Button } from "@/components/ui/Button";
+import EmptyState from "@/components/EmptyState";
 import { useHeaderAction } from "@/components/headerAction";
 
 type CycleSettingSnap = {
@@ -64,6 +65,22 @@ export default function StoriesList({
     });
   }
 
+  if (stories.length === 0) {
+    return (
+      <EmptyState
+        cue="Самое время написать рассказ"
+        detail={cycleId ? "Рассказы этого цикла появятся здесь." : "Отдельные рассказы появятся здесь."}
+        action={
+          headerAdd ? undefined : (
+            <Button onClick={handleAdd} variant="primary" size="sm" pill>
+              + новый рассказ
+            </Button>
+          )
+        }
+      />
+    );
+  }
+
   return (
     <div>
       <div className="flex flex-wrap gap-2 mb-6">
@@ -73,16 +90,16 @@ export default function StoriesList({
             onClick={() => setOpenId(story.id === openId ? null : story.id)}
             className="text-[13px] px-4 py-1.5 rounded-full transition-colors"
             style={{
-              border: `1px solid var(--gold)`,
-              background: openId === story.id ? "var(--gold)" : "transparent",
-              color: openId === story.id ? "#fff" : "var(--gold)",
+              border: `1px solid var(--v)`,
+              background: openId === story.id ? "var(--v)" : "transparent",
+              color: openId === story.id ? "#fff" : "var(--v)",
             }}
           >
             {story.title || "Без названия"}
           </button>
         ))}
         {!headerAdd && (
-          <Button onClick={handleAdd} variant="success" size="sm" pill>
+          <Button onClick={handleAdd} variant="primary" size="sm" pill>
             + новый рассказ
           </Button>
         )}

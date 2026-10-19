@@ -9,6 +9,7 @@ import EditableWithLinks from "@/components/EditableWithLinks";
 import LinkCell from "@/components/LinkCell";
 import DateField from "@/components/DateField";
 import { createOpenCall, deleteOpenCall, updateOpenCallField, toggleOpenCallSent } from "./actions";
+import EmptyState from "@/components/EmptyState";
 
 export default function OpenCallsTable({
   studentId,
@@ -47,13 +48,23 @@ export default function OpenCallsTable({
     <div>
       <PageHeader
         title="Опен-коллы"
-        description="Журналы, антологии и конкурсы, куда можно подать текст."
         actions={
           <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
             <Plus size={16} /> Добавить опен-колл
           </button>
         }
       />
+      {rows.length === 0 ? (
+        <EmptyState
+          cue="Самое время отправить текст"
+          detail="Журналы, антологии и конкурсы, куда можно подать работу."
+          action={
+            <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+              <Plus size={16} /> Добавить опен-колл
+            </button>
+          }
+        />
+      ) : (
       <div className="sheet px-3 pt-2 pb-1">
         <table>
           <thead>
@@ -67,9 +78,6 @@ export default function OpenCallsTable({
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 && (
-              <tr><td colSpan={6} style={{ color: "var(--muted)" }}>Пока нет опен-коллов.</td></tr>
-            )}
             {rows.map((row) => (
               <tr key={row.id}>
                 <td className="min-w-[180px]">
@@ -98,6 +106,7 @@ export default function OpenCallsTable({
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

@@ -22,7 +22,7 @@ export default async function ActsView({
   if (!activeBook) {
     return (
       <div>
-        <PageHeader title="План книги" description="Акты, главы и сюжетные линии на одном листе." />
+        <PageHeader title="План книги" />
         <NoBookRedirect aboutHref={`${basePath}/about`} />
       </div>
     );

@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState, useTransition, useRef } from "react";
+import { useSheetSwipe } from "@/components/useSheetSwipe";
 import { useRouter } from "next/navigation";
-import { Pencil, X, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, CornerDownRight, Quote, PenLine, Check } from "lucide-react";
+import { Pencil, X, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, CornerDownRight, Quote } from "lucide-react";
 import type { Note, Comment } from "@/generated/prisma/client";
 import { createNote, updateNote, deleteNote, resolveNote, reopenNote } from "./actions";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import SelectionAnnotator, { type Anchor } from "./SelectionAnnotator";
+import EmptyState from "@/components/EmptyState";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -111,7 +113,7 @@ function NoteCard({
             onClick={() => onResolve(note.id)}
             title="Отметить как решённое"
             className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full flex-shrink-0 transition-opacity hover:opacity-80"
-            style={{ color: "var(--sage)", border: "1px solid var(--sage)", background: "var(--sage-soft)" }}
+            style={{ color: "var(--ink)", border: "none", background: "var(--y)" }}
           >
             <CheckCircle2 size={11} />
             Решить
@@ -322,6 +324,10 @@ export default function NotesPanel({
   initialComments: Record<string, Comment[]>;
 }) {
   const [open, setOpen] = useState(false);
+  const [mobile, setMobile] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  useSheetSwipe(open && mobile, () => setOpen(false), panelRef, listRef);
   const [tab, setTab] = useState<"open" | "resolved">("open");
   const [notes, setNotes] = useState(initialNotes);
   const [comments, setComments] = useState(initialComments);
@@ -333,6 +339,14 @@ export default function NotesPanel({
     const toggle = () => setOpen((v) => !v);
     window.addEventListener("studio:toggle-notes", toggle);
     return () => window.removeEventListener("studio:toggle-notes", toggle);
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 980px)");
+    const apply = () => setMobile(query.matches);
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
   }, []);
 
   const openNotes = notes.filter((n) => !n.resolved);
@@ -430,7 +444,7 @@ export default function NotesPanel({
               background: "var(--danger)",
               color: "#fff",
               fontSize: 10,
-              boxShadow: "0 0 0 2px var(--paper-light)",
+              boxShadow: "0 0 0 2px var(--bg-card)",
             }}
           >
             {openNotes.length}
@@ -441,34 +455,15 @@ export default function NotesPanel({
       {/* overlay + panel */}
       <div
         onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
-        className="fixed inset-0 flex justify-end overflow-hidden"
-        style={{
-          background: open ? "rgba(30,28,24,0.28)" : "transparent",
-          opacity: open ? 1 : 0,
-          visibility: open ? "visible" : "hidden",
-          transition: "opacity 0.22s ease, visibility 0.22s ease",
-          zIndex: 90,
-        }}
+        className={`notes-layer${open ? " is-open" : ""}`}
       >
-        <div
-          data-notes-ui="1"
-          className="flex flex-col"
-          style={{
-            width: "min(400px, 92vw)",
-            height: "100%",
-            background: "var(--paper-light)",
-            boxShadow: "-8px 0 32px rgba(0,0,0,0.13)",
-            transform: open ? "translateX(0)" : "translateX(100%)",
-            transition: "transform 0.28s cubic-bezier(0.22,0.9,0.32,1)",
-          }}
-        >
-          {/* panel header */}
-          <div
-            className="flex items-center justify-between px-4 py-3.5 flex-shrink-0"
-            style={{ borderBottom: "1px solid var(--border)" }}
-          >
+        <div ref={panelRef} data-notes-ui="1" className="notes-panel">
+          <button type="button" className="sheet-grab" data-sheet-handle aria-label="Потяните вниз, чтобы закрыть">
+            <span />
+          </button>
+          <div className="notes-head">
             <span className="heading text-[16px] font-semibold">Заметки</span>
-            <button onClick={() => setOpen(false)} style={{ color: "var(--ink-faint)" }}>
+            <button type="button" className="notes-close" onClick={() => setOpen(false)} aria-label="Закрыть">
               <X size={18} />
             </button>
           </div>
@@ -517,18 +512,13 @@ export default function NotesPanel({
           </div>
 
           {/* note list */}
-          <div className="flex-1 overflow-y-auto px-3.5 py-3.5">
+          <div ref={listRef} className="notes-scroll px-3.5 py-3.5">
             {visibleNotes.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12" style={{ color: "var(--ink-faint)" }}>
-                <div className="mb-3" style={{ color: "var(--muted)" }}>
-                  {tab === "open" ? <PenLine size={28} strokeWidth={1.5} /> : <Check size={28} strokeWidth={1.5} />}
-                </div>
-                <p className="text-[13px] text-center">
-                  {tab === "open"
-                    ? "Заметок пока нет.\nДобавь первую ниже."
-                    : "Решённых заметок нет."}
-                </p>
-              </div>
+              <EmptyState
+                compact
+                cue={tab === "open" ? "Самое время оставить заметку" : "Самое время закрыть вопрос"}
+                detail={tab === "open" ? "Напишите первую заметку внизу." : "Решённые заметки соберутся в этой вкладке."}
+              />
             )}
             {visibleNotes.map((note) => (
               <NoteCard

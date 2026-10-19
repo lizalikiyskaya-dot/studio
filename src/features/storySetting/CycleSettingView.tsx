@@ -38,9 +38,6 @@ export default async function CycleSettingView({ cycle }: { cycle: Cycle }) {
 
   return (
     <div>
-      <p className="text-[13px] mb-4" style={{ color: "var(--faded)" }}>
-        Этот сеттинг общий для всего цикла — рассказы с источником «общий» подтягивают его автоматически.
-      </p>
       <Subtabs tabs={tabs} />
     </div>
   );

@@ -21,6 +21,7 @@ import {
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import PageHeader from "@/components/PageHeader";
+import EmptyState from "@/components/EmptyState";
 
 type ChapterWithBlocks = ActChapter & { blocks: StorylineBlock[] };
 type ActWithChapters = Act & { chapters: ChapterWithBlocks[] };
@@ -252,7 +253,6 @@ export default function BookPlanBoard({
     <div>
       <PageHeader
         title="План книги"
-        description="Акты, главы и сюжетные линии на одном листе. Перетащите сцену, чтобы изменить порядок."
         actions={
           <>
             {bookSelect}
@@ -266,6 +266,18 @@ export default function BookPlanBoard({
         }
       />
 
+      {acts.length === 0 ? (
+        <EmptyState
+          cue="Самое время разложить книгу"
+          detail="Акты, главы и сцены появятся на доске."
+          action={
+            <button type="button" onClick={handleAddAct} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+              <Plus size={16} /> Добавить акт
+            </button>
+          }
+        />
+      ) : (
+      <>
       <div className="plan-desktop sheet plan-board p-5 pb-3">
         <div style={{ display: "grid", gridTemplateColumns: grid }}>
           <div />
@@ -379,7 +391,7 @@ export default function BookPlanBoard({
           {columns.map((column) => (
             <div
               key={`zone-${column.id}`}
-              className="h-8 rounded-md"
+              className="h-8 rounded-[14px]"
               style={{ background: dropColumn === column.id ? "#FFF8D6" : "transparent" }}
               title={`Перенести в «${column.title || "главу"}»`}
               onDragOver={(e) => {
@@ -414,7 +426,6 @@ export default function BookPlanBoard({
               {act.title || `Акт ${index + 1}`}
             </button>
           ))}
-          {acts.length === 0 && <span className="px-3 py-2 text-[13px]" style={{ color: "var(--muted)" }}>Актов пока нет</span>}
         </div>
         {acts[mobileAct] && (
           <div className="rounded-[18px] px-4 py-3 mb-3" style={{ background: "#E6ECFF" }}>
@@ -465,6 +476,8 @@ export default function BookPlanBoard({
           ))}
         </div>
       </div>
+      </>
+      )}
 
       {showLines && (
         <div className="mt-3 flex flex-wrap gap-2">
@@ -477,7 +490,7 @@ export default function BookPlanBoard({
       )}
 
       {selected && (
-        <div className="mt-3 rounded-[20px] border px-5 py-4 flex flex-wrap items-start gap-6" style={{ borderColor: "var(--border)", background: "#FAFAF8" }}>
+        <div className="mt-3 rounded-[20px] border px-5 py-4 flex flex-wrap items-start gap-6" style={{ borderColor: "var(--border)", background: "var(--soft)" }}>
           <div className="w-[180px]">
             <div className="text-[12px]" style={{ color: "var(--muted)" }}>Сцена</div>
             <div className="serif text-[20px] font-medium">{selected.name || "Без названия"}</div>
@@ -548,7 +561,7 @@ export default function BookPlanBoard({
       )}
 
       <div className="mt-5 flex items-center gap-3">
-        <span className="serif text-[20px] font-medium">Акты</span>
+        <span className="text-[20px] font-semibold">Акты</span>
         <span className="text-[13px]" style={{ color: "var(--muted)" }}>название, подзаголовок и общее описание</span>
         <button type="button" className="ml-auto inline-flex items-center gap-1 h-9 px-3 rounded-full border text-[13.5px]" style={{ borderColor: "var(--border)" }} onClick={handleAddAct}>
           <Plus size={14} /> Акт

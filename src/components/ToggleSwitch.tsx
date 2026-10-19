@@ -20,9 +20,9 @@ export default function ToggleSwitch({
       <span
         className="relative inline-block rounded-full flex-shrink-0"
         style={{
-          width: 36,
-          height: 20,
-          background: checked ? "var(--sage-bright)" : "#d9d9de",
+          width: 44,
+          height: 24,
+          background: checked ? "var(--y)" : "#d9d9de",
           padding: 2,
           transition: "background 0.2s ease",
         }}
@@ -30,10 +30,10 @@ export default function ToggleSwitch({
         <span
           className="absolute rounded-full bg-white"
           style={{
-            width: 16,
-            height: 16,
+            width: 20,
+            height: 20,
             top: 2,
-            left: checked ? 18 : 2,
+            left: checked ? 22 : 2,
             boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
             transition: "left 0.2s ease",
           }}

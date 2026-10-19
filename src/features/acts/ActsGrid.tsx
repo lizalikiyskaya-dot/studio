@@ -57,7 +57,7 @@ function StorylineBlockCard({
       }}
       onDragEnd={() => setArmed(false)}
       onMouseUp={() => setArmed(false)}
-      className="rounded-md p-3"
+      className="rounded-[14px] p-3"
       style={{ background: COLOR_BG[block.color] ?? COLOR_BG.pink, width: 200 }}
     >
       <div className="flex justify-between items-start gap-1 mb-1.5">
@@ -128,7 +128,7 @@ function ChapterRow({
 }) {
   const [open, setOpen] = useState(true);
   return (
-    <div className="rounded-md p-3 mb-2.5" style={{ border: "1px solid var(--rule)" }}>
+    <div className="rounded-[14px] p-3 mb-2.5" style={{ border: "1px solid var(--rule)" }}>
       <div className={`flex justify-between items-start gap-2 ${open ? "mb-2" : ""}`}>
         <button
           onClick={() => setOpen((v) => !v)}
@@ -144,7 +144,7 @@ function ChapterRow({
           onKeyDown={blurOnEnter}
           className="heading flex-1 min-w-0 outline-none bg-transparent text-[14px] font-semibold"
         />
-        <button onClick={onDelete} className="flex-shrink-0" style={{ color: "var(--wine)" }}>
+        <button onClick={onDelete} className="flex-shrink-0" style={{ color: "var(--link)" }}>
           <X size={12} />
         </button>
       </div>
@@ -168,10 +168,10 @@ function ChapterRow({
           const blockId = e.dataTransfer.getData("text/plain");
           if (blockId) onDropBlock(blockId);
         }}
-        className="flex gap-2.5 flex-wrap p-2 rounded-md"
+        className="flex gap-2.5 flex-wrap p-2 rounded-[14px]"
         style={{
-          border: isDragOver ? "1px dashed var(--wine)" : "1px dashed transparent",
-          background: isDragOver ? "var(--paper)" : undefined,
+          border: isDragOver ? "1px dashed var(--link)" : "1px dashed transparent",
+          background: isDragOver ? "var(--bg-card)" : undefined,
           minHeight: 60,
         }}
       >
@@ -186,7 +186,7 @@ function ChapterRow({
         ))}
         <button
           onClick={onAddBlock}
-          className="rounded-md flex items-center justify-center text-[12px] flex-shrink-0"
+          className="rounded-[14px] flex items-center justify-center text-[12px] flex-shrink-0"
           style={{ border: "1px dashed var(--rule)", color: "var(--faded)", width: 200, minHeight: 60 }}
         >
           + линия
@@ -366,7 +366,7 @@ export default function ActsGrid({
       {acts.map((act) => {
         const actSuggestions = suggestions[act.id] ?? {};
         return (
-          <div key={act.id} className="rounded-md p-4 mb-4" style={{ border: "1px solid var(--rule)" }}>
+          <div key={act.id} className="rounded-[14px] p-4 mb-4" style={{ border: "1px solid var(--rule)" }}>
             <div className="flex justify-between items-start mb-1">
               <SuggestableField
                 model="Act"
@@ -380,7 +380,7 @@ export default function ActsGrid({
               <button
                 onClick={() => handleDeleteAct(act.id)}
                 className="text-[12.5px]"
-                style={{ color: "var(--wine)" }}
+                style={{ color: "var(--link)" }}
               >
                 Удалить акт
               </button>
@@ -426,7 +426,7 @@ export default function ActsGrid({
 
             <Button
               onClick={() => handleAddChapter(act.id)}
-              variant="success-outline"
+              variant="secondary"
               size="sm"
               style={{ borderStyle: "dashed" }}
             >
@@ -439,7 +439,7 @@ export default function ActsGrid({
 
       <button
         onClick={handleAddAct}
-        className="rounded-md flex items-center justify-center text-[13px] w-full"
+        className="rounded-[14px] flex items-center justify-center text-[13px] w-full"
         style={{ border: "1px dashed var(--rule)", color: "var(--faded)", minHeight: 70 }}
       >
         + добавить акт

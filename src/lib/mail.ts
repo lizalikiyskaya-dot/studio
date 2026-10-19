@@ -97,6 +97,17 @@ export function escapeHtml(value: string): string {
 const FONT_UI = "Onest,'Segoe UI',Helvetica,Arial,sans-serif";
 const FONT_SERIF = "Literata,Georgia,'Times New Roman',serif";
 
+/** Ключевое слово заголовка письма — на жёлтом маркере, как на сайте. */
+function markedEmailTitle(title: string): string {
+  const words = title.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "";
+  const mark = (word: string) =>
+    `<span style="background:#FFD43B;padding:0 0.08em;">${escapeHtml(word)}</span>`;
+  if (words.length === 1) return mark(words[0]);
+  const last = words[words.length - 1];
+  return `${words.slice(0, -1).map((word) => escapeHtml(word)).join(" ")} ${mark(last)}`;
+}
+
 export function renderEmail(options: {
   title: string;
   paragraphs: string[];
@@ -104,6 +115,7 @@ export function renderEmail(options: {
   footnote?: string;
 }): string {
   const { title, paragraphs, action, footnote } = options;
+  const titleHtml = markedEmailTitle(title);
   const body = paragraphs
     .map(
       (p) =>
@@ -128,7 +140,7 @@ export function renderEmail(options: {
 
   const logo = `<table role="presentation" cellpadding="0" cellspacing="0">
     <tr>
-      <td style="font-family:${FONT_SERIF};font-size:28px;font-weight:600;letter-spacing:-0.01em;line-height:1;color:#202020;padding:0 0 2px;">Андреенко</td>
+      <td style="font-family:${FONT_UI};font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1;color:#202020;padding:0 0 2px;">Андреенко</td>
     </tr>
     <tr>
       <td style="padding:0 0 0 6px;line-height:0;font-size:0;">
@@ -162,7 +174,7 @@ export function renderEmail(options: {
           </tr>
           <tr>
             <td style="padding:28px 8px 0;">
-              <h1 style="margin:0 0 16px;font-family:${FONT_SERIF};font-size:28px;line-height:1.15;font-weight:500;letter-spacing:-0.02em;color:#202020;">${escapeHtml(title)}</h1>
+              <h1 style="margin:0 0 16px;font-family:${FONT_UI};font-size:28px;line-height:1.15;font-weight:650;letter-spacing:-0.02em;color:#202020;">${titleHtml}</h1>
               ${body}
               ${button}
               ${foot}

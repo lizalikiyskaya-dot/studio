@@ -31,7 +31,7 @@ const ARC_TYPE_LABEL: Record<ArcType, string> = {
 };
 const ARC_TYPE_COLOR: Record<ArcType, { bg: string; fg: string }> = {
   POSITIVE: { bg: "var(--sage-soft)", fg: "var(--sage)" },
-  CORRUPTION: { bg: "var(--accent-soft)", fg: "var(--wine)" },
+  CORRUPTION: { bg: "var(--accent-soft)", fg: "var(--link)" },
   FLAT: { bg: "#E2E9EE", fg: "#3F6080" },
   DISILLUSIONMENT: { bg: "#E0CBE7", fg: "#6B4F82" },
   FALL: { bg: "#F4DDBC", fg: "#8A6B2E" },
@@ -68,7 +68,7 @@ function FieldBlock({
       )}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <div className="font-mono-label text-[9px] mb-0.5" style={{ color: "var(--wine)" }}>
+          <div className="font-mono-label text-[9px] mb-0.5" style={{ color: "var(--link)" }}>
             тезис
           </div>
           <SuggestableField
@@ -140,7 +140,7 @@ export default function ArcCharacterCard({
   }
 
   return (
-    <div ref={rootRef} className="rounded-md mb-4 overflow-hidden max-w-[760px]" style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "#FAFAF9" }}>
+    <div ref={rootRef} className="rounded-[14px] mb-4 overflow-hidden max-w-[760px]" style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "var(--soft)" }}>
       <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3 cursor-pointer">
         <div
           className="rounded-full flex-shrink-0"

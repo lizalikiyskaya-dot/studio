@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CircleAlert } from "lucide-react";
 import PasswordInput from "@/components/PasswordInput";
+import { markedTitle } from "@/components/markedTitle";
 
 export default function ResetPasswordForm({ token }: { token: string }) {
   const [password, setPassword] = useState("");
@@ -40,7 +41,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
   if (done) {
     return (
       <div>
-        <h1 className="auth-title">Пароль изменён</h1>
+        <h1 className="auth-title">{markedTitle("Пароль изменён")}</h1>
         <p className="auth-sub">Теперь войдите с новым паролем.</p>
         <Link href="/login" className="btn-y mt-6">Войти</Link>
       </div>
@@ -49,7 +50,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1 className="auth-title">Новый пароль</h1>
+      <h1 className="auth-title">{markedTitle("Новый пароль")}</h1>
       <p className="auth-sub">Придумайте пароль не короче 8 символов.</p>
 
       <label className="fld-label">

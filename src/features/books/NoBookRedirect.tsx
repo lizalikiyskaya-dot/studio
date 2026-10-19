@@ -1,13 +1,16 @@
 import Link from "next/link";
+import EmptyState from "@/components/EmptyState";
 
 export default function NoBookRedirect({ aboutHref }: { aboutHref: string }) {
   return (
-    <p className="text-[14px]" style={{ color: "var(--faded)" }}>
-      У ученика пока нет ни одной книги. Создайте книгу в разделе{" "}
-      <Link href={aboutHref} className="underline" style={{ color: "var(--wine)" }}>
-        «О книге»
-      </Link>
-      .
-    </p>
+    <EmptyState
+      cue="Самое время завести книгу"
+      detail="Создайте её в разделе «О книге» — и этот раздел откроется."
+      action={
+        <Link href={aboutHref} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+          Открыть «О книге»
+        </Link>
+      }
+    />
   );
 }
