@@ -1,4 +1,5 @@
 import nodemailer, { type Transporter } from "nodemailer";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Отправка почты через обычный SMTP (у Лизы — Gmail с паролем приложения).
@@ -36,7 +37,8 @@ export function appUrl(): string {
 
 let cached: Transporter | null = null;
 
-function transporter(): Transporter | null {
+function transporter(): MailTransport | null {
+  if (transportOverride !== undefined) return transportOverride;
   if (!mailConfigured()) return null;
   if (cached) return cached;
   const port = Number(process.env.SMTP_PORT ?? 587);
@@ -57,16 +59,63 @@ export type MailInput = {
   html: string;
   /** Текстовая версия; если не задана — соберётся из html. */
   text?: string;
+  /** Код вида письма для журнала, например payment или guide. */
+  type?: string;
+  /** Кому адресовано, если этот человек есть в базе. */
+  recipientUserId?: string | null;
 };
+
+type MailTransport = Pick<Transporter, "sendMail">;
+
+/** Только для тестов. null — SMTP нет. undefined — смотреть окружение. */
+let transportOverride: MailTransport | null | undefined;
+
+export function setMailTransportForTests(transport: MailTransport | null | undefined) {
+  transportOverride = transport;
+}
+
+function clip(value: string, max: number): string {
+  const clean = value.replace(/[\r\n]+/g, " ").trim();
+  return clean.length > max ? clean.slice(0, max) : clean;
+}
+
+function errorText(error: unknown): string {
+  let message = error instanceof Error ? error.message : String(error);
+  const secret = process.env.SMTP_PASSWORD;
+  if (secret) message = message.split(secret).join("***");
+  return clip(message, 500);
+}
+
+/** Журнал не должен ронять отправку: если таблица ещё не создана, письмо всё равно пытаемся отправить. */
+async function recordEmailAttempt(input: MailInput, status: "sent" | "failed", error: string | null) {
+  try {
+    await prisma.emailLog.create({
+      data: {
+        type: clip(input.type?.trim() || "письмо", 40),
+        recipientUserId: input.recipientUserId || null,
+        recipientEmail: clip(input.to, 200),
+        subject: clip(input.subject, 300),
+        status,
+        error,
+        html: input.html.slice(0, 80_000),
+      },
+    });
+  } catch (logError) {
+    console.error("[mail] журнал не записан:", input.subject, "→", input.to, logError);
+  }
+}
 
 /**
  * Никогда не бросает исключение: письмо — побочный эффект, из-за которого
  * нельзя ронять регистрацию или сохранение текста. Возвращает, ушло ли.
+ * Каждая попытка пишется в EmailLog, и удачная, и нет.
  */
-export async function sendMail({ to, subject, html, text }: MailInput): Promise<boolean> {
+export async function sendMail(input: MailInput): Promise<boolean> {
+  const { to, subject, html, text } = input;
   const tx = transporter();
   if (!tx) {
     console.warn("[mail] SMTP не настроен, письмо не отправлено:", subject, "→", to);
+    await recordEmailAttempt(input, "failed", "SMTP не настроен");
     return false;
   }
   const from = mailFrom();
@@ -78,9 +127,11 @@ export async function sendMail({ to, subject, html, text }: MailInput): Promise<
       text: text ?? htmlToText(html),
       html,
     });
+    await recordEmailAttempt(input, "sent", null);
     return true;
   } catch (error) {
-    console.error("[mail] не удалось отправить письмо:", subject, "→", to, error);
+    console.error("[mail] не удалось отправить письмо:", subject, "→", to, errorText(error));
+    await recordEmailAttempt(input, "failed", errorText(error));
     return false;
   }
 }
@@ -202,9 +253,9 @@ export function renderEmail(options: {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${escapeHtml(title)}</title>
 </head>
-<body style="margin:0;padding:0;background:#F8F4F1;">
+<body style="margin:0;padding:0;background:#F6F1E8;">
   <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(EMAIL_BRAND)}</div>
-  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#F8F4F1;">
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#F6F1E8;">
     <tr>
       <td align="center" style="padding:28px 16px 36px;">
         <table role="presentation" cellpadding="0" cellspacing="0" width="560" style="width:100%;max-width:560px;background:#ffffff;border-radius:24px;">

@@ -90,7 +90,13 @@ export async function notifyMentorOfStudentEdit(studentId: string, section: stri
     footnote:
       "Письмо приходит не чаще одного раза в час на кабинет — остальные правки за этот час копятся молча.",
   });
-  await sendMail({ to: liza.email, subject: `${student.name}: новые изменения в кабинете`, ...letter });
+  await sendMail({
+    to: liza.email,
+    subject: `${student.name}: новые изменения в кабинете`,
+    ...letter,
+    type: "student-edit",
+    recipientUserId: liza.id,
+  });
 }
 
 /**
@@ -111,7 +117,13 @@ export async function notifyStudentOfMentorEdit(studentId: string, section: stri
   if (!(await claimStudentWindow(studentId))) return;
 
   const letter = mentorEditLetter(sectionLabel(section));
-  await sendMail({ to: student.email, subject: "Наставник внёс изменения", ...letter });
+  await sendMail({
+    to: student.email,
+    subject: "Наставник внёс изменения",
+    ...letter,
+    type: "mentor-edit",
+    recipientUserId: studentId,
+  });
 }
 
 /** Текст письма о правках. Само письмо не уходит, пока STUDENT_EDIT_EMAILS не равен on. */
@@ -119,7 +131,7 @@ export function mentorEditLetter(section: string) {
   return renderEmail({
     title: "Наставник внёс изменения",
     paragraphs: [
-      "Лиза поработала с вашим кабинетом — в разделе «" + escapeHtml(section) + "» есть новые правки.",
+      "Я поработала с вашим кабинетом. В разделе «" + escapeHtml(section) + "» есть новые правки.",
       "Разделы с изменениями отмечены маячками в боковом меню. Правки в тексте можно принять или отклонить.",
     ],
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
@@ -133,7 +145,13 @@ export async function notifyRegistration(user: { id: string; name: string; email
   const liza = await mentor();
 
   const toStudent = registrationStudentLetter(user.name);
-  await sendMail({ to: user.email, subject: "Заявка на рассмотрении", ...toStudent });
+  await sendMail({
+    to: user.email,
+    subject: "Заявка на рассмотрении",
+    ...toStudent,
+    type: "registration",
+    recipientUserId: user.id,
+  });
 
   if (liza?.email) {
     const toMentor = renderEmail({
@@ -144,7 +162,13 @@ export async function notifyRegistration(user: { id: string; name: string; email
       ],
       action: { label: "Открыть заявки", url: `${appUrl()}/mentor` },
     });
-    await sendMail({ to: liza.email, subject: "Новая заявка на доступ", ...toMentor });
+    await sendMail({
+      to: liza.email,
+      subject: "Новая заявка на доступ",
+      ...toMentor,
+      type: "registration-mentor",
+      recipientUserId: liza.id,
+    });
   }
 }
 
@@ -152,8 +176,8 @@ export function registrationStudentLetter(name: string) {
   return renderEmail({
     title: "Заявка на рассмотрении",
     paragraphs: [
-      `Спасибо за регистрацию, ${escapeHtml(name)}.`,
-      "Наставник проверит заявку и откроет доступ в личный кабинет. Это может занять некоторое время — как только доступ откроют, вам придёт письмо.",
+      `${escapeHtml(name)}, я получила вашу заявку.`,
+      "Посмотрю её и открою кабинет. Когда открою — напишу ещё раз.",
     ],
     action: { label: "Открыть платформу", url: `${appUrl()}/login` },
     signature: EMAIL_SIGNATURE,
@@ -169,15 +193,21 @@ export async function notifyApproved(userId: string) {
   if (!user?.email) return;
 
   const letter = approvedLetter(user.name);
-  await sendMail({ to: user.email, subject: "Доступ в личный кабинет открыт", ...letter });
+  await sendMail({
+    to: user.email,
+    subject: "Доступ в личный кабинет открыт",
+    ...letter,
+    type: "approved",
+    recipientUserId: userId,
+  });
 }
 
 export function approvedLetter(name: string) {
   return renderEmail({
     title: "Доступ в личный кабинет открыт",
     paragraphs: [
-      `${escapeHtml(name)}, наставник одобрил вашу заявку — личный кабинет открыт.`,
-      "Входите под той же почтой и паролем, которые указали при регистрации.",
+      `${escapeHtml(name)}, я открыла вам кабинет.`,
+      "Входите той же почтой и паролем, что указали при регистрации.",
     ],
     action: { label: "Войти в кабинет", url: `${appUrl()}/login` },
     signature: EMAIL_SIGNATURE,
@@ -208,16 +238,21 @@ export async function notifyStudentGuideOpened(
     description: guide.description,
     guideId: guide.id,
   });
-  await sendMail({ to: student.email, subject: `Новая методичка: ${title}`, ...letter });
+  await sendMail({
+    to: student.email,
+    subject: `Новая методичка: ${title}`,
+    ...letter,
+    type: "guide",
+    recipientUserId: studentId,
+  });
 }
 
 export function guideOpenedLetter(guide: { name: string; title: string; description: string; guideId: string }) {
   const paragraphs = [
-    `${escapeHtml(guide.name)}, в кабинете открыта методичка «${escapeHtml(guide.title)}».`,
+    `${escapeHtml(guide.name)}, я открыла вам методичку «${escapeHtml(guide.title)}».`,
   ];
   const about = guide.description.trim();
   if (about) paragraphs.push(escapeHtml(about));
-<<<<<<< HEAD
   paragraphs.push("Она в разделе «Материалы». Файл можно скачать там.");
 
   return renderEmail({
@@ -231,24 +266,45 @@ export function guideOpenedLetter(guide: { name: string; title: string; descript
 
 /** Письмо со ссылкой на смену пароля. */
 export async function sendPasswordResetEmail(
-  user: { name: string; email: string },
+  user: { id: string; name: string; email: string },
   token: string
 ) {
   const url = `${appUrl()}/reset-password?token=${encodeURIComponent(token)}`;
   const letter = passwordResetLetter(user.name, url);
-  await sendMail({ to: user.email, subject: "Восстановление пароля", ...letter });
+  await sendMail({
+    to: user.email,
+    subject: "Восстановление пароля",
+    ...letter,
+    type: "password",
+    recipientUserId: user.id,
+  });
 }
 
 export function passwordResetLetter(name: string, url: string) {
   return renderEmail({
     title: "Восстановление пароля",
     paragraphs: [
-      `${escapeHtml(name)}, вы запросили смену пароля на платформе.`,
+      `${escapeHtml(name)}, вы попросили сменить пароль.`,
       "Ссылка действует один час и сработает только один раз.",
     ],
     action: { label: "Задать новый пароль", url },
     footnote:
       "Если вы не запрашивали смену пароля — просто удалите это письмо, пароль останется прежним.",
+    signature: EMAIL_SIGNATURE,
+  });
+}
+
+/** Общий отчёт об обновлениях платформы. Только текст письма: само по себе никуда не уходит. */
+export function platformUpdateLetter(input: { name: string; updates: string[] }) {
+  const updates = input.updates.map((line) => line.trim()).filter(Boolean);
+  return renderEmail({
+    title: "Отчёт об обновлениях",
+    paragraphs: [
+      `${escapeHtml(input.name)}, коротко о том, что изменилось на платформе.`,
+      ...updates.map((line) => escapeHtml(line)),
+    ],
+    action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
+    footnote: "Это общее письмо об обновлениях. Отключить письма можно в профиле.",
     signature: EMAIL_SIGNATURE,
   });
 }

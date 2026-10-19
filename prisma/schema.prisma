@@ -197,6 +197,7 @@ model User {
   paymentReminderLogs PaymentReminderLog[]
   weeklySubmissions WeeklySubmission[]
   starAwards        StarAward[]
+  emailLogs           EmailLog[]
 }
 
 // Одноразовая ссылка «Забыли пароль?». В базе лежит только SHA-256 от
@@ -896,4 +897,25 @@ model StarAward {
 
   @@unique([studentId, kind, sourceId])
   @@index([studentId])
+}
+
+// Каждая попытка sendMail: и ушедшее письмо, и неудача.
+// Получатель может уже не быть в базе — строка остаётся, связь пустая.
+model EmailLog {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  type            String
+  recipientUserId String?
+  recipient       User?    @relation(fields: [recipientUserId], references: [id], onDelete: SetNull)
+  recipientEmail  String
+  subject         String
+  // sent | failed
+  status          String
+  error           String?
+  // Отрисованное письмо, чтобы наставник мог открыть превью. Пусто у старых строк.
+  html            String   @default("")
+
+  @@index([createdAt])
+  @@index([type])
+  @@index([recipientUserId])
 }

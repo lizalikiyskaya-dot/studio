@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { EMAIL_BRAND, EMAIL_SIGNATURE, mailFrom, renderEmail } from "./mail";
-import { approvedLetter, guideOpenedLetter, mentorEditLetter, passwordResetLetter, registrationStudentLetter } from "./notify";
+import { approvedLetter, guideOpenedLetter, mentorEditLetter, passwordResetLetter, platformUpdateLetter, registrationStudentLetter } from "./notify";
 
 function withEnv(values: Record<string, string | undefined>, run: () => void) {
   const previous = new Map<string, string | undefined>();
@@ -59,8 +59,15 @@ test("письма ученику: бренд, подпись, текст и п�
     assert.equal(letter.html.includes("Закладка"), false);
     assert.equal(letter.text.includes("Закладка"), false);
   }
-  assert.match(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /Материалы → Методички/);
+  assert.match(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /я открыла вам методичку/);
+  assert.match(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /Материалы/);
+  assert.doesNotMatch(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /\/dashboard\/guides\//);
   assert.match(passwordResetLetter("Саша", "https://studio.example/reset").text, /Задать новый пароль: https:\/\/studio.example\/reset/);
   const sample = renderEmail({ title: "Проверка", paragraphs: ["Текст письма."] });
   assert.equal(sample.html.includes(EMAIL_SIGNATURE), false);
+  const update = platformUpdateLetter({ name: "Саша", updates: ["В заданиях ровнее строки."] });
+  assert.match(update.text, /Отчёт об обновлениях/);
+  assert.match(update.text, /Лиза Андреенко/);
+  assert.match(update.html, /#F6F1E8/);
+  assert.match(update.html, /#FFD43B/);
 });

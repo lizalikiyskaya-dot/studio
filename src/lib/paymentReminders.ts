@@ -140,7 +140,13 @@ export async function runPaymentReminders(options: {
   list: () => Promise<ReminderPerson[]>;
   claim: (studentId: string, dueOn: string) => Promise<boolean>;
   release: (studentId: string, dueOn: string) => Promise<void>;
-  send: (input: { to: string; subject: string; html: string; text: string }) => Promise<boolean>;
+  send: (input: {
+    to: string;
+    subject: string;
+    html: string;
+    text: string;
+    recipientUserId: string;
+  }) => Promise<boolean>;
 }): Promise<ReminderRunResult> {
   const now = options.now ?? new Date();
   const parts = moscowParts(now);
@@ -164,7 +170,13 @@ export async function runPaymentReminders(options: {
       alreadySent += 1;
       continue;
     }
-    const ok = await options.send({ to: person.email, subject: letter.subject, html: letter.html, text: letter.text });
+    const ok = await options.send({
+      to: person.email,
+      subject: letter.subject,
+      html: letter.html,
+      text: letter.text,
+      recipientUserId: person.id,
+    });
     if (!ok) {
       failed += 1;
       await options.release(person.id, dueOn);
