@@ -7,7 +7,7 @@ import { findDestructive } from "../../../scripts/sql-guard.mjs";
 import { moveBookMonth, type BookMonthRow } from "./bookMonth";
 
 const root = path.resolve(import.meta.dirname, "../../..");
-const sqlPath = path.join(root, "docs/sql/2026-10-19-book-month.sql");
+const sqlPath = path.join(root, "docs/sql/2026-10-19-book-02-month.sql");
 
 function row(title: string, extra: Partial<BookMonthRow> = {}): BookMonthRow {
   return { title, month: null, optional: false, ...extra };
