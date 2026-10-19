@@ -3,6 +3,7 @@ import { resolveActiveBook } from "@/lib/resolveBook";
 import BookSelect from "./BookSelect";
 import NoBookRedirect from "./NoBookRedirect";
 import PlanTable from "./PlanTable";
+import { ensureUnifiedChapters } from "@/features/acts/unifyChapters";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import PageHeader from "@/components/PageHeader";
 import { HeaderButton } from "@/components/headerAction";
@@ -28,10 +29,18 @@ export default async function PlanBookView({
     );
   }
 
-  const chapters = await prisma.planChapter.findMany({
-    where: { bookId: activeBook.id },
-    orderBy: { order: "asc" },
-  });
+  await ensureUnifiedChapters(activeBook.id);
+  const [chapters, acts] = await Promise.all([
+    prisma.planChapter.findMany({
+      where: { bookId: activeBook.id },
+      orderBy: { order: "asc" },
+    }),
+    prisma.act.findMany({
+      where: { bookId: activeBook.id },
+      orderBy: { order: "asc" },
+      select: { id: true, title: true, order: true },
+    }),
+  ]);
   const suggestions = await getSuggestionsForRecords("PlanChapter", chapters.map((c) => c.id));
 
   return (
@@ -49,8 +58,8 @@ export default async function PlanBookView({
         key={activeBook.id}
         bookId={activeBook.id}
         initialChapters={chapters}
+        initialActs={acts}
         suggestions={suggestions}
-        initialColumnColors={(activeBook.planColumnColors as Record<string, string>) ?? {}}
       />
     </div>
   );

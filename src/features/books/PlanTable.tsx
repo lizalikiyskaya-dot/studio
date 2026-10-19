@@ -1,13 +1,21 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect, type CSSProperties } from "react";
-import { ChevronDown, Trash2 } from "lucide-react";
+import { useState, useTransition, useRef, useEffect } from "react";
+import { Trash2 } from "lucide-react";
 import type { PlanChapter } from "@/generated/prisma/client";
 import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, toggleChapterActBreak, deletePlanChapter } from "./actions";
-import { updatePlanColumnColors } from "./actions";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import { blurOnEnter } from "@/lib/blurOnEnter";
 import { useHeaderAction } from "@/components/headerAction";
+import { formatChars, parseChars, progressKind, progressPercent, type ProgressKind } from "@/features/acts/chapterText";
+
+const SANS = "var(--font-sans), Onest, system-ui, sans-serif";
+const WASH: Record<ProgressKind, string> = {
+  none: "#F3F1EC",
+  work: "#E6ECFF",
+  almost: "#FFF1B8",
+  done: "#D5F3E7",
+};
 
 const PALETTE = ["#E0CBE7", "#E2E9EE", "#E2EADC", "#F0E1E4"];
 
@@ -83,171 +91,41 @@ function ColorPicker({
   );
 }
 
-const COLUMNS = ["summary", "dramaticArgument", "note", "chars"] as const;
-type ColKey = (typeof COLUMNS)[number];
+const LEGEND: { kind: ProgressKind; label: string }[] = [
+  { kind: "none", label: "не начата" },
+  { kind: "work", label: "в работе" },
+  { kind: "almost", label: "почти" },
+  { kind: "done", label: "готова" },
+];
 
-const COL_LABELS: Record<ColKey, string> = {
-  summary: "Суть",
-  dramaticArgument: "Ядро",
-  note: "Примечание",
-  chars: "Знаки",
-};
-
-function formatChars(value: number) {
-  return value.toLocaleString("ru-RU").replace(/\u00A0/g, " ");
-}
-
-function chapterPercent(chapter: PlanChapter) {
-  if (chapter.plannedChars <= 0) return 0;
-  return Math.round((chapter.writtenChars / chapter.plannedChars) * 100);
-}
-
-function ChapterCard({
-  chapter,
-  index,
-  chapterSuggestions,
-  fieldBg,
-  onNumber,
-  onColor,
-  onActBreak,
-  onDelete,
-}: {
-  chapter: PlanChapter;
-  index: number;
-  chapterSuggestions: Record<string, string>;
-  fieldBg: (col: ColKey) => CSSProperties | undefined;
-  onNumber: (field: "plannedChars" | "writtenChars", value: number) => void;
-  onColor: (color: string | null) => void;
-  onActBreak: (value: boolean) => void;
-  onDelete: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const percent = chapterPercent(chapter);
-  const over = percent > 100;
-
-  return (
-    <article className="chapter-card" style={{ background: chapter.color ?? "#fff" }}>
-      <div className="chapter-card-top">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="chapter-tool chapter-tool-icon"
-            onClick={() => setOpen((value) => !value)}
-            aria-expanded={open}
-            title={open ? "Свернуть главу" : "Развернуть главу"}
-          >
-            <ChevronDown size={15} style={{ transform: open ? undefined : "rotate(-90deg)", transition: "transform .15s" }} />
-          </button>
-          <span className="chapter-card-n">{index + 1}</span>
-        </div>
-        <div className="chapter-card-tools">
-          <ColorPicker current={chapter.color ?? null} onChange={onColor} label="Цвет главы" />
-          <button
-            type="button"
-            className="chapter-tool"
-            onClick={() => onActBreak(!chapter.actBreakAfter)}
-            title={chapter.actBreakAfter ? "Убрать границу акта" : "Начать новый акт после этой главы"}
-          >
-            {chapter.actBreakAfter ? "Убрать границу" : "Новый акт"}
-          </button>
-          <button type="button" className="chapter-tool chapter-tool-icon" onClick={onDelete} title="Удалить главу" aria-label="Удалить главу">
-            <Trash2 size={14} />
-          </button>
-        </div>
-      </div>
-      <SuggestableField
-        model="PlanChapter"
-        recordId={chapter.id}
-        field="summary"
-        value={chapter.summary}
-        suggestion={chapterSuggestions.summary}
-        placeholder="Суть по сюжету"
-        className="chapter-card-title"
-        style={fieldBg("summary")}
-      />
-      <div style={{ display: open ? "block" : "none" }}>
-        <SuggestableField
-          model="PlanChapter"
-          recordId={chapter.id}
-          field="dramaticArgument"
-          value={chapter.dramaticArgument}
-          suggestion={chapterSuggestions.dramaticArgument}
-          placeholder="Драматическое ядро"
-          className="chapter-card-core"
-          style={fieldBg("dramaticArgument")}
-        />
-        <SuggestableField
-          model="PlanChapter"
-          recordId={chapter.id}
-          field="note"
-          value={chapter.note}
-          suggestion={chapterSuggestions.note}
-          placeholder="Примечание"
-          className="chapter-card-note"
-          style={fieldBg("note")}
-        />
-        <div className="chapter-card-foot" style={fieldBg("chars")}>
-          <div className="chapter-mini-track" aria-hidden="true">
-            <i style={{ width: `${Math.min(100, percent)}%`, background: over ? "var(--v)" : "var(--ink)" }} />
-          </div>
-          <div className="chapter-card-figures">
-            <input
-              type="number"
-              min={0}
-              defaultValue={chapter.writtenChars || ""}
-              onBlur={(e) => onNumber("writtenChars", Number(e.target.value))}
-              onKeyDown={blurOnEnter}
-              aria-label="Написано знаков"
-              placeholder="0"
-              className="chapter-num"
-            />
-            <span aria-hidden="true">/</span>
-            <input
-              type="number"
-              min={0}
-              defaultValue={chapter.plannedChars || ""}
-              onBlur={(e) => onNumber("plannedChars", Number(e.target.value))}
-              onKeyDown={blurOnEnter}
-              aria-label="План знаков"
-              placeholder="0"
-              className="chapter-num"
-            />
-            <span className={over ? "chapter-pct is-over" : "chapter-pct"}>
-              {chapter.plannedChars > 0 ? `· ${percent}%` : "· —"}
-            </span>
-          </div>
-        </div>
-      </div>
-    </article>
-  );
-}
 
 function sumChars(chapters: PlanChapter[]) {
   const planned = chapters.reduce((sum, chapter) => sum + (chapter.plannedChars || 0), 0);
   const written = chapters.reduce((sum, chapter) => sum + (chapter.writtenChars || 0), 0);
-  const percent = planned > 0 ? Math.round((written / planned) * 100) : 0;
-  return { planned, written, percent };
+  return { planned, written, percent: progressPercent(written, planned) };
 }
+
+type ActSlice = { id: string; title: string; order: number };
 
 export default function PlanTable({
   bookId,
   initialChapters,
+  initialActs,
   suggestions,
-  initialColumnColors,
 }: {
   bookId: string;
   initialChapters: PlanChapter[];
+  initialActs: ActSlice[];
   suggestions: Record<string, Record<string, string>>;
-  initialColumnColors: Record<string, string>;
 }) {
   const [chapters, setChapters] = useState(initialChapters);
-  const [colColors, setColColors] = useState<Record<string, string>>(initialColumnColors);
-  const [colorsOpen, setColorsOpen] = useState(false);
+  const [acts, setActs] = useState(initialActs);
   const [, startTransition] = useTransition();
 
   function handleAdd() {
     startTransition(async () => {
-      const chapter = await createPlanChapter(bookId);
+      const { chapter, act } = await createPlanChapter(bookId);
+      if (act) setActs((prev) => [...prev, act]);
       setChapters((prev) => [...prev, chapter]);
     });
   }
@@ -271,24 +149,29 @@ export default function PlanTable({
   }
 
   function handleActBreak(chapterId: string, value: boolean) {
-    setChapters((prev) => prev.map((c) => (c.id === chapterId ? { ...c, actBreakAfter: value } : c)));
-    startTransition(() => toggleChapterActBreak(chapterId, value));
-  }
-
-  function handleColColor(col: string, color: string | null) {
-    const next = { ...colColors };
-    if (color) next[col] = color;
-    else delete next[col];
-    setColColors(next);
-    startTransition(() => updatePlanColumnColors(bookId, next));
+    startTransition(async () => {
+      const next = await toggleChapterActBreak(chapterId, value);
+      setChapters(next.chapters);
+      setActs(next.acts);
+    });
   }
 
   const totals = sumChars(chapters);
-  const groups: { act: number; items: { chapter: PlanChapter; index: number }[] }[] = [{ act: 1, items: [] }];
-  chapters.forEach((chapter, index) => {
-    groups[groups.length - 1].items.push({ chapter, index });
-    if (chapter.actBreakAfter) groups.push({ act: groups.length + 1, items: [] });
-  });
+  const numbers = new Map(chapters.map((chapter, index) => [chapter.id, index + 1]));
+  const grouped = new Map<string, PlanChapter[]>();
+  for (const chapter of chapters) {
+    const key = chapter.actId ?? "";
+    const list = grouped.get(key) ?? [];
+    list.push(chapter);
+    grouped.set(key, list);
+  }
+  const groups = acts.map((act, index) => ({
+    key: act.id,
+    label: act.title.trim() || `Акт ${index + 1}`,
+    items: grouped.get(act.id) ?? [],
+  })).filter((group) => group.items.length > 0);
+  const loose = grouped.get("") ?? [];
+  if (loose.length > 0) groups.push({ key: "loose", label: "Ещё", items: loose });
 
   return (
     <div className="chapter-feed">
@@ -312,48 +195,98 @@ export default function PlanTable({
         </div>
       </section>
 
-      <div className="chapter-colors">
-        <button type="button" className="chapter-colors-toggle" onClick={() => setColorsOpen((open) => !open)} aria-expanded={colorsOpen}>
-          Цвета колонок
-        </button>
-        {colorsOpen && (
-          <div className="chapter-colors-row">
-            {COLUMNS.map((col) => (
-              <span key={col} className="chapter-colors-item">
-                <ColorPicker current={colColors[col] ?? null} onChange={(color) => handleColColor(col, color)} label={`Цвет: ${COL_LABELS[col]}`} />
-                {COL_LABELS[col]}
-              </span>
-            ))}
-          </div>
-        )}
+      <div className="chapter-legend" aria-label="Прогресс глав" style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center", marginTop: 14 }}>
+        {LEGEND.map((item) => (
+          <span key={item.kind} style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#555", fontSize: 13, fontFamily: SANS }}>
+            <i style={{ width: 12, height: 12, borderRadius: 99, background: item.kind === "none" ? "#D9D3C7" : item.kind === "work" ? "#6553E8" : item.kind === "almost" ? "#FFD43B" : "#2FB083", display: "inline-block" }} />
+            {item.label}
+          </span>
+        ))}
       </div>
 
       {chapters.length === 0 ? (
-        <p className="chapter-empty">Глав пока нет. Новая глава появится здесь.</p>
+        <p className="chapter-empty">Глав пока нет.</p>
       ) : (
         groups.map((group) => {
-          const stats = sumChars(group.items.map((item) => item.chapter));
-          if (group.items.length === 0) {
-            return (
-              <div key={`act-${group.act}`} className="chapter-act">Акт {group.act}</div>
-            );
-          }
+          const stats = sumChars(group.items);
           return (
-            <section key={`act-${group.act}`}>
-              <div className="chapter-act">Акт {group.act} · {stats.percent}%</div>
-              {group.items.map(({ chapter, index }) => (
-                <ChapterCard
-                  key={chapter.id}
-                  chapter={chapter}
-                  index={index}
-                  chapterSuggestions={suggestions[chapter.id] ?? {}}
-                  fieldBg={(col) => (chapter.color ? undefined : colColors[col] ? { background: colColors[col] } : undefined)}
-                  onNumber={(field, value) => handleNumber(chapter.id, field, value)}
-                  onColor={(color) => handleRowColor(chapter.id, color)}
-                  onActBreak={(value) => handleActBreak(chapter.id, value)}
-                  onDelete={() => handleDelete(chapter.id)}
-                />
-              ))}
+            <section key={group.key}>
+              <div className="chapter-act">{group.label} · {stats.percent}%</div>
+              {group.items.map((chapter) => {
+                const percent = progressPercent(chapter.writtenChars, chapter.plannedChars);
+                const chapterSuggestions = suggestions[chapter.id] ?? {};
+                return (
+                  <article key={chapter.id} className={`chapter-card is-${progressKind(chapter.writtenChars, chapter.plannedChars)}`} style={{ background: WASH[progressKind(chapter.writtenChars, chapter.plannedChars)] }}>
+                    <div className="chapter-card-top">
+                      <span className="chapter-card-n">{numbers.get(chapter.id)}</span>
+                      <div className="chapter-card-tools">
+                        <ColorPicker
+                          current={chapter.color ?? null}
+                          onChange={(color) => handleRowColor(chapter.id, color)}
+                          label="Цвет главы"
+                        />
+                        <button
+                          type="button"
+                          className={chapter.actBreakAfter ? "chapter-tool act-break is-on" : "chapter-tool act-break"}
+                          onClick={() => handleActBreak(chapter.id, !chapter.actBreakAfter)}
+                        >
+                          {chapter.actBreakAfter ? "Убрать границу" : "Граница"}
+                        </button>
+                        <button
+                          type="button"
+                          className="chapter-tool chapter-tool-icon"
+                          onClick={() => handleDelete(chapter.id)}
+                          aria-label="Удалить главу"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <SuggestableField
+                      model="PlanChapter"
+                      recordId={chapter.id}
+                      field="title"
+                      value={chapter.title}
+                      suggestion={chapterSuggestions.title}
+                      placeholder="Название"
+                      className="chapter-card-title"
+                      style={{ fontFamily: SANS, fontWeight: 500, fontSize: 26, letterSpacing: "-0.02em" }}
+                    />
+                    <div className="chapter-card-foot" style={{ justifyContent: "flex-start" }}>
+                      <div className="chapter-card-figures" style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 4, width: "auto", marginRight: "auto", fontVariantNumeric: "tabular-nums", fontFamily: SANS }}>
+                        <input
+                          key={`${chapter.id}-w-${chapter.writtenChars}`}
+                          defaultValue={formatChars(chapter.writtenChars)}
+                          onBlur={(e) => handleNumber(chapter.id, "writtenChars", parseChars(e.target.value))}
+                          onKeyDown={blurOnEnter}
+                          inputMode="numeric"
+                          aria-label="Написано знаков"
+                          placeholder="0"
+                          className="chapter-num"
+                          size={Math.max(1, formatChars(chapter.writtenChars).length)}
+                          style={{ width: `${Math.max(1, formatChars(chapter.writtenChars).length)}ch`, fontFamily: SANS, textAlign: "left", padding: 0 }}
+                        />
+                        <span aria-hidden="true">/</span>
+                        <input
+                          key={`${chapter.id}-p-${chapter.plannedChars}`}
+                          defaultValue={formatChars(chapter.plannedChars)}
+                          onBlur={(e) => handleNumber(chapter.id, "plannedChars", parseChars(e.target.value))}
+                          onKeyDown={blurOnEnter}
+                          inputMode="numeric"
+                          aria-label="План знаков"
+                          placeholder="0"
+                          className="chapter-num"
+                          size={Math.max(1, formatChars(chapter.plannedChars).length)}
+                          style={{ width: `${Math.max(1, formatChars(chapter.plannedChars).length)}ch`, fontFamily: SANS, textAlign: "left", padding: 0 }}
+                        />
+                        <span className="chapter-pct">
+                          {chapter.plannedChars > 0 ? `· ${percent}%` : "· —"}
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
             </section>
           );
         })

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { foldedDescription } from "@/features/acts/chapterText";
 
 export type SuggestableModel =
   | "Book"
@@ -76,6 +77,13 @@ export const SUGGESTION_REGISTRY: Record<SuggestableModel, RegistryEntry> = {
       return typeof value === "string" ? value : "";
     },
     apply: async (id, field, value) => {
+      if (field === "summary" || field === "dramaticArgument" || field === "note" || field === "images") {
+        const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id } });
+        const next = { ...chapter, [field]: value };
+        const description = foldedDescription(next);
+        await prisma.planChapter.update({ where: { id }, data: { [field]: value, description } });
+        return;
+      }
       await prisma.planChapter.update({ where: { id }, data: { [field]: value } });
     },
   },
