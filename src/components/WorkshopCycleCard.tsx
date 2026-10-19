@@ -77,17 +77,19 @@ export default function WorkshopCycleCard({ cycles, basePath }: { cycles: Worksh
         <div className="min-w-0 text-[12px] leading-snug" style={{ color: "var(--muted)" }}>
           {cycle.genre.trim() || "Жанр не указан"}
         </div>
-        <button
-          type="button"
-          className="inline-flex shrink-0 items-center gap-0.5 text-[12.5px] font-semibold"
-          aria-expanded={open}
-          aria-haspopup="listbox"
-          onClick={() => setOpen((value) => !value)}
-        >
-          {index + 1} из {cycles.length}
-          <ChevronDown size={14} />
-        </button>
-        {open && (
+        {cycles.length > 1 && (
+          <button
+            type="button"
+            className="inline-flex shrink-0 items-center gap-0.5 text-[12.5px] font-semibold"
+            aria-expanded={open}
+            aria-haspopup="listbox"
+            onClick={() => setOpen((value) => !value)}
+          >
+            {index + 1} из {cycles.length}
+            <ChevronDown size={14} />
+          </button>
+        )}
+        {cycles.length > 1 && open && (
           <ul
             role="listbox"
             className="absolute right-0 top-6 z-10 m-0 min-w-[180px] list-none rounded-[14px] p-1"
