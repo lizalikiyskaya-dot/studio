@@ -497,8 +497,8 @@ model Act {
   title    String       @default("")
   subtitle String       @default("")
   content  String       @default("")
-  // Пустая строка — статус доски считается по трекеру глав.
-  // Иначе: ACCEPTED | IN_PROGRESS | AHEAD.
+  // Старое поле статуса акта. Чип на доске считается по знакам глав
+  // (не начата / в работе / почти / готова) и это поле не показывает.
   status   String       @default("")
   chapters ActChapter[]
   planChapters PlanChapter[]

@@ -10,7 +10,6 @@ import {
   deleteStorylineBlock,
   movePlanScene,
   setPlanView,
-  updateActField,
   updateStorylineBlockColor,
   updateStorylineBlockField,
   updateStorylineBlockSpan,
@@ -93,13 +92,6 @@ const COLORS: { value: StorylineColor; dot: string; bg: string; fg: string }[] =
 ];
 const COLOR = Object.fromEntries(COLORS.map((item) => [item.value, item])) as Record<string, (typeof COLORS)[number]>;
 
-const STATUS_CYCLE = ["", "ACCEPTED", "IN_PROGRESS", "AHEAD"] as const;
-const STATUS_LABEL: Record<string, string> = {
-  ACCEPTED: "принят",
-  IN_PROGRESS: "в работе",
-  AHEAD: "впереди",
-};
-
 const VIEWS: { id: PlanView; label: string }[] = [
   { id: "ribbon", label: "Лента" },
   { id: "tiles", label: "Плитки" },
@@ -126,13 +118,6 @@ function percentOf(chapters: { writtenChars: number; plannedChars: number }[]) {
   const planned = chapters.reduce((sum, chapter) => sum + chapter.plannedChars, 0);
   const written = chapters.reduce((sum, chapter) => sum + chapter.writtenChars, 0);
   return progressPercent(written, planned);
-}
-
-function resolvedStatus(stored: string, progress: number) {
-  if (stored === "ACCEPTED" || stored === "IN_PROGRESS" || stored === "AHEAD") return stored;
-  if (progress >= 100) return "ACCEPTED";
-  if (progress > 0) return "IN_PROGRESS";
-  return "AHEAD";
 }
 
 function chapterNumbers(chapters: PlanChapterModel[]) {
@@ -176,12 +161,15 @@ function Legend() {
   );
 }
 
-function StatusButton({ status, progress, onClick }: { status: string; progress: number; onClick: () => void }) {
-  const resolved = resolvedStatus(status, progress);
+function ProgressChip({ chapters }: { chapters: { writtenChars: number; plannedChars: number }[] }) {
+  const planned = chapters.reduce((sum, chapter) => sum + chapter.plannedChars, 0);
+  const written = chapters.reduce((sum, chapter) => sum + chapter.writtenChars, 0);
+  const kind = progressKind(written, planned);
+  const label = LEGEND.find((item) => item.kind === kind)?.label ?? "";
   return (
-    <button type="button" className={`plan-status is-${resolved.toLowerCase()}`} onClick={onClick}>
-      {STATUS_LABEL[resolved] ?? "впереди"}
-    </button>
+    <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "3px 8px", background: WASH[kind], color: "#202020", fontSize: 12, fontWeight: 650, fontFamily: SANS, whiteSpace: "nowrap" }}>
+      {label}
+    </span>
   );
 }
 
@@ -299,14 +287,6 @@ export default function BookPlanBoard({
     startTransition(() => deleteAct(actId));
   }
 
-  function cycleStatus(act: PlanActModel, progress: number) {
-    const resolved = resolvedStatus(act.status, progress);
-    const index = STATUS_CYCLE.indexOf(resolved as (typeof STATUS_CYCLE)[number]);
-    const next = STATUS_CYCLE[(index + 1) % STATUS_CYCLE.length];
-    patchAct(act.id, { status: next });
-    startTransition(() => updateActField(act.id, "status", next));
-  }
-
   function saveNumber(chapterId: string, field: "plannedChars" | "writtenChars", value: number) {
     const next = Math.max(0, Math.round(Number.isFinite(value) ? value : 0));
     patchChapter(chapterId, { [field]: next });
@@ -406,9 +386,9 @@ export default function BookPlanBoard({
           </button>
         } />
       ) : view === "ribbon" ? (
-        <Ribbon columns={columns} numbers={numbers} onOpen={setOpenId} onStatus={cycleStatus} onAdd={addChapter} onDeleteAct={removeAct} actSuggestions={actSuggestions} onActTitle={(id, title) => patchAct(id, { title })} />
+        <Ribbon columns={columns} numbers={numbers} onOpen={setOpenId} onAdd={addChapter} onDeleteAct={removeAct} actSuggestions={actSuggestions} onActTitle={(id, title) => patchAct(id, { title })} />
       ) : view === "tiles" ? (
-        <Tiles columns={columns} numbers={numbers} onOpen={setOpenId} onStatus={cycleStatus} onAdd={addChapter} onDeleteAct={removeAct} actSuggestions={actSuggestions} onActTitle={(id, title) => patchAct(id, { title })} />
+        <Tiles columns={columns} numbers={numbers} onOpen={setOpenId} onAdd={addChapter} onDeleteAct={removeAct} actSuggestions={actSuggestions} onActTitle={(id, title) => patchAct(id, { title })} />
       ) : (
         <PlotMap columns={columns} numbers={numbers} onOpen={setOpenId} onMove={moveScene} onAdd={addChapter} />
       )}
@@ -461,49 +441,51 @@ export default function BookPlanBoard({
 
 function ActHead({
   act,
+  chapters,
   progress,
   actSuggestions,
   onTitle,
-  onStatus,
   onDelete,
   onAdd,
 }: {
   act: PlanActModel;
+  chapters: PlanChapterModel[];
   progress: number;
   actSuggestions: SuggestionMap;
   onTitle: (title: string) => void;
-  onStatus: () => void;
   onDelete: () => void;
   onAdd: () => void;
 }) {
-  if (!act.id) {
-    return (
-      <div className="plan-act-head" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <div className="plan-act-name" style={{ fontFamily: SANS, fontWeight: 650, fontSize: 16 }}>Ещё</div>
-        <span className="plan-act-pct">{progress}%</span>
-      </div>
-    );
-  }
   return (
-    <div className="plan-act-head" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 10 }}>
-      <SuggestableField
-        model="Act"
-        recordId={act.id}
-        field="title"
-        as="input"
-        value={act.title}
-        suggestion={actSuggestions[act.id]?.title}
-        placeholder="Акт"
-        className="plan-act-name"
-        style={{ fontFamily: SANS, fontWeight: 650, fontSize: 16, border: 0, background: "transparent", minWidth: 72, flex: 1 }}
-        onSaved={onTitle}
-      />
-      <span className="plan-act-pct">{progress}%</span>
-      <StatusButton status={act.status} progress={progress} onClick={onStatus} />
-      <button type="button" className="chapter-tool" onClick={onAdd}>Глава</button>
-      <button type="button" className="chapter-tool chapter-tool-icon" onClick={onDelete} aria-label="Удалить акт">
-        <Trash2 size={14} />
-      </button>
+    <div className="plan-act-head" style={{ display: "flex", flexDirection: "column", alignItems: "stretch", minWidth: 0, flex: "1 1 auto", maxWidth: "100%", marginBottom: 10 }}>
+      {act.id ? (
+        <SuggestableField
+          model="Act"
+          recordId={act.id}
+          field="title"
+          as="input"
+          value={act.title}
+          suggestion={actSuggestions[act.id]?.title}
+          placeholder="Акт"
+          className="plan-act-name"
+          style={{ fontFamily: SANS, fontWeight: 650, fontSize: 16, border: 0, background: "transparent", display: "block", width: "100%", minWidth: 0, maxWidth: "100%" }}
+          onSaved={onTitle}
+        />
+      ) : (
+        <div className="plan-act-name" style={{ fontFamily: SANS, fontWeight: 650, fontSize: 16 }}>Ещё</div>
+      )}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 6, width: "100%", maxWidth: "100%" }}>
+        <span className="plan-act-pct">{progress}%</span>
+        <ProgressChip chapters={chapters} />
+        {act.id ? (
+          <button type="button" className="chapter-tool" onClick={onAdd}>Глава</button>
+        ) : null}
+        {act.id ? (
+          <button type="button" className="chapter-tool chapter-tool-icon" onClick={onDelete} aria-label="Удалить акт">
+            <Trash2 size={14} />
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -512,7 +494,6 @@ function Ribbon({
   columns,
   numbers,
   onOpen,
-  onStatus,
   onAdd,
   onDeleteAct,
   actSuggestions,
@@ -521,7 +502,6 @@ function Ribbon({
   columns: { act: PlanActModel; chapters: PlanChapterModel[] }[];
   numbers: Map<string, number>;
   onOpen: (id: string) => void;
-  onStatus: (act: PlanActModel, progress: number) => void;
   onAdd: (actId: string) => void;
   onDeleteAct: (actId: string) => void;
   actSuggestions: SuggestionMap;
@@ -535,10 +515,10 @@ function Ribbon({
           <section key={act.id || "loose"} className="plan-act" style={{ minWidth: 220, flex: "1 0 220px" }}>
             <ActHead
               act={act}
+              chapters={chapters}
               progress={progress}
               actSuggestions={actSuggestions}
               onTitle={(title) => onActTitle(act.id, title)}
-              onStatus={() => onStatus(act, progress)}
               onDelete={() => onDeleteAct(act.id)}
               onAdd={() => onAdd(act.id)}
             />
@@ -574,7 +554,6 @@ function Tiles({
   columns,
   numbers,
   onOpen,
-  onStatus,
   onAdd,
   onDeleteAct,
   actSuggestions,
@@ -583,7 +562,6 @@ function Tiles({
   columns: { act: PlanActModel; chapters: PlanChapterModel[] }[];
   numbers: Map<string, number>;
   onOpen: (id: string) => void;
-  onStatus: (act: PlanActModel, progress: number) => void;
   onAdd: (actId: string) => void;
   onDeleteAct: (actId: string) => void;
   actSuggestions: SuggestionMap;
@@ -594,15 +572,15 @@ function Tiles({
       {columns.map(({ act, chapters }) => {
         const progress = percentOf(chapters);
         return (
-          <section key={act.id || "loose"} className="plan-tile" style={{ border: "1px solid #ececec", borderRadius: 24, padding: 16, background: "#fff" }}>
-            <div className="plan-tile-top" style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <section key={act.id || "loose"} className="plan-tile" style={{ border: "1px solid #ececec", borderRadius: 24, padding: 16, background: "#fff", minWidth: 0, overflow: "hidden" }}>
+            <div className="plan-tile-top" style={{ display: "flex", gap: 12, alignItems: "flex-start", minWidth: 0 }}>
               <Ring percent={progress} />
               <ActHead
                 act={act}
+                chapters={chapters}
                 progress={progress}
                 actSuggestions={actSuggestions}
                 onTitle={(title) => onActTitle(act.id, title)}
-                onStatus={() => onStatus(act, progress)}
                 onDelete={() => onDeleteAct(act.id)}
                 onAdd={() => onAdd(act.id)}
               />
@@ -664,11 +642,14 @@ function PlotMap({
           <tr>
             <th />
             {columns.map(({ act, chapters: items }) => (
-              <th key={act.id || "loose"} colSpan={Math.max(1, items.length)} className="plan-map-act" style={{ color: "#6553E8", fontWeight: 650, fontSize: 13, textAlign: "left", whiteSpace: "nowrap", fontFamily: SANS, paddingBottom: 4 }}>
-                <span style={{ marginRight: 8 }}>{act.title || "Акт"}</span>
-                {act.id ? (
-                  <button type="button" className="chapter-tool" onClick={() => onAdd(act.id)}>Глава</button>
-                ) : null}
+              <th key={act.id || "loose"} colSpan={Math.max(1, items.length)} className="plan-map-act" style={{ color: "#6553E8", fontWeight: 650, fontSize: 13, textAlign: "left", fontFamily: SANS, paddingBottom: 4, verticalAlign: "bottom", whiteSpace: "normal" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, maxWidth: "100%" }}>
+                  <span>{act.title || "Акт"}</span>
+                  <ProgressChip chapters={items} />
+                  {act.id ? (
+                    <button type="button" className="chapter-tool" onClick={() => onAdd(act.id)}>Глава</button>
+                  ) : null}
+                </div>
               </th>
             ))}
           </tr>
@@ -790,7 +771,7 @@ function ChapterSheet(props: {
           style={{ fontFamily: SANS, fontWeight: 650, fontSize: 28, letterSpacing: "-0.03em", border: 0, width: "100%", background: "transparent", display: "block" }}
           onSaved={props.onTitle}
         />
-        <div className="chapter-card-figures plan-sheet-figures" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12, fontVariantNumeric: "tabular-nums", fontFamily: SANS }}>
+        <div className="chapter-card-figures plan-sheet-figures" style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 4, marginTop: 12, width: "auto", fontVariantNumeric: "tabular-nums", fontFamily: SANS }}>
           <input
             key={`${chapter.id}-w-${chapter.writtenChars}`}
             defaultValue={formatChars(chapter.writtenChars)}
@@ -800,7 +781,8 @@ function ChapterSheet(props: {
             aria-label="Написано знаков"
             placeholder="0"
             className="chapter-num"
-            style={{ width: "8ch", fontFamily: SANS }}
+            size={Math.max(1, formatChars(chapter.writtenChars).length)}
+            style={{ width: `${Math.max(1, formatChars(chapter.writtenChars).length)}ch`, fontFamily: SANS, textAlign: "left", padding: 0 }}
           />
           <span aria-hidden="true">/</span>
           <input
@@ -812,7 +794,8 @@ function ChapterSheet(props: {
             aria-label="План знаков"
             placeholder="0"
             className="chapter-num"
-            style={{ width: "8ch", fontFamily: SANS }}
+            size={Math.max(1, formatChars(chapter.plannedChars).length)}
+            style={{ width: `${Math.max(1, formatChars(chapter.plannedChars).length)}ch`, fontFamily: SANS, textAlign: "left", padding: 0 }}
           />
           <span className={`chapter-pct is-${kindOf(chapter)}`}>
             {chapter.plannedChars > 0 ? `${progressPercent(chapter.writtenChars, chapter.plannedChars)}%` : "—"}

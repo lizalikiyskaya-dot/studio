@@ -252,8 +252,8 @@ export default function PlanTable({
                       className="chapter-card-title"
                       style={{ fontFamily: SANS, fontWeight: 500, fontSize: 26, letterSpacing: "-0.02em" }}
                     />
-                    <div className="chapter-card-foot">
-                      <div className="chapter-card-figures" style={{ display: "flex", alignItems: "center", gap: 6, fontVariantNumeric: "tabular-nums", fontFamily: SANS }}>
+                    <div className="chapter-card-foot" style={{ justifyContent: "flex-start" }}>
+                      <div className="chapter-card-figures" style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 4, width: "auto", marginRight: "auto", fontVariantNumeric: "tabular-nums", fontFamily: SANS }}>
                         <input
                           key={`${chapter.id}-w-${chapter.writtenChars}`}
                           defaultValue={formatChars(chapter.writtenChars)}
@@ -263,7 +263,8 @@ export default function PlanTable({
                           aria-label="Написано знаков"
                           placeholder="0"
                           className="chapter-num"
-                          style={{ width: "8ch", fontFamily: SANS, textAlign: "right" }}
+                          size={Math.max(1, formatChars(chapter.writtenChars).length)}
+                          style={{ width: `${Math.max(1, formatChars(chapter.writtenChars).length)}ch`, fontFamily: SANS, textAlign: "left", padding: 0 }}
                         />
                         <span aria-hidden="true">/</span>
                         <input
@@ -275,7 +276,8 @@ export default function PlanTable({
                           aria-label="План знаков"
                           placeholder="0"
                           className="chapter-num"
-                          style={{ width: "8ch", fontFamily: SANS, textAlign: "right" }}
+                          size={Math.max(1, formatChars(chapter.plannedChars).length)}
+                          style={{ width: `${Math.max(1, formatChars(chapter.plannedChars).length)}ch`, fontFamily: SANS, textAlign: "left", padding: 0 }}
                         />
                         <span className="chapter-pct">
                           {chapter.plannedChars > 0 ? `· ${percent}%` : "· —"}

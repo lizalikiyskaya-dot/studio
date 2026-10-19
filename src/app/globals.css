@@ -1223,20 +1223,25 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
 .chapter-card-figures {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-start;
+  gap: 4px;
+  width: auto;
+  margin-right: auto;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .chapter-num {
-  width: 5.6em;
+  width: auto;
   border: 0;
   background: transparent;
-  text-align: right;
+  text-align: left;
+  padding: 0;
   font: inherit;
   font-weight: 650;
   color: inherit;
   appearance: textfield;
+  field-sizing: content;
 }
 .chapter-num::-webkit-outer-spin-button,
 .chapter-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -1253,7 +1258,7 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .chapter-card-title { font-size: 22px; }
   .chapter-card-foot { flex-wrap: wrap; }
   .chapter-mini-track { flex-basis: 100%; }
-  .chapter-card-figures { width: 100%; justify-content: flex-end; }
+  .chapter-card-figures { width: auto; justify-content: flex-start; }
 }
 @media (max-width: 720px) {
   .studio-logo-note { display: none; }
@@ -1290,9 +1295,17 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
 
 .plan-ribbon { display: flex; gap: 16px; overflow-x: auto; padding: 8px 2px 18px; }
 .plan-act { min-width: 240px; flex: 1; }
-.plan-act-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.plan-act-head {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin-bottom: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
 .plan-act-name, .plan-fold-title {
-  border: 0; background: transparent; padding: 0; min-width: 0; flex: 1;
+  border: 0; background: transparent; padding: 0; min-width: 0; flex: none; width: 100%; max-width: 100%;
   font: inherit; font-weight: 650; font-size: 16px; color: var(--ink);
 }
 .plan-act-pct { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
@@ -1317,7 +1330,7 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
 .plan-bar.is-done > i { background: #2FB083; }
 
 .plan-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-.plan-tile { border: 1px solid var(--border); border-radius: 24px; padding: 16px; background: #fff; }
+.plan-tile { border: 1px solid var(--border); border-radius: 24px; padding: 16px; background: #fff; min-width: 0; overflow: hidden; }
 .plan-tile-top { display: flex; gap: 12px; align-items: flex-start; }
 .plan-ring { width: 72px; height: 72px; flex: none; }
 .plan-mosaic { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
@@ -1335,7 +1348,7 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
 .plan-map { overflow-x: auto; padding-bottom: 12px; }
 .plan-map table { border-collapse: separate; border-spacing: 6px; min-width: 100%; }
 .plan-map th { font-weight: 600; font-size: 13px; text-align: left; vertical-align: bottom; }
-.plan-map-act { color: var(--v); white-space: nowrap; }
+.plan-map-act { color: var(--v); white-space: normal; }
 .plan-map-act span { margin-right: 8px; }
 .plan-map-line { color: var(--ink2); white-space: nowrap; max-width: 140px; }
 .plan-map-chapter {
