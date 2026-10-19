@@ -2,10 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { updatePaymentSettings } from "./actions";
-import ToggleSwitch from "@/components/ToggleSwitch";
 
-// День месяца уже был. Здесь же необязательная сумма и выключатель письма.
-// Статус «оплачено / ожидает» по-прежнему переключается бейджем доступа.
+// Поля — те же .fld, что на входе. Тумблер жёлтый, как кнопка «Закладки»:
+// общий ToggleSwitch в остальных местах пока зелёный, сюда он не подходит.
 export default function PaymentControls({
   userId,
   paymentDay: initialDay,
@@ -40,42 +39,52 @@ export default function PaymentControls({
     save({ day: num, amount, reminders });
   }
 
-  function handleAmountBlur() {
-    save({ day, amount, reminders });
-  }
-
-  function handleReminders(checked: boolean) {
-    setReminders(checked);
-    save({ day, amount, reminders: checked });
+  function handleReminders() {
+    const next = !reminders;
+    setReminders(next);
+    save({ day, amount, reminders: next });
   }
 
   return (
-    <div className="mentor-pay flex flex-col items-start gap-1">
-      <select
-        value={day ?? ""}
-        onChange={(e) => handleDayChange(e.target.value)}
-        aria-label="День оплаты"
-        className="text-[12.5px] px-1.5 py-1 rounded-sm"
-        style={{ border: "1px solid var(--rule)" }}
+    <div className="mentor-pay">
+      <div className="mentor-pay-fields">
+        <select
+          value={day ?? ""}
+          onChange={(e) => handleDayChange(e.target.value)}
+          aria-label="День оплаты"
+          className="fld"
+        >
+          <option value="">—</option>
+          {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </select>
+        <label className="mentor-pay-amount">
+          <span className="sr-only">Сумма оплаты, рубли</span>
+          <input
+            inputMode="numeric"
+            aria-label="Сумма оплаты, рубли"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ""))}
+            onBlur={() => save({ day, amount, reminders })}
+            className="fld"
+          />
+          <span className="mentor-pay-rub" aria-hidden="true">₽</span>
+        </label>
+      </div>
+      <button
+        type="button"
+        className="mentor-pay-letter"
+        aria-pressed={reminders}
+        onClick={handleReminders}
       >
-        <option value="">—</option>
-        {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-          <option key={d} value={d}>
-            {d}
-          </option>
-        ))}
-      </select>
-      <input
-        inputMode="numeric"
-        aria-label="Сумма оплаты, рубли"
-        placeholder="сумма"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ""))}
-        onBlur={handleAmountBlur}
-        className="text-[12.5px] px-1.5 py-1 rounded-sm"
-        style={{ border: "1px solid var(--rule)", width: 72 }}
-      />
-      <ToggleSwitch checked={reminders} onChange={handleReminders} label="письмо" />
+        <span className="mentor-pay-track">
+          <span className="mentor-pay-knob" />
+        </span>
+        <span className="mentor-pay-letter-label">Письмо в день оплаты</span>
+      </button>
     </div>
   );
 }

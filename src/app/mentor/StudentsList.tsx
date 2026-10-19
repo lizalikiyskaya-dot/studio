@@ -243,9 +243,9 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                   storyUnlocked={s.storyWorkshopUnlocked}
                 />
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[12px]" style={{ color: "var(--muted)" }}>День оплаты</span>
+              <div className="mentor-card-meta">
+                <div className="mentor-card-pay">
+                  <span className="mentor-card-kicker">День оплаты</span>
                   <PaymentControls
                     userId={s.id}
                     paymentDay={s.paymentDay}
