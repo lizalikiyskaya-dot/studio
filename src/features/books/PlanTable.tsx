@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect } from "react";
+import { useState, useTransition, useRef, useEffect, type CSSProperties } from "react";
+import { Trash2 } from "lucide-react";
 import type { PlanChapter } from "@/generated/prisma/client";
 import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, toggleChapterActBreak, deletePlanChapter } from "./actions";
 import { updatePlanColumnColors } from "./actions";
@@ -10,50 +11,14 @@ import { useHeaderAction } from "@/components/headerAction";
 
 const PALETTE = ["#E0CBE7", "#E2E9EE", "#E2EADC", "#F0E1E4"];
 
-// 5-stop gradient: 0%=dark red, 25%=light red, 50%=orange, 75%=light green, 100%=bright green
-function percentCellBackground(percent: number): string {
-  const p = Math.max(0, Math.min(100, percent));
-  if (p === 0) return "#C0392B22";
-  if (p <= 25) {
-    const t = p / 25;
-    // dark red (#C0392B) → light red (#F1948A)
-    const r = Math.round(192 + t * (241 - 192));
-    const g = Math.round(57 + t * (148 - 57));
-    const b = Math.round(43 + t * (138 - 43));
-    return `rgba(${r},${g},${b},0.35)`;
-  }
-  if (p <= 50) {
-    const t = (p - 25) / 25;
-    // light red (#F1948A) → orange (#F39C12)
-    const r = Math.round(241 + t * (243 - 241));
-    const g = Math.round(148 + t * (156 - 148));
-    const b = Math.round(138 + t * (18 - 138));
-    return `rgba(${r},${g},${b},0.4)`;
-  }
-  if (p <= 75) {
-    const t = (p - 50) / 25;
-    // orange (#F39C12) → light green (#82E0AA)
-    const r = Math.round(243 + t * (130 - 243));
-    const g = Math.round(156 + t * (224 - 156));
-    const b = Math.round(18 + t * (170 - 18));
-    return `rgba(${r},${g},${b},0.4)`;
-  }
-  // 75–100: light green → bright green (#27AE60)
-  const t = (p - 75) / 25;
-  const r = Math.round(130 + t * (39 - 130));
-  const g = Math.round(224 + t * (174 - 224));
-  const b = Math.round(170 + t * (96 - 170));
-  return `rgba(${r},${g},${b},0.5)`;
-}
-
 function ColorPicker({
   current,
   onChange,
-  align = "left",
+  label,
 }: {
   current: string | null;
   onChange: (color: string | null) => void;
-  align?: "left" | "center";
+  label: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -68,29 +33,32 @@ function ColorPicker({
   }, [open]);
 
   return (
-    <div ref={ref} className="relative inline-flex items-center justify-center" style={{ width: 20 }}>
+    <div ref={ref} className="relative inline-flex">
       <button
+        type="button"
         onClick={() => setOpen((v) => !v)}
-        title="Цвет"
-        className="rounded-full border transition-opacity hover:opacity-80"
+        title={label}
+        aria-label={label}
+        className="rounded-full border"
         style={{
           width: 14,
           height: 14,
           background: current ?? "transparent",
           borderColor: current ? "transparent" : "var(--border)",
-          flexShrink: 0,
         }}
       />
       {open && (
         <div
-          className={`absolute top-5 z-30 flex gap-1.5 p-2 rounded-lg shadow-md ${align === "center" ? "-translate-x-1/2 left-1/2" : "left-0"}`}
+          className="absolute top-5 left-0 z-30 flex gap-1.5 p-2 rounded-lg shadow-md"
           style={{ background: "#fff", border: "1px solid var(--border)" }}
         >
           {PALETTE.map((c) => (
             <button
               key={c}
+              type="button"
               onClick={() => { onChange(c === current ? null : c); setOpen(false); }}
-              className="rounded-full border-2 transition-all"
+              className="rounded-full border-2"
+              aria-label={label}
               style={{
                 width: 18,
                 height: 18,
@@ -101,6 +69,7 @@ function ColorPicker({
           ))}
           {current && (
             <button
+              type="button"
               onClick={() => { onChange(null); setOpen(false); }}
               className="text-[11px] px-1 rounded"
               style={{ color: "var(--ink-faint)", border: "1px solid var(--border)" }}
@@ -118,28 +87,27 @@ const COLUMNS = ["summary", "dramaticArgument", "note", "chars"] as const;
 type ColKey = (typeof COLUMNS)[number];
 
 const COL_LABELS: Record<ColKey, string> = {
-  summary: "Суть по сюжету",
-  dramaticArgument: "Драматическое ядро",
+  summary: "Суть",
+  dramaticArgument: "Ядро",
   note: "Примечание",
   chars: "Знаки",
 };
 
-const cellBase: React.CSSProperties = {
-  padding: "7px 9px",
-  borderRight: "1px solid var(--border)",
-  verticalAlign: "top",
-};
+function formatChars(value: number) {
+  return value.toLocaleString("ru-RU").replace(/\u00A0/g, " ");
+}
 
-const headerBase: React.CSSProperties = {
-  ...cellBase,
-  padding: "5px 9px",
-  fontSize: 12,
-  color: "var(--ink-faint)",
-  fontWeight: 400,
-  borderBottom: "1px solid var(--border)",
-  background: "var(--bg-surface-2)",
-  whiteSpace: "nowrap",
-};
+function chapterPercent(chapter: PlanChapter) {
+  if (chapter.plannedChars <= 0) return 0;
+  return Math.round((chapter.writtenChars / chapter.plannedChars) * 100);
+}
+
+function sumChars(chapters: PlanChapter[]) {
+  const planned = chapters.reduce((sum, chapter) => sum + (chapter.plannedChars || 0), 0);
+  const written = chapters.reduce((sum, chapter) => sum + (chapter.writtenChars || 0), 0);
+  const percent = planned > 0 ? Math.round((written / planned) * 100) : 0;
+  return { planned, written, percent };
+}
 
 export default function PlanTable({
   bookId,
@@ -154,6 +122,7 @@ export default function PlanTable({
 }) {
   const [chapters, setChapters] = useState(initialChapters);
   const [colColors, setColColors] = useState<Record<string, string>>(initialColumnColors);
+  const [colorsOpen, setColorsOpen] = useState(false);
   const [, startTransition] = useTransition();
 
   function handleAdd() {
@@ -165,8 +134,9 @@ export default function PlanTable({
   useHeaderAction("plan-chapter", handleAdd);
 
   function handleNumber(chapterId: string, field: "plannedChars" | "writtenChars", value: number) {
-    setChapters((prev) => prev.map((c) => (c.id === chapterId ? { ...c, [field]: value } : c)));
-    startTransition(() => updatePlanChapterNumber(chapterId, field, value));
+    const next = Number.isFinite(value) ? value : 0;
+    setChapters((prev) => prev.map((c) => (c.id === chapterId ? { ...c, [field]: next } : c)));
+    startTransition(() => updatePlanChapterNumber(chapterId, field, next));
   }
 
   function handleRowColor(chapterId: string, color: string | null) {
@@ -193,246 +163,171 @@ export default function PlanTable({
     startTransition(() => updatePlanColumnColors(bookId, next));
   }
 
-  const totalPlanned = chapters.reduce((s, c) => s + (c.plannedChars || 0), 0);
-  const totalWritten = chapters.reduce((s, c) => s + (c.writtenChars || 0), 0);
-  const totalPercent = totalPlanned > 0 ? Math.round((totalWritten / totalPlanned) * 100) : 0;
+  const totals = sumChars(chapters);
+  const groups: { act: number; items: { chapter: PlanChapter; index: number }[] }[] = [{ act: 1, items: [] }];
+  chapters.forEach((chapter, index) => {
+    groups[groups.length - 1].items.push({ chapter, index });
+    if (chapter.actBreakAfter) groups.push({ act: groups.length + 1, items: [] });
+  });
 
   return (
-    <div>
-      <div className="overflow-x-auto mb-4 rounded-[14px]" style={{ border: "1px solid var(--border)" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 740 }}>
-          <colgroup>
-            <col style={{ width: 24 }} /> {/* act button */}
-            <col style={{ width: 26 }} /> {/* row color */}
-            <col style={{ width: 32 }} /> {/* № */}
-            <col style={{ width: "25%" }} /> {/* summary */}
-            <col style={{ width: "20%" }} /> {/* dramaticArgument */}
-            <col style={{ width: "18%" }} /> {/* note */}
-            <col style={{ width: 80 }} />  {/* план */}
-            <col style={{ width: 80 }} />  {/* написано */}
-            <col style={{ width: 56 }} />  {/* % */}
-            <col style={{ width: 24 }} />  {/* delete */}
-          </colgroup>
-          <thead>
-            <tr>
-              {/* act button header */}
-              <th style={{ ...headerBase, padding: 0, width: 24, fontSize: 9, color: "var(--ink-faint)", textAlign: "center", letterSpacing: "0.05em" }}>
-                Акты
-              </th>
-              {/* row-color header: empty */}
-              <th style={{ ...headerBase, borderRight: "1px solid var(--border)" }} />
-              {/* № */}
-              <th style={headerBase}>№</th>
-              {/* text columns with col color pickers */}
-              {(["summary", "dramaticArgument", "note"] as ColKey[]).map((col) => (
-                <th key={col} style={{ ...headerBase, background: colColors[col] ?? "var(--bg-surface-2)" }}>
-                  <div className="flex items-center gap-1.5">
-                    <ColorPicker current={colColors[col] ?? null} onChange={(c) => handleColColor(col, c)} align="left" />
-                    {COL_LABELS[col]}
-                  </div>
-                </th>
-              ))}
-              {/* chars group header spanning план/написано/% */}
-              <th style={{ ...headerBase, background: colColors["chars"] ?? "var(--bg-surface-2)" }}>
-                <div className="flex items-center gap-1.5">
-                  <ColorPicker current={colColors["chars"] ?? null} onChange={(c) => handleColColor("chars", c)} align="left" />
-                  План (зн.)
-                </div>
-              </th>
-              <th style={{ ...headerBase, background: colColors["chars"] ?? "var(--bg-surface-2)" }}>Написано</th>
-              <th style={{ ...headerBase, borderRight: "none", background: colColors["chars"] ?? "var(--bg-surface-2)" }}>%</th>
-              <th style={{ ...headerBase, padding: 0, width: 24, borderRight: "none" }} />
-            </tr>
-          </thead>
-          <tbody>
-            {/* Static АКТ 1 divider at top */}
-            <tr>
-              <td colSpan={10} style={{ padding: "2px 0", borderBottom: "1px solid var(--border)" }}>
-                <div className="flex items-center gap-3 px-3" style={{ height: 26 }}>
-                  <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-                  <span
-                    className="text-[12px] font-medium select-none"
-                    style={{ color: "var(--muted)", whiteSpace: "nowrap" }}
-                  >
-                    Акт 1
-                  </span>
-                  <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-                </div>
-              </td>
-            </tr>
-            {chapters.map((chapter, idx) => {
-              const percent =
-                chapter.plannedChars > 0
-                  ? Math.round((chapter.writtenChars / chapter.plannedChars) * 100)
-                  : 0;
-              const chapterSuggestions = suggestions[chapter.id] ?? {};
-              const rowBg = chapter.color ?? undefined;
-              // count act number = number of actBreakAfter=true among chapters before and including this one's break
-              const actNum = chapters.slice(0, idx + 1).filter((c) => c.actBreakAfter).length;
+    <div className="chapter-feed">
+      <section className="chapter-plaque" aria-label="Сводка по книге">
+        <div className="chapter-plaque-row">
+          <div>
+            <div className="chapter-plaque-num">{formatChars(totals.written)}</div>
+            <div className="chapter-plaque-lbl">написано знаков</div>
+          </div>
+          <div>
+            <div className="chapter-plaque-num">{formatChars(totals.planned)}</div>
+            <div className="chapter-plaque-lbl">в плане</div>
+          </div>
+          <div className="chapter-plaque-grow">
+            <div className="chapter-plaque-num">{totals.percent}%</div>
+            <div className="chapter-plaque-lbl">готово</div>
+          </div>
+        </div>
+        <div className="chapter-track" aria-hidden="true">
+          <i style={{ width: `${Math.min(100, totals.percent)}%` }} />
+        </div>
+      </section>
 
-              function cell(col: ColKey): React.CSSProperties {
-                const bg = rowBg ?? colColors[col] ?? undefined;
-                return { ...cellBase, borderBottom: "1px solid var(--border)", background: bg };
-              }
+      <div className="chapter-colors">
+        <button type="button" className="chapter-colors-toggle" onClick={() => setColorsOpen((open) => !open)} aria-expanded={colorsOpen}>
+          Цвета колонок
+        </button>
+        {colorsOpen && (
+          <div className="chapter-colors-row">
+            {COLUMNS.map((col) => (
+              <span key={col} className="chapter-colors-item">
+                <ColorPicker current={colColors[col] ?? null} onChange={(color) => handleColColor(col, color)} label={`Цвет: ${COL_LABELS[col]}`} />
+                {COL_LABELS[col]}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
-              return (
-                <>
-                <tr key={chapter.id} className="group">
-                  {/* act break button */}
-                  <td style={{ ...cellBase, borderBottom: "1px solid var(--border)", padding: 0, verticalAlign: "middle", background: rowBg, width: 24 }}>
-                    {chapter.actBreakAfter ? (
-                      <button
-                        onClick={() => handleActBreak(chapter.id, false)}
-                        title="Убрать границу акта"
-                        className="flex items-center justify-center w-full h-full"
-                        style={{ color: "var(--accent)", opacity: 0.7 }}
-                      >
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="1" y1="9" x2="9" y2="1"/><line x1="1" y1="1" x2="9" y2="9"/></svg>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleActBreak(chapter.id, true)}
-                        title="Добавить границу акта после этой главы"
-                        className="flex items-center justify-center w-full h-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        style={{ color: "var(--ink-faint)" }}
-                      >
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="5" y1="1" x2="5" y2="9"/><line x1="1" y1="5" x2="9" y2="5"/></svg>
-                      </button>
-                    )}
-                  </td>
-                  {/* row color picker */}
-                  <td style={{ ...cellBase, borderBottom: "1px solid var(--border)", padding: "0 4px", verticalAlign: "middle", background: rowBg }}>
-                    <ColorPicker current={chapter.color ?? null} onChange={(c) => handleRowColor(chapter.id, c)} align="left" />
-                  </td>
-                  {/* № */}
-                  <td
-                    className="font-mono-label text-center"
-                    style={{ ...cellBase, borderBottom: "1px solid var(--border)", background: rowBg, fontSize: 12, color: "var(--ink-faint)", verticalAlign: "middle", whiteSpace: "nowrap" }}
+      {chapters.length === 0 ? (
+        <p className="chapter-empty">Глав пока нет. Новая глава появится здесь.</p>
+      ) : (
+        groups.map((group) => {
+          const stats = sumChars(group.items.map((item) => item.chapter));
+          if (group.items.length === 0) {
+            return (
+              <div key={`act-${group.act}`} className="chapter-act">Акт {group.act}</div>
+            );
+          }
+          return (
+            <section key={`act-${group.act}`}>
+              <div className="chapter-act">Акт {group.act} · {stats.percent}%</div>
+              {group.items.map(({ chapter, index }) => {
+                const percent = chapterPercent(chapter);
+                const over = percent > 100;
+                const chapterSuggestions = suggestions[chapter.id] ?? {};
+                const fieldBg = (col: ColKey): CSSProperties | undefined =>
+                  chapter.color ? undefined : colColors[col] ? { background: colColors[col] } : undefined;
+                return (
+                  <article
+                    key={chapter.id}
+                    className="chapter-card"
+                    style={{ background: chapter.color ?? "#fff" }}
                   >
-                    {idx + 1}
-                  </td>
-                  {/* summary */}
-                  <td style={cell("summary")}>
-                    <SuggestableField
-                      model="PlanChapter" recordId={chapter.id} field="summary"
-                      value={chapter.summary} suggestion={chapterSuggestions.summary}
-                      className="entry-title w-full min-w-0 outline-none bg-transparent text-[13px] font-semibold leading-snug"
-                    />
-                  </td>
-                  {/* dramaticArgument */}
-                  <td style={cell("dramaticArgument")}>
-                    <SuggestableField
-                      model="PlanChapter" recordId={chapter.id} field="dramaticArgument"
-                      value={chapter.dramaticArgument} suggestion={chapterSuggestions.dramaticArgument}
-                      className="w-full min-w-0 outline-none bg-transparent text-[13px] leading-snug"
-                    />
-                  </td>
-                  {/* note */}
-                  <td style={cell("note")}>
-                    <SuggestableField
-                      model="PlanChapter" recordId={chapter.id} field="note"
-                      value={chapter.note} suggestion={chapterSuggestions.note}
-                      className="w-full min-w-0 outline-none bg-transparent text-[13px] leading-snug"
-                    />
-                  </td>
-                  {/* планируемые знаки */}
-                  <td style={{ ...cell("chars"), borderRight: "1px solid var(--border)" }}>
-                    <input
-                      type="number"
-                      defaultValue={chapter.plannedChars || ""}
-                      onBlur={(e) => handleNumber(chapter.id, "plannedChars", Number(e.target.value))}
-                      onKeyDown={blurOnEnter}
-                      placeholder="0"
-                      className="w-full min-w-0 outline-none bg-transparent text-[13px] font-mono-label"
-                    />
-                  </td>
-                  {/* написано */}
-                  <td style={{ ...cell("chars"), borderRight: "1px solid var(--border)" }}>
-                    <input
-                      type="number"
-                      defaultValue={chapter.writtenChars || ""}
-                      onBlur={(e) => handleNumber(chapter.id, "writtenChars", Number(e.target.value))}
-                      onKeyDown={blurOnEnter}
-                      placeholder="0"
-                      className="w-full min-w-0 outline-none bg-transparent text-[13px] font-mono-label"
-                    />
-                  </td>
-                  {/* % */}
-                  <td
-                    className="font-mono-label text-[12.5px] font-semibold text-center"
-                    style={{
-                      ...cellBase,
-                      borderBottom: "1px solid var(--border)",
-                      borderRight: "none",
-                      background: percentCellBackground(percent),
-                      color: "var(--ink)",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {chapter.plannedChars > 0 ? `${percent}%` : "—"}
-                  </td>
-                  {/* delete row */}
-                  <td style={{ ...cellBase, borderBottom: "1px solid var(--border)", borderRight: "none", padding: 0, width: 24, verticalAlign: "middle" }}>
-                    <button
-                      onClick={() => handleDelete(chapter.id)}
-                      title="Удалить главу"
-                      className="flex items-center justify-center w-full h-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      style={{ color: "var(--ink-faint)" }}
-                    >
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="1" y1="9" x2="9" y2="1"/><line x1="1" y1="1" x2="9" y2="9"/></svg>
-                    </button>
-                  </td>
-                </tr>
-                {chapter.actBreakAfter && (
-                  <tr key={`act-${chapter.id}`}>
-                    <td colSpan={10} style={{ padding: "2px 0", borderBottom: "1px solid var(--border)" }}>
-                      <div className="flex items-center gap-3 px-3" style={{ height: 26 }}>
-                        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-                        <span
-                          className="text-[12px] font-medium select-none"
-                          style={{ color: "var(--muted)", whiteSpace: "nowrap" }}
+                    <div className="chapter-card-top">
+                      <span className="chapter-card-n">{String(index + 1).padStart(2, "0")}</span>
+                      <div className="chapter-card-tools">
+                        <ColorPicker
+                          current={chapter.color ?? null}
+                          onChange={(color) => handleRowColor(chapter.id, color)}
+                          label="Цвет главы"
+                        />
+                        <button
+                          type="button"
+                          className="chapter-tool"
+                          onClick={() => handleActBreak(chapter.id, !chapter.actBreakAfter)}
+                          title={chapter.actBreakAfter ? "Убрать границу акта" : "Начать новый акт после этой главы"}
                         >
-                          Акт {actNum + 1}
-                        </span>
-                        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+                          {chapter.actBreakAfter ? "Убрать границу" : "Новый акт"}
+                        </button>
+                        <button
+                          type="button"
+                          className="chapter-tool chapter-tool-icon"
+                          onClick={() => handleDelete(chapter.id)}
+                          title="Удалить главу"
+                          aria-label="Удалить главу"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
-                    </td>
-                  </tr>
-                )}
-                </>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <div
-        className="flex flex-wrap items-center gap-x-8 gap-y-2 rounded-[14px] px-5 py-3.5 mb-4"
-        style={{ border: "1px solid var(--border)", background: "var(--bg-surface-2)" }}
-      >
-        <span className="text-[13px] font-medium" style={{ color: "var(--muted)" }}>
-          Итого
-        </span>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-[12px]" style={{ color: "var(--ink-soft)" }}>Планируется:</span>
-          <span className="font-mono-label text-[14px] font-semibold" style={{ color: "var(--ink)" }}>
-            {totalPlanned.toLocaleString("ru-RU")}
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-[12px]" style={{ color: "var(--ink-soft)" }}>Написано:</span>
-          <span className="font-mono-label text-[14px] font-semibold" style={{ color: "var(--ink)" }}>
-            {totalWritten.toLocaleString("ru-RU")}
-          </span>
-        </div>
-        <div
-          className="font-mono-label text-[13px] font-semibold px-3 py-1 rounded-full ml-auto"
-          style={{ background: percentCellBackground(totalPercent), color: "var(--ink)" }}
-        >
-          {totalPercent}%
-        </div>
-      </div>
-
+                    </div>
+                    <SuggestableField
+                      model="PlanChapter"
+                      recordId={chapter.id}
+                      field="summary"
+                      value={chapter.summary}
+                      suggestion={chapterSuggestions.summary}
+                      placeholder="Суть по сюжету"
+                      className="chapter-card-title"
+                      style={fieldBg("summary")}
+                    />
+                    <SuggestableField
+                      model="PlanChapter"
+                      recordId={chapter.id}
+                      field="dramaticArgument"
+                      value={chapter.dramaticArgument}
+                      suggestion={chapterSuggestions.dramaticArgument}
+                      placeholder="Драматическое ядро"
+                      className="chapter-card-core"
+                      style={fieldBg("dramaticArgument")}
+                    />
+                    <SuggestableField
+                      model="PlanChapter"
+                      recordId={chapter.id}
+                      field="note"
+                      value={chapter.note}
+                      suggestion={chapterSuggestions.note}
+                      placeholder="Примечание"
+                      className="chapter-card-note"
+                      style={fieldBg("note")}
+                    />
+                    <div className="chapter-card-foot" style={fieldBg("chars")}>
+                      <div className="chapter-mini-track" aria-hidden="true">
+                        <i style={{ width: `${Math.min(100, percent)}%`, background: over ? "var(--v)" : "var(--ink)" }} />
+                      </div>
+                      <div className="chapter-card-figures">
+                        <input
+                          type="number"
+                          min={0}
+                          defaultValue={chapter.writtenChars || ""}
+                          onBlur={(e) => handleNumber(chapter.id, "writtenChars", Number(e.target.value))}
+                          onKeyDown={blurOnEnter}
+                          aria-label="Написано знаков"
+                          placeholder="0"
+                          className="chapter-num"
+                        />
+                        <span aria-hidden="true">/</span>
+                        <input
+                          type="number"
+                          min={0}
+                          defaultValue={chapter.plannedChars || ""}
+                          onBlur={(e) => handleNumber(chapter.id, "plannedChars", Number(e.target.value))}
+                          onKeyDown={blurOnEnter}
+                          aria-label="План знаков"
+                          placeholder="0"
+                          className="chapter-num"
+                        />
+                        <span className={over ? "chapter-pct is-over" : "chapter-pct"}>
+                          {chapter.plannedChars > 0 ? `· ${percent}%` : "· —"}
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </section>
+          );
+        })
+      )}
     </div>
   );
 }
