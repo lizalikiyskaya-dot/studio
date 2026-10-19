@@ -208,7 +208,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
             <div key={s.id} className="mentor-row mentor-data" role="row">
               <Reorder id={s.id} idx={idx} total={students.length} onMove={handleMove} />
               <Person student={s} />
-              <div className={s.currentWork ? "mentor-now" : "mentor-now is-empty"} title={s.currentWork ?? "Нет текущей работы"}>
+              <div className={s.currentWork ? "mentor-now" : "mentor-now is-empty"}>
                 {s.currentWork ?? "—"}
               </div>
               <AccessButton access={access} onClick={() => handleCycleAccess(s.id)} />
