@@ -1,8 +1,8 @@
 import { reorderArray } from "@/lib/reorder";
 
-/** 01, 02… for the row’s place in the current list. */
+/** 1, 2… 10 for the row’s place in the current list. */
 export function taskRowNumber(index: number): string {
-  return String(index + 1).padStart(2, "0");
+  return String(index + 1);
 }
 
 /**

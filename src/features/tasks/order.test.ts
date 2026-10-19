@@ -9,13 +9,13 @@ const tasks = [
 ];
 
 test("номера строк идут за новым порядком", () => {
-  assert.equal(taskRowNumber(0), "01");
-  assert.equal(taskRowNumber(1), "02");
+  assert.equal(taskRowNumber(0), "1");
+  assert.equal(taskRowNumber(1), "2");
   assert.equal(taskRowNumber(9), "10");
   const next = moveWithin(tasks, ["a", "x", "b"], "b", "a");
   assert.deepEqual(
     next.map((task, index) => `${taskRowNumber(index)} ${task.title}`),
-    ["01 Сцена", "02 Правки", "03 Логлайн"],
+    ["1 Сцена", "2 Правки", "3 Логлайн"],
   );
 });
 
