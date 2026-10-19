@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronDown, Plus } from "lucide-react";
 import type { Story, CycleCharacter, StoryCharacter, ArcType } from "@/generated/prisma/client";
 import CharacterCard from "./CharacterCard";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
@@ -40,7 +41,7 @@ function SecondaryCard({
 
   return (
     <div
-      className="rounded-[14px] mb-4 overflow-hidden max-w-[760px]"
+      className="hover-lift rounded-[18px] mb-4 overflow-hidden max-w-[760px]"
       style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "var(--soft)" }}
     >
       <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3 cursor-pointer">
@@ -56,7 +57,9 @@ function SecondaryCard({
           }}
         />
         <span className="heading flex-1 font-semibold text-[14.5px]">{character.name || "Без имени"}</span>
-        <span style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s", fontSize: 15 }}>▾</span>
+        <span className="flex-shrink-0" style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}>
+          <ChevronDown size={15} />
+        </span>
       </div>
 
       {open && (
@@ -200,9 +203,9 @@ export default function StoryCharactersSection({
             onDelete={handleDelete}
           />
         ))}
-        <Button onClick={() => handleAdd("MAIN")} variant="dashed-accent" size="sm" pill>
-          + главный персонаж
-        </Button>
+        <button type="button" onClick={() => handleAdd("MAIN")} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
+          <Plus size={16} /> Главный персонаж
+        </button>
       </section>
 
       <section>
@@ -216,9 +219,9 @@ export default function StoryCharactersSection({
             onDelete={handleDelete}
           />
         ))}
-        <Button onClick={() => handleAdd("SECONDARY")} variant="dashed" size="sm" pill>
-          + второстепенный персонаж
-        </Button>
+        <button type="button" onClick={() => handleAdd("SECONDARY")} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto", background: "var(--soft)", fontWeight: 500 }}>
+          <Plus size={16} /> Второстепенный персонаж
+        </button>
       </section>
     </div>
   );

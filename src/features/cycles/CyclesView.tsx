@@ -71,6 +71,10 @@ export default async function CyclesView({
                   settingChips: activeCycle.settingChips,
                   settingMapX: activeCycle.settingMapX,
                   settingMapY: activeCycle.settingMapY,
+                  settingManifest: activeCycle.settingManifest,
+                  settingFilter: activeCycle.settingFilter,
+                  settingConflict: activeCycle.settingConflict,
+                  settingMagnet: activeCycle.settingMagnet,
                 }}
               />
             ),

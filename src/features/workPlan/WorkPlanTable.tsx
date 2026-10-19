@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import type { WorkPlan, WorkPlanStatus } from "@/generated/prisma/client";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import PageHeader from "@/components/PageHeader";
@@ -76,6 +76,70 @@ function formatMonthRange(start: string, end: string): string {
   return `${fmt(start)} — ${fmt(end)}`;
 }
 
+function PeriodRow({
+  plan,
+  onField,
+  onStatus,
+  onDelete,
+}: {
+  plan: WorkPlan;
+  onField: (field: "monthStart" | "monthEnd" | "description" | "literature" | "note", value: string) => void;
+  onStatus: () => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const range = formatMonthRange(plan.monthStart, plan.monthEnd);
+
+  return (
+    <tr>
+      <td className="align-top" style={{ minWidth: 160 }}>
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          aria-expanded={open}
+          className="inline-flex items-center gap-1.5 text-left text-[13px]"
+        >
+          <ChevronDown size={15} style={{ color: "var(--faded)", transform: open ? undefined : "rotate(-90deg)", transition: "transform .15s" }} />
+          <span>{range || "Период"}</span>
+        </button>
+        {open && (
+          <>
+            <div className="mt-1">
+              <MonthSelect value={plan.monthStart} onChange={(value) => onField("monthStart", value)} placeholder="Начало" />
+            </div>
+            <div className="mt-1">
+              <MonthSelect value={plan.monthEnd} onChange={(value) => onField("monthEnd", value)} placeholder="Конец" />
+            </div>
+          </>
+        )}
+      </td>
+      {open ? (
+        <>
+          <td className="min-w-[180px]">
+            <EditableWithLinks defaultValue={plan.description} onSave={(value) => onField("description", value)} placeholder="Что планируется..." className="entry-title w-full outline-none bg-transparent text-[15px]" />
+          </td>
+          <td className="min-w-[140px]">
+            <EditableWithLinks defaultValue={plan.literature} onSave={(value) => onField("literature", value)} placeholder="что почитать..." className="w-full outline-none bg-transparent text-[13px]" />
+          </td>
+          <td className="min-w-[140px]">
+            <EditableWithLinks defaultValue={plan.note} onSave={(value) => onField("note", value)} placeholder="примечание..." className="w-full outline-none bg-transparent text-[13px]" />
+          </td>
+        </>
+      ) : (
+        <td colSpan={3} />
+      )}
+      <td>
+        <button onClick={onStatus} className="text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap" style={STATUS_STYLE[plan.status]}>
+          {STATUS_LABEL[plan.status]}
+        </button>
+      </td>
+      <td>
+        <button onClick={onDelete} style={{ color: "var(--muted)" }} title="Удалить период"><Trash2 size={15} /></button>
+      </td>
+    </tr>
+  );
+}
+
 export default function WorkPlanTable({
   studentId,
   initialPlans,
@@ -145,34 +209,13 @@ export default function WorkPlanTable({
           </thead>
           <tbody>
             {plans.map((plan) => (
-              <tr key={plan.id}>
-                <td className="align-top" style={{ minWidth: 160 }}>
-                  <MonthSelect value={plan.monthStart} onChange={(v) => handleField(plan.id, "monthStart", v)} placeholder="Начало" />
-                  <div className="mt-1">
-                    <MonthSelect value={plan.monthEnd} onChange={(v) => handleField(plan.id, "monthEnd", v)} placeholder="Конец" />
-                  </div>
-                  {plan.monthStart && (
-                    <div className="mt-1 whitespace-nowrap text-[12px]" style={{ color: "var(--muted)" }}>{formatMonthRange(plan.monthStart, plan.monthEnd)}</div>
-                  )}
-                </td>
-                <td className="min-w-[180px]">
-                  <EditableWithLinks defaultValue={plan.description} onSave={(v) => handleField(plan.id, "description", v)} placeholder="Что планируется..." className="entry-title w-full outline-none bg-transparent text-[15px]" />
-                </td>
-                <td className="min-w-[140px]">
-                  <EditableWithLinks defaultValue={plan.literature} onSave={(v) => handleField(plan.id, "literature", v)} placeholder="что почитать..." className="w-full outline-none bg-transparent text-[13px]" />
-                </td>
-                <td className="min-w-[140px]">
-                  <EditableWithLinks defaultValue={plan.note} onSave={(v) => handleField(plan.id, "note", v)} placeholder="примечание..." className="w-full outline-none bg-transparent text-[13px]" />
-                </td>
-                <td>
-                  <button onClick={() => handleStatus(plan.id)} className="text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap" style={STATUS_STYLE[plan.status]}>
-                    {STATUS_LABEL[plan.status]}
-                  </button>
-                </td>
-                <td>
-                  <button onClick={() => handleDelete(plan.id)} style={{ color: "var(--muted)" }} title="Удалить период"><Trash2 size={15} /></button>
-                </td>
-              </tr>
+              <PeriodRow
+                key={plan.id}
+                plan={plan}
+                onField={(field, value) => handleField(plan.id, field, value)}
+                onStatus={() => handleStatus(plan.id)}
+                onDelete={() => handleDelete(plan.id)}
+              />
             ))}
           </tbody>
         </table>

@@ -2,15 +2,16 @@
 
 import type { Cycle } from "@/generated/prisma/client";
 import type { CycleGrapesField } from "./actions";
+import GrapesLetterCard from "@/components/GrapesLetterCard";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 
 const ROWS: { field: CycleGrapesField; letter: string; label: string }[] = [
-  { field: "grapesGeography", letter: "G", label: "География" },
-  { field: "grapesReligion", letter: "R", label: "Религия / верования" },
-  { field: "grapesAchievements", letter: "A", label: "Достижения" },
-  { field: "grapesPolitics", letter: "P", label: "Политика" },
-  { field: "grapesEconomy", letter: "E", label: "Экономика" },
-  { field: "grapesSocial", letter: "S", label: "Соц. структура" },
+  { field: "grapesGeography", letter: "Г", label: "География" },
+  { field: "grapesReligion", letter: "Р", label: "Религия / верования" },
+  { field: "grapesAchievements", letter: "Д", label: "Достижения" },
+  { field: "grapesPolitics", letter: "П", label: "Политика" },
+  { field: "grapesEconomy", letter: "Э", label: "Экономика" },
+  { field: "grapesSocial", letter: "С", label: "Соц. структура" },
 ];
 
 export default function CycleGrapesTable({
@@ -23,27 +24,19 @@ export default function CycleGrapesTable({
   suggestions: Record<string, string>;
 }) {
   return (
-    <div>
+    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
       {ROWS.map(({ field, letter, label }) => (
-        <div key={field} className="flex flex-col sm:flex-row gap-4 py-3 border-b" style={{ borderColor: "var(--rule)" }}>
-          <div
-            className="heading w-full sm:w-[180px] flex-shrink-0 font-semibold text-[15px] pr-4 border-r"
-            style={{ color: "var(--link)", borderColor: "var(--rule)" }}
-          >
-            <span className="font-bold mr-2" style={{ color: "var(--ink)" }}>
-              {letter}
-            </span>
-            {label}
-          </div>
+        <GrapesLetterCard key={field} letter={letter} label={label}>
           <SuggestableField
             model="Cycle"
             recordId={cycleId}
             field={field}
             value={cycle[field]}
             suggestion={suggestions[field]}
-            className="flex-1 outline-none bg-transparent text-[13.5px] leading-snug"
+            placeholder="Коротко, своими словами"
+            className="w-full bg-transparent text-[13px] leading-snug outline-none"
           />
-        </div>
+        </GrapesLetterCard>
       ))}
     </div>
   );

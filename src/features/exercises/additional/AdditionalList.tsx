@@ -13,23 +13,10 @@ import {
   updateTableCell,
   resizeTable,
   deleteAdditionalSection,
-  cycleSectionStatus,
+  setSectionStatus,
 } from "./actions";
 import { Button } from "@/components/ui/Button";
-
-const STATUS_LABEL: Record<TaskStatus, string> = {
-  IN_PROGRESS: "в процессе",
-  SUBMITTED: "сдано на проверку",
-  NEEDS_REVISION: "на доработке",
-  ACCEPTED: "принято",
-};
-
-const STATUS_STYLE: Record<TaskStatus, React.CSSProperties> = {
-  IN_PROGRESS: { background: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)", border: "none" },
-  SUBMITTED: { background: "var(--pill-vio-bg)", color: "var(--pill-vio-fg)", border: "none" },
-  NEEDS_REVISION: { background: "var(--pill-or-bg)", color: "var(--pill-or-fg)", border: "none" },
-  ACCEPTED: { background: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)", border: "none" },
-};
+import TaskStatusMenu from "@/features/tasks/TaskStatusMenu";
 
 function TableSection({
   section,
@@ -207,17 +194,10 @@ export default function AdditionalList({
     startTransition(() => deleteAdditionalSection(id));
   }
 
-  function handleStatus(id: string) {
-    setSections((prev) =>
-      prev.map((s) => {
-        if (s.id !== id) return s;
-        const order: TaskStatus[] = ["IN_PROGRESS", "SUBMITTED", "NEEDS_REVISION", "ACCEPTED"];
-        const next = order[(order.indexOf(s.status) + 1) % order.length];
-        return { ...s, status: next };
-      })
-    );
+  function handleStatus(id: string, status: TaskStatus) {
+    setSections((prev) => prev.map((s) => (s.id === id ? { ...s, status } : s)));
     startTransition(() => {
-      void cycleSectionStatus(id);
+      void setSectionStatus(id, status);
     });
   }
 
@@ -235,18 +215,8 @@ export default function AdditionalList({
         <Accordion
           key={section.id}
           title={section.title || "Без названия"}
-          defaultOpen
           headerExtra={
-            <span
-              onClick={(e) => {
-                e.stopPropagation();
-                handleStatus(section.id);
-              }}
-              className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
-              style={STATUS_STYLE[section.status]}
-            >
-              {STATUS_LABEL[section.status]}
-            </span>
+            <TaskStatusMenu status={section.status} onChange={(status) => handleStatus(section.id, status)} />
           }
         >
           <SectionBody

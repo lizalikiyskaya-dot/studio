@@ -15,7 +15,6 @@ import {
   Megaphone,
   Menu,
   MessageSquareText,
-  PanelLeft,
   Pencil,
   PenLine,
   Send,
@@ -26,7 +25,9 @@ import DailyQuote from "./DailyQuote";
 import Wordmark from "./Wordmark";
 import ToggleSwitch from "./ToggleSwitch";
 import WorkshopBookCard from "./WorkshopBookCard";
+import WorkshopCycleCard from "./WorkshopCycleCard";
 import type { WorkshopBook } from "@/lib/workshopBooks";
+import type { WorkshopCycle } from "@/lib/workshopCycles";
 import { setReviewMode } from "@/features/reviewMode/actions";
 import { useCanSuggest, useSetCanSuggest } from "@/features/suggestions/SuggestionContext";
 import { useSheetSwipe } from "@/components/useSheetSwipe";
@@ -42,22 +43,21 @@ const TOP_ITEMS = [
 ];
 
 const WORKSHOP_ITEMS = [
-  { path: "about", n: "01", label: "О книге" },
-  { path: "plan", n: "02", label: "Трекер по главам" },
-  { path: "acts", n: "03", label: "План книги" },
-  { path: "dossier", n: "04", label: "Досье персонажей" },
-  { path: "arcs", n: "05", label: "Арки персонажей" },
-  { path: "setting", n: "06", label: "Сеттинг" },
+  { path: "about", n: "1", label: "О книге" },
+  { path: "plan", n: "2", label: "Трекер по главам" },
+  { path: "acts", n: "3", label: "План книги" },
+  { path: "dossier", n: "4", label: "Досье персонажей" },
+  { path: "arcs", n: "5", label: "Арки персонажей" },
+  { path: "setting", n: "6", label: "Сеттинг" },
 ];
 
 const STORY_WORKSHOP_ITEMS = [
-  { path: "cycles", n: "01", label: "Циклы рассказов" },
-  { path: "stories", n: "02", label: "Отдельные рассказы" },
+  { path: "cycles", n: "1", label: "Циклы рассказов" },
+  { path: "stories", n: "2", label: "Отдельные рассказы" },
 ];
 
 const BOOK_PATHS = new Set(WORKSHOP_ITEMS.map((item) => item.path));
 const STORY_PATHS = new Set(STORY_WORKSHOP_ITEMS.map((item) => item.path));
-const COLLAPSE_KEY = "sidebar-collapsed";
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -99,6 +99,7 @@ export default function Sidebar({
   beacons,
   notesCount,
   books,
+  cycles,
   children,
 }: {
   basePath: string;
@@ -118,6 +119,7 @@ export default function Sidebar({
   beacons?: string[];
   notesCount?: number;
   books?: WorkshopBook[];
+  cycles?: WorkshopCycle[];
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -128,7 +130,6 @@ export default function Sidebar({
   const reviewMode = useCanSuggest();
   const setReviewModeState = useSetCanSuggest();
   const [, startTransition] = useTransition();
-  const [desktopCollapsed, setCollapsed] = useState(false);
   const [sheet, setSheet] = useState<null | "calendar" | "sections">(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const sheetBodyRef = useRef<HTMLDivElement>(null);
@@ -138,10 +139,7 @@ export default function Sidebar({
   const onStory = STORY_PATHS.has(section);
 
   useEffect(() => {
-    // Collapse is remembered per browser. First paint stays expanded so
-    // the server HTML matches the client.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
+    window.localStorage.removeItem("sidebar-collapsed");
   }, []);
 
   useEffect(() => {
@@ -269,14 +267,6 @@ export default function Sidebar({
     return () => observer.disconnect();
   }, []);
 
-  function toggleCollapsed() {
-    setCollapsed((v) => {
-      const next = !v;
-      window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
-      return next;
-    });
-  }
-
   function handleToggleReviewMode(checked: boolean) {
     setReviewModeState(checked);
     if (studentId) startTransition(() => setReviewMode(studentId, checked));
@@ -320,40 +310,6 @@ export default function Sidebar({
           : []),
       ];
 
-  const collapsedLinks: TopLink[] = mentorMenuOnly
-    ? topLinks
-    : [
-        ...TOP_ITEMS.map((item) => ({
-          key: item.path,
-          href: hrefFor(item.path),
-          label: item.label,
-          icon: item.icon,
-          beacon: beaconSet.has(item.path),
-          active: section === item.path,
-        })),
-        ...(bookWorkshopUnlocked
-          ? WORKSHOP_ITEMS.map((item) => ({
-              key: item.path,
-              href: hrefFor(item.path),
-              label: item.label,
-              icon: BookOpen,
-              beacon: beaconSet.has(item.path),
-              active: section === item.path,
-            }))
-          : []),
-        ...(storyWorkshopUnlocked
-          ? STORY_WORKSHOP_ITEMS.map((item) => ({
-              key: item.path,
-              href: hrefFor(item.path),
-              label: item.label,
-              icon: PenLine,
-              beacon: beaconSet.has(item.path),
-              active: section === item.path,
-            }))
-          : []),
-      ];
-
-  const headerLinks = desktopCollapsed && !mentorMenuOnly ? collapsedLinks : topLinks;
   const avatarBg = "var(--deep)";
   const avatarFg = "var(--y)";
   const profileHref = mentorMenuOnly ? "/mentor/profile" : `${basePath}/profile`;
@@ -393,8 +349,8 @@ export default function Sidebar({
           <Wordmark />
           {mentorMenuOnly && <span className="studio-logo-note">кабинет наставника</span>}
         </Link>
-        <nav className={`studio-topnav${desktopCollapsed && !mentorMenuOnly ? " is-collapsed" : ""}`} aria-label="Разделы">
-          {headerLinks.map((item) => {
+        <nav className="studio-topnav" aria-label="Разделы">
+          {topLinks.map((item) => {
             const Icon = item.icon;
             return (
               <Link key={item.key} href={item.href} className={item.active ? "active" : ""} title={item.label}>
@@ -406,11 +362,6 @@ export default function Sidebar({
           })}
         </nav>
         <div className="studio-top-actions">
-          {desktopCollapsed && !mentorMenuOnly && (
-            <button type="button" className="collapse-desktop place-items-center h-10 w-10 rounded-full" style={{ background: "var(--soft)" }} onClick={toggleCollapsed} title="Развернуть меню">
-              <PanelLeft size={16} style={{ transform: "rotate(180deg)" }} />
-            </button>
-          )}
           {typeof notesCount === "number" && (
             <button type="button" className="notes-chip" onClick={() => window.dispatchEvent(new Event("studio:toggle-notes"))}>
               <MessageSquareText size={16} />
@@ -438,7 +389,7 @@ export default function Sidebar({
       </div>
 
       <div className="studio-body">
-        <aside id="studio-navigation" className={`studio-sidebar${desktopCollapsed && !mentorMenuOnly ? " is-collapsed" : ""}`}>
+        <aside id="studio-navigation" className="studio-sidebar">
           <div className="flex justify-end studio-menu-btn">
             <button type="button" onClick={() => setSheet(null)} className="inline-flex items-center gap-2 rounded-full px-3 h-9" style={{ background: "#fff" }}>
               <X size={16} /> Закрыть
@@ -454,15 +405,6 @@ export default function Sidebar({
                 <div className="text-[14.5px] font-semibold truncate">{userName}</div>
                 <div className="text-[12.5px]" style={{ color: "var(--muted)" }}>личный кабинет</div>
               </div>
-              <button
-                type="button"
-                onClick={toggleCollapsed}
-                className="collapse-desktop ml-auto place-items-center"
-                style={{ color: "var(--muted)" }}
-                title={desktopCollapsed ? "Развернуть меню" : "Свернуть меню"}
-              >
-                <PanelLeft size={16} />
-              </button>
             </div>
           )}
 
@@ -478,6 +420,7 @@ export default function Sidebar({
           )}
 
           {onBook && bookWorkshopUnlocked && <WorkshopBookCard books={books ?? []} />}
+          {onStory && storyWorkshopUnlocked && <WorkshopCycleCard cycles={cycles ?? []} basePath={basePath} />}
 
           {subItems && (
             <nav className="side-card !p-2" aria-label="Разделы мастерской">
@@ -678,6 +621,9 @@ export default function Sidebar({
                     {storyWorkshopUnlocked && !mentorMenuOnly && (
                       <>
                         <div className="studio-sheet-kicker">Мастерская рассказов</div>
+                        <div className="mb-3">
+                          <WorkshopCycleCard cycles={cycles ?? []} basePath={basePath} />
+                        </div>
                         {STORY_WORKSHOP_ITEMS.map((item) => (
                           <Link key={item.path} href={hrefFor(item.path)} className={`studio-sheet-link${section === item.path ? " active" : ""}`}>
                             <span className="w-4 text-[12px]" style={{ color: "var(--muted)" }}>{item.n}</span>

@@ -126,7 +126,7 @@ function ChapterRow({
   isDragOver: boolean;
   onDragOverChange: (over: boolean) => void;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   return (
     <div className="rounded-[14px] p-3 mb-2.5" style={{ border: "1px solid var(--rule)" }}>
       <div className={`flex justify-between items-start gap-2 ${open ? "mb-2" : ""}`}>
