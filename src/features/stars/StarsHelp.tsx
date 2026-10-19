@@ -3,7 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import { CircleHelp } from "lucide-react";
-import { STAR_POINTS } from "./rules";
+import { AUTHOR_RANKS, STAR_POINTS, starsLabel } from "./rules";
 
 const ROWS = [
   {
@@ -85,9 +85,21 @@ export default function StarsHelp() {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-4 text-[13.5px] font-normal leading-snug" style={{ color: "var(--ink2)" }}>
-                  Уже начисленные звёзды не снимаются, если статус потом меняют. Один и тот же текст считается один раз.
-                </p>
+                <div className="mt-5 text-[15px] font-semibold">Статусы</div>
+                <ul className="mt-2 flex flex-col gap-1.5">
+                  {AUTHOR_RANKS.map((rank) => (
+                    <li
+                      key={rank.title}
+                      className="flex items-center justify-between gap-3 rounded-[14px] px-3 py-1.5"
+                      style={{ background: "var(--soft)" }}
+                    >
+                      <span className="text-[14.5px] font-semibold">{rank.title}</span>
+                      <span className="shrink-0 text-[13px]" style={{ color: "var(--ink2)" }}>
+                        от {starsLabel(rank.min)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
                 <div className="site-dialog-actions">
                   <button type="button" className="site-dialog-primary" autoFocus onClick={() => setOpen(false)}>
                     Понятно
