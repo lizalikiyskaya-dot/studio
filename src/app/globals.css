@@ -78,6 +78,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Поля не наследуют шрифт страницы сами: браузер ставит свой, часто с засечками.
+   Редактируемый текст остаётся тем же Onest, что и показанный. */
+input, textarea, select, [contenteditable="true"] {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
 /* Литературный текст — Literata. Короткие поля интерфейса остаются Onest. */
 .field-literary,
 .serif {
@@ -1163,7 +1169,7 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   border: 0;
   resize: none;
   background: transparent;
-  font-family: var(--font-serif), Georgia, serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-weight: 500;
   font-size: 26px;
   letter-spacing: -0.02em;
