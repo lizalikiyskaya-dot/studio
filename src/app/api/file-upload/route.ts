@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { AccessDeniedError, requireCabinetAccess, requireMentor, requireMentorSession } from "@/lib/access";
+import { guideFieldData } from "@/features/guides/fields";
 import { guidesSchemaReady } from "@/lib/guides";
 import { getSession } from "@/lib/session";
 import { shrinkImage } from "@/lib/shrinkImage";
@@ -175,7 +176,7 @@ async function handleUpload(req: Request) {
     if (!guide) return Response.json({ error: "Методичка не найдена" }, { status: 404 });
     await prisma.guide.update({
       where: { id },
-      data: { fileUrl: dataUrl, fileName, fileMime: mime },
+      data: guideFieldData({ fileUrl: dataUrl, fileName, fileMime: mime }),
     });
     return Response.json({ ok: true, fileName, mime });
   } else if (target === "draft") {

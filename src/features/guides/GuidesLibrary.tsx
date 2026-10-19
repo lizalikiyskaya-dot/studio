@@ -14,7 +14,6 @@ import {
   reorderGuides,
   setGuideNotify,
   setGuideVisibleForAll,
-  updateGuideDescription,
   updateGuideTitle,
 } from "./actions";
 import type { LibraryGuide } from "./types";
@@ -64,11 +63,6 @@ export default function GuidesLibrary({
 
   async function saveTitle(id: string, title: string) {
     const result = await updateGuideTitle(id, title);
-    if (!result.ok) window.alert(result.error);
-  }
-
-  async function saveDescription(id: string, description: string) {
-    const result = await updateGuideDescription(id, description);
     if (!result.ok) window.alert(result.error);
   }
 
@@ -127,7 +121,7 @@ export default function GuidesLibrary({
         <div className="mb-4">
           <EmptyState
             cue="Самое время поделиться методичкой"
-            detail="Файл, название и пара слов, о чём она."
+            detail="Файл и название."
           />
         </div>
       )}
@@ -172,15 +166,6 @@ export default function GuidesLibrary({
                   />
                 </div>
                 <div style={{ display: open ? "block" : "none" }}>
-                <textarea
-                  value={guide.description}
-                  onChange={(event) => patch(guide.id, { description: event.target.value })}
-                  onBlur={(event) => void saveDescription(guide.id, event.target.value)}
-                  placeholder="Коротко, о чём методичка"
-                  maxLength={1000}
-                  rows={2}
-                  className="fld mt-2"
-                />
 
                 <div className="mt-3 flex items-center gap-3 flex-wrap">
                   <label
@@ -245,7 +230,7 @@ export default function GuidesLibrary({
                   <input
                     type="checkbox"
                     className="mt-1"
-                    checked={guide.notifyOnOpen}
+                    checked={guide.notifyOnOpen === true}
                     onChange={(event) => void handleNotify(guide.id, event.target.checked)}
                   />
                   <span>Письмо ученику, когда методичка открывается</span>
