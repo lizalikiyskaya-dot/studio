@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import StudentsList from "./StudentsList";
 import { getUnseenActivity } from "@/lib/unseenActivity";
 import { markedTitle } from "@/components/markedTitle";
+import { loadCurrentWork } from "@/lib/studentFocusData";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -44,6 +45,7 @@ export default async function MentorPage() {
     .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, "ru"));
   // Маячок у имени = непросмотренные правки ученика (см. lib/unseenActivity).
   const unseen = await getUnseenActivity(session.userId, students);
+  const currentWork = await loadCurrentWork(students.map((s) => s.id));
   const studentsWithBeacons = students.map((s) => ({
     id: s.id,
     name: s.name,
@@ -59,6 +61,7 @@ export default async function MentorPage() {
     lastSeenAt: s.lastSeenAt,
     lastActivityAt: s.lastActivityAt,
     unseenAt: unseen[s.id] ?? null,
+    currentWork: currentWork[s.id] ?? null,
   }));
 
   const decided = people

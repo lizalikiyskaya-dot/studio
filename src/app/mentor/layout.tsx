@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import Sidebar from "@/components/Sidebar";
+import { loadMentorNearest } from "@/lib/studentFocusData";
 
 export default async function MentorLayout({
   children,
@@ -14,9 +15,10 @@ export default async function MentorLayout({
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   if (!user) redirect("/login");
+  const nearest = await loadMentorNearest();
 
   return (
-    <Sidebar basePath="/mentor" userName={user.name} isMentor mentorMenuOnly avatarUrl={user.avatarUrl}>
+    <Sidebar basePath="/mentor" userName={user.name} isMentor mentorMenuOnly avatarUrl={user.avatarUrl} nearest={nearest}>
       {children}
     </Sidebar>
   );

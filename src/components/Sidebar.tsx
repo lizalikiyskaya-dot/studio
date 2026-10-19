@@ -22,12 +22,14 @@ import {
 } from "lucide-react";
 import CalendarWidget from "./CalendarWidget";
 import DailyQuote from "./DailyQuote";
+import MentorNearest from "./MentorNearest";
 import Wordmark from "./Wordmark";
 import ToggleSwitch from "./ToggleSwitch";
 import WorkshopBookCard from "./WorkshopBookCard";
 import WorkshopCycleCard from "./WorkshopCycleCard";
 import type { WorkshopBook } from "@/lib/workshopBooks";
 import type { WorkshopCycle } from "@/lib/workshopCycles";
+import type { NearestDeadlineView, NearestPaymentView } from "@/lib/studentFocus";
 import { setReviewMode } from "@/features/reviewMode/actions";
 import { useCanSuggest, useSetCanSuggest } from "@/features/suggestions/SuggestionContext";
 import { useSheetSwipe } from "@/components/useSheetSwipe";
@@ -100,6 +102,7 @@ export default function Sidebar({
   notesCount,
   books,
   cycles,
+  nearest,
   children,
 }: {
   basePath: string;
@@ -120,6 +123,7 @@ export default function Sidebar({
   notesCount?: number;
   books?: WorkshopBook[];
   cycles?: WorkshopCycle[];
+  nearest?: { deadlines: NearestDeadlineView[]; payments: NearestPaymentView[] };
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -480,6 +484,8 @@ export default function Sidebar({
             </nav>
           )}
 
+          {mentorMenuOnly && nearest && <MentorNearest deadlines={nearest.deadlines} payments={nearest.payments} />}
+
           {mentorMenuOnly && (
             <div className="side-card">
               <div className="text-[16px] font-semibold">Кабинет наставника</div>
@@ -634,6 +640,11 @@ export default function Sidebar({
                       </>
                     )}
                   </nav>
+                  {mentorMenuOnly && nearest && (
+                    <div className="mt-3">
+                      <MentorNearest deadlines={nearest.deadlines} payments={nearest.payments} />
+                    </div>
+                  )}
                   {!mentorViewLabel && (
                     <div className="mt-3 flex items-center px-3 pb-1">
                       {!mentorMenuOnly && (
