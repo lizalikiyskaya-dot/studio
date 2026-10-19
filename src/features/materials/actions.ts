@@ -52,6 +52,17 @@ export async function setMaterialOptional(materialId: string, optional: boolean)
   await prisma.material.update({ where: { id: materialId }, data: { optional } });
 }
 
+export async function setMaterialMonth(materialId: string, month: string) {
+  const material = await prisma.material.findUniqueOrThrow({ where: { id: materialId } });
+  await requireMentor(material.studentId);
+  if (material.category !== "BOOK") return;
+  const trimmed = month.trim().slice(0, 80);
+  await prisma.material.update({
+    where: { id: materialId },
+    data: { month: trimmed.length ? trimmed : null },
+  });
+}
+
 export async function reorderMaterials(studentId: string, ids: string[]) {
   await requireMentor(studentId);
   await Promise.all(ids.map((id, order) => prisma.material.update({ where: { id }, data: { order } })));

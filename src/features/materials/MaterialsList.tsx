@@ -15,6 +15,7 @@ import {
   deleteMaterial,
   reorderMaterials,
   setMaterialOptional,
+  setMaterialMonth,
 } from "./actions";
 import { appendMaterial, applyMaterialTitles, enqueueById, enqueueCreate, titleSaveFromField } from "./materialRows";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
@@ -92,6 +93,57 @@ function MaterialTitleInput({
       placeholder={placeholder}
       className={className}
       style={style}
+    />
+  );
+}
+
+function BookMonthField({
+  month,
+  canManage,
+  onCommit,
+}: {
+  month: string | null;
+  canManage: boolean;
+  onCommit: (value: string) => void;
+}) {
+  const [value, setValue] = useState(month ?? "");
+  const shown = (canManage ? value : month ?? "").trim();
+  if (!canManage && !shown) return null;
+
+  const chip = {
+    background: shown ? "var(--note)" : "#fff",
+    color: shown ? "var(--noteink)" : "var(--muted)",
+    border: "1px solid transparent",
+  } as const;
+
+  if (!canManage) {
+    return (
+      <span
+        data-book-month={shown}
+        className="mt-1 inline-flex max-w-full items-center rounded-full px-2 py-0.5 text-[12px] font-medium leading-none"
+        style={chip}
+      >
+        {shown}
+      </span>
+    );
+  }
+
+  return (
+    <input
+      value={value}
+      maxLength={80}
+      placeholder="месяц"
+      aria-label="рекомендуемый месяц"
+      data-book-month={shown}
+      onChange={(event) => setValue(event.target.value)}
+      onBlur={() => {
+        if (value.trim() !== (month ?? "").trim()) onCommit(value);
+      }}
+      onClick={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+      onKeyDown={blurOnEnter}
+      className="mt-1 block w-[9.5rem] max-w-full rounded-full px-2 py-0.5 text-[12px] font-medium leading-none outline-none placeholder:text-[var(--muted)]"
+      style={chip}
     />
   );
 }
@@ -174,6 +226,13 @@ function BooksList({
     startTransition(() => setMaterialOptional(id, optional));
   }
 
+  function handleMonth(id: string, month: string) {
+    const trimmed = month.trim().slice(0, 80);
+    const next = trimmed.length ? trimmed : null;
+    setBooks((prev) => prev.map((m) => (m.id === id ? { ...m, month: next } : m)));
+    startTransition(() => setMaterialMonth(id, trimmed));
+  }
+
   return (
     <div>
       {books.map((material) => (
@@ -189,7 +248,17 @@ function BooksList({
         >
           <Accordion
             key={material.id}
-            title={<span className="block truncate">{material.title || "Без названия"}</span>}
+            wrapHeader
+            title={
+              <span className="block min-w-0">
+                <span className="block truncate">{material.title || "Без названия"}</span>
+                <BookMonthField
+                  month={material.month}
+                  canManage={canManage}
+                  onCommit={(value) => handleMonth(material.id, value)}
+                />
+              </span>
+            }
             headerPrefix={
               canManage ? (
                 <GripVertical
