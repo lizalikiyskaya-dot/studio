@@ -96,7 +96,7 @@ export default function StoryDetail({
         />
       )}
 
-      <Accordion title="О рассказе" defaultOpen>
+      <Accordion title="О рассказе">
         <StructureField label="Концепт" value={story.concept} field="concept" storyId={story.id} />
         <StructureField label="Драматический аргумент" value={story.dramaticArgument} field="dramaticArgument" storyId={story.id} />
         <StructureField label="Жанр" value={story.genre} field="genre" storyId={story.id} />

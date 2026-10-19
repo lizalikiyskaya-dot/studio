@@ -215,7 +215,6 @@ export default function AdditionalList({
         <Accordion
           key={section.id}
           title={section.title || "Без названия"}
-          defaultOpen
           headerExtra={
             <TaskStatusMenu status={section.status} onChange={(status) => handleStatus(section.id, status)} />
           }

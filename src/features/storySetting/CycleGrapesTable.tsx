@@ -2,6 +2,7 @@
 
 import type { Cycle } from "@/generated/prisma/client";
 import type { CycleGrapesField } from "./actions";
+import GrapesLetterCard from "@/components/GrapesLetterCard";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 
 const ROWS: { field: CycleGrapesField; letter: string; label: string }[] = [
@@ -25,11 +26,7 @@ export default function CycleGrapesTable({
   return (
     <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
       {ROWS.map(({ field, letter, label }) => (
-        <div key={field} className="rounded-[16px] p-3" style={{ background: "var(--soft)" }}>
-          <div className="flex items-center gap-1.5 text-[12.5px] font-semibold">
-            <span className="grid h-5 w-5 place-items-center rounded-[14px] bg-white text-[11px] font-bold">{letter}</span>
-            {label}
-          </div>
+        <GrapesLetterCard key={field} letter={letter} label={label}>
           <SuggestableField
             model="Cycle"
             recordId={cycleId}
@@ -37,9 +34,9 @@ export default function CycleGrapesTable({
             value={cycle[field]}
             suggestion={suggestions[field]}
             placeholder="Коротко, своими словами"
-            className="mt-1.5 w-full bg-transparent text-[13px] leading-snug outline-none"
+            className="w-full bg-transparent text-[13px] leading-snug outline-none"
           />
-        </div>
+        </GrapesLetterCard>
       ))}
     </div>
   );

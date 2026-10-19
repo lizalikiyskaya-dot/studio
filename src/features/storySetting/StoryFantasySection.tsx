@@ -112,7 +112,7 @@ export default function StoryFantasySection({
               <span className="min-w-0">
                 <span className="block text-[14px] font-semibold">{entry.title || "Без названия"}</span>
                 <span className="mt-0.5 block text-[12.5px] leading-snug" style={{ color: "var(--ink2)" }}>
-                  {CATEGORY_TEXT[entry.category]}{entry.body ? ` · ${entry.body}` : ""}
+                  {CATEGORY_TEXT[entry.category]}
                 </span>
               </span>
             </button>

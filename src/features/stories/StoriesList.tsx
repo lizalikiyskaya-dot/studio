@@ -50,7 +50,7 @@ export default function StoriesList({
   const router = useRouter();
   const requested = useSearchParams().get("story");
   const [openId, setOpenId] = useState<string | null>(
-    requested && stories.some((story) => story.id === requested) ? requested : stories[0]?.id ?? null
+    requested && stories.some((story) => story.id === requested) ? requested : null
   );
   const [, startTransition] = useTransition();
 
