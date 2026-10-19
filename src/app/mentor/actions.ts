@@ -34,9 +34,37 @@ export async function rejectUser(userId: string) {
   revalidatePath("/mentor");
 }
 
-export async function updatePaymentDay(userId: string, paymentDay: number | null) {
+function paymentDayOrNull(value: number | null): number | null {
+  if (value == null) return null;
+  if (!Number.isInteger(value) || value < 1 || value > 31) {
+    throw new Error("День оплаты — число от 1 до 31");
+  }
+  return value;
+}
+
+function paymentAmountOrNull(value: number | null): number | null {
+  if (value == null) return null;
+  if (!Number.isInteger(value) || value < 0 || value > 1_000_000) {
+    throw new Error("Сумма — целое число рублей");
+  }
+  return value;
+}
+
+export async function updatePaymentSettings(
+  userId: string,
+  input: { paymentDay: number | null; paymentAmount: number | null; paymentReminders: boolean }
+) {
   await requireMentor();
-  await prisma.user.update({ where: { id: userId }, data: { paymentDay } });
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+  if (!user || user.role !== "STUDENT") throw new Error("Недостаточно прав");
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      paymentDay: paymentDayOrNull(input.paymentDay),
+      paymentAmount: paymentAmountOrNull(input.paymentAmount),
+      paymentReminders: input.paymentReminders === true,
+    },
+  });
   revalidatePath("/mentor");
 }
 
