@@ -16,13 +16,16 @@ import {
 import { loadDailyQuote } from "@/lib/loadDailyQuote";
 import { moscowToday, pickWeekly } from "@/features/weekly/schedule";
 import { writeBroadcast } from "@/lib/mailBroadcastStore";
+import { composeDraft } from "@/lib/letterCompose";
+import { isLetterKey } from "@/lib/letterTemplates";
+import { readLetterTemplate, resetLetterTemplate, writeLetterTemplate } from "@/lib/letterTemplateStore";
+import { previewLetter } from "@/lib/letterPreview";
 import type { BroadcastSetting } from "@/lib/mailBroadcasts";
 import {
   MENTOR_SEND_GAP_MS,
   MENTOR_SEND_MAX,
   renderMentorCompose,
   sendInSeries,
-  templateDraft,
   type MentorTemplate,
   type QuoteLetterInput,
   type WeeklyLetterInput,
@@ -69,7 +72,9 @@ export async function loadTemplateDraft(templateName: string) {
   const template = asTemplate(templateName);
   if (!template) return { error: "Такого шаблона нет." };
   const context = await letterContext();
-  return templateDraft(template, context.weekly, context.quote);
+  const key = template === "platform" ? "platform" : template === "weekly" ? "weekly-task" : template === "quote" ? "daily-quote" : null;
+  const stored = key ? await readLetterTemplate(key) : null;
+  return composeDraft(template, context.weekly, context.quote, stored);
 }
 
 export async function previewMentorMail(input: {
@@ -224,4 +229,32 @@ export async function loadMailSender(): Promise<{ ready: boolean; sender: MailSe
     }
     throw error;
   }
+}
+
+export async function saveLetterTemplateAction(key: string, subject: string, body: string) {
+  const session = await requireMentor();
+  if (!session) return { error: "Только наставник меняет шаблон." };
+  if (!isLetterKey(key)) return { error: "Такого шаблона нет." };
+  const result = await writeLetterTemplate(key, { subject, body });
+  if (result.error) return { error: result.error };
+  revalidatePath("/mentor/mail");
+  return { ok: true as const };
+}
+
+export async function resetLetterTemplateAction(key: string) {
+  const session = await requireMentor();
+  if (!session) return { error: "Только наставник меняет шаблон." };
+  if (!isLetterKey(key)) return { error: "Такого шаблона нет." };
+  const result = await resetLetterTemplate(key);
+  if (result.error) return { error: result.error };
+  revalidatePath("/mentor/mail");
+  return { ok: true as const };
+}
+
+export async function previewLetterTemplate(key: string, subject: string, body: string) {
+  const session = await requireMentor();
+  if (!session) return { error: "Только наставник смотрит шаблон." };
+  if (!isLetterKey(key)) return { error: "Такого шаблона нет." };
+  const letter = previewLetter(key, { subject, body });
+  return { subject: letter.subject, html: letter.html };
 }

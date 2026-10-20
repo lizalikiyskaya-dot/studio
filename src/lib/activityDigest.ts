@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { sendMail } from "@/lib/mail";
+import { appUrl, sendMail } from "@/lib/mail";
 import { sectionLabel } from "@/lib/sections";
 import {
   groupsReady,
@@ -13,6 +13,8 @@ import {
 } from "@/lib/mailBroadcasts";
 import { mentorWorkLetter, studentOnlineLetter, studentWorkLetter, type DigestPiece } from "@/lib/activityLetters";
 import { broadcastOpen, envelopeFor, readBroadcast, whoFor, type BroadcastRead } from "@/lib/mailBroadcastStore";
+import { applyLetterTemplate, type LetterKey } from "@/lib/letterTemplates";
+import { readLetterTemplate } from "@/lib/letterTemplateStore";
 
 const globalState = globalThis as unknown as { activityDigestStarted?: boolean };
 const TICK_MS = 15 * 60 * 1000;
@@ -128,6 +130,11 @@ export async function flushDigests(options: {
     replyTo?: string;
   }) => Promise<boolean>;
   envelope: (sender: "env" | "profile") => Promise<{ from: string; replyTo?: string }>;
+  dress?: (
+    key: LetterKey,
+    designed: { subject: string; html: string; text: string },
+    vars: Record<string, string>,
+  ) => Promise<{ subject: string; html: string; text: string }>;
 }): Promise<{ sent: number; skipped: number }> {
   let sent = 0;
   let skipped = 0;
@@ -186,6 +193,21 @@ export async function flushDigests(options: {
         to = mentor.email;
         recipientUserId = mentor.id;
       }
+      if (options.dress) {
+        const path = (pieces[0]?.section === "notes" ? "tasks" : pieces[0]?.section) || "tasks";
+        const cabinet = kind === "mentor-edit"
+          ? `${appUrl()}/dashboard/${path}`
+          : `${appUrl()}/student-view/${studentId}/${path}`;
+        const dressed = await options.dress(kind, { subject, html, text }, {
+          имя: student.name,
+          правки: editsText(pieces),
+          когда: group[0].detail || "",
+          кабинет: cabinet,
+        });
+        subject = dressed.subject;
+        html = dressed.html;
+        text = dressed.text;
+      }
       const envelope = await options.envelope(setting.sender);
       const ok = await options.send({
         to,
@@ -226,6 +248,16 @@ async function loadMentor(): Promise<Person | null> {
   return row;
 }
 
+function editsText(pieces: DigestPiece[]): string {
+  return pieces
+    .map((piece) => {
+      const label = sectionLabel(piece.section);
+      const lines = piece.detail.split("; ").map((item) => item.trim()).filter((item) => item && item !== label);
+      return [label, ...(lines.length > 0 ? lines : ["Есть новые правки."])].join("\n");
+    })
+    .join("\n\n");
+}
+
 export async function runScheduledDigests(now = new Date()) {
   return flushDigests({
     now,
@@ -246,6 +278,7 @@ export async function runScheduledDigests(now = new Date()) {
     mentor: loadMentor,
     send: (input) => sendMail(input),
     envelope: envelopeFor,
+    dress: async (key, designed, vars) => applyLetterTemplate(key, await readLetterTemplate(key), designed, vars),
   });
 }
 
