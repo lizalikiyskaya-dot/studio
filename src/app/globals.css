@@ -954,18 +954,53 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   overflow: auto;
 }
 .mentor-grid {
-  /* Одна сетка на всю таблицу: колонки совпадают у шапки и строк.
-     «Сейчас в работе» не сжимается в узкую полоску и не растягивается на свободное место. */
+  /* Одна сетка на всю таблицу. Строка — subgrid, поэтому разделитель
+     один на всю ширину, а ячейки стоят на одной вертикали.
+     Ширина 100% держит доли fr внутри листа, а не по самой длинной строке. */
   display: grid;
-  justify-content: start;
-  align-items: center;
-  width: max-content;
-  max-width: 100%;
-  grid-template-columns: 20px 112px 172px 100px 116px 68px max-content 70px 20px;
+  justify-content: stretch;
+  align-items: stretch;
+  width: 100%;
+  grid-template-columns:
+    22px
+    minmax(140px, 1.5fr)
+    minmax(72px, 1fr)
+    112px
+    172px
+    100px
+    max-content
+    70px
+    22px;
   column-gap: 4px;
   padding: 4px 4px 8px;
 }
-.mentor-row { display: contents; }
+.mentor-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+.mentor-reorder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  color: var(--ink-faint);
+}
+.mentor-reorder button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 14px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 0;
+  color: inherit;
+}
 .mentor-head {
   color: var(--muted);
   font-size: 12px;
@@ -1037,12 +1072,15 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   line-height: 1.3;
   color: var(--ink2);
 }
-.mentor-data > * {
+.mentor-data {
   border-top: 1px solid var(--line);
+}
+.mentor-data > * {
+  min-width: 0;
   padding-top: 10px;
   padding-bottom: 10px;
 }
-.mentor-row > * { min-width: 0; overflow: hidden; }
+.mentor-row > * { min-width: 0; }
 /* Текст задания виден целиком и не раздувает колонку пустым полем. */
 .mentor-grid .mentor-now { overflow: visible; }
 .mentor-person { display: flex; flex-direction: column; align-items: stretch; gap: 2px; min-width: 0; }
@@ -1091,8 +1129,10 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   align-items: center;
   gap: 4px;
   max-width: 100%;
+  overflow: visible;
   font-size: 12px;
   line-height: 1.2;
+  white-space: nowrap;
 }
 .mentor-access {
   display: inline-flex;
@@ -1191,6 +1231,12 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   text-align: left;
   cursor: pointer;
 }
+.mentor-grid .mentor-pay-letter {
+  align-items: center;
+  flex-wrap: nowrap;
+  width: auto;
+}
+.mentor-grid .mentor-pay-letter-label { white-space: nowrap; }
 .mentor-pay-track {
   --track-w: 36px;
   --track-h: 20px;
@@ -1257,6 +1303,13 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   background: #fff;
   padding: 14px;
 }
+@container mentor (max-width: 1039px) {
+  .mentor-grid .mentor-workshops {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
 @container mentor (max-width: 879px) {
   .mentor-workshops .ws-label { display: none; }
   .mentor-h-ws { font-size: 11px; letter-spacing: -0.01em; }
@@ -1265,9 +1318,20 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
     padding-right: 6px !important;
     gap: 0 !important;
   }
+  .mentor-grid .mentor-workshops { flex-direction: row; align-items: center; gap: 4px; }
 }
 @container mentor (min-width: 880px) {
   .mentor-grid {
+    grid-template-columns:
+      22px
+      minmax(152px, 1.45fr)
+      minmax(104px, 1fr)
+      116px
+      176px
+      100px
+      max-content
+      72px
+      22px;
     column-gap: 4px;
     padding: 4px 4px 8px;
   }
@@ -1277,11 +1341,19 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   .mentor-workshops button { height: 26px; }
   .mentor-h-pay { white-space: nowrap; }
 }
-@container mentor (min-width: 1100px) {
+@container mentor (min-width: 1040px) {
   .mentor-grid {
-    grid-template-columns: 22px minmax(140px, 180px) 200px 104px 132px 80px 200px 76px 22px;
-    column-gap: 8px;
-    padding: 6px 8px 8px;
+    grid-template-columns:
+      22px
+      minmax(186px, 1.35fr)
+      minmax(136px, 1fr)
+      116px
+      176px
+      100px
+      max-content
+      72px
+      22px;
+    column-gap: 4px;
   }
 }
 @media (max-width: 639px) {

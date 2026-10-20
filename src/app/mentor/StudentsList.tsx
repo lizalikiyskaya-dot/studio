@@ -96,7 +96,7 @@ function AccessButton({ access, onClick }: { access: AccessStatus; onClick: () =
 
 function Reorder({ id, idx, total, onMove }: { id: string; idx: number; total: number; onMove: (id: string, dir: "up" | "down") => void }) {
   return (
-    <div className="flex flex-col" style={{ color: "var(--ink-faint)" }}>
+    <div className="mentor-reorder">
       <button type="button" onClick={() => onMove(id, "up")} disabled={idx === 0} className="disabled:opacity-20 hover:opacity-70" title="Выше">
         <ChevronUp size={13} />
       </button>
