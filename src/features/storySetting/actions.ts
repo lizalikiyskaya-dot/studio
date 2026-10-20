@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import type { WorldCategory } from "@/generated/prisma/client";
 import { resolveShares } from "@/features/setting/settingMix";
+import { isEntryCategory } from "@/features/setting/worldBible";
 
 function clampMix(value: number) {
   if (!Number.isFinite(value)) return 0;
@@ -205,6 +206,14 @@ export async function updateCycleWorldEntryBody(entryId: string, body: string) {
   await prisma.cycleWorldEntry.update({ where: { id: entryId }, data: { body } });
 }
 
+export async function updateCycleWorldEntryCategory(entryId: string, category: WorldCategory) {
+  if (!isEntryCategory(category)) throw new Error("Недопустимая тема");
+  const entry = await prisma.cycleWorldEntry.findUniqueOrThrow({ where: { id: entryId } });
+  const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: entry.cycleId } });
+  await requireCabinetAccess(cycle.studentId);
+  await prisma.cycleWorldEntry.update({ where: { id: entryId }, data: { category } });
+}
+
 // --- Story-level GRAPES / setting type ---
 
 export type StoryGrapesField = (typeof GRAPES_FIELDS)[number];
@@ -258,4 +267,12 @@ export async function updateStoryWorldEntryBody(entryId: string, body: string) {
   const story = await prisma.story.findUniqueOrThrow({ where: { id: entry.storyId } });
   await requireCabinetAccess(story.studentId);
   await prisma.storyWorldEntry.update({ where: { id: entryId }, data: { body } });
+}
+
+export async function updateStoryWorldEntryCategory(entryId: string, category: WorldCategory) {
+  if (!isEntryCategory(category)) throw new Error("Недопустимая тема");
+  const entry = await prisma.storyWorldEntry.findUniqueOrThrow({ where: { id: entryId } });
+  const story = await prisma.story.findUniqueOrThrow({ where: { id: entry.storyId } });
+  await requireCabinetAccess(story.studentId);
+  await prisma.storyWorldEntry.update({ where: { id: entryId }, data: { category } });
 }

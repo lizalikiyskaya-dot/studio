@@ -2078,3 +2078,21 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .site-dialog-card { transition: none; }
 }
 
+@keyframes bible-sheet-in {
+  from { transform: translateY(28px); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes bible-note-in {
+  from { transform: translateX(36px); }
+  to { transform: none; }
+}
+.bible-sheet { animation: bible-sheet-in 0.28s cubic-bezier(0.22, 0.9, 0.32, 1); }
+.bible-note { animation: bible-note-in 0.32s cubic-bezier(0.22, 0.9, 0.32, 1); }
+.bible-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 768px) {
+  .bible-chips { display: flex; flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bible-sheet, .bible-note { animation: none; }
+}
+

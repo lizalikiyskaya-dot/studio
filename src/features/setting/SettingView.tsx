@@ -3,14 +3,11 @@ import { getSession } from "@/lib/session";
 import { resolveActiveBook } from "@/lib/resolveBook";
 import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
-import GrapesTable from "./GrapesTable";
-import ExtraGrapesList from "./ExtraGrapesList";
 import SettingTypeSection from "./SettingTypeSection";
-import FantasySection from "./FantasySection";
+import WorldBible, { type BibleTable } from "./WorldBible";
+import { GRAPES_FIELDS, type GrapesBag } from "./worldBible";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
-import SuggestableField from "@/features/suggestions/SuggestableField";
 import PageHeader from "@/components/PageHeader";
-import { GrapesSection } from "@/components/GrapesLetterCard";
 
 export default async function SettingView({
   studentId,
@@ -48,7 +45,27 @@ export default async function SettingView({
   });
   const session = await getSession();
   const isMentor = session?.role === "MENTOR";
-  const showFantasy = isMentor || activeBook.fantasyUnlocked;
+  const bookGrapes = pickGrapes(activeBook);
+  const tables: BibleTable[] = [
+    {
+      id: "primary",
+      title: (activeBook.grapesTitle ?? "").trim() || "Сеттинг 1",
+      model: "Book",
+      recordId: activeBook.id,
+      values: bookGrapes,
+      suggestions: bookSuggestions,
+      titleField: "grapesTitle",
+    },
+    ...extraGrapes.map((setting, index) => ({
+      id: setting.id,
+      title: setting.title.trim() || `Сеттинг ${index + 2}`,
+      model: "GrapesSetting" as const,
+      recordId: setting.id,
+      values: pickGrapes(setting),
+      suggestions: extraGrapesSuggestions[setting.id] ?? {},
+      titleField: "title" as const,
+    })),
+  ];
 
   return (
     <div>
@@ -57,41 +74,30 @@ export default async function SettingView({
         actions={<BookSelect books={books} activeBookId={activeBook.id} compact />}
       />
 
-      <GrapesSection>
-        <div className="mt-2.5">
-          <div className="mb-2">
-            <SuggestableField
-              model="Book"
-              recordId={activeBook.id}
-              field="grapesTitle"
-              value={(activeBook.grapesTitle ?? "").trim() ? activeBook.grapesTitle : "Сеттинг 1"}
-              suggestion={bookSuggestions.grapesTitle}
-              as="input"
-              className="heading w-full bg-transparent text-[16px] font-semibold outline-none border-b pb-1"
-              style={{ borderColor: "var(--rule)" }}
-            />
-          </div>
-          <GrapesTable recordId={activeBook.id} values={activeBook} suggestions={bookSuggestions} />
-        </div>
-        <ExtraGrapesList
-          key={activeBook.id}
-          bookId={activeBook.id}
-          initialSettings={extraGrapes}
-          suggestions={extraGrapesSuggestions}
-        />
-      </GrapesSection>
-
-      <div className={`mt-4 grid grid-cols-1 gap-4 ${showFantasy ? "xl:grid-cols-[1.25fr_1fr]" : ""}`}>
+      <div className="mt-4 flex flex-col gap-4">
         <SettingTypeSection bookId={activeBook.id} book={activeBook} suggestion={bookSuggestions.settingMix} />
-        {showFantasy && (
-          <FantasySection
-            bookId={activeBook.id}
-            book={activeBook}
-            initialEntries={worldEntries}
-            isMentor={isMentor}
-          />
-        )}
+        <WorldBible
+          key={activeBook.id}
+          scope="book"
+          recordId={activeBook.id}
+          tables={tables}
+          entries={worldEntries}
+          fantasyGeneral={activeBook.fantasyGeneral}
+          fantasyNotes={activeBook.fantasyNotes}
+          fantasySuggestions={bookSuggestions}
+          canEdit
+          allowTables
+          isMentor={isMentor}
+          unlocked={activeBook.fantasyUnlocked}
+          photoKind="world-entry-photo"
+        />
       </div>
     </div>
   );
+}
+
+function pickGrapes(source: GrapesBag): GrapesBag {
+  const bag = {} as GrapesBag;
+  for (const field of GRAPES_FIELDS) bag[field] = source[field] ?? "";
+  return bag;
 }

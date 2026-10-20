@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import type { WorldCategory } from "@/generated/prisma/client";
 import { resolveShares } from "./settingMix";
+import { isEntryCategory } from "./worldBible";
 
 const GRAPES_FIELDS = [
   "grapesGeography",
@@ -181,5 +182,13 @@ export async function updateWorldEntryBody(entryId: string, body: string) {
   const book = await prisma.book.findUniqueOrThrow({ where: { id: entry.bookId } });
   await requireCabinetAccess(book.studentId);
   await prisma.worldEntry.update({ where: { id: entryId }, data: { body } });
+}
+
+export async function updateWorldEntryCategory(entryId: string, category: WorldCategory) {
+  if (!isEntryCategory(category)) throw new Error("Недопустимая тема");
+  const entry = await prisma.worldEntry.findUniqueOrThrow({ where: { id: entryId } });
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: entry.bookId } });
+  await requireCabinetAccess(book.studentId);
+  await prisma.worldEntry.update({ where: { id: entryId }, data: { category } });
 }
 
