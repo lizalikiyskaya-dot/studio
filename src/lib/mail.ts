@@ -251,6 +251,7 @@ export function renderEmail(options: {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital@0;1&family=Onest:wght@400;600;700&display=swap">
   <title>${escapeHtml(title)}</title>
 </head>
 <body style="margin:0;padding:0;background:#F6F1E8;">
