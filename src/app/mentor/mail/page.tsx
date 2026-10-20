@@ -9,8 +9,7 @@ import ComposeMail from "./ComposeMail";
 import AutomaticMail from "./AutomaticMail";
 import MailFromForm from "@/features/profile/MailFromForm";
 import { loadMailSender } from "@/features/mail/actions";
-import { mailFrom } from "@/lib/mail";
-import { parseAddress, senderWarning, smtpPublicFromEnv } from "@/lib/mailSender";
+import { senderWarning, smtpPublicFromEnv } from "@/lib/mailSender";
 import { readBroadcastList } from "@/lib/mailBroadcastStore";
 import { broadcastPreviewHtml } from "@/lib/broadcastPreviews";
 
@@ -93,15 +92,6 @@ export default async function MentorMailPage({
   const types = knownTypes.map((value) => ({ value, label: emailTypeLabel(value) }));
   const smtp = smtpPublicFromEnv();
   const sender = await loadMailSender();
-  const envFrom = parseAddress(mailFrom());
-  const envText = envFrom.email ? `${envFrom.name || "Сервер"} <${envFrom.email}>` : mailFrom();
-  const fromOptions: { id: "env" | "profile"; label: string }[] = [
-    { id: "env", label: `Адрес сервера: ${envText}` },
-  ];
-  if (sender.sender.fromEmail) {
-    const savedName = sender.sender.fromName.trim() || "Сохранённый адрес";
-    fromOptions.push({ id: "profile", label: `${savedName} <${sender.sender.fromEmail}>` });
-  }
   const broadcasts = await readBroadcastList();
   const warning = senderWarning(sender.sender, smtp)
     ?? (smtp.host.toLowerCase().includes("gmail") || smtp.host.toLowerCase().includes("google")
@@ -111,7 +101,7 @@ export default async function MentorMailPage({
   return (
     <div>
       <h1 className="page-title mt-1 mb-4">{markedTitle("Письма")}</h1>
-      <ComposeMail students={recipients} fromOptions={fromOptions} />
+      <ComposeMail students={recipients} />
       <MailFromForm ready={sender.ready} initial={sender.sender} smtp={smtp} warning={warning} />
       <AutomaticMail
         ready={broadcasts.ready}

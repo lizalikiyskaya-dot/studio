@@ -67,6 +67,8 @@ export type MailInput = {
   /** Если задан, не читаем настройку наставника ещё раз. */
   from?: string;
   replyTo?: string;
+  /** Ссылка отписки для заголовка List-Unsubscribe. */
+  listUnsubscribe?: string;
 };
 
 type MailTransport = Pick<Transporter, "sendMail">;
@@ -134,6 +136,7 @@ export async function sendMail(input: MailInput): Promise<boolean> {
       subject,
       text: text ?? htmlToText(html),
       html,
+      headers: input.listUnsubscribe ? { "List-Unsubscribe": `<${input.listUnsubscribe}>` } : undefined,
     });
     await recordEmailAttempt(input, "sent", null);
     return true;

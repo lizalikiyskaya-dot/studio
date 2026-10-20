@@ -1,7 +1,7 @@
 import { activityLetterSamples } from "@/lib/activityLetters";
 import { renderEmail } from "@/lib/mail";
 import { buildPaymentReminder, moscowParts } from "@/lib/paymentReminders";
-import { approvedLetter, guideOpenedLetter, passwordResetLetter, registrationStudentLetter } from "@/lib/notify";
+import { approvedLetter, dailyQuoteLetter, guideOpenedLetter, passwordResetLetter, registrationStudentLetter, weeklyTaskLetter } from "@/lib/notify";
 
 /** Образцы для превью в журнале. Никуда не отправляются. */
 export function broadcastPreviewHtml(): Record<string, { subject: string; html: string }> {
@@ -30,6 +30,28 @@ export function broadcastPreviewHtml(): Record<string, { subject: string; html: 
     "registration-mentor": { subject: "Новая заявка на доступ", html: toMentor.html },
     approved: { subject: "Доступ в личный кабинет открыт", html: approved.html },
     password: { subject: "Восстановление пароля", html: password.html },
+    "weekly-task": {
+      subject: "Задание недели",
+      html: weeklyTaskLetter({
+        name: "Виктория",
+        title: "Комната после новости",
+        prompt: "Опиши комнату так, чтобы по ней было ясно: хозяин только что узнал что-то плохое.",
+        lengthHint: "полстраницы",
+        publishedOn: "2026-10-24",
+        nextPublishedOn: "2026-10-31",
+        unsubscribeUrl: "https://studio.lizalikiyskaya.ru/unsubscribe?token=preview-weekly",
+      }).html,
+    },
+    "daily-quote": {
+      subject: "Цитата дня",
+      html: dailyQuoteLetter({
+        name: "Виктория",
+        text: "Краткость — сестра таланта.",
+        author: "Антон Чехов",
+        source: "Письмо брату Александру, 11 апреля 1889",
+        unsubscribeUrl: "https://studio.lizalikiyskaya.ru/unsubscribe?token=preview-quote",
+      }).html,
+    },
     "mentor-edit": { subject: activity["mentor-edit"].subject, html: activity["mentor-edit"].letter.html },
     "student-edit": { subject: activity["student-edit"].subject, html: activity["student-edit"].letter.html },
     "student-online": { subject: activity["student-online"].subject, html: activity["student-online"].letter.html },

@@ -9,6 +9,7 @@ import {
   updateProfileEmail,
   updateProfilePassword,
   updateProfileAvatar,
+  updateContentEmails,
   updateEmailNotifications,
 } from "./actions";
 
@@ -22,6 +23,8 @@ export default function ProfileForm({
   initialEmail,
   initialAvatarUrl,
   initialEmailNotifications = true,
+  initialWeeklyEmails = true,
+  initialQuoteEmails = true,
   isMentor = false,
 }: {
   userId: string;
@@ -29,12 +32,16 @@ export default function ProfileForm({
   initialEmail: string;
   initialAvatarUrl: string | null;
   initialEmailNotifications?: boolean;
+  initialWeeklyEmails?: boolean;
+  initialQuoteEmails?: boolean;
   isMentor?: boolean;
 }) {
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl ?? "");
   const [notifications, setNotifications] = useState(initialEmailNotifications);
+  const [weeklyMail, setWeeklyMail] = useState(initialWeeklyEmails);
+  const [quoteMail, setQuoteMail] = useState(initialQuoteEmails);
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -79,6 +86,15 @@ export default function ProfileForm({
     startTransition(async () => {
       await updateEmailNotifications(next);
       flash(next ? "Уведомления на почту включены" : "Уведомления на почту выключены", true);
+    });
+  }
+
+  function handleContentMail(kind: "weekly" | "quote", next: boolean) {
+    if (kind === "weekly") setWeeklyMail(next);
+    else setQuoteMail(next);
+    startTransition(async () => {
+      const res = await updateContentEmails(kind, next);
+      if ("error" in res && res.error) flash(res.error, false);
     });
   }
 
@@ -233,6 +249,12 @@ export default function ProfileForm({
             onChange={handleToggleNotifications}
             label={isMentor ? "Письма об изменениях у учеников" : "Письма о правках наставника"}
           />
+          {!isMentor ? (
+            <div className="mt-3 space-y-3">
+              <ToggleSwitch checked={weeklyMail} onChange={(next) => handleContentMail("weekly", next)} label="Задание недели на почту" />
+              <ToggleSwitch checked={quoteMail} onChange={(next) => handleContentMail("quote", next)} label="Цитата дня на почту" />
+            </div>
+          ) : null}
         </div>
       </div>
 

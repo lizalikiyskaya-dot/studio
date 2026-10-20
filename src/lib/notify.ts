@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail, sendMail } from "@/lib/mail";
+import { optOutLinkLabel, type OptOutKind } from "@/lib/mailOptOut";
 import { sectionLabel } from "@/lib/sections";
 import { mailGate, queueCabinetChange } from "@/lib/activityDigest";
 
@@ -449,6 +450,7 @@ export function weeklyTaskLetter(input: {
   lengthHint: string;
   publishedOn: string;
   nextPublishedOn?: string | null;
+  unsubscribeUrl?: string;
 }) {
   const open = ruDate(input.publishedOn);
   const close = input.nextPublishedOn ? ruDate(dayBefore(input.nextPublishedOn) ?? "") : null;
@@ -472,13 +474,17 @@ export function weeklyTaskLetter(input: {
       },
     ],
     action: { label: "Открыть задание", url: `${appUrl()}/dashboard/weekly` },
-    footnote: "Задание необязательное. С основными заданиями оно не связано.",
+    footnote: unsubFoot(
+      "Задание необязательное. С основными заданиями оно не связано.",
+      input.unsubscribeUrl,
+      "weekly",
+    ),
     signature: EMAIL_SIGNATURE,
   });
 }
 
 /** Письмо с цитатой дня. Поля те же, что у цитаты в кабинете. Только рисует письмо. */
-export function dailyQuoteLetter(input: { name: string; text: string; author: string; source?: string }) {
+export function dailyQuoteLetter(input: { name: string; text: string; author: string; source?: string; unsubscribeUrl?: string }) {
   return renderEmail({
     title: "Цитата дня",
     blocks: [
@@ -491,9 +497,14 @@ export function dailyQuoteLetter(input: { name: string; text: string; author: st
       },
     ],
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
-    footnote: "День считается по Москве. Отключить письма можно в профиле.",
+    footnote: unsubFoot("День считается по Москве.", input.unsubscribeUrl, "quote"),
     signature: EMAIL_SIGNATURE,
   });
+}
+
+function unsubFoot(base: string, url: string | undefined, kind: OptOutKind): string {
+  if (!url) return base;
+  return `${base}<br><a href="${escapeHtml(url)}" style="color:#4B3FC0;text-decoration:underline;">${escapeHtml(optOutLinkLabel(kind))}</a>`;
 }
 
 /** Образцы для превью. Данные как в кабинете, письмо никуда не уходит. */

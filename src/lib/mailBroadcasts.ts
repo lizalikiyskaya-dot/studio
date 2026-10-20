@@ -5,6 +5,8 @@ export type MailTimeZone = (typeof MAIL_TIME_ZONES)[number];
 
 export const BROADCAST_KEYS = [
   "payment",
+  "weekly-task",
+  "daily-quote",
   "guide",
   "registration",
   "registration-mentor",
@@ -42,6 +44,8 @@ export type BroadcastMeta = {
 
 export const BROADCAST_META: BroadcastMeta[] = [
   { key: "payment", title: "День оплаты", mode: "clock", who: "students" },
+  { key: "weekly-task", title: "Задание недели", mode: "clock", who: "students" },
+  { key: "daily-quote", title: "Цитата дня", mode: "clock", who: "students" },
   { key: "guide", title: "Методичка", mode: "event", who: "students" },
   { key: "registration", title: "Заявка ученику", mode: "event", who: "person" },
   { key: "registration-mentor", title: "Заявка наставнику", mode: "event", who: "mentor" },
@@ -87,6 +91,10 @@ export function defaultBroadcast(key: BroadcastKey): BroadcastSetting {
   switch (key) {
     case "payment":
       return { ...base, enabled: true, hour: 9, minute: 0, windowMinutes: 180 };
+    case "weekly-task":
+      return { ...base, enabled: false, weekdays: "6", hour: 10, minute: 0, windowMinutes: 60 };
+    case "daily-quote":
+      return { ...base, enabled: false, hour: 9, minute: 0, windowMinutes: 60 };
     case "guide":
     case "registration":
     case "registration-mentor":
@@ -255,9 +263,9 @@ export function normalizeBroadcast(input: BroadcastSetting): { value: BroadcastS
       enabled: input.enabled === true,
       timeZone,
       weekdays,
-      hour: input.key === "payment" ? (hour ?? 9) : null,
+      hour: input.key === "payment" || input.key === "weekly-task" || input.key === "daily-quote" ? (hour ?? base.hour ?? 9) : null,
       minute,
-      windowMinutes: input.key === "payment" ? Math.max(1, windowMinutes) : windowMinutes,
+      windowMinutes: input.key === "payment" || input.key === "weekly-task" || input.key === "daily-quote" ? Math.max(1, windowMinutes) : windowMinutes,
       oncePerDay: input.key === "student-online" ? input.oncePerDay === true : false,
       audience: BROADCAST_META.find((item) => item.key === input.key)?.who === "students" ? audience : "all",
       studentIds: parseStudentIds(input.studentIds).join(","),
