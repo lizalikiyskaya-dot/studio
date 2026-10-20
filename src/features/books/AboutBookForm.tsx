@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 import type { Book, Comment } from "@/generated/prisma/client";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
-import { BannerSection, CoverCarousel } from "@/components/ProfilePhotos";
+import { CoverCarousel } from "@/components/ProfilePhotos";
 import { updateSynopsisMode, updateBookPhotoPosition } from "./actions";
 
 function Field({ label, value, field, bookId, suggestion }: { label: string; value: string; field: string; bookId: string; suggestion?: string }) {
@@ -24,7 +24,7 @@ function TextAreaField({ label, value, field, bookId, suggestion, minHeight = 60
       <label className="block text-[13px] mb-1.5" style={{ color: "var(--faded)" }}>{label}</label>
       <SuggestableField model="Book" recordId={bookId} field={field} value={value} suggestion={suggestion}
         style={{ borderColor: "var(--rule)", minHeight }}
-        className="w-full border-b py-1.5 text-[14px] outline-none bg-transparent resize-vertical" />
+        className="reading w-full border-b py-1.5 outline-none bg-transparent resize-vertical" />
     </div>
   );
 }
@@ -104,7 +104,7 @@ function SynopsisBlock({
           {synopsisMode === "TEXT" ? (
             <SuggestableField model="Book" recordId={book.id} field="synopsisText" value={book.synopsisText}
               suggestion={suggestions.synopsisText} placeholder="Полный синопсис от начала до конца, со спойлерами..."
-              className="w-full outline-none bg-transparent text-[14px]" style={{ minHeight: 120, lineHeight: 1.7 }} />
+              className="reading w-full outline-none bg-transparent" style={{ minHeight: 120 }} />
           ) : (
             <SuggestableField model="Book" recordId={book.id} field="synopsisLink" value={book.synopsisLink}
               suggestion={suggestions.synopsisLink} as="input" placeholder="https://docs.google.com/..."
@@ -124,17 +124,8 @@ export default function AboutBookForm({ book, suggestions, comments }: { book: B
 
   return (
     <div className="max-w-[880px]">
-      {/* Баннер + обложки */}
-      <div className="mb-8 rounded-[14px] overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-        <BannerSection
-          recordId={book.id}
-          target="book-banner"
-          field="bannerUrl"
-          initialUrl={book.bannerUrl ?? null}
-          initialPosition={book.bannerPosition ?? "50% 50%"}
-          onSavePosition={(pos) => startTransition(() => { void updateBookPhotoPosition(book.id, "bannerPosition", pos); })}
-        />
-        <div className="px-6 pb-6 pt-8 flex flex-col sm:flex-row gap-8 items-start">
+      <div className="mb-8 rounded-[14px]" style={{ border: "1px solid var(--border)" }}>
+        <div className="px-6 py-6 flex flex-col sm:flex-row gap-8 items-start">
           <CoverCarousel
             recordId={book.id}
             slots={[

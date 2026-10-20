@@ -38,19 +38,19 @@ export default function WeeklyForm({
   }
 
   return (
-    <div className="mt-5">
+    <div className="mt-3">
       <label className="fld-label" style={{ marginTop: 0 }}>
         Ваш текст
         <textarea
-          className="fld field-literary text-[17px] leading-relaxed"
+          className="fld field-literary"
           value={text}
           onChange={(event) => setText(event.target.value)}
           placeholder="Напишите здесь. Задание необязательное."
-          rows={10}
+          rows={6}
           maxLength={20000}
         />
       </label>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="mt-3 flex flex-wrap items-center gap-3">
         <button
           type="button"
           className="btn-y px-5 text-[14.5px]"

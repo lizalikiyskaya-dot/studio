@@ -16,6 +16,7 @@ import {
   deleteCharacter,
 } from "../actions";
 import { Button } from "@/components/ui/Button";
+import { CardTitle } from "@/components/InlineTitle";
 
 const ARC_TYPE_INDEX: Record<ArcType, number> = {
   POSITIVE: 0,
@@ -112,13 +113,15 @@ export default function ArcCharacterCard({
   suggestions,
   initialComments,
   onDeleted,
+  startOpen = false,
 }: {
   character: Character;
   suggestions: Record<string, string>;
   initialComments: Comment[];
   onDeleted: (id: string) => void;
+  startOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [name, setName] = useState(character.name);
   const [photoUrl, setPhotoUrl] = useState(character.photoUrl);
   const [arcType, setArcType] = useState(character.arcType);
@@ -155,7 +158,16 @@ export default function ArcCharacterCard({
             backgroundPosition: "center",
           }}
         />
-        <span className="heading flex-1 font-semibold text-[14.5px]">{name || "Без имени"}</span>
+        <CardTitle
+          value={name}
+          autoFocus={startOpen}
+          placeholder="Имя"
+          model="Character"
+          recordId={character.id}
+          suggestion={suggestions.name}
+          onSave={setName}
+          className="text-[14.5px]"
+        />
         {arcType && (
           <span
             className="font-mono-label text-[9.5px] uppercase px-2 py-1 rounded-full"
@@ -192,22 +204,6 @@ export default function ArcCharacterCard({
               className="rounded-full flex-shrink-0"
               style={{ width: 90, height: 90, minWidth: 90 }}
             />
-            <div className="flex-1 min-w-0">
-              <label className="block text-[12.5px] mb-1.5" style={{ color: "var(--faded)" }}>
-                Имя
-              </label>
-              <SuggestableField
-                model="Character"
-                recordId={character.id}
-                field="name"
-                value={name}
-                suggestion={suggestions.name}
-                as="input"
-                onSaved={setName}
-                className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
-                style={{ borderColor: "var(--rule)" }}
-              />
-            </div>
             <CardSaveButton scopeRef={rootRef} />
             <Button onClick={handleDelete} variant="secondary" size="sm" pill className="flex-shrink-0">
               Удалить

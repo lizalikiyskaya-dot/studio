@@ -9,9 +9,9 @@ import ImageUploadBox from "@/components/ImageUploadBox";
 import CardSaveButton from "@/components/CardSaveButton";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import type { SuggestableModel } from "@/lib/suggestionRegistry";
-import { blurOnEnter } from "@/lib/blurOnEnter";
 import type { FieldGroup } from "./fields";
 import { Button } from "@/components/ui/Button";
+import ReadingText from "@/components/ReadingText";
 
 type Suggestable = { model: SuggestableModel; recordId: string };
 
@@ -40,9 +40,13 @@ function FieldBlock({
         </label>
       )}
       {readOnly ? (
-        <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
-          {value || <span style={{ color: "var(--faded)" }}>—</span>}
-        </p>
+        value.trim().length > 80 ? (
+          <ReadingText text={value} />
+        ) : (
+          <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
+            {value || <span style={{ color: "var(--faded)" }}>—</span>}
+          </p>
+        )
       ) : suggestable ? (
         <SuggestableField
           model={suggestable.model}
@@ -134,34 +138,6 @@ export default function CharacterProfile({
             style={{ width: 90, height: 90, minWidth: 90 }}
           />
         )}
-        <div className="flex-1 min-w-0">
-          <label className="block text-[12.5px] mb-1.5" style={{ color: "var(--faded)" }}>
-            Имя
-          </label>
-          {readOnly ? (
-            <p className="heading font-semibold text-[18px] pb-1">{name}</p>
-          ) : suggestable ? (
-            <SuggestableField
-              model={suggestable.model}
-              recordId={suggestable.recordId}
-              field="name"
-              value={name}
-              suggestion={nameSuggestion}
-              as="input"
-              onSaved={onNameBlur}
-              className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
-              style={{ borderColor: "var(--rule)" }}
-            />
-          ) : (
-            <input
-              defaultValue={name}
-              onBlur={(e) => onNameBlur(e.target.value)}
-              onKeyDown={blurOnEnter}
-              className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
-              style={{ borderColor: "var(--rule)" }}
-            />
-          )}
-        </div>
         {!readOnly && (
           <div className="flex gap-1.5 flex-shrink-0">
             <CardSaveButton scopeRef={rootRef} />

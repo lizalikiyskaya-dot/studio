@@ -110,7 +110,7 @@ function PeriodRow({
         </div>
       </td>
       <td className="min-w-[180px]">
-        <EditableWithLinks defaultValue={plan.description} onSave={(value) => onField("description", value)} placeholder="Что планируется..." className="entry-title w-full outline-none bg-transparent text-[15px]" />
+        <EditableWithLinks defaultValue={plan.description} onSave={(value) => onField("description", value)} placeholder="Что планируется..." className="reading w-full outline-none bg-transparent" />
       </td>
       <td className="min-w-[140px]">
         <EditableWithLinks defaultValue={plan.literature} onSave={(value) => onField("literature", value)} placeholder="что почитать..." className="w-full outline-none bg-transparent text-[13px]" />

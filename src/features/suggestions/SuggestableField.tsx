@@ -98,6 +98,7 @@ export default function SuggestableField({
   placeholder,
   resizable,
   ariaLabel,
+  autoFocus,
   onSaved,
 }: {
   model: SuggestableModel;
@@ -111,6 +112,7 @@ export default function SuggestableField({
   placeholder?: string;
   resizable?: boolean;
   ariaLabel?: string;
+  autoFocus?: boolean;
   onSaved?: (value: string) => void;
 }) {
   const pathname = usePathname();
@@ -193,6 +195,7 @@ export default function SuggestableField({
             defaultValue={draft}
             placeholder={placeholder}
             aria-label={ariaLabel}
+            autoFocus={autoFocus}
             onChange={(event) => handleDraft(event.target.value)}
             onBlur={(event) => handleBlur(event.target.value)}
             onKeyDown={(event) => {
@@ -210,6 +213,7 @@ export default function SuggestableField({
             defaultValue={draft}
             placeholder={placeholder}
             ariaLabel={ariaLabel}
+            autoFocus={autoFocus}
             onChange={handleDraft}
             onBlur={handleBlur}
             className={className}
@@ -231,6 +235,7 @@ export default function SuggestableField({
         defaultValue={value}
         placeholder={placeholder}
         aria-label={ariaLabel}
+        autoFocus={autoFocus}
         onBlur={(e) => handleBlur(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
@@ -249,6 +254,7 @@ export default function SuggestableField({
       defaultValue={value}
       placeholder={placeholder}
       ariaLabel={ariaLabel}
+      autoFocus={autoFocus}
       onBlur={handleBlur}
       className={className}
       style={style}

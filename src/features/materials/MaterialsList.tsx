@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { MaterialCategory, MaterialStatus } from "@/generated/prisma/client";
 import { materialToRow, type MaterialRow } from "./materialFile";
 import Accordion from "@/components/Accordion";
+import InlineTitle from "@/components/InlineTitle";
 import FileAttachBox from "@/components/FileAttachBox";
 import { uploadFile } from "@/lib/uploadFile";
 import { blurOnEnter } from "@/lib/blurOnEnter";
@@ -21,7 +22,7 @@ import {
   setMaterialMonth,
   setMaterialNote,
 } from "./actions";
-import { appendMaterial, applyMaterialTitles, enqueueById, enqueueCreate, titleSaveFromField } from "./materialRows";
+import { appendMaterial, applyMaterialTitles, enqueueById, enqueueCreate } from "./materialRows";
 import { BOOK_NOTE_MAX, storedBookNote, visibleBookMonth, visibleBookNote } from "./materialFile";
 import { BOOK_MONTHS, bookMonthYears, formatStoredBookMonth, parseStoredBookMonth } from "./bookMonthSelect";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
@@ -67,40 +68,6 @@ function useDrag<T extends { id: string }>(
   }
 
   return { onDragStart, onDragOver, onDrop };
-}
-
-function MaterialTitleInput({
-  id,
-  title,
-  placeholder,
-  className,
-  style,
-  onSave,
-}: {
-  id: string;
-  title: string;
-  placeholder: string;
-  className?: string;
-  style?: React.CSSProperties;
-  onSave: (id: string, title: string) => void;
-}) {
-  return (
-    <input
-      key={id}
-      data-id={id}
-      name={`material-title-${id}`}
-      autoComplete="off"
-      defaultValue={title}
-      onBlur={(event) => {
-        const save = titleSaveFromField(event.currentTarget.dataset.id, event.currentTarget.value);
-        if (save) onSave(save.id, save.title);
-      }}
-      onKeyDown={blurOnEnter}
-      placeholder={placeholder}
-      className={className}
-      style={style}
-    />
-  );
 }
 
 function BookMonthField({ month }: { month: string | null }) {
@@ -237,11 +204,15 @@ function useEditableMaterials(initial: MaterialRow[]) {
     enqueueById(titleSaves.current, id, () => updateMaterialTitle(id, value));
   }
 
-  function addItem(studentId: string, category: MaterialCategory) {
+  function addItem(studentId: string, category: MaterialCategory, onCreated?: (row: MaterialRow) => void) {
     addChain.current = enqueueCreate(
       addChain.current,
       () => createMaterial(studentId, category, crypto.randomUUID()),
-      (material) => setItems((prev) => appendMaterial(prev, materialToRow(material))),
+      (material) => {
+        const row = materialToRow(material);
+        setItems((prev) => appendMaterial(prev, row));
+        onCreated?.(row);
+      },
     );
   }
 
@@ -261,13 +232,14 @@ function BooksList({
   // Card is draggable ONLY while its grip handle is held — otherwise the
   // whole card grabs mousedown and hijacks text selection / cut.
   const [armedId, setArmedId] = useState<string | null>(null);
+  const [freshId, setFreshId] = useState<string | null>(null);
 
   const drag = useDrag(books, setBooks, (ids) =>
     startTransition(() => reorderMaterials(studentId, ids))
   );
 
   function handleAdd() {
-    addItem(studentId, "BOOK");
+    addItem(studentId, "BOOK", (row) => setFreshId(row.id));
   }
 
   function handleFile(id: string, field: "pdf" | "epub", file: File) {
@@ -331,9 +303,20 @@ function BooksList({
           <Accordion
             key={material.id}
             wrapHeader
+            defaultOpen={material.id === freshId}
             title={
               <span className="block min-w-0">
-                <span className="block truncate">{material.title || "Без названия"}</span>
+                {canManage ? (
+                  <InlineTitle
+                    value={material.title}
+                    autoFocus={material.id === freshId}
+                    placeholder="Название книги"
+                    onSave={(value) => saveTitle(material.id, value)}
+                    className="text-[15px]"
+                  />
+                ) : (
+                  <span className="block truncate">{material.title || "Без названия"}</span>
+                )}
                 <BookMonthField month={material.month} />
                 <BookNoteLine note={material.note} />
               </span>
@@ -386,14 +369,6 @@ function BooksList({
           >
             {canManage && (
               <>
-                <MaterialTitleInput
-                  id={material.id}
-                  title={material.title}
-                  onSave={saveTitle}
-                  placeholder="Название книги"
-                  className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
-                  style={{ borderColor: "var(--border)" }}
-                />
                 <label className="fld-label" style={{ marginTop: 0 }}>
                   месяц
                   <BookMonthInput
@@ -458,13 +433,17 @@ function HandoutsList({
   const { items: handouts, setItems: setHandouts, startTransition, saveTitle, addItem } = useEditableMaterials(materials);
   const [armedId, setArmedId] = useState<string | null>(null);
   const [openIds, setOpenIds] = useState<Record<string, boolean>>({});
+  const [freshId, setFreshId] = useState<string | null>(null);
 
   const drag = useDrag(handouts, setHandouts, (ids) =>
     startTransition(() => reorderMaterials(studentId, ids))
   );
 
   function handleAdd() {
-    addItem(studentId, "HANDOUT");
+    addItem(studentId, "HANDOUT", (row) => {
+      setFreshId(row.id);
+      setOpenIds((prev) => ({ ...prev, [row.id]: true }));
+    });
   }
 
   function handleFile(id: string, file: File) {
@@ -555,12 +534,12 @@ function HandoutsList({
                 />
               )}
               {canManage ? (
-                <MaterialTitleInput
-                  id={material.id}
-                  title={material.title}
-                  onSave={saveTitle}
+                <InlineTitle
+                  value={material.title}
+                  autoFocus={material.id === freshId}
                   placeholder="Название методички"
-                  className="heading min-w-0 flex-1 bg-transparent text-[17px] font-semibold outline-none"
+                  onSave={(value) => saveTitle(material.id, value)}
+                  className="text-[17px]"
                 />
               ) : (
                 <span className="heading min-w-0 flex-1 text-[17px] font-semibold">{material.title || "Без названия"}</span>

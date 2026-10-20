@@ -298,7 +298,7 @@ export default function TasksTable({
                       defaultValue={task.notes}
                       onSave={(v) => handleNotes(task.id, v)}
                       placeholder="примечание..."
-                      className="w-full outline-none bg-transparent text-[13px]"
+                      className="reading w-full outline-none bg-transparent"
                     />
                   ) : (
                     <button type="button" className="text-[13px]" style={{ color: "var(--muted)" }} onClick={() => setExpandedNotes((prev) => new Set(prev).add(task.id))}>

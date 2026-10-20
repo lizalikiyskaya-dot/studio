@@ -22,6 +22,7 @@ import {
   updateStoryCharacterPhotoUrl,
 } from "./actions";
 import { Button } from "@/components/ui/Button";
+import InlineTitle from "@/components/InlineTitle";
 import EmptyState from "@/components/EmptyState";
 
 // Simple card for secondary story characters using SECONDARY_CHARACTER_GROUPS
@@ -30,13 +31,16 @@ function SecondaryCard({
   onUpdateName,
   onUpdateField,
   onDelete,
+  startOpen = false,
 }: {
   character: StoryCharacter;
   onUpdateName: (id: string, name: string) => void;
   onUpdateField: (id: string, field: CharacterFieldKey, value: string) => void;
   onDelete: (id: string) => void;
+  startOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
+  const [name, setName] = useState(character.name);
   const [photoUrl, setPhotoUrl] = useState(character.photoUrl);
   const [, startTransition] = useTransition();
   const data = (character.data as Record<string, string>) ?? {};
@@ -58,7 +62,16 @@ function SecondaryCard({
             backgroundPosition: "center",
           }}
         />
-        <span className="heading flex-1 font-semibold text-[14.5px]">{character.name || "Без имени"}</span>
+        <InlineTitle
+          value={name}
+          autoFocus={startOpen}
+          placeholder="Имя"
+          onSave={(value) => {
+            setName(value);
+            onUpdateName(character.id, value);
+          }}
+          className="text-[14.5px]"
+        />
         <span className="flex-shrink-0" style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}>
           <ChevronDown size={15} />
         </span>
@@ -87,16 +100,7 @@ function SecondaryCard({
               className="rounded-full flex-shrink-0"
               style={{ width: 90, height: 90, minWidth: 90 }}
             />
-            <div className="flex-1 min-w-0">
-              <label className="block text-[12.5px] mb-1.5" style={{ color: "var(--faded)" }}>Имя</label>
-              <input
-                defaultValue={character.name}
-                onBlur={(e) => onUpdateName(character.id, e.target.value)}
-                className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
-                style={{ borderColor: "var(--rule)" }}
-              />
-            </div>
-            <Button onClick={async () => { if (await siteConfirm(`Удалить «${character.name || "без имени"}»?`)) onDelete(character.id); }} variant="secondary" size="sm" pill className="flex-shrink-0">
+            <Button onClick={async () => { if (await siteConfirm(`Удалить «${name || "без имени"}»?`)) onDelete(character.id); }} variant="secondary" size="sm" pill className="ml-auto flex-shrink-0">
               удалить
             </Button>
           </div>
@@ -134,6 +138,7 @@ export default function StoryCharactersSection({
 }) {
   const router = useRouter();
   const [list, setList] = useState(storyCharacters);
+  const [freshId, setFreshId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   if (story.characterSource === "SHARED") {
@@ -157,6 +162,7 @@ export default function StoryCharactersSection({
   function handleAdd(type: "MAIN" | "SECONDARY") {
     startTransition(async () => {
       const character = await createStoryCharacter(story.id, type);
+      setFreshId(character.id);
       setList((prev) => [...prev, character]);
     });
   }
@@ -203,6 +209,7 @@ export default function StoryCharactersSection({
               startTransition(() => { void updateStoryCharacterPhotoUrl(id, url); });
             }}
             onDelete={handleDelete}
+            startOpen={character.id === freshId}
           />
         ))}
         <button type="button" onClick={() => handleAdd("MAIN")} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
@@ -219,6 +226,7 @@ export default function StoryCharactersSection({
             onUpdateName={handleUpdateName}
             onUpdateField={handleUpdateField}
             onDelete={handleDelete}
+            startOpen={character.id === freshId}
           />
         ))}
         <button type="button" onClick={() => handleAdd("SECONDARY")} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto", background: "var(--soft)", fontWeight: 500 }}>

@@ -8,12 +8,14 @@ export default function CollapsibleCharacterShell({
   photoUrl,
   headerExtra,
   defaultOpen,
+  title,
   children,
 }: {
   name: string;
   photoUrl: string | null;
   headerExtra?: React.ReactNode;
   defaultOpen?: boolean;
+  title?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(!!defaultOpen);
@@ -35,7 +37,7 @@ export default function CollapsibleCharacterShell({
             backgroundPosition: "center",
           }}
         />
-        <span className="heading flex-1 font-semibold text-[14.5px]">{name || "Без имени"}</span>
+        {title ?? <span className="heading flex-1 font-semibold text-[14.5px]">{name || "Без имени"}</span>}
         {headerExtra}
         <span
           className="flex-shrink-0"

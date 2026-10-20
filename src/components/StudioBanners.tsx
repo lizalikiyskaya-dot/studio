@@ -3,7 +3,6 @@ import { ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import AddToTrackerButton from "@/features/submissions/AddToTrackerButton";
 import WeekCallNote from "@/components/WeekCallNote";
-import { bannerNoteIsLong } from "@/components/bannerNote";
 import { DEADLINE_BANNER_LIMIT, deadlineMoreLabel } from "@/components/deadlineBanner";
 
 function parseDeadline(value: string): Date | null {
@@ -102,28 +101,22 @@ export default async function StudioBanners({
         </div>
       )}
       {nearest && (
-        <div className="banner-call">
-          <span className="deadline-ribbon" aria-hidden="true" />
-          <div className="text-[11.5px] font-semibold uppercase tracking-[0.09em]" style={{ color: "var(--y)" }}>Опен-колл недели</div>
-          <div className="serif mt-2 text-[19px] font-medium leading-snug pr-10">
-            {nearest.call.target || "Опен-колл"} — приём до {formatShort(nearest.date)}
-          </div>
-          {bannerNoteIsLong(nearest.call.note) ? (
-            <WeekCallNote note={nearest.call.note} untilLabel={untilLabel} />
-          ) : (
-            <div className="mt-1.5 text-[13px] text-white/60">
-              {[nearest.call.note, untilLabel].filter(Boolean).join(" · ")}
-            </div>
-          )}
-          <div className="mt-3.5 flex flex-wrap gap-2">
-            <AddToTrackerButton openCallId={nearest.call.id} tracked={inTracker} />
-            {nearest.call.link ? (
-              <a href={nearest.call.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center h-9 px-4 rounded-full text-[13.5px] font-medium bg-white/10 text-white">
-                Условия
-              </a>
-            ) : null}
-          </div>
-        </div>
+        <WeekCallNote
+          title={nearest.call.target || "Опен-колл"}
+          deadline={formatShort(nearest.date)}
+          note={nearest.call.note}
+          untilLabel={untilLabel}
+          actions={
+            <>
+              <AddToTrackerButton openCallId={nearest.call.id} tracked={inTracker} />
+              {nearest.call.link ? (
+                <a href={nearest.call.link} target="_blank" rel="noopener noreferrer">
+                  Условия
+                </a>
+              ) : null}
+            </>
+          }
+        />
       )}
     </div>
   );

@@ -400,6 +400,22 @@ export default function Sidebar({
           </button>
         </div>
       </header>
+      {onBook && bookWorkshopUnlocked && !mentorMenuOnly ? (
+        <nav className="book-section-strip" aria-label="Разделы книги">
+          {([
+            ["about", "О книге"],
+            ["plan", "Трекер по главам"],
+            ["acts", "План"],
+            ["dossier", "Досье"],
+            ["arcs", "Арки"],
+            ["setting", "Сеттинг"],
+          ] as const).map(([path, label]) => (
+            <Link key={path} href={hrefFor(path)} className={section === path ? "is-on" : ""}>
+              {label}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
       </div>
 
       <div className="studio-body">

@@ -24,11 +24,13 @@ export default function CycleCharactersView({
 }) {
   const router = useRouter();
   const [list, setList] = useState(characters);
+  const [freshId, setFreshId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   function handleAdd() {
     startTransition(async () => {
       const character = await createCycleCharacter(cycleId);
+      setFreshId(character.id);
       setList((prev) => [...prev, character]);
     });
   }
@@ -70,6 +72,7 @@ export default function CycleCharactersView({
             startTransition(() => { void updateCycleCharacterPhotoUrl(id, url); });
           }}
           onDelete={handleDelete}
+          startOpen={character.id === freshId}
         />
       ))}
       <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>

@@ -7,6 +7,8 @@ import ToggleSwitch from "@/components/ToggleSwitch";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import { Button } from "@/components/ui/Button";
+import InlineTitle from "@/components/InlineTitle";
+import ReadingText from "@/components/ReadingText";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import {
   BIBLE_THEMES,
@@ -123,7 +125,18 @@ export default function WorldBible({
   const entriesVisible = scope === "story" || unlocked;
   const cue = nextThemeCue(grapes, entriesVisible ? entries : [], entriesVisible);
   const themeEntries = openTheme?.category ? entries.filter((entry) => entry.category === openTheme.category) : [];
-  const selected = themeEntries.find((entry) => entry.id === selectedId) ?? themeEntries[0] ?? null;
+  const selected = themeEntries.find((entry) => entry.id === selectedId) ?? null;
+
+  useEffect(() => {
+    if (!selectedId) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      if (document.querySelector(".site-dialog-root, .site-choice-root")) return;
+      setSelectedId(null);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [selectedId]);
 
   useEffect(() => {
     let cancel = false;
@@ -246,20 +259,31 @@ export default function WorldBible({
     });
   }
 
-  function handleSaveEntry(id: string, title: string, body: string) {
+  function selectEntry(id: string) {
+    setSelectedId((current) => (current === id ? null : id));
+  }
+
+  function collapseEntry() {
+    setSelectedId(null);
+  }
+
+  function handleTitle(id: string, title: string) {
     if (!canEdit) return;
-    setEntries((prev) => prev.map((entry) => (entry.id === id ? { ...entry, title, body } : entry)));
+    setEntries((prev) => prev.map((entry) => (entry.id === id ? { ...entry, title } : entry)));
     startTransition(() => {
-      if (scope === "cycle") {
-        void updateCycleWorldEntryTitle(id, title);
-        void updateCycleWorldEntryBody(id, body);
-      } else if (scope === "story") {
-        void updateStoryWorldEntryTitle(id, title);
-        void updateStoryWorldEntryBody(id, body);
-      } else {
-        void updateWorldEntryTitle(id, title);
-        void updateWorldEntryBody(id, body);
-      }
+      if (scope === "cycle") void updateCycleWorldEntryTitle(id, title);
+      else if (scope === "story") void updateStoryWorldEntryTitle(id, title);
+      else void updateWorldEntryTitle(id, title);
+    });
+  }
+
+  function saveBody(id: string, body: string) {
+    if (!canEdit) return;
+    setEntries((prev) => prev.map((entry) => (entry.id === id ? { ...entry, body } : entry)));
+    startTransition(() => {
+      if (scope === "cycle") void updateCycleWorldEntryBody(id, body);
+      else if (scope === "story") void updateStoryWorldEntryBody(id, body);
+      else void updateWorldEntryBody(id, body);
     });
   }
 
@@ -377,9 +401,11 @@ export default function WorldBible({
                 photoKind={photoKind}
                 onClose={() => setOpenTheme(null)}
                 onPatchGrapes={patchGrapes}
-                onSelect={setSelectedId}
+                onSelect={selectEntry}
                 onAdd={handleAddEntry}
-                onSave={handleSaveEntry}
+                onSaveBody={saveBody}
+                onCollapse={collapseEntry}
+                onTitle={handleTitle}
                 onDelete={handleDeleteEntry}
                 onCategory={handleCategory}
                 onPhoto={(photoUrl) => setEntries((prev) => prev.map((entry) => entry.id === selected?.id ? { ...entry, photoUrl } : entry))}
@@ -407,9 +433,11 @@ export default function WorldBible({
                     photoKind={photoKind}
                     onClose={() => setOpenTheme(null)}
                     onPatchGrapes={patchGrapes}
-                    onSelect={setSelectedId}
+                    onSelect={selectEntry}
                     onAdd={handleAddEntry}
-                    onSave={handleSaveEntry}
+                    onSaveBody={saveBody}
+                    onCollapse={collapseEntry}
+                    onTitle={handleTitle}
                     onDelete={handleDeleteEntry}
                     onCategory={handleCategory}
                     onPhoto={(photoUrl) => setEntries((prev) => prev.map((entry) => entry.id === selected?.id ? { ...entry, photoUrl } : entry))}
@@ -478,7 +506,7 @@ function GrapesText({
   onSaved: (value: string) => void;
 }) {
   if (!canEdit) {
-    return <p className="text-[16px] leading-relaxed" style={{ fontFamily: "var(--font-serif), Georgia, serif" }}>{table.values[field] || "Пока пусто"}</p>;
+    return table.values[field] ? <ReadingText text={table.values[field]} /> : <p className="text-[16px]" style={{ color: "var(--muted)" }}>Пока пусто</p>;
   }
   if (table.model === "Story") {
     return (
@@ -598,7 +626,9 @@ function ThemePanel({
   onPatchGrapes,
   onSelect,
   onAdd,
-  onSave,
+  onSaveBody,
+  onCollapse,
+  onTitle,
   onDelete,
   onCategory,
   onPhoto,
@@ -613,13 +643,23 @@ function ThemePanel({
   onPatchGrapes: (field: GrapesField, value: string) => void;
   onSelect: (id: string) => void;
   onAdd: () => void;
-  onSave: (id: string, title: string, body: string) => void;
+  onSaveBody: (id: string, body: string) => void;
+  onCollapse: () => void;
+  onTitle: (id: string, title: string) => void;
   onDelete: (id: string) => void;
   onCategory: (id: string, category: WorldCategory) => void;
   onPhoto: (photoUrl: string | null) => void;
 }) {
   return (
-    <div className="bible-panel">
+    <div
+      className="bible-panel"
+      onClick={theme.kind === "entry" ? (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        if (target.closest("[data-entry-editor], [data-entry-row], button, a, input, textarea, select, label")) return;
+        onCollapse();
+      } : undefined}
+    >
       <div className="flex items-center gap-2">
         <h3 className="text-[18px] font-semibold leading-tight">
           {theme.badge ? <span className="mr-2 text-[13px]" style={{ color: "var(--muted)" }}>{theme.badge}</span> : null}
@@ -642,28 +682,49 @@ function ThemePanel({
         </div>
       ) : (
         <div className="mt-4 flex flex-col gap-2">
-          {entries.map((entry) => (
-            <button
+          {entries.map((entry) => {
+            const editingTitle = canEdit && selected?.id === entry.id;
+            return (
+            <div
               key={entry.id}
-              type="button"
-              onClick={() => onSelect(entry.id)}
+              data-entry-row
               className="flex items-center gap-3 rounded-[16px] p-2.5 text-left"
-              style={{ background: selected?.id === entry.id ? "#E8E1DC" : "var(--soft)" }}
+              style={{ background: editingTitle ? "#E8E1DC" : "var(--soft)" }}
             >
-              {entry.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={entry.photoUrl} alt="" className="h-12 w-14 rounded-[10px] object-cover" />
-              ) : (
-                <span className="grid h-12 w-14 place-items-center rounded-[10px] text-[11px]" style={{ background: "#F8F4F1", color: "var(--muted)" }}>фото</span>
-              )}
-              <span className="min-w-0">
-                <span className="block text-[14px] font-semibold">{entry.title || "Без названия"}</span>
-                <span className="mt-0.5 block truncate text-[12.5px]" style={{ color: "var(--ink2)" }}>{entry.body || "текст не начат"}</span>
+              <button type="button" onClick={() => onSelect(entry.id)} className="shrink-0" aria-label={entry.title || "Запись"}>
+                {entry.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={entry.photoUrl} alt="" className="h-12 w-14 rounded-[10px] object-cover" />
+                ) : (
+                  <span className="grid h-12 w-14 place-items-center rounded-[10px] text-[11px]" style={{ background: "#F8F4F1", color: "var(--muted)" }}>фото</span>
+                )}
+              </button>
+              <span className="min-w-0 flex-1">
+                {editingTitle ? (
+                  <InlineTitle
+                    value={entry.title}
+                    autoFocus={!entry.title.trim()}
+                    placeholder="Название"
+                    onSave={(title) => onTitle(entry.id, title)}
+                    className="text-[14px]"
+                  />
+                ) : (
+                  <button type="button" onClick={() => onSelect(entry.id)} className="block w-full text-left text-[14px] font-semibold">
+                    {entry.title || "Без названия"}
+                  </button>
+                )}
+                <button type="button" onClick={() => onSelect(entry.id)} className="mt-0.5 block w-full truncate text-left text-[12.5px]" style={{ color: "var(--ink2)" }}>
+                  {entry.body || "текст не начат"}
+                </button>
               </span>
-            </button>
-          ))}
+            </div>
+            );
+          })}
           {canEdit ? (
             <button type="button" onClick={onAdd} className="self-start text-[13px]" style={{ color: "var(--muted)" }}>+ запись</button>
+          ) : null}
+          {entries.length === 0 ? (
+            <p className="text-[13px]" style={{ color: "var(--muted)" }}>Пока нет записей.</p>
           ) : null}
           {selected ? (
             <EntryEditor
@@ -671,14 +732,13 @@ function ThemePanel({
               entry={selected}
               canEdit={canEdit}
               photoKind={photoKind}
-              onSave={onSave}
+              onSaveBody={onSaveBody}
+              onCollapse={onCollapse}
               onDelete={onDelete}
               onCategory={onCategory}
               onPhoto={onPhoto}
             />
-          ) : (
-            <p className="text-[13px]" style={{ color: "var(--muted)" }}>Пока нет записей.</p>
-          )}
+          ) : null}
         </div>
       )}
     </div>
@@ -843,7 +903,8 @@ function EntryEditor({
   entry,
   canEdit,
   photoKind,
-  onSave,
+  onSaveBody,
+  onCollapse,
   onDelete,
   onCategory,
   onPhoto,
@@ -851,38 +912,59 @@ function EntryEditor({
   entry: BibleEntry;
   canEdit: boolean;
   photoKind: PhotoKind;
-  onSave: (id: string, title: string, body: string) => void;
+  onSaveBody: (id: string, body: string) => void;
+  onCollapse: () => void;
   onDelete: (id: string) => void;
   onCategory: (id: string, category: WorldCategory) => void;
   onPhoto: (photoUrl: string | null) => void;
 }) {
-  const [title, setTitle] = useState(entry.title);
   const [body, setBody] = useState(entry.body);
+  const bodyRef = useRef(entry.body);
+  const savedRef = useRef(entry.body);
+  const saveRef = useRef(onSaveBody);
   const [, startTransition] = useTransition();
+  bodyRef.current = body;
+  saveRef.current = onSaveBody;
+
+  function persist() {
+    if (!canEdit) return;
+    if (bodyRef.current === savedRef.current) return;
+    const next = bodyRef.current;
+    savedRef.current = next;
+    saveRef.current(entry.id, next);
+  }
+
+  useEffect(() => {
+    const id = entry.id;
+    return () => {
+      if (bodyRef.current === savedRef.current) return;
+      const next = bodyRef.current;
+      savedRef.current = next;
+      saveRef.current(id, next);
+    };
+  }, [entry.id]);
 
   if (!canEdit) {
     return (
-      <div className="mt-1 rounded-[16px] p-3" style={{ border: "1px solid #E8E1DC" }}>
-        <div className="text-[16px] font-semibold">{entry.title || "Без названия"}</div>
+      <div data-entry-editor className="mt-1 rounded-[16px] p-3" style={{ border: "1px solid #E8E1DC" }}>
+        <div className="flex items-center gap-2">
+          <div className="text-[16px] font-semibold">{entry.title || "Без названия"}</div>
+          <button type="button" onClick={onCollapse} className="ml-auto text-[12.5px]" style={{ color: "var(--ink2)" }}>свернуть запись</button>
+        </div>
         {entry.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={entry.photoUrl} alt="" className="mt-2 h-[120px] w-full rounded-[12px] object-cover" />
         ) : null}
-        {entry.body ? <p className="mt-2 text-[15px] leading-relaxed" style={{ fontFamily: "var(--font-serif), Georgia, serif" }}>{entry.body}</p> : null}
+        {entry.body ? <ReadingText text={entry.body} className="mt-2" /> : null}
       </div>
     );
   }
 
   return (
-    <div className="mt-1 rounded-[16px] p-3" style={{ border: "1px solid #E8E1DC" }}>
-      <div className="text-[12px]" style={{ color: "var(--muted)" }}>Запись</div>
-      <input
-        value={title}
-        aria-label="Название"
-        onChange={(event) => setTitle(event.target.value)}
-        className="mt-1 w-full rounded-[12px] border px-2.5 py-2 text-[16px] font-semibold outline-none"
-        style={{ borderColor: "var(--border)" }}
-      />
+    <div data-entry-editor className="mt-1 rounded-[16px] p-3" style={{ border: "1px solid #E8E1DC" }}>
+      <div className="flex items-center">
+        <button type="button" onClick={onCollapse} className="ml-auto text-[12.5px]" style={{ color: "var(--ink2)" }}>свернуть запись</button>
+      </div>
       <ImageUploadBox
         value={entry.photoUrl}
         placeholder="добавить фото"
@@ -915,12 +997,16 @@ function EntryEditor({
       <textarea
         value={body}
         aria-label="Текст записи"
-        onChange={(event) => setBody(event.target.value)}
+        onChange={(event) => {
+          bodyRef.current = event.target.value;
+          setBody(event.target.value);
+        }}
+        onBlur={persist}
         className={`${fieldClass} mt-2`}
         style={{ borderColor: "var(--border)", fontFamily: "var(--font-serif), Georgia, serif", minHeight: 110 }}
       />
       <div className="mt-2.5 flex items-center gap-3">
-        <Button type="button" variant="primary" size="sm" pill onClick={() => onSave(entry.id, title, body)}>Сохранить</Button>
+        <Button type="button" variant="primary" size="sm" pill onClick={persist}>Сохранить</Button>
         <button type="button" onClick={() => onDelete(entry.id)} className="rounded-full px-3 py-1.5 text-[12.5px]" style={{ border: "1px dashed var(--border)", color: "var(--link)" }}>удалить запись</button>
       </div>
       <p className="mt-2 text-[12px]" style={{ color: "var(--muted)" }}>Тема записи: {entryLabel(entry.category)}</p>
