@@ -5,8 +5,15 @@ import { createPortal } from "react-dom";
 
 type AlertReq = { kind: "alert"; message: string; resolve: () => void };
 type ConfirmReq = { kind: "confirm"; message: string; resolve: (ok: boolean) => void };
+type ChoiceReq = {
+  kind: "choice";
+  message: string;
+  yes: string;
+  no: string;
+  resolve: (value: "yes" | "no" | "dismiss") => void;
+};
 type PromptReq = { kind: "prompt"; label: string; value: string; resolve: (value: string | null) => void };
-type Req = AlertReq | ConfirmReq | PromptReq;
+type Req = AlertReq | ConfirmReq | ChoiceReq | PromptReq;
 
 let enqueue: ((req: Req) => void) | null = null;
 const waiting: Req[] = [];
@@ -32,6 +39,13 @@ export function siteConfirm(message: string) {
   return new Promise<boolean>((resolve) => push({ kind: "confirm", message, resolve }));
 }
 
+/** Два явных ответа. Закрытие окна — «dismiss», само действие не подтверждено. */
+export function siteChoice(message: string, labels: { yes: string; no: string }) {
+  return new Promise<"yes" | "no" | "dismiss">((resolve) =>
+    push({ kind: "choice", message, yes: labels.yes, no: labels.no, resolve }),
+  );
+}
+
 export function sitePrompt(label: string, value = "") {
   return new Promise<string | null>((resolve) => push({ kind: "prompt", label, value, resolve }));
 }
@@ -44,7 +58,8 @@ export function SiteDialogHost() {
   const [draft, setDraft] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const primaryRef = useRef<HTMLButtonElement>(null);
-  const finishRef = useRef<(ok: boolean) => void>(() => {});
+  const noRef = useRef<HTMLButtonElement>(null);
+  const finishRef = useRef<(result: boolean | "dismiss") => void>(() => {});
 
   function open(req: Req) {
     currentRef.current = req;
@@ -54,12 +69,13 @@ export function SiteDialogHost() {
     setCurrent(req);
   }
 
-  function finish(ok: boolean) {
+  function finish(result: boolean | "dismiss") {
     const req = currentRef.current;
     if (!req) return;
     if (req.kind === "alert") req.resolve();
-    else if (req.kind === "confirm") req.resolve(ok);
-    else req.resolve(ok ? draftRef.current : null);
+    else if (req.kind === "confirm") req.resolve(result === true);
+    else if (req.kind === "choice") req.resolve(result === "dismiss" ? "dismiss" : result ? "yes" : "no");
+    else req.resolve(result === true ? draftRef.current : null);
     const next = queueRef.current.shift() ?? null;
     if (next) open(next);
     else {
@@ -86,12 +102,14 @@ export function SiteDialogHost() {
 
   useEffect(() => {
     if (!current) return;
+    const req = current;
     const timer = window.setTimeout(() => {
-      if (current.kind === "prompt") inputRef.current?.focus();
+      if (req.kind === "prompt") inputRef.current?.focus();
+      else if (req.kind === "choice") noRef.current?.focus();
       else primaryRef.current?.focus();
     }, 0);
     function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") finishRef.current(false);
+      if (event.key === "Escape") finishRef.current(req.kind === "choice" ? "dismiss" : false);
     }
     window.addEventListener("keydown", onKey);
     return () => {
@@ -102,12 +120,19 @@ export function SiteDialogHost() {
 
   if (!current || typeof document === "undefined") return null;
 
-  const title = current.kind === "prompt" ? current.label : "Сообщение";
-  const primary = current.kind === "alert" ? "Хорошо" : current.kind === "prompt" ? "Сохранить" : "Да";
+  const title = current.kind === "prompt" ? current.label : current.kind === "choice" ? current.message : "Сообщение";
+  const primary =
+    current.kind === "alert" ? "Хорошо" : current.kind === "prompt" ? "Сохранить" : current.kind === "choice" ? current.yes : "Да";
+  const secondary = current.kind === "choice" ? current.no : "Отмена";
 
   return createPortal(
     <div className="site-dialog-root">
-      <button type="button" className="site-dialog-backdrop" aria-label="Закрыть" onClick={() => finish(false)} />
+      <button
+        type="button"
+        className="site-dialog-backdrop"
+        aria-label="Закрыть"
+        onClick={() => finish(current.kind === "choice" ? "dismiss" : false)}
+      />
       <div className="site-dialog-card" role="dialog" aria-modal="true" aria-label={title}>
         {current.kind === "prompt" ? (
           <>
@@ -133,8 +158,13 @@ export function SiteDialogHost() {
         )}
         <div className="site-dialog-actions">
           {current.kind !== "alert" ? (
-            <button type="button" className="site-dialog-secondary" onClick={() => finish(false)}>
-              Отмена
+            <button
+              ref={current.kind === "choice" ? noRef : undefined}
+              type="button"
+              className="site-dialog-secondary"
+              onClick={() => finish(false)}
+            >
+              {secondary}
             </button>
           ) : null}
           <button ref={primaryRef} type="button" className="site-dialog-primary" onClick={() => finish(true)}>
