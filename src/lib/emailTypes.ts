@@ -9,6 +9,9 @@ export const EMAIL_TYPE_LABEL: Record<string, string> = {
   password: "Пароль",
   payment: "Оплата",
   "platform-update": "Обновления платформы",
+  "weekly-task": "Задание недели",
+  "daily-quote": "Цитата дня",
+  "mentor-letter": "Письмо наставника",
 };
 
 export function emailTypeLabel(type: string): string {

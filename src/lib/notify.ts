@@ -294,17 +294,191 @@ export function passwordResetLetter(name: string, url: string) {
   });
 }
 
-/** Общий отчёт об обновлениях платформы. Только текст письма: само по себе никуда не уходит. */
-export function platformUpdateLetter(input: { name: string; updates: string[] }) {
-  const updates = input.updates.map((line) => line.trim()).filter(Boolean);
+function ruDate(iso: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!match) return null;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function dayBefore(iso: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!match) return null;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  date.setUTCDate(date.getUTCDate() - 1);
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${date.getUTCFullYear()}-${month}-${day}`;
+}
+
+/**
+ * Отчёт ученикам о том, что уже есть в кабинете.
+ * Только рисует письмо. Никуда не отправляет и расписание не трогает.
+ */
+export function platformUpdateLetter(input: { name: string }) {
+  const name = input.name.trim() || "Здравствуйте";
   return renderEmail({
     title: "Отчёт об обновлениях",
-    paragraphs: [
-      `${escapeHtml(input.name)}, коротко о том, что изменилось на платформе.`,
-      ...updates.map((line) => escapeHtml(line)),
+    blocks: [
+      { kind: "p", text: `${name}, коротко о том, что изменилось в кабинете, и куда нажать.` },
+      {
+        kind: "section",
+        title: "Задания",
+        items: [
+          "Поле больше не съезжает в сторону, когда вы правите текст.",
+          "Мою правку можно принять или отклонить по куску. Кнопки стоят у этого куска.",
+        ],
+        hint: "Куда нажать: левое меню, пункт «Задания».",
+      },
+      {
+        kind: "section",
+        title: "План работы",
+        items: [
+          "Фильтры те же, что у заданий: «В процессе», «Запланировано», «Все задачи».",
+          "Срок берётся из самого задания. Месяц показан списком.",
+        ],
+        hint: "Куда нажать: левое меню, пункт «План работы».",
+      },
+      {
+        kind: "section",
+        title: "Книга",
+        items: ["Счётчик «2 из 3» пишется, только если книг или циклов несколько."],
+        hint: "Куда нажать: карточка книги в левом меню.",
+      },
+      {
+        kind: "section",
+        title: "Сеттинг",
+        items: [
+          "Фото слева сверху. Справа виджет «Тип сеттинга»: квадрат и «Итог».",
+          "Карточки «Библии мира» открываются на месте.",
+          "Жёлтый стикер: коротко о мире, список пунктов и заметка к каждой теме.",
+        ],
+        hint: "Куда нажать: левое меню, пункт «Сеттинг».",
+      },
+      {
+        kind: "section",
+        title: "Заметки",
+        items: [
+          "Если выделить текст внутри поля, кнопка «Заметка» не появляется. Стирание и набор работают как обычно.",
+          "Заметку по-прежнему можно поставить на обычный текст страницы.",
+        ],
+        hint: "Куда нажать: выделите текст страницы вне поля.",
+      },
+      {
+        kind: "section",
+        title: "Материалы",
+        items: ["У методички есть кнопка «Скачать»."],
+        hint: "Куда нажать: левое меню, пункт «Материалы».",
+      },
+      {
+        kind: "section",
+        title: "Еженедельное задание",
+        items: [
+          "Это короткое необязательное задание на одну неделю.",
+          "Оно не связано с основными заданиями.",
+          "Текст сдаёте на той же странице. За сдачу начисляются 2 звёздочки.",
+        ],
+        hint: "Куда нажать: левое меню, пункт «Задание недели».",
+      },
+      {
+        kind: "section",
+        title: "Цитата дня",
+        items: [
+          "Это одна цитата писателя о ремесле.",
+          "День считается по Москве, поэтому у всех в эти сутки одна и та же цитата.",
+          "Отдельной страницы нет.",
+        ],
+      },
+      { kind: "p", text: "Если пункт не находится, напишите мне." },
     ],
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
     footnote: "Это общее письмо об обновлениях. Отключить письма можно в профиле.",
     signature: EMAIL_SIGNATURE,
   });
+}
+
+/**
+ * Письмо с заданием недели. Поля те же, что у WeeklyTask.
+ * nextPublishedOn: дата следующего задания. Срок сдачи: день до неё.
+ * Только рисует письмо.
+ */
+export function weeklyTaskLetter(input: {
+  name: string;
+  title: string;
+  prompt: string;
+  lengthHint: string;
+  publishedOn: string;
+  nextPublishedOn?: string | null;
+}) {
+  const open = ruDate(input.publishedOn);
+  const close = input.nextPublishedOn ? ruDate(dayBefore(input.nextPublishedOn) ?? "") : null;
+  const when = open && close
+    ? `Открыто с ${open}. Сдать до ${close}.`
+    : open
+      ? `Открыто с ${open}. Сдать, пока не выйдет следующее задание.`
+      : "Сдать, пока не выйдет следующее задание.";
+  const meta = [when];
+  if (input.lengthHint.trim()) meta.push(`Объём: ${input.lengthHint.trim()}`);
+  return renderEmail({
+    title: "Задание недели",
+    blocks: [
+      { kind: "p", text: `${input.name.trim() || "Здравствуйте"}, на этой неделе такое задание.` },
+      {
+        kind: "card",
+        kicker: open ?? undefined,
+        title: input.title.trim() || "Задание",
+        body: input.prompt.trim(),
+        meta,
+      },
+    ],
+    action: { label: "Открыть задание", url: `${appUrl()}/dashboard/weekly` },
+    footnote: "Задание необязательное. С основными заданиями оно не связано.",
+    signature: EMAIL_SIGNATURE,
+  });
+}
+
+/** Письмо с цитатой дня. Поля те же, что у цитаты в кабинете. Только рисует письмо. */
+export function dailyQuoteLetter(input: { name: string; text: string; author: string; source?: string }) {
+  return renderEmail({
+    title: "Цитата дня",
+    blocks: [
+      { kind: "p", text: `${input.name.trim() || "Здравствуйте"}, сегодня такая цитата.` },
+      {
+        kind: "quote",
+        text: input.text.trim(),
+        author: input.author.trim(),
+        source: input.source?.trim() || undefined,
+      },
+    ],
+    action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
+    footnote: "День считается по Москве. Отключить письма можно в профиле.",
+    signature: EMAIL_SIGNATURE,
+  });
+}
+
+/** Образцы для превью. Данные как в кабинете, письмо никуда не уходит. */
+export function designerLetterPreviews() {
+  return {
+    platform: platformUpdateLetter({ name: "Виктория" }),
+    weekly: weeklyTaskLetter({
+      name: "Виктория",
+      title: "Комната после новости",
+      prompt:
+        "Опиши комнату так, чтобы по ней было ясно: хозяин только что узнал что-то плохое. Слово «плохо», названия эмоций и сама новость не пиши. Покажи это через вещи, свет, порядок или беспорядок.",
+      lengthHint: "полстраницы",
+      publishedOn: "2026-10-24",
+      nextPublishedOn: "2026-10-31",
+    }),
+    quote: dailyQuoteLetter({
+      name: "Виктория",
+      text: "Краткость — сестра таланта.",
+      author: "Антон Чехов",
+      source: "Письмо брату Александру, 11 апреля 1889",
+    }),
+  };
 }

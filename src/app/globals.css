@@ -367,6 +367,14 @@ input, textarea, select, [contenteditable="true"] {
   outline: 2px solid var(--v);
   outline-offset: 2px;
 }
+.mail-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.mail-filter { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-width: 0; }
+.mail-filter .pill-select-wrap { width: 220px; max-width: 100%; min-width: 0; }
+.mail-filter .pill-select { width: 100%; }
+@media (max-width: 520px) {
+  .mail-filter { width: 100%; }
+  .mail-filter .pill-select-wrap { width: auto; flex: 1 1 auto; }
+}
 
 .hover-lift.is-on { box-shadow: 0 0 0 2px #202020; }
 .photo-tools { opacity: 1; }

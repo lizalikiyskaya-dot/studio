@@ -1,5 +1,6 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { prisma } from "@/lib/prisma";
+import { envelopeFrom, readStoredSender } from "@/lib/mailSender";
 
 /**
  * Отправка почты через обычный SMTP (у Лизы — Gmail с паролем приложения).
@@ -63,6 +64,9 @@ export type MailInput = {
   type?: string;
   /** Кому адресовано, если этот человек есть в базе. */
   recipientUserId?: string | null;
+  /** Если задан, не читаем настройку наставника ещё раз. */
+  from?: string;
+  replyTo?: string;
 };
 
 type MailTransport = Pick<Transporter, "sendMail">;
@@ -118,10 +122,14 @@ export async function sendMail(input: MailInput): Promise<boolean> {
     await recordEmailAttempt(input, "failed", "SMTP не настроен");
     return false;
   }
-  const from = mailFrom();
+  const stored = input.from ? null : await readStoredSender();
+  const envelope = input.from
+    ? { from: input.from, replyTo: input.replyTo }
+    : envelopeFrom(stored, mailFrom());
   try {
     await tx.sendMail({
-      from,
+      from: envelope.from,
+      replyTo: envelope.replyTo,
       to,
       subject,
       text: text ?? htmlToText(html),
@@ -195,22 +203,122 @@ export const EMAIL_SIGNATURE = "Лиза Андреенко";
 
 export type RenderedEmail = { html: string; text: string };
 
+/** Куски дизайнерского письма. Текст простой: экранируется здесь. */
+export type EmailBlock =
+  | { kind: "p"; text: string }
+  | { kind: "section"; title: string; items: string[]; hint?: string }
+  | { kind: "card"; kicker?: string; title: string; body?: string; meta?: string[] }
+  | { kind: "quote"; text: string; author: string; source?: string };
+
+function textToHtml(value: string): string {
+  return escapeHtml(value).replace(/\n/g, "<br>");
+}
+
+function bulletTable(items: string[]): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%">${items
+    .map(
+      (item) => `<tr>
+        <td valign="top" width="16" style="width:16px;padding:0 0 8px;font-family:${FONT_UI};font-size:16px;line-height:1.45;color:#202020;">•</td>
+        <td valign="top" style="padding:0 0 8px;font-family:${FONT_UI};font-size:15px;line-height:1.45;color:#202020;">${textToHtml(item)}</td>
+      </tr>`
+    )
+    .join("")}</table>`;
+}
+
+function hintLine(hint: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:4px 0 0;">
+    <tr>
+      <td width="4" bgcolor="#FFD43B" style="width:4px;background:#FFD43B;font-size:0;line-height:0;">&nbsp;</td>
+      <td style="padding:0 0 0 10px;font-family:${FONT_UI};font-size:14px;line-height:1.45;color:#202020;">${textToHtml(hint)}</td>
+    </tr>
+  </table>`;
+}
+
+function blockHtml(block: EmailBlock): string {
+  if (block.kind === "p") {
+    return `<p style="margin:0 0 14px;font-family:${FONT_UI};font-size:16px;line-height:1.55;color:#202020;">${textToHtml(block.text)}</p>`;
+  }
+  if (block.kind === "section") {
+    const hint = block.hint ? hintLine(block.hint) : "";
+    return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 12px;background:#F6F1E8;border-radius:14px;">
+      <tr>
+        <td bgcolor="#F6F1E8" style="padding:16px 16px 12px;background:#F6F1E8;border-radius:14px;">
+          <h2 style="margin:0 0 10px;font-family:${FONT_UI};font-size:18px;line-height:1.25;font-weight:700;color:#202020;">${escapeHtml(block.title)}</h2>
+          ${bulletTable(block.items)}
+          ${hint}
+        </td>
+      </tr>
+    </table>`;
+  }
+  if (block.kind === "card") {
+    const kicker = block.kicker
+      ? `<p style="margin:0 0 6px;font-family:${FONT_SERIF};font-size:15px;font-style:italic;line-height:1.3;color:#6553E8;">${textToHtml(block.kicker)}</p>`
+      : "";
+    const body = block.body
+      ? `<p style="margin:12px 0 0;font-family:${FONT_SERIF};font-size:17px;line-height:1.5;color:#202020;">${textToHtml(block.body)}</p>`
+      : "";
+    const meta = (block.meta ?? [])
+      .map(
+        (line) =>
+          `<p style="margin:8px 0 0;font-family:${FONT_UI};font-size:13.5px;line-height:1.4;color:#8A8A8A;">${textToHtml(line)}</p>`
+      )
+      .join("");
+    return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 16px;background:#F6F1E8;border-radius:16px;">
+      <tr>
+        <td bgcolor="#F6F1E8" style="padding:18px 18px 16px;background:#F6F1E8;border-radius:16px;">
+          ${kicker}
+          <h2 style="margin:0;font-family:${FONT_UI};font-size:22px;line-height:1.25;font-weight:700;color:#202020;">${textToHtml(block.title)}</h2>
+          ${body}
+          ${meta}
+        </td>
+      </tr>
+    </table>`;
+  }
+  const source = block.source
+    ? `<p style="margin:4px 0 0;font-family:${FONT_UI};font-size:13px;line-height:1.4;color:#8A8A8A;">${textToHtml(block.source)}</p>`
+    : "";
+  return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 16px;background:#F6F1E8;border-radius:16px;">
+    <tr>
+      <td bgcolor="#F6F1E8" style="padding:22px 20px 20px;background:#F6F1E8;border-radius:16px;">
+        <p style="margin:0;font-family:${FONT_SERIF};font-size:26px;font-style:italic;line-height:1.35;color:#202020;">«${textToHtml(block.text)}»</p>
+        <p style="margin:16px 0 0;font-family:${FONT_SERIF};font-size:16px;font-style:italic;line-height:1.3;color:#6553E8;">${textToHtml(block.author)}</p>
+        ${source}
+      </td>
+    </tr>
+  </table>`;
+}
+
+function blockPlain(block: EmailBlock): string[] {
+  if (block.kind === "p") return [block.text];
+  if (block.kind === "section") {
+    return [block.title, ...block.items.map((item) => `• ${item}`), ...(block.hint ? [block.hint] : [])];
+  }
+  if (block.kind === "card") {
+    return [block.kicker, block.title, block.body, ...(block.meta ?? [])].filter((line): line is string => Boolean(line));
+  }
+  return [`«${block.text}»`, block.author, block.source].filter((line): line is string => Boolean(line));
+}
+
 export function renderEmail(options: {
   title: string;
-  paragraphs: string[];
+  paragraphs?: string[];
+  blocks?: EmailBlock[];
   action?: { label: string; url: string };
   footnote?: string;
   /** Подпись в конце. Письмам ученику — «Лиза Андреенко». */
   signature?: string;
 }): RenderedEmail {
-  const { title, paragraphs, action, footnote, signature } = options;
+  const { title, paragraphs = [], blocks, action, footnote, signature } = options;
   const titleHtml = markedEmailTitle(title);
-  const body = paragraphs
-    .map(
-      (p) =>
-        `<p style="margin:0 0 14px;font-family:${FONT_UI};font-size:16px;line-height:1.55;color:#202020;">${p}</p>`
-    )
-    .join("");
+  const body =
+    blocks && blocks.length > 0
+      ? blocks.map((block) => blockHtml(block)).join("")
+      : paragraphs
+          .map(
+            (p) =>
+              `<p style="margin:0 0 14px;font-family:${FONT_UI};font-size:16px;line-height:1.55;color:#202020;">${p}</p>`
+          )
+          .join("");
   const button = action
     ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 0;">
          <tr>
@@ -259,14 +367,17 @@ export function renderEmail(options: {
   <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#F6F1E8;">
     <tr>
       <td align="center" style="padding:28px 16px 36px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" width="560" style="width:100%;max-width:560px;background:#ffffff;border-radius:24px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="width:100%;max-width:600px;background:#ffffff;border-radius:24px;">
           <tr>
-            <td style="padding:28px 32px 18px;border-bottom:1px solid #E8E1DC;">
+            <td height="8" bgcolor="#FFD43B" style="height:8px;background:#FFD43B;font-size:0;line-height:0;border-radius:24px 24px 0 0;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="padding:22px 24px 16px;border-bottom:1px solid #E8E1DC;">
               ${logo}
             </td>
           </tr>
           <tr>
-            <td style="padding:28px 32px 32px;">
+            <td style="padding:24px 24px 28px;">
               <h1 style="margin:0 0 18px;font-family:${FONT_UI};font-size:30px;line-height:1.15;font-weight:650;letter-spacing:-0.03em;color:#202020;">${titleHtml}</h1>
               ${body}
               ${button}
@@ -275,7 +386,7 @@ export function renderEmail(options: {
             </td>
           </tr>
         </table>
-        <table role="presentation" cellpadding="0" cellspacing="0" width="560" style="width:100%;max-width:560px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="width:100%;max-width:600px;">
           <tr>
             <td align="center" style="padding:18px 8px 0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:#8A8A8A;">
               ${escapeHtml(EMAIL_BRAND)}<br>${host}
@@ -288,7 +399,9 @@ export function renderEmail(options: {
 </body>
 </html>`;
 
-  const textLines = [EMAIL_BRAND, "", title, "", ...paragraphs.map((paragraph) => htmlToPlain(paragraph)), ""];
+  const contentLines =
+    blocks && blocks.length > 0 ? blocks.flatMap((block) => blockPlain(block)) : paragraphs.map((paragraph) => htmlToPlain(paragraph));
+  const textLines = [EMAIL_BRAND, "", title, "", ...contentLines, ""];
   if (action) textLines.push(`${action.label}: ${action.url}`, "");
   if (signature) textLines.push(signature, "");
   if (footnote) textLines.push(htmlToPlain(footnote), "");

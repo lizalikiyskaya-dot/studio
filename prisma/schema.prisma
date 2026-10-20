@@ -172,6 +172,11 @@ model User {
   emailNotifications Boolean  @default(true)
   mentorNotifiedAt  DateTime?
   studentNotifiedAt DateTime?
+  // От кого уходят письма. Пустые строки значат «как в окружении сервера».
+  // Пароль SMTP сюда не пишется: он остаётся в SMTP_PASSWORD.
+  mailFromName  String @default("")
+  mailFromEmail String @default("")
+  mailReplyTo   String @default("")
   avatarUrl     String?
   sortOrder     Int           @default(0)
   createdAt     DateTime      @default(now())
