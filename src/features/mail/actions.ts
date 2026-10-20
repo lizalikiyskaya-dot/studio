@@ -93,6 +93,8 @@ export async function previewMentorMail(input: {
   });
   if (!student) return { error: "Выберите ученика с открытым доступом." };
   const context = await letterContext();
+  const key = template === "platform" ? "platform" : template === "weekly" ? "weekly-task" : template === "quote" ? "daily-quote" : null;
+  const stored = key ? await readLetterTemplate(key) : null;
   const letter = renderMentorCompose({
     template,
     subject: input.subject,
@@ -100,6 +102,7 @@ export async function previewMentorMail(input: {
     name: student.name,
     weekly: context.weekly,
     quote: context.quote,
+    stored,
   });
   return { subject: letter.subject, html: letter.html };
 }
@@ -139,8 +142,10 @@ export async function sendMentorMail(input: {
   if (template === "quote" && !context.quote) return { error: "Цитаты на сегодня нет." };
   if (sending.has(session.userId)) return { error: "Предыдущая пачка ещё уходит." };
   sending.add(session.userId);
-  const stored = await readStoredSender();
-  const envelope = input.fromChoice === "env" ? { from: mailFrom(), replyTo: undefined } : envelopeFrom(stored, mailFrom());
+  const storedSender = await readStoredSender();
+  const envelope = envelopeFrom(storedSender, mailFrom());
+  const letterKey = template === "platform" ? "platform" : template === "weekly" ? "weekly-task" : template === "quote" ? "daily-quote" : null;
+  const storedLetter = letterKey ? await readLetterTemplate(letterKey) : null;
   let sent = 0;
   let failed = 0;
   try {
@@ -152,6 +157,7 @@ export async function sendMentorMail(input: {
         name: student.name,
         weekly: context.weekly,
         quote: context.quote,
+        stored: storedLetter,
       });
       const ok = await sendMail({
         to: student.email,

@@ -45,17 +45,15 @@ export function parseAddress(value: string): { name: string; email: string } {
   return { name: match[1].trim().replace(/^"|"$/g, ""), email: match[2].trim() };
 }
 
-/** Пустые поля настройки не трогают адрес из окружения. */
+/**
+ * Рабочий адрес всегда из окружения (`MAIL_FROM` / `SMTP_USER`).
+ * Сохранённые имя, «От» и Reply-To в профиле его не подменяют и отправку не ломают.
+ */
 export function envelopeFrom(
-  sender: MailSenderInput | null,
+  _sender: MailSenderInput | null,
   envFrom: string,
 ): { from: string; replyTo?: string } {
-  const parsed = parseAddress(envFrom);
-  const name = sender?.fromName.trim() || parsed.name;
-  const email = sender?.fromEmail.trim() || parsed.email;
-  const from = email ? `${name} <${email}>` : name || envFrom;
-  const replyTo = sender?.replyTo.trim() || undefined;
-  return { from, replyTo };
+  return { from: envFrom };
 }
 
 /**

@@ -3,7 +3,6 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import ProfileForm from "@/features/profile/ProfileForm";
 import PageHeader from "@/components/PageHeader";
-import Link from "next/link";
 
 export default async function MentorProfilePage() {
   const session = await getSession();
@@ -15,10 +14,6 @@ export default async function MentorProfilePage() {
   return (
     <div>
       <PageHeader title="Мой профиль" />
-      <p className="mb-4 text-[14px]">
-        <Link href="/mentor/mail#mail-settings" style={{ color: "var(--vi)" }}>Адрес отправителя</Link>
-        {" "}настраивается в разделе «Письма».
-      </p>
       <ProfileForm
         userId={user.id}
         initialName={user.name}

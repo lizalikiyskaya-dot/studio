@@ -1,4 +1,4 @@
-import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail } from "@/lib/mail";
+import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail, type EmailBlock } from "@/lib/mail";
 import { optOutLinkLabel } from "@/lib/mailOptOut";
 import type { OptOutKind } from "@/lib/mailOptOut";
 
@@ -160,12 +160,156 @@ export function fillLetter(template: string, vars: Record<string, string>): stri
   });
 }
 
-function paragraphs(body: string): { kind: "p"; text: string }[] {
+const WEEKLY_TOKENS = new Set(["задание", "текст", "срок", "объём"]);
+const QUOTE_TOKENS = new Set(["цитата", "автор", "источник"]);
+
+function paragraphParts(body: string): string[] {
   const parts = body
     .split(/\n\s*\n/)
     .map((part) => part.trim())
     .filter(Boolean);
-  return (parts.length > 0 ? parts : [""]).map((text) => ({ kind: "p" as const, text }));
+  return parts.length > 0 ? parts : [""];
+}
+
+function lineToken(line: string): string | null {
+  const match = /^(?:«\{([^{}]+)\}»|\{([^{}]+)\})$/.exec(line.trim());
+  return match ? (match[1] ?? match[2]) : null;
+}
+
+function pureTokenNames(paragraph: string, allowed: Set<string>): string[] | null {
+  const lines = paragraph.split("\n").map((line) => line.trim()).filter(Boolean);
+  if (lines.length === 0) return null;
+  const names: string[] = [];
+  for (const line of lines) {
+    const name = lineToken(line);
+    if (!name || !allowed.has(name)) return null;
+    names.push(name);
+  }
+  return names;
+}
+
+function weeklyKicker(when: string): string | undefined {
+  const match = /Открыто с ([^.]+)\./.exec(when);
+  return match ? `${match[1]}.` : undefined;
+}
+
+function weeklyCard(names: string[], vars: Record<string, string>): EmailBlock {
+  const has = (name: string) => names.includes(name);
+  const when = has("срок") ? (vars.срок ?? "").trim() : "";
+  const volume = has("объём") ? (vars.объём ?? "").trim() : "";
+  const meta = [when, volume].filter(Boolean);
+  const body = has("текст") ? (vars.текст ?? "").trim() : "";
+  return {
+    kind: "card",
+    kicker: when ? weeklyKicker(when) : undefined,
+    title: has("задание") ? ((vars.задание ?? "").trim() || "Задание") : "Задание",
+    body: body || undefined,
+    meta: meta.length > 0 ? meta : undefined,
+  };
+}
+
+function quoteBlock(names: string[], vars: Record<string, string>): EmailBlock {
+  const source = names.includes("источник") ? (vars.источник ?? "").trim() : "";
+  return {
+    kind: "quote",
+    text: (vars.цитата ?? "").trim(),
+    author: (vars.автор ?? "").trim(),
+    source: source || undefined,
+  };
+}
+
+function asSection(paragraph: string): EmailBlock | null {
+  if (/\{[^{}]+\}/.test(paragraph)) return null;
+  const lines = paragraph.split("\n").map((line) => line.trim()).filter(Boolean);
+  if (lines.length < 2) return null;
+  const title = lines[0];
+  if (title.length > 60 || /[.!?,:;]/.test(title)) return null;
+  let hint: string | undefined;
+  const items: string[] = [];
+  for (const line of lines.slice(1)) {
+    if (/^Куда нажать\s*:/.test(line)) hint = line;
+    else items.push(line);
+  }
+  if (items.length === 0 || (!hint && items.length < 2)) return null;
+  return { kind: "section", title, items, hint };
+}
+
+function editsBlocks(key: LetterKey, raw: string): EmailBlock[] {
+  const groups = raw.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
+  const chunks = groups.length > 0 ? groups : [""];
+  return chunks.map((group) => {
+    const lines = group.split("\n").map((line) => line.trim()).filter(Boolean);
+    let hint: string | undefined;
+    const content = lines.filter((line) => {
+      if (/^Куда нажать\s*:/.test(line)) {
+        hint = line;
+        return false;
+      }
+      return true;
+    });
+    const title = content[0] || "Правки";
+    const items = content.slice(1);
+    const where =
+      key === "student-edit"
+        ? `Куда нажать: кабинет, пункт «${title}».`
+        : key === "mentor-edit"
+          ? `Куда нажать: левое меню, пункт «${title}».`
+          : undefined;
+    return {
+      kind: "section" as const,
+      title,
+      items: items.length > 0 ? items : ["Есть новые правки."],
+      hint: hint ?? where,
+    };
+  });
+}
+
+/** Незаполненный текст: плейсхолдеры карточки, цитаты и разделов остаются блоками письма. */
+function blocksFromTemplate(key: LetterKey, body: string, vars: Record<string, string>): EmailBlock[] {
+  const blocks: EmailBlock[] = [];
+  let weekly: string[] = [];
+  let quote: string[] = [];
+
+  function flushWeekly() {
+    if (weekly.length === 0) return;
+    blocks.push(weeklyCard(weekly, vars));
+    weekly = [];
+  }
+  function flushQuote() {
+    if (quote.length === 0) return;
+    blocks.push(quoteBlock(quote, vars));
+    quote = [];
+  }
+
+  for (const part of paragraphParts(body)) {
+    const weekNames = pureTokenNames(part, WEEKLY_TOKENS);
+    if (weekNames) {
+      flushQuote();
+      weekly.push(...weekNames);
+      continue;
+    }
+    const quoteNames = pureTokenNames(part, QUOTE_TOKENS);
+    if (quoteNames) {
+      flushWeekly();
+      quote.push(...quoteNames);
+      continue;
+    }
+    flushWeekly();
+    flushQuote();
+    if (part === "{правки}") {
+      blocks.push(...editsBlocks(key, vars.правки ?? ""));
+      continue;
+    }
+    const section = asSection(part);
+    if (section) {
+      blocks.push(section);
+      continue;
+    }
+    blocks.push({ kind: "p", text: fillLetter(part, vars) });
+  }
+  flushWeekly();
+  flushQuote();
+  return blocks;
 }
 
 function unsubFoot(base: string, url: string | undefined, kind: OptOutKind): string {
@@ -256,7 +400,8 @@ function chrome(key: LetterKey, vars: Record<string, string>): {
 
 /**
  * Нет сохранённого текста или он совпадает со стандартом: вернуть готовое письмо как есть.
- * Иначе тема и текст из шаблона, кнопка и подпись остаются.
+ * Иначе сохранённый текст встаёт в ту же рамку: шапка, карточки, кнопка и подпись.
+ * Текст в базе не переписывается.
  */
 export function applyLetterTemplate(
   key: LetterKey,
@@ -267,10 +412,9 @@ export function applyLetterTemplate(
   if (!stored || sameAsStandard(key, stored)) return designed;
   if (key === "password" && !vars.ссылка?.trim()) return designed;
   const subject = fillLetter(stored.subject, vars).trim() || designed.subject;
-  const body = fillLetter(stored.body, vars);
   const letter = renderEmail({
     title: subject,
-    blocks: paragraphs(body),
+    blocks: blocksFromTemplate(key, stored.body, vars),
     ...chrome(key, vars),
   });
   return { subject, html: letter.html, text: letter.text };
