@@ -143,7 +143,7 @@ export default function WorkPlanTable({
   const pathname = usePathname();
   const router = useRouter();
   const requested = searchParams.get("tab");
-  const activeTab = TABS.some((tab) => tab.id === requested) ? requested! : "all";
+  const activeTab = TABS.some((tab) => tab.id === requested) ? requested! : "progress";
 
   function selectTab(id: string) {
     const next = new URLSearchParams(searchParams.toString());
