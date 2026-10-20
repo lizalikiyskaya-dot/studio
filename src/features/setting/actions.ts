@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import type { WorldCategory } from "@/generated/prisma/client";
 import { resolveShares } from "./settingMix";
-import { isEntryCategory, themeNoteKey } from "./worldBible";
+import { isEntryCategory, storedSettingKey, themeNoteKey } from "./worldBible";
 
 const GRAPES_FIELDS = [
   "grapesGeography",
@@ -154,12 +154,17 @@ export async function updateFantasyText(bookId: string, field: FantasyTextField,
   await prisma.book.update({ where: { id: bookId }, data: { [field]: value } });
 }
 
-export async function createWorldEntry(bookId: string, category: WorldCategory) {
+export async function createWorldEntry(bookId: string, category: WorldCategory, settingKey = "") {
   const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
   await requireCabinetAccess(book.studentId);
-  const count = await prisma.worldEntry.count({ where: { bookId, category } });
+  const key = storedSettingKey(settingKey);
+  if (key) {
+    const setting = await prisma.grapesSetting.findFirst({ where: { id: key, bookId }, select: { id: true } });
+    if (!setting) throw new Error("Нет такой таблицы");
+  }
+  const count = await prisma.worldEntry.count({ where: { bookId, category, settingKey: key } });
   return prisma.worldEntry.create({
-    data: { bookId, category, order: count },
+    data: { bookId, category, order: count, settingKey: key },
   });
 }
 

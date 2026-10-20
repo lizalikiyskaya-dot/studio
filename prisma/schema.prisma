@@ -512,8 +512,10 @@ model WorldEntry {
   order     Int           @default(0)
   title     String        @default("Новая запись")
   body      String        @default("")
-  photoUrl  String?
-  createdAt DateTime      @default(now())
+  photoUrl   String?
+  createdAt  DateTime @default(now())
+  // Пустая строка — первая таблица GRAPES. Иначе id GrapesSetting.
+  settingKey String   @default("")
 
   @@index([bookId])
 }
