@@ -1,3 +1,5 @@
+import { resolve4 } from "node:dns/promises";
+import net from "node:net";
 import nodemailer, { type Transporter } from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { envelopeFrom, readStoredSender } from "@/lib/mailSender";
@@ -37,20 +39,56 @@ export function appUrl(): string {
 }
 
 let cached: Transporter | null = null;
+let opening: Promise<Transporter | null> | null = null;
 
-function transporter(): MailTransport | null {
+/**
+ * Куда стучаться в SMTP. Nodemailer сам выбирает случайный адрес из A и AAAA.
+ * У сервера нет маршрута IPv6, поэтому берём только A и оставляем имя для TLS.
+ */
+export function pickIpv4SmtpHost(hostname: string, addresses: string[]): { host: string; servername?: string } {
+  const name = hostname.trim();
+  if (!name || net.isIP(name)) return { host: name };
+  const ipv4 = addresses.find((item) => net.isIPv4(item));
+  if (!ipv4) return { host: name };
+  return { host: ipv4, servername: name };
+}
+
+async function resolveIpv4Smtp(hostname: string): Promise<{ host: string; servername?: string }> {
+  const name = hostname.trim();
+  if (!name || net.isIP(name)) return { host: name };
+  try {
+    return pickIpv4SmtpHost(name, await resolve4(name));
+  } catch {
+    return { host: name };
+  }
+}
+
+async function transporter(): Promise<MailTransport | null> {
   if (transportOverride !== undefined) return transportOverride;
   if (!mailConfigured()) return null;
   if (cached) return cached;
+  if (!opening) {
+    opening = openTransport().finally(() => {
+      opening = null;
+    });
+  }
+  return opening;
+}
+
+async function openTransport(): Promise<Transporter | null> {
+  const name = process.env.SMTP_HOST?.trim() || "";
   const port = Number(process.env.SMTP_PORT ?? 587);
-  cached = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
+  const picked = await resolveIpv4Smtp(name);
+  const transport = nodemailer.createTransport({
+    host: picked.host,
     port,
-    // 465 — SMTPS, 587 — STARTTLS.
+    // 465 — SMTPS, 587 — STARTTLS. Имя хоста нужно для проверки сертификата, когда host уже IPv4.
     secure: port === 465,
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+    tls: picked.servername ? { servername: picked.servername } : undefined,
   });
-  return cached;
+  cached = transport;
+  return transport;
 }
 
 export type MailInput = {
@@ -118,7 +156,7 @@ async function recordEmailAttempt(input: MailInput, status: "sent" | "failed", e
  */
 export async function sendMail(input: MailInput): Promise<boolean> {
   const { to, subject, html, text } = input;
-  const tx = transporter();
+  const tx = await transporter();
   if (!tx) {
     console.warn("[mail] SMTP не настроен, письмо не отправлено:", subject, "→", to);
     await recordEmailAttempt(input, "failed", "SMTP не настроен");

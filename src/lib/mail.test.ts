@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { EMAIL_BRAND, EMAIL_SIGNATURE, mailFrom, renderEmail } from "./mail";
+import { EMAIL_BRAND, EMAIL_SIGNATURE, mailFrom, pickIpv4SmtpHost, renderEmail } from "./mail";
 import { approvedLetter, dailyQuoteLetter, designerLetterPreviews, guideOpenedLetter, mentorEditLetter, passwordResetLetter, platformUpdateLetter, registrationStudentLetter, weeklyTaskLetter } from "./notify";
 
 function withEnv(values: Record<string, string | undefined>, run: () => void) {
@@ -19,6 +19,15 @@ function withEnv(values: Record<string, string | undefined>, run: () => void) {
     }
   }
 }
+
+test("SMTP берёт IPv4 и оставляет имя хоста для TLS", () => {
+  assert.deepEqual(pickIpv4SmtpHost("smtp.gmail.com", ["2a00:1450:4010:c1e::6d", "172.217.21.109"]), {
+    host: "172.217.21.109",
+    servername: "smtp.gmail.com",
+  });
+  assert.deepEqual(pickIpv4SmtpHost("smtp.gmail.com", []), { host: "smtp.gmail.com" });
+  assert.deepEqual(pickIpv4SmtpHost("142.250.185.109", ["1.2.3.4"]), { host: "142.250.185.109" });
+});
 
 test("отправитель по умолчанию прежний, новый адрес только из окружения", () => {
   withEnv(
