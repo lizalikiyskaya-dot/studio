@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/session";
 import type { Cycle } from "@/generated/prisma/client";
 import CycleSettingTypeSection from "./CycleSettingTypeSection";
 import SettingPhotoBanner from "@/features/setting/SettingPhotoBanner";
@@ -14,8 +13,6 @@ export default async function CycleSettingView({ cycle }: { cycle: Cycle }) {
     where: { cycleId: cycle.id },
     orderBy: { order: "asc" },
   });
-  const session = await getSession();
-  const isMentor = session?.role === "MENTOR";
   const grapes = {} as GrapesBag;
   for (const field of GRAPES_FIELDS) grapes[field] = cycle[field] ?? "";
 
@@ -45,8 +42,6 @@ export default async function CycleSettingView({ cycle }: { cycle: Cycle }) {
         fantasySuggestions={cycleSuggestions}
         canEdit
         allowTables={false}
-        isMentor={isMentor}
-        unlocked={cycle.fantasyUnlocked}
         photoKind="cycle-world-entry-photo"
       />
     </div>
