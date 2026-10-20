@@ -63,7 +63,7 @@ export default async function StudentViewLayout({
         mentorViewLabel={student.name}
         studentId={student.id}
         beacons={beacons}
-        notesCount={notes.length}
+        notesCount={notes.filter((note) => !note.resolved).length}
         bookWorkshopUnlocked={student.bookWorkshopUnlocked}
         storyWorkshopUnlocked={student.storyWorkshopUnlocked}
         books={books}
@@ -77,7 +77,7 @@ export default async function StudentViewLayout({
       >
         {children}
       </Sidebar>
-      <NotesPanel studentId={student.id} initialNotes={notes} initialComments={noteComments} />
+      <NotesPanel studentId={student.id} viewerRole="MENTOR" initialNotes={notes} initialComments={noteComments} />
     </SuggestionProvider>
   );
 }

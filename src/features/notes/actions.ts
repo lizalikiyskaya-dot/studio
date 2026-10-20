@@ -62,6 +62,23 @@ export async function resolveNote(noteId: string) {
   });
 }
 
+export async function pollNotes(studentId: string) {
+  await requireCabinetAccess(studentId);
+  const notes = await prisma.note.findMany({ where: { studentId }, orderBy: { createdAt: "desc" } });
+  const rows = notes.length
+    ? await prisma.comment.findMany({
+        where: { model: "Note", recordId: { in: notes.map((note) => note.id) } },
+        orderBy: { createdAt: "asc" },
+      })
+    : [];
+  const comments: Record<string, typeof rows> = {};
+  for (const row of rows) {
+    comments[row.recordId] ??= [];
+    comments[row.recordId].push(row);
+  }
+  return { notes, comments };
+}
+
 export async function reopenNote(noteId: string) {
   const note = await prisma.note.findUniqueOrThrow({ where: { id: noteId } });
   await requireCabinetAccess(note.studentId);

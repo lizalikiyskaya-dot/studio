@@ -824,6 +824,45 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   display: grid;
   place-items: center;
 }
+.notes-fab.is-unread {
+  box-shadow: 0 0 0 3px rgba(224, 89, 42, 0.45), var(--shadow-md);
+}
+.notes-fab.is-unread::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 0 0 rgba(224, 89, 42, 0.4);
+  animation: notes-fab-pulse 1.8s ease-out infinite;
+}
+@keyframes notes-fab-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(224, 89, 42, 0.4); }
+  100% { box-shadow: 0 0 0 14px rgba(224, 89, 42, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .notes-fab.is-unread::after { animation: none; }
+}
+#note-mark-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+.note-field-overlay {
+  position: fixed;
+  overflow: hidden;
+  pointer-events: none;
+  color: transparent;
+}
+.note-field-overlay mark {
+  background: rgba(255, 212, 59, 0.55);
+  color: transparent;
+  border-radius: 2px;
+}
+.note-field-overlay mark.is-flash {
+  background: rgba(255, 196, 40, 0.95);
+}
 .avatar {
   border-radius: 999px;
   display: grid;
