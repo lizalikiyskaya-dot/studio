@@ -437,6 +437,58 @@ input, textarea, select, [contenteditable="true"] {
 }
 textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 .fld:focus { border-color: #c9c4f5; box-shadow: 0 0 0 4px rgba(101, 83, 232, 0.12); }
+
+/* Ползунки типа сеттинга: светлая дорожка и белый бегунок. */
+.share-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  color-scheme: light;
+}
+.share-range:focus-visible {
+  outline: 2px solid var(--v);
+  outline-offset: 2px;
+}
+.share-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border: 1px solid #e8e1dc;
+  border-radius: 999px;
+  background: #f1f1f1;
+}
+.share-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 1px solid #e8e1dc;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(32, 32, 32, 0.16);
+}
+.share-range::-moz-range-track {
+  height: 6px;
+  border: 1px solid #e8e1dc;
+  border-radius: 999px;
+  background: #f1f1f1;
+}
+.share-range::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: #f1f1f1;
+}
+.share-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #e8e1dc;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(32, 32, 32, 0.16);
+}
 .fld-label { display: block; margin-top: 16px; font-size: 12.5px; color: var(--muted); }
 .fld-label > .fld,
 .fld-label > .fld-wrap { margin-top: 6px; }
