@@ -14,11 +14,13 @@ const OPTIONS: { value: MentorTemplate; label: string }[] = [
 ];
 
 type Student = { id: string; name: string; email: string };
+type FromOption = { id: "env" | "profile"; label: string };
 
-export default function ComposeMail({ students }: { students: Student[] }) {
+export default function ComposeMail({ students, fromOptions }: { students: Student[]; fromOptions: FromOption[] }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"compose" | "preview" | "confirm">("compose");
   const [template, setTemplate] = useState<MentorTemplate>("blank");
+  const [fromChoice, setFromChoice] = useState<"env" | "profile">(fromOptions.some((item) => item.id === "profile") ? "profile" : "env");
   const [picked, setPicked] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
@@ -99,6 +101,7 @@ export default function ComposeMail({ students }: { students: Student[] }) {
       subject,
       body,
       studentIds: picked,
+      fromChoice,
     });
     setBusy(false);
     if ("error" in response && response.error) {
@@ -127,6 +130,23 @@ export default function ComposeMail({ students }: { students: Student[] }) {
           {step === "compose" ? (
             <div>
               <h2 className="text-[20px]">Новое письмо</h2>
+              <label className="mt-4 block text-[13px]" style={{ color: "var(--muted)" }}>
+                От кого
+                <select
+                  aria-label="От кого"
+                  data-compose-from
+                  className="fld mt-1"
+                  value={fromChoice}
+                  onChange={(event) => setFromChoice(event.target.value === "profile" ? "profile" : "env")}
+                >
+                  {fromOptions.map((option) => (
+                    <option key={option.id} value={option.id}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+              <a href="#mail-settings" className="mt-2 inline-block text-[13px]" style={{ color: "var(--vi)" }}>
+                Изменить адрес
+              </a>
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <button type="button" className="btn-y" style={{ height: 36, padding: "0 14px" }} onClick={toggleAll}>
                   {picked.length === students.length && students.length > 0 ? "Снять всех" : "Все ученики"}
@@ -193,6 +213,7 @@ export default function ComposeMail({ students }: { students: Student[] }) {
             <div>
               <h2 className="text-[20px]">Так письмо уйдёт</h2>
               <p className="mt-1 text-[14px]">Тема: {previewSubject}</p>
+              <p className="text-[14px]">От: {fromOptions.find((item) => item.id === fromChoice)?.label}</p>
               <iframe
                 title="Превью письма"
                 sandbox=""

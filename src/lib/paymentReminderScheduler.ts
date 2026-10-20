@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { sendMail } from "@/lib/mail";
 import { runPaymentReminders, type ReminderPerson } from "@/lib/paymentReminders";
+import { clockOpen, parseStudentIds, zonedClock } from "@/lib/mailBroadcasts";
+import { envelopeFor, readBroadcast } from "@/lib/mailBroadcastStore";
 
 const LOCK_KEY = 8710231842018;
 const TICK_MS = 15 * 60 * 1000;
@@ -56,12 +58,28 @@ async function listPeople(): Promise<ReminderPerson[]> {
 
 /** Один прогон. Письма уходят только в продакшене и только без dry-run. */
 export async function runScheduledPaymentReminders(now = new Date()) {
+  const gate = await readBroadcast("payment");
+  const setting = gate.legacy ? null : gate.setting;
+  if (setting && !setting.enabled) {
+    return { skipped: "disabled" as const, dueOn: null, planned: 0, sent: 0, alreadySent: 0, failed: 0, dryRun: true };
+  }
+  if (setting && !clockOpen(zonedClock(now, setting.timeZone), setting)) {
+    return { skipped: "not-morning" as const, dueOn: null, planned: 0, sent: 0, alreadySent: 0, failed: 0, dryRun: false };
+  }
   const dryRun = dryRunEnabled() || process.env.NODE_ENV !== "production";
+  const chosen = setting?.audience === "chosen" ? new Set(parseStudentIds(setting.studentIds)) : null;
+  const envelope = setting ? await envelopeFor(setting.sender) : null;
+  const clock = setting ? zonedClock(now, setting.timeZone) : null;
   return withLock(() =>
     runPaymentReminders({
       now,
+      parts: clock ? { year: clock.year, month: clock.month, day: clock.day, hour: clock.hour } : undefined,
       dryRun,
-      list: listPeople,
+      force: Boolean(setting),
+      list: async () => {
+        const people = await listPeople();
+        return chosen ? people.filter((person) => chosen.has(person.id)) : people;
+      },
       claim: async (studentId, dueOn) => {
         try {
           await prisma.paymentReminderLog.create({
@@ -80,7 +98,16 @@ export async function runScheduledPaymentReminders(now = new Date()) {
         });
       },
       send: async ({ to, subject, html, text, recipientUserId }) =>
-        sendMail({ to, subject, html, text, type: "payment", recipientUserId }),
+        sendMail({
+          to,
+          subject,
+          html,
+          text,
+          type: "payment",
+          recipientUserId,
+          from: envelope?.from,
+          replyTo: envelope?.replyTo,
+        }),
     })
   );
 }

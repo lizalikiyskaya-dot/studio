@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail, sendMail } from "@/lib/mail";
 import { sectionLabel } from "@/lib/sections";
+import { mailGate, queueCabinetChange } from "@/lib/activityDigest";
 
 /**
  * Письма об изменениях в кабинете.
@@ -65,6 +66,13 @@ async function claimStudentWindow(studentId: string): Promise<boolean> {
 
 /** Ученик что-то поправил в своём кабинете → письмо наставнику. */
 export async function notifyMentorOfStudentEdit(studentId: string, section: string) {
+  const gate = await queueCabinetChange({
+    studentId,
+    byMentor: false,
+    section,
+    detail: sectionLabel(section),
+  });
+  if (gate !== "legacy") return;
   const [student, liza] = await Promise.all([
     prisma.user.findUnique({
       where: { id: studentId },
@@ -106,6 +114,13 @@ export async function notifyMentorOfStudentEdit(studentId: string, section: stri
  * STUDENT_EDIT_EMAILS=on.
  */
 export async function notifyStudentOfMentorEdit(studentId: string, section: string) {
+  const gate = await queueCabinetChange({
+    studentId,
+    byMentor: true,
+    section,
+    detail: sectionLabel(section),
+  });
+  if (gate !== "legacy") return;
   if (process.env.STUDENT_EDIT_EMAILS !== "on") return;
   const student = await prisma.user.findUnique({
     where: { id: studentId },
@@ -145,15 +160,21 @@ export async function notifyRegistration(user: { id: string; name: string; email
   const liza = await mentor();
 
   const toStudent = registrationStudentLetter(user.name);
-  await sendMail({
-    to: user.email,
-    subject: "Заявка на рассмотрении",
-    ...toStudent,
-    type: "registration",
-    recipientUserId: user.id,
-  });
+  const studentGate = await mailGate("registration", user.id);
+  if (studentGate.ok) {
+    await sendMail({
+      to: user.email,
+      subject: "Заявка на рассмотрении",
+      ...toStudent,
+      type: "registration",
+      recipientUserId: user.id,
+      from: studentGate.from,
+      replyTo: studentGate.replyTo,
+    });
+  }
 
-  if (liza?.email) {
+  const mentorGate = await mailGate("registration-mentor");
+  if (liza?.email && mentorGate.ok) {
     const toMentor = renderEmail({
       title: "Новая заявка на доступ",
       paragraphs: [
@@ -168,6 +189,8 @@ export async function notifyRegistration(user: { id: string; name: string; email
       ...toMentor,
       type: "registration-mentor",
       recipientUserId: liza.id,
+      from: mentorGate.from,
+      replyTo: mentorGate.replyTo,
     });
   }
 }
@@ -192,6 +215,8 @@ export async function notifyApproved(userId: string) {
   });
   if (!user?.email) return;
 
+  const gate = await mailGate("approved", userId);
+  if (!gate.ok) return;
   const letter = approvedLetter(user.name);
   await sendMail({
     to: user.email,
@@ -199,6 +224,8 @@ export async function notifyApproved(userId: string) {
     ...letter,
     type: "approved",
     recipientUserId: userId,
+    from: gate.from,
+    replyTo: gate.replyTo,
   });
 }
 
@@ -230,6 +257,8 @@ export async function notifyStudentGuideOpened(
   });
   if (!student?.email || !student.emailNotifications) return;
   if (student.status !== "APPROVED") return;
+  const gate = await mailGate("guide", studentId);
+  if (!gate.ok) return;
 
   const title = (guide.title.trim() || "Методичка").replace(/[\r\n]+/g, " ").slice(0, 180);
   const letter = guideOpenedLetter({
@@ -244,6 +273,8 @@ export async function notifyStudentGuideOpened(
     ...letter,
     type: "guide",
     recipientUserId: studentId,
+    from: gate.from,
+    replyTo: gate.replyTo,
   });
 }
 
@@ -269,6 +300,8 @@ export async function sendPasswordResetEmail(
   user: { id: string; name: string; email: string },
   token: string
 ) {
+  const gate = await mailGate("password", user.id);
+  if (!gate.ok) return;
   const url = `${appUrl()}/reset-password?token=${encodeURIComponent(token)}`;
   const letter = passwordResetLetter(user.name, url);
   await sendMail({
@@ -277,6 +310,8 @@ export async function sendPasswordResetEmail(
     ...letter,
     type: "password",
     recipientUserId: user.id,
+    from: gate.from,
+    replyTo: gate.replyTo,
   });
 }
 

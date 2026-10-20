@@ -34,8 +34,8 @@ export default function MailFromForm({
   }
 
   return (
-    <section className="sheet mb-6 px-4 py-4 sm:px-5" data-mail-settings style={{ overflow: "hidden" }}>
-      <h2 className="text-[20px]">От кого уходят письма</h2>
+    <section id="mail-settings" className="sheet mb-6 px-4 py-4 sm:px-5" data-mail-settings style={{ overflow: "hidden" }}>
+      <h2 className="text-[20px]">Настройки отправки</h2>
       {smtp.configured ? (
         <p className="mt-2 text-[14px]">Сейчас сервер входит как {smtp.user}.</p>
       ) : (

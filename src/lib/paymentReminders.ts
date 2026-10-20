@@ -135,6 +135,7 @@ export function reminderCopyHasGenderedForms(text: string): string[] {
 
 export async function runPaymentReminders(options: {
   now?: Date;
+  parts?: MoscowParts;
   dryRun?: boolean;
   force?: boolean;
   list: () => Promise<ReminderPerson[]>;
@@ -149,7 +150,7 @@ export async function runPaymentReminders(options: {
   }) => Promise<boolean>;
 }): Promise<ReminderRunResult> {
   const now = options.now ?? new Date();
-  const parts = moscowParts(now);
+  const parts = options.parts ?? moscowParts(now);
   const dryRun = options.dryRun === true;
   if (!options.force && !isMorning(parts)) {
     return { skipped: "not-morning", dueOn: dueOnDate(parts), planned: 0, sent: 0, alreadySent: 0, failed: 0, dryRun };
