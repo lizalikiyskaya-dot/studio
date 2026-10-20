@@ -1,5 +1,6 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { prisma } from "@/lib/prisma";
+import { envelopeFrom, readStoredSender } from "@/lib/mailSender";
 
 /**
  * Отправка почты через обычный SMTP (у Лизы — Gmail с паролем приложения).
@@ -63,6 +64,9 @@ export type MailInput = {
   type?: string;
   /** Кому адресовано, если этот человек есть в базе. */
   recipientUserId?: string | null;
+  /** Если задан, не читаем настройку наставника ещё раз. */
+  from?: string;
+  replyTo?: string;
 };
 
 type MailTransport = Pick<Transporter, "sendMail">;
@@ -118,10 +122,14 @@ export async function sendMail(input: MailInput): Promise<boolean> {
     await recordEmailAttempt(input, "failed", "SMTP не настроен");
     return false;
   }
-  const from = mailFrom();
+  const stored = input.from ? null : await readStoredSender();
+  const envelope = input.from
+    ? { from: input.from, replyTo: input.replyTo }
+    : envelopeFrom(stored, mailFrom());
   try {
     await tx.sendMail({
-      from,
+      from: envelope.from,
+      replyTo: envelope.replyTo,
       to,
       subject,
       text: text ?? htmlToText(html),

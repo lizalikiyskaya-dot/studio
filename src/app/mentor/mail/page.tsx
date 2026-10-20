@@ -4,7 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { markedTitle } from "@/components/markedTitle";
 import EmptyState from "@/components/EmptyState";
 import { EMAIL_TYPE_LABEL, emailTypeLabel } from "@/lib/emailTypes";
+import { smtpPublicFromEnv } from "@/lib/mailSender";
 import MailFilters from "./MailFilters";
+import ComposeMail from "./ComposeMail";
 
 const SEOUL = "Asia/Seoul";
 
@@ -39,9 +41,12 @@ export default async function MentorMailPage({
 
   const students = await prisma.user.findMany({
     where: { role: "STUDENT" },
-    select: { id: true, name: true },
+    select: { id: true, name: true, email: true, status: true },
     orderBy: { name: "asc" },
   });
+  const recipients = students
+    .filter((student) => student.status === "APPROVED" && student.email.includes("@"))
+    .map((student) => ({ id: student.id, name: student.name, email: student.email }));
 
   let ready = true;
   let rows: {
@@ -84,9 +89,10 @@ export default async function MentorMailPage({
   return (
     <div>
       <h1 className="page-title mt-1 mb-2">{markedTitle("Письма")}</h1>
-      <p className="page-lead mb-5">
+      <p className="page-lead mb-4">
         Каждая попытка отправить письмо. Время — по Сеулу.
       </p>
+      <ComposeMail students={recipients} smtpConfigured={smtpPublicFromEnv().configured} />
       <MailFilters type={type} student={student} types={types} students={students} />
       {!ready ? (
         <div className="rounded-[24px] px-5 py-4" style={{ background: "var(--soft)" }}>
