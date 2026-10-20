@@ -7,6 +7,8 @@ import { defaultBroadcast } from "@/lib/mailBroadcasts";
 import { envelopeFor, readBroadcast } from "@/lib/mailBroadcastStore";
 import { optOutSecret, signOptOut } from "@/lib/mailOptOut";
 import { deliverContentMail, sentMarker, type ContentStudent } from "@/lib/contentMail";
+import { applyLetterTemplate, weeklyVolume, weeklyWhen } from "@/lib/letterTemplates";
+import { readLetterTemplate } from "@/lib/letterTemplateStore";
 
 function missingColumn(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
@@ -60,6 +62,7 @@ export async function runScheduledContentMail(now = new Date()) {
     const picked = pickWeekly(tasks, moscowToday(now));
     if (picked.current) {
       const current = picked.current;
+      const stored = await readLetterTemplate("weekly-task");
       weekly = {
         publishedOn: current.publishedOn,
         letter: (student) => {
@@ -73,7 +76,14 @@ export async function runScheduledContentMail(now = new Date()) {
             nextPublishedOn: picked.upcoming?.publishedOn ?? null,
             unsubscribeUrl: url ?? undefined,
           });
-          return { subject: "Задание недели", ...rendered };
+          return applyLetterTemplate("weekly-task", stored, { subject: "Задание недели", ...rendered }, {
+            имя: student.name,
+            задание: current.title,
+            текст: current.prompt,
+            срок: weeklyWhen(current.publishedOn, picked.upcoming?.publishedOn ?? null),
+            объём: weeklyVolume(current.lengthHint),
+            отписка: url ?? "",
+          });
         },
       };
     }
@@ -83,6 +93,7 @@ export async function runScheduledContentMail(now = new Date()) {
   if (quoteSetting.enabled) {
     const row = await loadDailyQuote(now);
     if (row) {
+      const stored = await readLetterTemplate("daily-quote");
       quote = {
         letter: (student) => {
           const url = unsubUrl(student.id, "quote");
@@ -93,7 +104,13 @@ export async function runScheduledContentMail(now = new Date()) {
             source: row.source,
             unsubscribeUrl: url ?? undefined,
           });
-          return { subject: "Цитата дня", ...rendered };
+          return applyLetterTemplate("daily-quote", stored, { subject: "Цитата дня", ...rendered }, {
+            имя: student.name,
+            цитата: row.text,
+            автор: row.author,
+            источник: row.source ?? "",
+            отписка: url ?? "",
+          });
         },
       };
     }
