@@ -2,9 +2,9 @@
 
 import { siteAlert, siteConfirm } from "@/components/SiteDialog";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Pencil, Trash2, Maximize2, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 
 const MAX_SIZE = 4 * 1024 * 1024;
 
@@ -18,6 +18,7 @@ export default function ImageUploadBox({
   className,
   style,
   shape = "rect",
+  readOnly = false,
 }: {
   value?: string | null;
   onUpload: (file: File) => void;
@@ -28,11 +29,14 @@ export default function ImageUploadBox({
   className?: string;
   style?: React.CSSProperties;
   shape?: "rect" | "circle";
+  readOnly?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [preview, setPreview] = useState(value ?? "");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [showDefaults, setShowDefaults] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -47,32 +51,37 @@ export default function ImageUploadBox({
 
   async function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
+    setMenuOpen(false);
     if (!(await siteConfirm("Удалить фото?"))) return;
     setPreview("");
     onDelete?.();
   }
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onPointerDown(event: PointerEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [menuOpen]);
+
+  const frameStyle: React.CSSProperties = {
+    color: "var(--faded)",
+    border: preview ? "none" : "1px dashed var(--rule)",
+    borderRadius: shape === "circle" ? "50%" : "inherit",
+    overflow: "hidden",
+    backgroundColor: preview ? "#E8E1DC" : "#fff",
+    backgroundImage: preview ? `url(${preview})` : undefined,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  };
+
   return (
     <>
-      <div
-        className={`group relative ${className ?? ""}`}
-        style={{
-          cursor: "pointer",
-          color: "var(--faded)",
-          border: "1px dashed var(--rule)",
-          borderRadius: shape === "circle" ? "50%" : undefined,
-          overflow: "hidden",
-          backgroundImage: preview ? `url(${preview})` : undefined,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          ...style,
-        }}
-      >
-        {!preview && (
+      <div className={`group relative ${className ?? ""}`} style={style}>
+        <div className="absolute inset-0" style={frameStyle}>
+        {!preview && !readOnly && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
             <button type="button" onClick={() => inputRef.current?.click()} className="text-[12px]" style={{ color: "var(--faded)" }}>
               {placeholder}
@@ -89,54 +98,70 @@ export default function ImageUploadBox({
             )}
           </div>
         )}
-        {preview && (
+        {preview ? (
+          <button
+            type="button"
+            className="absolute inset-0"
+            aria-label="Открыть фото"
+            onClick={() => setLightboxOpen(true)}
+          />
+        ) : null}
+        </div>
+        {preview && !readOnly ? (
           <div
-            className="photo-tools absolute inset-0 flex items-center justify-center gap-2"
-            style={{ background: "rgba(31,32,30,0.45)" }}
+            ref={menuRef}
+            className={`photo-tools absolute z-10 ${shape === "circle" ? "right-0 top-0" : "right-2 top-2"} ${menuOpen ? "is-open" : ""}`}
           >
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setLightboxOpen(true);
-              }}
-              title="Открыть"
+              aria-label="Изменить фото"
+              aria-expanded={menuOpen}
+              title="Изменить фото"
               className="flex items-center justify-center rounded-full"
-              style={{ width: 26, height: 26, background: "#fff", color: "var(--ink)" }}
-            >
-              <Maximize2 size={13} />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                inputRef.current?.click();
+              style={{ width: 28, height: 28, background: "#fff", color: "var(--ink)", boxShadow: "0 1px 4px rgba(32,32,32,0.18)" }}
+              onClick={(event) => {
+                event.stopPropagation();
+                setMenuOpen((open) => !open);
               }}
-              title="Изменить"
-              className="flex items-center justify-center rounded-full"
-              style={{ width: 26, height: 26, background: "#fff", color: "var(--ink)" }}
             >
-              <Pencil size={12} />
+              <Pencil size={13} />
             </button>
-            {onDelete && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                title="Удалить"
-                className="flex items-center justify-center rounded-full"
-                style={{ width: 26, height: 26, background: "#fff", color: "var(--link)" }}
+            {menuOpen ? (
+              <div
+                className="absolute right-0 top-9 flex min-w-[132px] flex-col rounded-[14px] p-1"
+                style={{ background: "#fff", boxShadow: "0 8px 24px rgba(32,32,32,0.16)", border: "1px solid var(--border)" }}
               >
-                <Trash2 size={12} />
-              </button>
-            )}
+                <button
+                  type="button"
+                  className="rounded-[10px] px-3 py-1.5 text-left text-[13px]"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setMenuOpen(false);
+                    inputRef.current?.click();
+                  }}
+                >
+                  заменить
+                </button>
+                {onDelete ? (
+                  <button
+                    type="button"
+                    className="rounded-[10px] px-3 py-1.5 text-left text-[13px]"
+                    style={{ color: "var(--link)" }}
+                    onClick={handleDelete}
+                  >
+                    удалить
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
           </div>
-        )}
+        ) : null}
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleChange} />
       </div>
 
       {showDefaults && defaults && onSelectUrl && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-50"
+          className="fixed inset-0 z-[120] flex items-center justify-center"
           style={{ background: "rgba(31,32,30,0.6)" }}
           onClick={() => setShowDefaults(false)}
         >
@@ -191,7 +216,7 @@ export default function ImageUploadBox({
       {lightboxOpen && preview && (
         <div
           onClick={() => setLightboxOpen(false)}
-          className="fixed inset-0 flex items-center justify-center z-50"
+          className="fixed inset-0 z-[120] flex items-center justify-center"
           style={{ background: "rgba(31,32,30,0.85)" }}
         >
           <button

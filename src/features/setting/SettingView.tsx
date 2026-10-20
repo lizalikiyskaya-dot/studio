@@ -76,34 +76,32 @@ export default async function SettingView({
       />
 
       <div className="setting-stage mt-4">
-        <SettingPhotoBanner
-          recordId={activeBook.id}
-          photoUrl={activeBook.settingPhotoUrl}
-          canEdit
-          kind="setting-photo"
-        />
-        <div className="setting-stage-row">
-          <div className="setting-stage-main">
-            <WorldBible
-              key={activeBook.id}
-              scope="book"
-              recordId={activeBook.id}
-              tables={tables}
-              entries={worldEntries}
-              fantasyGeneral={activeBook.fantasyGeneral}
-              fantasyNotes={activeBook.fantasyNotes}
-              fantasySuggestions={bookSuggestions}
-              canEdit
-              allowTables
-              isMentor={isMentor}
-              unlocked={activeBook.fantasyUnlocked}
-              photoKind="world-entry-photo"
-            />
-          </div>
+        <div className="setting-top">
+          <SettingPhotoBanner
+            recordId={activeBook.id}
+            photoUrl={activeBook.settingPhotoUrl}
+            canEdit
+            kind="setting-photo"
+          />
           <div className="setting-stage-side">
             <SettingTypeSection bookId={activeBook.id} book={activeBook} suggestion={bookSuggestions.settingMix} />
           </div>
         </div>
+        <WorldBible
+          key={activeBook.id}
+          scope="book"
+          recordId={activeBook.id}
+          tables={tables}
+          entries={worldEntries}
+          fantasyGeneral={activeBook.fantasyGeneral}
+          fantasyNotes={activeBook.fantasyNotes}
+          fantasySuggestions={bookSuggestions}
+          canEdit
+          allowTables
+          isMentor={isMentor}
+          unlocked={activeBook.fantasyUnlocked}
+          photoKind="world-entry-photo"
+        />
       </div>
     </div>
   );

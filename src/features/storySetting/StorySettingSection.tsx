@@ -50,13 +50,27 @@ export default function StorySettingSection({
 
   return (
     <div className="setting-stage">
+      <div className="setting-top">
       {shared ? (
         <SettingPhotoBanner recordId={story.cycleId ?? story.id} photoUrl={shared.settingPhotoUrl} canEdit={false} kind="cycle-setting-photo" />
       ) : (
         <SettingPhotoBanner recordId={story.id} photoUrl={story.settingPhotoUrl} canEdit kind="story-setting-photo" />
       )}
-      <div className="setting-stage-row">
-        <div className="setting-stage-main">
+        <div className="setting-stage-side">
+          {shared ? (
+            <SettingMixPanel readOnly initial={resolveShares({
+              settingManifest: shared.settingManifest ?? null,
+              settingFilter: shared.settingFilter ?? null,
+              settingConflict: shared.settingConflict ?? null,
+              settingMagnet: shared.settingMagnet ?? null,
+              settingMapX: shared.settingMapX,
+              settingMapY: shared.settingMapY,
+            })} />
+          ) : (
+            <StorySettingTypeSection story={story} />
+          )}
+        </div>
+      </div>
           {shared ? (
             <WorldBible
               scope="cycle"
@@ -102,22 +116,6 @@ export default function StorySettingSection({
               photoKind="story-world-entry-photo"
             />
           )}
-        </div>
-        <div className="setting-stage-side">
-          {shared ? (
-            <SettingMixPanel readOnly initial={resolveShares({
-              settingManifest: shared.settingManifest ?? null,
-              settingFilter: shared.settingFilter ?? null,
-              settingConflict: shared.settingConflict ?? null,
-              settingMagnet: shared.settingMagnet ?? null,
-              settingMapX: shared.settingMapX,
-              settingMapY: shared.settingMapY,
-            })} />
-          ) : (
-            <StorySettingTypeSection story={story} />
-          )}
-        </div>
-      </div>
     </div>
   );
 }

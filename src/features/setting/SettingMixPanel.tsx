@@ -156,12 +156,7 @@ export default function SettingMixPanel({
           ) : (
             <p className="mt-1 text-[12.5px]" style={{ color: "var(--muted)" }}>Ползунки ещё на нуле.</p>
           )}
-        </div>
-      )}
-
-      {open && !proposed ? (
-        <div className="mt-3 flex flex-col gap-3">
-          <div>
+          <div className="mt-3">
             <div className="setting-quadrant">
               {QUADRANT.map((id) => {
                 const meta = MIX_META[id];
@@ -192,6 +187,11 @@ export default function SettingMixPanel({
               <span>интуиция · soft</span>
             </div>
           </div>
+        </div>
+      )}
+
+      {open && !proposed ? (
+        <div className="mt-3 flex flex-col gap-3">
           <div className="rounded-[16px] px-3 py-3" style={{ border: "1px solid var(--border)", background: "#fff" }}>
             <div className="flex flex-col gap-2.5">
               {SLIDERS.map((id) => {

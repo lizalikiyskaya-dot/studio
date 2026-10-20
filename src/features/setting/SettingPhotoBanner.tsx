@@ -23,11 +23,12 @@ export default function SettingPhotoBanner({
   if (!canEdit) {
     if (!url) return null;
     return (
-      <div
+      <ImageUploadBox
+        value={url}
+        readOnly
+        placeholder="фото сеттинга"
         className="setting-banner"
-        role="img"
-        aria-label="Фото сеттинга"
-        style={{ backgroundImage: `url(${url})`, border: "1px solid var(--border)" }}
+        onUpload={() => {}}
       />
     );
   }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BIBLE_THEMES, entriesFill, entryLabel, grapesFill, nextThemeCue, type GrapesBag } from "./worldBible";
+import { BIBLE_THEMES, appendCheckLine, entriesFill, entryLabel, grapesFill, nextThemeCue, toggleCheckLine, type GrapesBag } from "./worldBible";
 
 const emptyGrapes = {
   grapesGeography: "",
@@ -33,6 +33,14 @@ test("полоска: пустой текст, запись без текста,
   assert.equal(entriesFill([""]), "partial");
   assert.equal(entriesFill(["шесты", ""]), "partial");
   assert.equal(entriesFill(["шесты"]), "full");
+});
+
+test("пункт заметки переключается в markdown и не портит обычный текст", () => {
+  assert.equal(toggleCheckLine("- [ ] север\nстепь", 0), "- [x] север\nстепь");
+  assert.equal(toggleCheckLine("- [x] север", 0), "- [ ] север");
+  assert.equal(toggleCheckLine("просто текст", 0), "просто текст");
+  assert.equal(appendCheckLine("степь"), "степь\n- [ ] ");
+  assert.equal(appendCheckLine(""), "- [ ] ");
 });
 
 test("дальше указывает на первую пустую тему и не трогает чужие записи", () => {
