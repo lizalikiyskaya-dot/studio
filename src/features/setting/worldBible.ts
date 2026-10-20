@@ -227,6 +227,25 @@ export function isEntryCategory(value: string): value is WorldCategory {
   return (ENTRY_CATEGORIES as readonly string[]).includes(value);
 }
 
+const CHECK_LINE = /^(\s*)- \[([ xX])\](.*)$/;
+
+/** Переключает markdown-пункт «- [ ]» / «- [x]». Обычную строку не трогает. */
+export function toggleCheckLine(text: string, index: number): string {
+  const lines = text.split("\n");
+  const line = lines[index];
+  if (line == null) return text;
+  const match = line.match(CHECK_LINE);
+  if (!match) return text;
+  const mark = match[2].toLowerCase() === "x" ? " " : "x";
+  lines[index] = `${match[1]}- [${mark}]${match[3]}`;
+  return lines.join("\n");
+}
+
+export function appendCheckLine(text: string): string {
+  const trimmed = text.replace(/\s+$/, "");
+  return trimmed ? `${trimmed}\n- [ ] ` : "- [ ] ";
+}
+
 export function grapesFill(text: string): Fill {
   return text.trim() ? "full" : "empty";
 }
