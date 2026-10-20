@@ -108,6 +108,11 @@ function dateLabel(parts: MoscowParts): string {
   }).format(stamp);
 }
 
+export function paymentLetterVars(person: { name: string; paymentAmount: number | null }, parts: MoscowParts): Record<string, string> {
+  const сумма = person.paymentAmount != null ? `Сумма — ${rubles(person.paymentAmount)}.` : "";
+  return { имя: person.name, дата: dateLabel(parts), сумма };
+}
+
 export function buildPaymentReminder(person: { name: string; paymentAmount: number | null }, parts: MoscowParts): {
   subject: string;
   html: string;
@@ -148,6 +153,11 @@ export async function runPaymentReminders(options: {
     text: string;
     recipientUserId: string;
   }) => Promise<boolean>;
+  dress?: (
+    person: ReminderPerson,
+    letter: { subject: string; html: string; text: string },
+    parts: MoscowParts,
+  ) => Promise<{ subject: string; html: string; text: string }>;
 }): Promise<ReminderRunResult> {
   const now = options.now ?? new Date();
   const parts = options.parts ?? moscowParts(now);
@@ -161,7 +171,8 @@ export async function runPaymentReminders(options: {
   let alreadySent = 0;
   let failed = 0;
   for (const person of people) {
-    const letter = buildPaymentReminder(person, parts);
+    const built = buildPaymentReminder(person, parts);
+    const letter = options.dress ? await options.dress(person, built, parts) : built;
     if (dryRun) {
       sent += 1;
       continue;

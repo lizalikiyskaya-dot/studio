@@ -140,6 +140,22 @@ export async function updateEmailNotifications(enabled: boolean) {
   return { ok: true };
 }
 
+export async function updateContentEmails(kind: "weekly" | "quote", enabled: boolean) {
+  const session = await requireAuth();
+  const data = kind === "weekly" ? { weeklyEmails: enabled } : { quoteEmails: enabled };
+  try {
+    await prisma.user.update({ where: { id: session.userId }, data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("weeklyEmails") || message.includes("quoteEmails") || message.includes("P2022")) {
+      return { error: "Столбцов ещё нет. Нужен файл docs/sql/2026-10-20-mail-optout.sql." };
+    }
+    throw error;
+  }
+  revalidatePath("/dashboard/profile");
+  return { ok: true as const };
+}
+
 export async function updateProfileAvatar(avatarUrl: string) {
   const session = await requireAuth();
   await prisma.user.update({ where: { id: session.userId }, data: { avatarUrl } });

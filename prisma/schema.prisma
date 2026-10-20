@@ -170,6 +170,9 @@ model User {
   // mentorNotifiedAt — когда наставнику последний раз писали про ЭТОГО
   // ученика, studentNotifiedAt — когда ученику писали про правки наставника.
   emailNotifications Boolean  @default(true)
+  // Отдельная отписка от двух рассылок. true: письмо можно слать.
+  weeklyEmails Boolean @default(true)
+  quoteEmails  Boolean @default(true)
   mentorNotifiedAt  DateTime?
   studentNotifiedAt DateTime?
   // От кого уходят письма. Пустые строки значат «как в окружении сервера».

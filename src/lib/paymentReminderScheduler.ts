@@ -1,8 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { sendMail } from "@/lib/mail";
-import { runPaymentReminders, type ReminderPerson } from "@/lib/paymentReminders";
+import { paymentLetterVars, runPaymentReminders, type ReminderPerson } from "@/lib/paymentReminders";
 import { clockOpen, parseStudentIds, zonedClock } from "@/lib/mailBroadcasts";
 import { envelopeFor, readBroadcast } from "@/lib/mailBroadcastStore";
+import { runScheduledContentMail } from "@/lib/contentMailRun";
+import { applyLetterTemplate } from "@/lib/letterTemplates";
+import { readLetterTemplate } from "@/lib/letterTemplateStore";
 
 const LOCK_KEY = 8710231842018;
 const TICK_MS = 15 * 60 * 1000;
@@ -97,6 +100,8 @@ export async function runScheduledPaymentReminders(now = new Date()) {
           where: { studentId, dueOn: dueDate(dueOn) },
         });
       },
+      dress: async (person, letter, parts) =>
+        applyLetterTemplate("payment", await readLetterTemplate("payment"), letter, paymentLetterVars(person, parts)),
       send: async ({ to, subject, html, text, recipientUserId }) =>
         sendMail({
           to,
@@ -130,6 +135,14 @@ export function startPaymentReminderScheduler() {
       })
       .catch((error) => {
         console.error("[payment-reminder] прогон не удался:", error);
+      });
+    runScheduledContentMail()
+      .then((result) => {
+        if (!result || result.skipped || (result.weekly === 0 && result.quote === 0)) return;
+        console.log(`[content-mail] задание ${result.weekly}, цитата ${result.quote}`);
+      })
+      .catch((error) => {
+        console.error("[content-mail] прогон не удался:", error);
       });
   };
 

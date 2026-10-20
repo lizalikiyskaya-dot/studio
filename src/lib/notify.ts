@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail, sendMail } from "@/lib/mail";
+import { optOutLinkLabel, type OptOutKind } from "@/lib/mailOptOut";
+import { dressLetter } from "@/lib/letterTemplateStore";
 import { sectionLabel } from "@/lib/sections";
 import { mailGate, queueCabinetChange } from "@/lib/activityDigest";
 
@@ -162,10 +164,16 @@ export async function notifyRegistration(user: { id: string; name: string; email
   const toStudent = registrationStudentLetter(user.name);
   const studentGate = await mailGate("registration", user.id);
   if (studentGate.ok) {
+    const letter = await dressLetter(
+      "registration",
+      { subject: "Заявка на рассмотрении", ...toStudent },
+      { имя: user.name },
+    );
     await sendMail({
       to: user.email,
-      subject: "Заявка на рассмотрении",
-      ...toStudent,
+      subject: letter.subject,
+      html: letter.html,
+      text: letter.text,
       type: "registration",
       recipientUserId: user.id,
       from: studentGate.from,
@@ -175,18 +183,25 @@ export async function notifyRegistration(user: { id: string; name: string; email
 
   const mentorGate = await mailGate("registration-mentor");
   if (liza?.email && mentorGate.ok) {
+    const when = moscowDateTime(new Date());
     const toMentor = renderEmail({
       title: "Новая заявка на доступ",
       paragraphs: [
-        `Новая регистрация на платформе — ${escapeHtml(user.name)} (${escapeHtml(user.email)}), ${moscowDateTime(new Date())}.`,
+        `Новая регистрация на платформе — ${escapeHtml(user.name)} (${escapeHtml(user.email)}), ${when}.`,
         "Заявка ждёт решения в разделе модерации.",
       ],
       action: { label: "Открыть заявки", url: `${appUrl()}/mentor` },
     });
+    const letter = await dressLetter(
+      "registration-mentor",
+      { subject: "Новая заявка на доступ", ...toMentor },
+      { имя: user.name, почта: user.email, когда: when },
+    );
     await sendMail({
       to: liza.email,
-      subject: "Новая заявка на доступ",
-      ...toMentor,
+      subject: letter.subject,
+      html: letter.html,
+      text: letter.text,
       type: "registration-mentor",
       recipientUserId: liza.id,
       from: mentorGate.from,
@@ -217,11 +232,12 @@ export async function notifyApproved(userId: string) {
 
   const gate = await mailGate("approved", userId);
   if (!gate.ok) return;
-  const letter = approvedLetter(user.name);
+  const letter = await dressLetter("approved", { subject: "Доступ в личный кабинет открыт", ...approvedLetter(user.name) }, { имя: user.name });
   await sendMail({
     to: user.email,
-    subject: "Доступ в личный кабинет открыт",
-    ...letter,
+    subject: letter.subject,
+    html: letter.html,
+    text: letter.text,
     type: "approved",
     recipientUserId: userId,
     from: gate.from,
@@ -261,16 +277,22 @@ export async function notifyStudentGuideOpened(
   if (!gate.ok) return;
 
   const title = (guide.title.trim() || "Методичка").replace(/[\r\n]+/g, " ").slice(0, 180);
-  const letter = guideOpenedLetter({
+  const designed = guideOpenedLetter({
     name: student.name,
     title,
     description: guide.description,
     guideId: guide.id,
   });
+  const letter = await dressLetter(
+    "guide",
+    { subject: `Новая методичка: ${title}`, ...designed },
+    { имя: student.name, название: title, описание: guide.description.trim() },
+  );
   await sendMail({
     to: student.email,
-    subject: `Новая методичка: ${title}`,
-    ...letter,
+    subject: letter.subject,
+    html: letter.html,
+    text: letter.text,
     type: "guide",
     recipientUserId: studentId,
     from: gate.from,
@@ -303,11 +325,16 @@ export async function sendPasswordResetEmail(
   const gate = await mailGate("password", user.id);
   if (!gate.ok) return;
   const url = `${appUrl()}/reset-password?token=${encodeURIComponent(token)}`;
-  const letter = passwordResetLetter(user.name, url);
+  const letter = await dressLetter(
+    "password",
+    { subject: "Восстановление пароля", ...passwordResetLetter(user.name, url) },
+    { имя: user.name, ссылка: url },
+  );
   await sendMail({
     to: user.email,
-    subject: "Восстановление пароля",
-    ...letter,
+    subject: letter.subject,
+    html: letter.html,
+    text: letter.text,
     type: "password",
     recipientUserId: user.id,
     from: gate.from,
@@ -449,6 +476,7 @@ export function weeklyTaskLetter(input: {
   lengthHint: string;
   publishedOn: string;
   nextPublishedOn?: string | null;
+  unsubscribeUrl?: string;
 }) {
   const open = ruDate(input.publishedOn);
   const close = input.nextPublishedOn ? ruDate(dayBefore(input.nextPublishedOn) ?? "") : null;
@@ -472,13 +500,17 @@ export function weeklyTaskLetter(input: {
       },
     ],
     action: { label: "Открыть задание", url: `${appUrl()}/dashboard/weekly` },
-    footnote: "Задание необязательное. С основными заданиями оно не связано.",
+    footnote: unsubFoot(
+      "Задание необязательное. С основными заданиями оно не связано.",
+      input.unsubscribeUrl,
+      "weekly",
+    ),
     signature: EMAIL_SIGNATURE,
   });
 }
 
 /** Письмо с цитатой дня. Поля те же, что у цитаты в кабинете. Только рисует письмо. */
-export function dailyQuoteLetter(input: { name: string; text: string; author: string; source?: string }) {
+export function dailyQuoteLetter(input: { name: string; text: string; author: string; source?: string; unsubscribeUrl?: string }) {
   return renderEmail({
     title: "Цитата дня",
     blocks: [
@@ -491,9 +523,14 @@ export function dailyQuoteLetter(input: { name: string; text: string; author: st
       },
     ],
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
-    footnote: "День считается по Москве. Отключить письма можно в профиле.",
+    footnote: unsubFoot("День считается по Москве.", input.unsubscribeUrl, "quote"),
     signature: EMAIL_SIGNATURE,
   });
+}
+
+function unsubFoot(base: string, url: string | undefined, kind: OptOutKind): string {
+  if (!url) return base;
+  return `${base}<br><a href="${escapeHtml(url)}" style="color:#4B3FC0;text-decoration:underline;">${escapeHtml(optOutLinkLabel(kind))}</a>`;
 }
 
 /** Образцы для превью. Данные как в кабинете, письмо никуда не уходит. */

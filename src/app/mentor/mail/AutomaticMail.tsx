@@ -66,18 +66,6 @@ export default function AutomaticMail({
               <p className="mt-2 text-[14px]" data-auto-schedule={row.key}>{scheduleLabel(row, meta.mode)}</p>
               <ScheduleFields row={row} mode={meta.mode} onChange={(partial) => patch(row.key, partial)} />
               <WhoFields row={row} who={meta.who} students={students} onChange={(partial) => patch(row.key, partial)} />
-              <label className="mt-3 block text-[13px]" style={{ color: "var(--muted)" }}>
-                От кого
-                <select
-                  aria-label={`От кого: ${meta.title}`}
-                  className="fld mt-1"
-                  value={row.sender}
-                  onChange={(event) => patch(row.key, { sender: event.target.value === "env" ? "env" : "profile" })}
-                >
-                  <option value="profile">Сохранённый адрес, иначе адрес сервера</option>
-                  <option value="env">Только адрес сервера</option>
-                </select>
-              </label>
               {preview ? (
                 <details className="mt-3">
                   <summary className="cursor-pointer text-[14px]">Превью шаблона</summary>
@@ -99,7 +87,7 @@ export default function AutomaticMail({
         })}
       </ul>
       <p className="mt-3 text-[13px]" style={{ color: "var(--muted)" }}>
-        Задание недели, цитата дня и дедлайны сами не уходят.
+        Дедлайны сами не уходят.
       </p>
       {message ? <p className="mt-2 text-[14px]">{message}</p> : null}
     </section>
@@ -146,11 +134,17 @@ function ScheduleFields({
         <select
           aria-label="Дни рассылки"
           className="fld mt-1"
-          value={row.weekdays === "1,2,3,4,5" ? "week" : ""}
-          onChange={(event) => onChange({ weekdays: event.target.value === "week" ? "1,2,3,4,5" : "" })}
+          value={row.weekdays === "1,2,3,4,5" ? "week" : row.weekdays === "6" || row.weekdays === "7" ? row.weekdays : ""}
+          onChange={(event) => {
+            const value = event.target.value;
+            const weekdays = value === "week" ? "1,2,3,4,5" : value === "6" || value === "7" ? value : "";
+            onChange({ weekdays });
+          }}
         >
           <option value="">каждый день</option>
           <option value="week">по будням</option>
+          <option value="6">суббота</option>
+          <option value="7">воскресенье</option>
         </select>
       </label>
       <label className="text-[13px]" style={{ color: "var(--muted)" }}>
