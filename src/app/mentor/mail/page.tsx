@@ -9,9 +9,6 @@ import ComposeMail from "./ComposeMail";
 import AutomaticMail from "./AutomaticMail";
 import LetterTemplates from "./LetterTemplates";
 import { readLetterEditor } from "@/lib/letterTemplateStore";
-import MailFromForm from "@/features/profile/MailFromForm";
-import { loadMailSender } from "@/features/mail/actions";
-import { senderWarning, smtpPublicFromEnv } from "@/lib/mailSender";
 import { readBroadcastList } from "@/lib/mailBroadcastStore";
 import { broadcastPreviewHtml } from "@/lib/broadcastPreviews";
 
@@ -92,21 +89,14 @@ export default async function MentorMailPage({
   }
 
   const types = knownTypes.map((value) => ({ value, label: emailTypeLabel(value) }));
-  const smtp = smtpPublicFromEnv();
-  const sender = await loadMailSender();
   const broadcasts = await readBroadcastList();
   const letters = await readLetterEditor();
-  const warning = senderWarning(sender.sender, smtp)
-    ?? (smtp.host.toLowerCase().includes("gmail") || smtp.host.toLowerCase().includes("google")
-      ? "Другой адрес «От» Gmail примет, только если он добавлен как «Отправлять почту как»."
-      : null);
 
   return (
     <div>
       <h1 className="page-title mt-1 mb-4">{markedTitle("Письма")}</h1>
       <ComposeMail students={recipients} />
       <LetterTemplates ready={letters.ready} rows={letters.rows} />
-      <MailFromForm ready={sender.ready} initial={sender.sender} smtp={smtp} warning={warning} />
       <AutomaticMail
         ready={broadcasts.ready}
         initial={broadcasts.rows}

@@ -1,3 +1,5 @@
+import { composeDraft } from "@/lib/letterCompose";
+import { applyLetterTemplate, weeklyVolume, weeklyWhen, type LetterDraft, type LetterKey } from "@/lib/letterTemplates";
 import { EMAIL_SIGNATURE, appUrl, renderEmail } from "@/lib/mail";
 import { dailyQuoteLetter, platformUpdateLetter, weeklyTaskLetter } from "@/lib/notify";
 
@@ -78,6 +80,34 @@ function usesDesign(
   return draft.ready && norm(body) === norm(draft.body);
 }
 
+function letterKey(template: MentorTemplate): LetterKey | null {
+  if (template === "platform") return "platform";
+  if (template === "weekly") return "weekly-task";
+  if (template === "quote") return "daily-quote";
+  return null;
+}
+
+function composeVars(
+  template: MentorTemplate,
+  name: string,
+  weekly: WeeklyLetterInput | null,
+  quote: QuoteLetterInput | null,
+): Record<string, string> {
+  if (template === "weekly" && weekly) {
+    return {
+      имя: name,
+      задание: weekly.title,
+      текст: weekly.prompt,
+      срок: weeklyWhen(weekly.publishedOn, weekly.nextPublishedOn),
+      объём: weeklyVolume(weekly.lengthHint),
+    };
+  }
+  if (template === "quote" && quote) {
+    return { имя: name, цитата: quote.text, автор: quote.author, источник: quote.source ?? "" };
+  }
+  return { имя: name };
+}
+
 export function renderMentorCompose(input: {
   template: MentorTemplate;
   subject: string;
@@ -85,9 +115,21 @@ export function renderMentorCompose(input: {
   name: string;
   weekly: WeeklyLetterInput | null;
   quote: QuoteLetterInput | null;
+  /** Сохранённый шаблон. Если текст письма с ним совпадает, уходит та же рамка, что в «Посмотреть». */
+  stored?: LetterDraft | null;
 }): { subject: string; html: string; text: string; type: string } {
-  const subject = applyStudentName(input.subject, input.name).trim() || "Письмо";
   const name = input.name.trim() || "ученик";
+  const key = letterKey(input.template);
+  const loaded = input.stored ? composeDraft(input.template, input.weekly, input.quote, input.stored) : null;
+  if (key && input.stored && loaded?.ready && norm(input.subject) === norm(loaded.subject) && norm(input.body) === norm(loaded.body)) {
+    const plain = templateDraft(input.template, input.weekly, input.quote);
+    if (plain.ready) {
+      const designed = renderMentorCompose({ ...input, subject: plain.subject, body: plain.body, stored: null });
+      const letter = applyLetterTemplate(key, input.stored, designed, composeVars(input.template, name, input.weekly, input.quote));
+      return { subject: letter.subject, html: letter.html, text: letter.text, type: designed.type };
+    }
+  }
+  const subject = applyStudentName(input.subject, input.name).trim() || "Письмо";
   if (usesDesign(input.template, input.body, input.weekly, input.quote)) {
     if (input.template === "platform") {
       const letter = platformUpdateLetter({ name });

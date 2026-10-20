@@ -29,7 +29,7 @@ test("чужой адрес на Gmail получает предупрежден
   assert.ok(normalizeSender({ fromName: "Лиза", fromEmail: "не почта", replyTo: "" }).error);
 });
 
-test("пустая настройка не подменяет адрес из окружения", () => {
+test("сохранённый адрес не подменяет рабочий из окружения", () => {
   const same = envelopeFrom({ fromName: "", fromEmail: "", replyTo: "" }, "Студия <box@example.com>");
   assert.equal(same.from, "Студия <box@example.com>");
   assert.equal(same.replyTo, undefined);
@@ -37,8 +37,8 @@ test("пустая настройка не подменяет адрес из о
     { fromName: "Лиза Андреенко", fromEmail: "liza@example.com", replyTo: "reply@example.com" },
     "Студия <box@example.com>",
   );
-  assert.equal(custom.from, "Лиза Андреенко <liza@example.com>");
-  assert.equal(custom.replyTo, "reply@example.com");
+  assert.equal(custom.from, "Студия <box@example.com>");
+  assert.equal(custom.replyTo, undefined);
 });
 
 test("неизменённый шаблон уходит оформленным, правка текста уходит как текст", () => {
@@ -94,6 +94,32 @@ test("задание недели и цитата подставляют дан�
   });
   assert.match(quoted.html, /Антон Чехов/);
   assert.equal(templateDraft("quote", weekly, null).ready, false);
+});
+
+test("сохранённый шаблон задания уходит в той же рамке", () => {
+  const stored = {
+    subject: "Неделя для {имя}",
+    body: "{имя}, держите задание этой недели.\n\n{задание}\n\n{текст}\n\n{срок}\n{объём}",
+  };
+  const loaded = {
+    subject: "Неделя для {имя}",
+    body: "{имя}, держите задание этой недели.\n\nКомната после новости\n\nОпиши комнату.\n\nОткрыто с 24 октября 2026 г. Сдать до 30 октября 2026 г.\nОбъём: полстраницы",
+  };
+  const letter = renderMentorCompose({
+    template: "weekly",
+    subject: loaded.subject,
+    body: loaded.body,
+    name: "Виктория",
+    weekly,
+    quote,
+    stored,
+  });
+  assert.equal(letter.subject, "Неделя для Виктория");
+  assert.match(letter.html, /border-radius:16px/);
+  assert.match(letter.html, /Андреенко/);
+  assert.match(letter.html, /Открыть задание/);
+  assert.match(letter.html, /Лиза Андреенко/);
+  assert.match(letter.text, /Виктория/);
 });
 
 test("пачка писем уходит по одному", async () => {
