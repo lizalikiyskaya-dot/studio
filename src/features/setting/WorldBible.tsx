@@ -14,8 +14,10 @@ import {
   GRAPES_FIELDS,
   appendCheckLine,
   entryLabel,
+  entryOnSetting,
   isEntryCategory,
   nextThemeCue,
+  storedSettingKey,
   themeFill,
   themeNoteKey,
   toggleCheckLine,
@@ -58,6 +60,7 @@ export type BibleEntry = {
   title: string;
   body: string;
   photoUrl: string | null;
+  settingKey?: string | null;
 };
 
 export type BibleTable = {
@@ -114,8 +117,11 @@ export default function WorldBible({
 
   const table = tables.find((item) => item.id === tableId) ?? tables[0];
   const grapes = table?.values ?? emptyGrapes();
-  const cue = nextThemeCue(grapes, entries, true);
-  const themeEntries = openTheme?.category ? entries.filter((entry) => entry.category === openTheme.category) : [];
+  const visibleEntries = allowTables
+    ? entries.filter((entry) => entryOnSetting(entry.settingKey, table?.id ?? "primary"))
+    : entries;
+  const cue = nextThemeCue(grapes, visibleEntries, true);
+  const themeEntries = openTheme?.category ? visibleEntries.filter((entry) => entry.category === openTheme.category) : [];
   const selected = themeEntries.find((entry) => entry.id === selectedId) ?? null;
 
   useEffect(() => {
@@ -225,7 +231,7 @@ export default function WorldBible({
         ? await createCycleWorldEntry(recordId, category)
         : scope === "story"
           ? await createStoryWorldEntry(recordId, category)
-          : await createWorldEntry(recordId, category);
+          : await createWorldEntry(recordId, category, storedSettingKey(table?.id ?? "primary"));
       setEntries((prev) => [...prev, created]);
       setSelectedId(created.id);
     });
@@ -281,7 +287,7 @@ export default function WorldBible({
   }
 
   const bodies = new Map<WorldCategory, string[]>();
-  for (const entry of entries) {
+  for (const entry of visibleEntries) {
     const list = bodies.get(entry.category) ?? [];
     list.push(entry.body);
     bodies.set(entry.category, list);
@@ -320,26 +326,26 @@ export default function WorldBible({
 
       <div className="bible-layout">
         <div className="bible-main">
+          {allowTables && table ? (
+            <label className="bible-setting-pick">
+              <span>Сеттинг</span>
+              <select
+                aria-label="Сеттинг"
+                value={table.id}
+                onChange={(event) => {
+                  setTableId(event.target.value);
+                  setSelectedId(null);
+                }}
+              >
+                {tables.map((item) => (
+                  <option key={item.id} value={item.id}>{item.title}</option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <div className="bible-groups">
             <section className="bible-group">
-              <div className="mb-2.5 flex flex-wrap items-center gap-2">
-                <h3 className="bible-group-title">Метод GRAPES</h3>
-                {allowTables && table ? (
-                  <label className="ml-auto flex items-center gap-2 rounded-[12px] bg-white px-2.5 py-1" style={{ border: "1px solid var(--border)" }}>
-                    <span className="text-[12px]" style={{ color: "var(--muted)" }}>Таблица</span>
-                    <select
-                      aria-label="Таблица"
-                      className="bg-transparent text-[13px] font-medium outline-none"
-                      value={table.id}
-                      onChange={(event) => setTableId(event.target.value)}
-                    >
-                      {tables.map((item) => (
-                        <option key={item.id} value={item.id}>{item.title}</option>
-                      ))}
-                    </select>
-                  </label>
-                ) : null}
-              </div>
+              <h3 className="bible-group-title mb-2.5">Метод GRAPES</h3>
               {allowTables && canEdit ? (
                 <div className="mb-2.5 flex flex-wrap items-center gap-2">
                   {table?.titleField && table.model !== "Story" ? (

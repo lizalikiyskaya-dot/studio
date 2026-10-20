@@ -241,6 +241,18 @@ export function toggleCheckLine(text: string, index: number): string {
   return lines.join("\n");
 }
 
+/** Что писать в WorldEntry.settingKey: первая таблица хранится пустой строкой. */
+export function storedSettingKey(tableId: string) {
+  return !tableId || tableId === "primary" ? "" : tableId;
+}
+
+/** Пустая строка и «primary» — первая таблица. Остальные ключи совпадают с id GrapesSetting. */
+export function entryOnSetting(settingKey: string | null | undefined, tableId: string) {
+  const key = settingKey && settingKey !== "primary" ? settingKey : "primary";
+  const selected = !tableId || tableId === "primary" ? "primary" : tableId;
+  return key === selected;
+}
+
 /** Ключ заметки темы: таблица GRAPES и id карточки. */
 export function themeNoteKey(settingKey: string, theme: string) {
   return `${settingKey}\u0000${theme}`;

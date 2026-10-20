@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BIBLE_THEMES, appendCheckLine, entriesFill, entryLabel, grapesFill, nextThemeCue, toggleCheckLine, type GrapesBag } from "./worldBible";
+import { BIBLE_THEMES, appendCheckLine, entriesFill, entryLabel, entryOnSetting, grapesFill, nextThemeCue, storedSettingKey, toggleCheckLine, type GrapesBag } from "./worldBible";
 
 const emptyGrapes = {
   grapesGeography: "",
@@ -41,6 +41,19 @@ test("пункт заметки переключается в markdown и не �
   assert.equal(toggleCheckLine("просто текст", 0), "просто текст");
   assert.equal(appendCheckLine("степь"), "степь\n- [ ] ");
   assert.equal(appendCheckLine(""), "- [ ] ");
+});
+
+test("пустой ключ записи остаётся на первой таблице GRAPES", () => {
+  assert.equal(storedSettingKey("primary"), "");
+  assert.equal(storedSettingKey(""), "");
+  assert.equal(storedSettingKey("zoru"), "zoru");
+  assert.equal(entryOnSetting("", "primary"), true);
+  assert.equal(entryOnSetting(null, "primary"), true);
+  assert.equal(entryOnSetting(undefined, "primary"), true);
+  assert.equal(entryOnSetting("primary", "primary"), true);
+  assert.equal(entryOnSetting("zoru", "primary"), false);
+  assert.equal(entryOnSetting("zoru", "zoru"), true);
+  assert.equal(entryOnSetting("", "zoru"), false);
 });
 
 test("дальше указывает на первую пустую тему и не трогает чужие записи", () => {
