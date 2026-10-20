@@ -21,6 +21,7 @@ export default function WeekCallNote({
 
   return (
     <div className="banner-call">
+      <span className="deadline-ribbon" aria-hidden="true" />
       <button
         type="button"
         className="banner-call-line"
@@ -29,8 +30,9 @@ export default function WeekCallNote({
         onClick={() => setExpanded((open) => !open)}
       >
         <span className="banner-call-label">Опен-колл недели</span>
-        <span className="banner-call-title">{title}</span>
-        <span className="banner-call-deadline">до {deadline}</span>
+        <span className="banner-call-title">
+          {title} — приём до {deadline}
+        </span>
       </button>
       {expanded ? (
         <div id={detailsId} className="banner-call-body">
