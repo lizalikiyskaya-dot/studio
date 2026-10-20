@@ -15,6 +15,8 @@ import {
 } from "@/lib/mailSender";
 import { loadDailyQuote } from "@/lib/loadDailyQuote";
 import { moscowToday, pickWeekly } from "@/features/weekly/schedule";
+import { writeBroadcast } from "@/lib/mailBroadcastStore";
+import type { BroadcastSetting } from "@/lib/mailBroadcasts";
 import {
   MENTOR_SEND_GAP_MS,
   MENTOR_SEND_MAX,
@@ -104,6 +106,7 @@ export async function sendMentorMail(input: {
   subject: string;
   body: string;
   studentIds: string[];
+  fromChoice?: "env" | "profile";
 }) {
   const session = await requireMentor();
   if (!session) return { error: "Только наставник может отправить письмо." };
@@ -132,7 +135,7 @@ export async function sendMentorMail(input: {
   if (sending.has(session.userId)) return { error: "Предыдущая пачка ещё уходит." };
   sending.add(session.userId);
   const stored = await readStoredSender();
-  const envelope = envelopeFrom(stored, mailFrom());
+  const envelope = input.fromChoice === "env" ? { from: mailFrom(), replyTo: undefined } : envelopeFrom(stored, mailFrom());
   let sent = 0;
   let failed = 0;
   try {
@@ -165,6 +168,15 @@ export async function sendMentorMail(input: {
   return { sent, failed };
 }
 
+export async function saveBroadcast(input: BroadcastSetting) {
+  const session = await requireMentor();
+  if (!session) return { error: "Только наставник меняет рассылку." };
+  const result = await writeBroadcast(input);
+  if (result.error) return { error: result.error };
+  revalidatePath("/mentor/mail");
+  return { ok: true as const };
+}
+
 export async function saveMailSender(input: MailSenderInput) {
   const session = await requireMentor();
   if (!session) return { error: "Только наставник меняет адрес отправителя." };
@@ -187,6 +199,7 @@ export async function saveMailSender(input: MailSenderInput) {
     throw error;
   }
   revalidatePath("/mentor/profile");
+  revalidatePath("/mentor/mail");
   const warning = senderWarning(parsed.value, smtpPublicFromEnv());
   return { ok: true, warning };
 }

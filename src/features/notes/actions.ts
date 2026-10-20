@@ -2,13 +2,19 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
+import { queueCabinetChange } from "@/lib/activityDigest";
+
+function sectionFromUrl(url: string): string {
+  const match = /\/(?:dashboard|student-view\/[^/]+)\/([a-z-]+)/.exec(url);
+  return match?.[1] || "notes";
+}
 
 export type NoteAnchor = { quote: string; label: string; url: string };
 
 export async function createNote(studentId: string, text: string, anchor?: NoteAnchor) {
   const session = await requireCabinetAccess(studentId);
   const author = session.role === "MENTOR" ? "Наставник" : "Ученик";
-  return prisma.note.create({
+  const note = await prisma.note.create({
     data: {
       studentId,
       author,
@@ -19,12 +25,25 @@ export async function createNote(studentId: string, text: string, anchor?: NoteA
       anchorUrl: anchor?.url ?? "",
     },
   });
+  await queueCabinetChange({
+    studentId,
+    byMentor: session.role === "MENTOR",
+    section: sectionFromUrl(anchor?.url ?? ""),
+    detail: "Заметка",
+  });
+  return note;
 }
 
 export async function updateNote(noteId: string, text: string) {
   const note = await prisma.note.findUniqueOrThrow({ where: { id: noteId } });
-  await requireCabinetAccess(note.studentId);
+  const session = await requireCabinetAccess(note.studentId);
   await prisma.note.update({ where: { id: noteId }, data: { text } });
+  await queueCabinetChange({
+    studentId: note.studentId,
+    byMentor: session.role === "MENTOR",
+    section: sectionFromUrl(note.anchorUrl),
+    detail: "Заметка",
+  });
 }
 
 export async function deleteNote(noteId: string) {

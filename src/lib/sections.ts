@@ -20,6 +20,7 @@ export const SECTION_LABELS: Record<string, string> = {
   setting: "Сеттинг",
   cycles: "Циклы рассказов",
   stories: "Отдельные рассказы",
+  notes: "Заметки",
 };
 
 export function sectionLabel(section: string): string {

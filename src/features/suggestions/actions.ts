@@ -4,6 +4,16 @@ import { prisma } from "@/lib/prisma";
 import { requireAuthenticated, requireCabinetAccess } from "@/lib/access";
 import { SUGGESTION_REGISTRY, type SuggestableModel } from "@/lib/suggestionRegistry";
 import { resolveHunk } from "@/lib/suggestionHunks";
+import { MODEL_SECTION, queueCabinetChange } from "@/lib/activityDigest";
+
+async function noteChange(studentId: string, byMentor: boolean, model: string, detail: string) {
+  await queueCabinetChange({
+    studentId,
+    byMentor,
+    section: MODEL_SECTION[model] ?? "tasks",
+    detail,
+  });
+}
 
 /**
  * Student edits apply directly. A mentor edit over an already
@@ -23,6 +33,7 @@ export async function saveFieldOrSuggest(
   if (session.role === "STUDENT") {
     await entry.apply(recordId, field, value);
     await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
+    await noteChange(studentId, false, model, "Правка");
     return { suggested: false };
   }
 
@@ -30,12 +41,16 @@ export async function saveFieldOrSuggest(
   if (!student.reviewModeEnabled) {
     await entry.apply(recordId, field, value);
     await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
+    await noteChange(studentId, true, model, "Правка");
     return { suggested: false };
   }
 
   const currentValue = await entry.getCurrentValue(recordId, field);
   if (!currentValue.trim() || value === currentValue) {
-    if (value !== currentValue) await entry.apply(recordId, field, value);
+    if (value !== currentValue) {
+      await entry.apply(recordId, field, value);
+      await noteChange(studentId, true, model, "Правка");
+    }
     await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
     return { suggested: false };
   }
@@ -45,13 +60,14 @@ export async function saveFieldOrSuggest(
     update: { value },
     create: { model, recordId, field, value },
   });
+  await noteChange(studentId, true, model, "Предложение");
   return { suggested: true };
 }
 
 export async function acceptFieldSuggestion(model: SuggestableModel, recordId: string, field: string) {
   const entry = SUGGESTION_REGISTRY[model];
   const studentId = await entry.getStudentId(recordId);
-  await requireCabinetAccess(studentId);
+  const session = await requireCabinetAccess(studentId);
 
   const suggestion = await prisma.fieldSuggestion.findUnique({
     where: { model_recordId_field: { model, recordId, field } },
@@ -60,6 +76,7 @@ export async function acceptFieldSuggestion(model: SuggestableModel, recordId: s
 
   await entry.apply(recordId, field, suggestion.value);
   await prisma.fieldSuggestion.delete({ where: { id: suggestion.id } });
+  await noteChange(studentId, session.role === "MENTOR", model, "Правка");
 }
 
 export async function resolveSuggestionHunk(
@@ -71,7 +88,7 @@ export async function resolveSuggestionHunk(
 ) {
   const entry = SUGGESTION_REGISTRY[model];
   const studentId = await entry.getStudentId(recordId);
-  await requireCabinetAccess(studentId);
+  const session = await requireCabinetAccess(studentId);
 
   const suggestion = await prisma.fieldSuggestion.findUnique({
     where: { model_recordId_field: { model, recordId, field } },
@@ -86,6 +103,7 @@ export async function resolveSuggestionHunk(
   } else if (next.suggestion !== suggestion.value) {
     await prisma.fieldSuggestion.update({ where: { id: suggestion.id }, data: { value: next.suggestion } });
   }
+  if (next.value !== currentValue) await noteChange(studentId, session.role === "MENTOR", model, "Правка");
   return next;
 }
 

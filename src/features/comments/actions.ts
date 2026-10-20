@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAuthenticated, requireCabinetAccess } from "@/lib/access";
 import { SUGGESTION_REGISTRY, type SuggestableModel } from "@/lib/suggestionRegistry";
+import { MODEL_SECTION, queueCabinetChange } from "@/lib/activityDigest";
 
 export type CommentableModel = SuggestableModel | "Note";
 
@@ -34,7 +35,14 @@ export async function addComment(model: CommentableModel, recordId: string, text
   const studentId = await getStudentIdForRecord(model, recordId);
   const session = await requireCabinetAccess(studentId);
   const author = session.role === "MENTOR" ? "Наставник" : "Ученик";
-  return prisma.comment.create({ data: { model, recordId, author, text } });
+  const comment = await prisma.comment.create({ data: { model, recordId, author, text } });
+  await queueCabinetChange({
+    studentId,
+    byMentor: session.role === "MENTOR",
+    section: MODEL_SECTION[model] ?? "tasks",
+    detail: "Комментарий",
+  });
+  return comment;
 }
 
 export async function updateComment(commentId: string, text: string) {

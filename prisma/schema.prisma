@@ -203,6 +203,7 @@ model User {
   weeklySubmissions WeeklySubmission[]
   starAwards        StarAward[]
   emailLogs           EmailLog[]
+  mailDigests         MailDigest[]
 }
 
 // Одноразовая ссылка «Забыли пароль?». В базе лежит только SHA-256 от
@@ -939,4 +940,35 @@ model EmailLog {
   @@index([createdAt])
   @@index([type])
   @@index([recipientUserId])
+}
+
+// Настройки автоматических писем. Пустая таблица: код берёт defaultBroadcast.
+// Пароль SMTP сюда не пишется.
+model MailBroadcast {
+  key           String   @id
+  enabled       Boolean
+  timeZone      String   @default("Europe/Moscow")
+  weekdays      String   @default("")
+  hour          Int?
+  minute        Int      @default(0)
+  windowMinutes Int      @default(60)
+  oncePerDay    Boolean  @default(false)
+  audience      String   @default("all")
+  studentIds    String   @default("")
+  sender        String   @default("profile")
+  updatedAt     DateTime @updatedAt
+}
+
+// Пачка правок или отметка визита, пока письмо не ушло.
+model MailDigest {
+  id        String    @id @default(cuid())
+  kind      String
+  studentId String
+  student   User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section   String    @default("")
+  detail    String    @default("")
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+
+  @@index([kind, studentId, sentAt])
 }
