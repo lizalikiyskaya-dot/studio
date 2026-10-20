@@ -15,13 +15,7 @@ const OPTIONS: { value: MentorTemplate; label: string }[] = [
 
 type Student = { id: string; name: string; email: string };
 
-export default function ComposeMail({
-  students,
-  smtpConfigured,
-}: {
-  students: Student[];
-  smtpConfigured: boolean;
-}) {
+export default function ComposeMail({ students }: { students: Student[] }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"compose" | "preview" | "confirm">("compose");
   const [template, setTemplate] = useState<MentorTemplate>("blank");
@@ -112,7 +106,7 @@ export default function ComposeMail({
       return;
     }
     if ("sent" in response) {
-      setResult(`Ушло: ${response.sent}. Не ушло: ${response.failed}. Записи в журнале ниже.`);
+      setResult(`Ушло: ${response.sent}. Не ушло: ${response.failed}.`);
       setOpen(false);
       setStep("compose");
       setPicked([]);
@@ -133,15 +127,6 @@ export default function ComposeMail({
           {step === "compose" ? (
             <div>
               <h2 className="text-[20px]">Новое письмо</h2>
-              <p className="mt-1 text-[14px]" style={{ color: "var(--ink2)" }}>
-                Письмо уйдёт только после отдельного подтверждения. В тексте можно оставить {"{имя}"}: подставится имя ученика.
-              </p>
-              {!smtpConfigured ? (
-                <p className="mt-3 text-[14px]" style={{ color: "var(--ink2)" }}>
-                  SMTP не настроен. Отправка запишется в журнал как «не ушло». Пароль в базу не пишется.
-                </p>
-              ) : null}
-
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <button type="button" className="btn-y" style={{ height: 36, padding: "0 14px" }} onClick={toggleAll}>
                   {picked.length === students.length && students.length > 0 ? "Снять всех" : "Все ученики"}
@@ -207,9 +192,7 @@ export default function ComposeMail({
           {step === "preview" ? (
             <div>
               <h2 className="text-[20px]">Так письмо уйдёт</h2>
-              <p className="mt-1 text-[14px]" style={{ color: "var(--ink2)" }}>
-                Показан первый выбранный ученик. Остальным подставится своё имя. Тема: {previewSubject}
-              </p>
+              <p className="mt-1 text-[14px]">Тема: {previewSubject}</p>
               <iframe
                 title="Превью письма"
                 sandbox=""
@@ -227,9 +210,6 @@ export default function ComposeMail({
           {step === "confirm" ? (
             <div data-confirm-count={chosen.length}>
               <h2 className="text-[22px]">Отправить {chosen.length} {chosen.length === 1 ? "ученику" : "ученикам"}?</h2>
-              <p className="mt-2 text-[14px]" style={{ color: "var(--ink2)" }}>
-                Письма уйдут по одному, с короткой паузой. Каждая попытка попадёт в журнал.
-              </p>
               <ul className="mt-3 space-y-1 text-[15px]">
                 {chosen.map((student) => (
                   <li key={student.id}>{student.name}</li>

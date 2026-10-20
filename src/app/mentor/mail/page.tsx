@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { markedTitle } from "@/components/markedTitle";
 import EmptyState from "@/components/EmptyState";
 import { EMAIL_TYPE_LABEL, emailTypeLabel } from "@/lib/emailTypes";
-import { smtpPublicFromEnv } from "@/lib/mailSender";
 import MailFilters from "./MailFilters";
 import ComposeMail from "./ComposeMail";
 
@@ -88,21 +87,15 @@ export default async function MentorMailPage({
 
   return (
     <div>
-      <h1 className="page-title mt-1 mb-2">{markedTitle("Письма")}</h1>
-      <p className="page-lead mb-4">
-        Каждая попытка отправить письмо. Время — по Сеулу.
-      </p>
-      <ComposeMail students={recipients} smtpConfigured={smtpPublicFromEnv().configured} />
+      <h1 className="page-title mt-1 mb-4">{markedTitle("Письма")}</h1>
+      <ComposeMail students={recipients} />
       <MailFilters type={type} student={student} types={types} students={students} />
       {!ready ? (
         <div className="rounded-[24px] px-5 py-4" style={{ background: "var(--soft)" }}>
-          <p className="text-[15px]">Журнал ещё не подключен. Письма из-за этого не пропадают.</p>
-          <p className="mt-2 text-[14px]" style={{ color: "var(--ink2)" }}>
-            Один раз нужен файл docs/sql/2026-10-19-email-log.sql.
-          </p>
+          <p className="text-[15px]">Журнал ещё не подключен.</p>
         </div>
       ) : rows.length === 0 ? (
-        <EmptyState cue="Писем ещё не было" detail="Здесь появятся попытки отправки — и те, что ушли, и те, что нет." />
+        <EmptyState cue="Писем ещё не было" />
       ) : (
         <>
           <div className="sheet hidden min-[760px]:block">

@@ -5,7 +5,7 @@ import ProfileForm from "@/features/profile/ProfileForm";
 import MailFromForm from "@/features/profile/MailFromForm";
 import PageHeader from "@/components/PageHeader";
 import { loadMailSender } from "@/features/mail/actions";
-import { senderSetupNotes, senderWarning, smtpPublicFromEnv } from "@/lib/mailSender";
+import { senderWarning, smtpPublicFromEnv } from "@/lib/mailSender";
 
 export default async function MentorProfilePage() {
   const session = await getSession();
@@ -23,8 +23,7 @@ export default async function MentorProfilePage() {
         ready={sender.ready}
         initial={sender.sender}
         smtp={smtp}
-        notes={senderSetupNotes(smtp)}
-        warning={senderWarning(sender.sender, smtp)}
+        warning={senderWarning(sender.sender, smtp) ?? (smtp.host.toLowerCase().includes("gmail") || smtp.host.toLowerCase().includes("google") ? "Другой адрес «От» Gmail примет, только если он добавлен как «Отправлять почту как»." : null)}
       />
       <ProfileForm
         userId={user.id}

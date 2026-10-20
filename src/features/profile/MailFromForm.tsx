@@ -9,13 +9,11 @@ export default function MailFromForm({
   ready,
   initial,
   smtp,
-  notes,
   warning,
 }: {
   ready: boolean;
   initial: MailSenderInput;
   smtp: SmtpPublic;
-  notes: string[];
   warning: string | null;
 }) {
   const [fromName, setFromName] = useState(initial.fromName);
@@ -32,19 +30,16 @@ export default function MailFromForm({
       setMessage(response.error);
       return;
     }
-    setMessage(("warning" in response && response.warning) || "Сохранено. Пароль SMTP по-прежнему только на сервере.");
+    setMessage(("warning" in response && response.warning) || "Сохранено.");
   }
 
   return (
     <section className="sheet mb-6 px-4 py-4 sm:px-5" data-mail-settings style={{ overflow: "hidden" }}>
       <h2 className="text-[20px]">От кого уходят письма</h2>
-      <p className="mt-1 text-[14px]" style={{ color: "var(--ink2)" }}>
-        Пустые поля оставляют адрес из настроек сервера. Пароль сюда не вводится и в базу не пишется.
-      </p>
       {smtp.configured ? (
-        <p className="mt-2 text-[14px]">Сейчас сервер входит как {smtp.user} через {smtp.host}.</p>
+        <p className="mt-2 text-[14px]">Сейчас сервер входит как {smtp.user}.</p>
       ) : (
-        <p className="mt-2 text-[14px]">SMTP на сервере не задан. Письма не уйдут, пока его не пропишут в окружении.</p>
+        <p className="mt-2 text-[14px]">SMTP не настроен, письма не уйдут.</p>
       )}
       {!ready ? (
         <p className="mt-3 text-[14px]">Столбцов ещё нет. Один раз нужен файл docs/sql/2026-10-20-mail-from.sql.</p>
@@ -66,11 +61,6 @@ export default function MailFromForm({
         </>
       )}
       {message ? <p className="mt-3 text-[14px]">{message}</p> : null}
-      <ul className="mt-3 space-y-1 text-[13px]" style={{ color: "var(--ink2)" }}>
-        {notes.map((note) => (
-          <li key={note}>{note}</li>
-        ))}
-      </ul>
     </section>
   );
 }

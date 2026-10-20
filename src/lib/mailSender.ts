@@ -64,7 +64,7 @@ export function envelopeFrom(
  */
 export function senderWarning(sender: MailSenderInput, smtp: SmtpPublic): string | null {
   if (!smtp.configured) {
-    return "SMTP не настроен. Письма не уйдут, пока на сервере не заданы SMTP_HOST, SMTP_USER и SMTP_PASSWORD. Пароль в базу не пишется.";
+    return "SMTP не настроен, письма не уйдут.";
   }
   const from = sender.fromEmail.trim().toLowerCase();
   if (!from) return null;
@@ -73,37 +73,9 @@ export function senderWarning(sender: MailSenderInput, smtp: SmtpPublic): string
   const gmail = host.includes("gmail") || host.includes("google");
   if (from === user) return null;
   if (gmail) {
-    return `Сервер входит в Gmail как ${smtp.user}. Чужой адрес в поле «От» Gmail отклонит, пока этот ящик не добавлен в Gmail: Настройки, Аккаунты и импорт, Отправлять почту как. Пароль приложения остаётся в SMTP_PASSWORD на сервере.`;
+    return "Другой адрес «От» Gmail примет, только если он добавлен как «Отправлять почту как».";
   }
-  return `Сервер входит как ${smtp.user || "ящик из SMTP_USER"} на ${smtp.host}. Адрес «От» должен быть разрешён этим ящиком, иначе сервер отклонит письмо. Пароль в базу не пишется.`;
-}
-
-export function senderSetupNotes(smtp: SmtpPublic): string[] {
-  const host = smtp.host.toLowerCase();
-  const gmail = host.includes("gmail") || host.includes("google");
-  if (!smtp.configured) {
-    return [
-      "В /srv/studio/app/.env нужны SMTP_HOST, SMTP_PORT, SMTP_USER и SMTP_PASSWORD.",
-      "Для Gmail это smtp.gmail.com, порт 587 и пароль приложения Google, не обычный пароль.",
-      "Пароль в базу и в эту форму не кладётся.",
-    ];
-  }
-  if (gmail) {
-    return [
-      `Сейчас вход в почту: ${smtp.user}. Это не секрет, это ящик SMTP_USER.`,
-      "Сменить адрес «От» на другой можно, только если он добавлен в Gmail как «Отправлять почту как» и подтверждён.",
-      "Свой домен: в DNS запись SPF, которая разрешает Gmail, и алиас в Gmail. DKIM Gmail настраивается там же.",
-      "Reply-To можно поставить любой. На вход в SMTP он не влияет.",
-      "Пароль приложения меняется только в .env, не здесь.",
-    ];
-  }
-  return [
-    `Сейчас вход: ${smtp.user} через ${smtp.host}.`,
-    "Адрес «От» должен принадлежать этому ящику или домену, который провайдер уже подтвердил.",
-    "Для своего домена у провайдера обычно нужны SPF и DKIM. Точные записи даёт сам почтовый сервис.",
-    "Reply-To можно поставить любой.",
-    "Пароль SMTP в эту форму не вводится и в базу не пишется.",
-  ];
+  return `Адрес «От» должен быть разрешён ящиком ${smtp.user || "SMTP_USER"}, иначе сервер его отклонит.`;
 }
 
 export async function readStoredSender(): Promise<MailSenderInput | null> {

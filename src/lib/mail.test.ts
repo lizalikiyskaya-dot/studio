@@ -71,6 +71,10 @@ test("письма ученику: бренд, подпись, текст и п�
   assert.match(update.text, /Еженедельное задание/);
   assert.match(update.text, /Цитата дня/);
   assert.match(update.text, /Задание недели/);
+  assert.match(update.text, /Скачать/);
+  assert.match(update.text, /Итог/);
+  assert.doesNotMatch(update.text, /над календарём/);
+  assert.doesNotMatch(update.text, /PDF открывается/);
   assert.doesNotMatch(update.text, /—/);
   assert.match(update.html, /#F6F1E8/);
   assert.match(update.html, /#FFD43B/);
@@ -97,7 +101,7 @@ test("письма ученику: бренд, подпись, текст и п�
     source: "Письмо",
   });
   assert.match(quote.text, /Антон Чехов/);
-  assert.match(quote.text, /над календарём/);
+  assert.doesNotMatch(quote.text, /над календарём/);
   assert.match(quote.html, /max-width:600px/);
   assert.match(quote.text, /Открыть кабинет: .*\/dashboard\/tasks/);
 

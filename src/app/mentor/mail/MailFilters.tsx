@@ -1,5 +1,7 @@
 "use client";
 
+import PillSelect from "@/components/PillSelect";
+
 export default function MailFilters({
   type,
   student,
@@ -19,44 +21,29 @@ export default function MailFilters({
     window.location.href = query ? `/mentor/mail?${query}` : "/mentor/mail";
   }
 
-  const selectClass = "ml-2 h-10 rounded-full bg-white px-4 text-[14px]";
-  const selectStyle = { border: "1px solid var(--border)", color: "var(--ink)" } as const;
-
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-3">
-      <label className="text-[13px]" style={{ color: "var(--muted)" }}>
+    <div className="mail-filters mb-4">
+      <label className="mail-filter text-[13px]" style={{ color: "var(--faded)" }}>
         Тип
-        <select
-          aria-label="Тип письма"
-          value={type}
-          onChange={(event) => go(event.target.value, student)}
-          className={selectClass}
-          style={selectStyle}
-        >
+        <PillSelect aria-label="Тип письма" value={type} onChange={(event) => go(event.target.value, student)}>
           <option value="">Все</option>
           {types.map((item) => (
             <option key={item.value} value={item.value}>
               {item.label}
             </option>
           ))}
-        </select>
+        </PillSelect>
       </label>
-      <label className="text-[13px]" style={{ color: "var(--muted)" }}>
+      <label className="mail-filter text-[13px]" style={{ color: "var(--faded)" }}>
         Ученик
-        <select
-          aria-label="Ученик"
-          value={student}
-          onChange={(event) => go(type, event.target.value)}
-          className={selectClass}
-          style={{ ...selectStyle, maxWidth: 280 }}
-        >
+        <PillSelect aria-label="Ученик" value={student} onChange={(event) => go(type, event.target.value)}>
           <option value="">Все</option>
           {students.map((item) => (
             <option key={item.id} value={item.id}>
               {item.name}
             </option>
           ))}
-        </select>
+        </PillSelect>
       </label>
     </div>
   );
