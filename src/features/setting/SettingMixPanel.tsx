@@ -187,18 +187,23 @@ export default function SettingMixPanel({
             Манифест — мир иллюстрирует идею. Фильтр — настроение, без объяснений. Конфликт — правила и испытания. Магнит — понятный мир, куда хочется вернуться.
           </p>
         </div>
-        <div className="mt-3 space-y-1.5">
-          {view.rows.filter((row) => row.value > 0).sort((a, b) => b.value - a.value).map((row) => (
-            <div key={row.id} className="flex items-center gap-2 text-[12.5px]">
-              <span className="w-[92px]">{row.label}</span>
-              <span className="h-1.5 flex-1 overflow-hidden rounded-full" style={{ background: "var(--line)" }}>
-                <span className="block h-full rounded-full" style={{ width: `${row.pct}%`, background: row.color }} />
-              </span>
-              <span className="w-8 text-right tabular-nums">{row.pct}%</span>
+        {view.rows.some((row) => row.value > 0) ? (
+          <div className="mt-4 rounded-[16px] px-3.5 py-3" style={{ background: "#F8F4F1" }}>
+            <div className="text-[12px] font-medium" style={{ color: "var(--muted)" }}>Итог</div>
+            <div className="mt-2 flex flex-col gap-1.5">
+              {view.rows.filter((row) => row.value > 0).sort((a, b) => b.value - a.value).map((row) => (
+                <div key={row.id} className="flex items-center gap-2 text-[12.5px]">
+                  <span className="w-[92px] shrink-0">{row.label}</span>
+                  <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full" style={{ background: "#E8E1DC" }}>
+                    <span className="block h-full rounded-full" style={{ width: `${row.pct}%`, background: row.color }} />
+                  </span>
+                  <span className="w-10 shrink-0 text-right tabular-nums">{row.pct}%</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        {view.meaning ? <p className="mt-2 text-[12.5px] leading-snug" style={{ color: "var(--ink2)" }}>{view.meaning}</p> : null}
+            {view.meaning ? <p className="mt-2.5 text-[12.5px] leading-snug" style={{ color: "var(--ink2)" }}>{view.meaning}</p> : null}
+          </div>
+        ) : null}
         {children}
       </div>
     </div>
