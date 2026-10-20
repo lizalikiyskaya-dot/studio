@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import type { Character, Comment } from "@/generated/prisma/client";
 import CharacterProfile from "./CharacterProfile";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
+import { CardTitle } from "@/components/InlineTitle";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import DragHandle from "@/components/DragHandle";
 import { createCharacter, deleteCharacter, reorderCharacters, updateCharacterPhotoUrl } from "./actions";
@@ -31,6 +32,7 @@ function CharacterSection({
   onAdd: (c: Character) => void;
 }) {
   const [items, setItems] = useState(characters);
+  const [freshId, setFreshId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const { dropTarget, dragHandle } = useDragReorder(items, setItems, (orderedIds) =>
     startTransition(() => reorderCharacters(bookId, orderedIds))
@@ -39,6 +41,7 @@ function CharacterSection({
   function handleAdd() {
     startTransition(async () => {
       const character = await createCharacter(bookId, type);
+      setFreshId(character.id);
       setItems((prev) => [...prev, character]);
       onAdd(character);
     });
@@ -81,7 +84,23 @@ function CharacterSection({
           <div key={character.id} {...dropTarget(character.id)} className="flex items-start gap-1.5">
             <DragHandle handlers={dragHandle(character.id)} />
             <div className="flex-1 min-w-0">
-              <CollapsibleCharacterShell name={character.name} photoUrl={character.photoUrl}>
+              <CollapsibleCharacterShell
+                name={character.name}
+                photoUrl={character.photoUrl}
+                defaultOpen={character.id === freshId}
+                title={
+                  <CardTitle
+                    value={character.name}
+                    autoFocus={character.id === freshId}
+                    placeholder="Имя"
+                    model="Character"
+                    recordId={character.id}
+                    suggestion={charSuggestions.name}
+                    onSave={(name) => handleNameSaved(character.id, name)}
+                    className="text-[14.5px]"
+                  />
+                }
+              >
                 <CharacterProfile
                   name={character.name}
                   photoUrl={character.photoUrl}

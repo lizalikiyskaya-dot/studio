@@ -8,6 +8,7 @@ import ToggleSwitch from "@/components/ToggleSwitch";
 import { cycleGuideStatus, setGuideVisibleForStudent } from "@/features/guides/actions";
 import type { CabinetGuide } from "@/features/guides/types";
 import DownloadButton from "@/components/DownloadButton";
+import ReadingText from "@/components/ReadingText";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
 
 export default function LibraryGuides({
@@ -82,11 +83,7 @@ export default function LibraryGuides({
               </button>
             </div>
 
-            {guide.description ? (
-              <p className="mt-2 text-[13.5px] whitespace-pre-wrap" style={{ color: "var(--ink2)" }}>
-                {guide.description}
-              </p>
-            ) : null}
+            {guide.description ? <ReadingText text={guide.description} className="mt-3" /> : null}
 
             <div className="mt-3 flex items-center gap-3 flex-wrap">
               {canFetch && guide.hasFile ? (

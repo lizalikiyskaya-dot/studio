@@ -11,6 +11,7 @@ import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import { ARC_GROUPS, type CharacterFieldKey } from "@/features/characters/fields";
 import { CHARACTER_DEFAULTS } from "@/lib/characterDefaults";
 import { Button } from "@/components/ui/Button";
+import InlineTitle from "@/components/InlineTitle";
 
 const ARC_TYPE_INDEX: Record<ArcType, number> = {
   POSITIVE: 0,
@@ -51,6 +52,7 @@ export default function CharacterCard({
   onUpdateField,
   onUpdatePhotoUrl,
   onDelete,
+  startOpen = false,
 }: {
   character: CharacterLike;
   uploadTarget: "cycle-character-photo" | "story-character-photo";
@@ -59,8 +61,10 @@ export default function CharacterCard({
   onUpdateField: (id: string, field: CharacterFieldKey, value: string) => void;
   onUpdatePhotoUrl?: (id: string, url: string) => void;
   onDelete: (id: string) => void;
+  startOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
+  const [name, setName] = useState(character.name);
   const [photoUrl, setPhotoUrl] = useState(character.photoUrl);
   const [, startTransition] = useTransition();
   const data = (character.data as Record<string, string>) ?? {};
@@ -87,7 +91,16 @@ export default function CharacterCard({
             backgroundPosition: "center",
           }}
         />
-        <span className="heading flex-1 font-semibold text-[14.5px]">{character.name || "Без имени"}</span>
+        <InlineTitle
+          value={name}
+          autoFocus={startOpen}
+          placeholder="Имя"
+          onSave={(value) => {
+            setName(value);
+            onUpdateName(character.id, value);
+          }}
+          className="text-[14.5px]"
+        />
         {character.arcType && (
           <span
             className="text-[12px] px-2.5 py-1 rounded-full"
@@ -126,17 +139,6 @@ export default function CharacterCard({
             className="rounded-full flex-shrink-0"
             style={{ width: 90, height: 90, minWidth: 90 }}
           />
-          <div className="flex-1 min-w-0">
-            <label className="block text-[12.5px] mb-1.5" style={{ color: "var(--faded)" }}>
-              Имя
-            </label>
-            <input
-              defaultValue={character.name}
-              onBlur={(e) => onUpdateName(character.id, e.target.value)}
-              className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
-              style={{ borderColor: "var(--rule)" }}
-            />
-          </div>
           <Button onClick={handleDelete} variant="secondary" size="sm" pill className="flex-shrink-0">
             удалить
           </Button>

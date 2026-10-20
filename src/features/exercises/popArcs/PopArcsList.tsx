@@ -20,6 +20,7 @@ export function ExamplesList({
   comments: Record<string, Comment[]>;
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
+  const [freshId, setFreshId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const { dropTarget, dragHandle } = useDragReorder(characters, setCharacters, (orderedIds) =>
     startTransition(() => reorderPopArcCharacters(studentId, true, orderedIds))
@@ -28,6 +29,7 @@ export function ExamplesList({
   function handleAdd() {
     startTransition(async () => {
       const character = await createPopArcCharacter(studentId, true);
+      setFreshId(character.id);
       setCharacters((prev) => [...prev, character]);
     });
   }
@@ -49,6 +51,7 @@ export function ExamplesList({
               suggestions={{}}
               initialComments={comments[character.id] ?? []}
               onDelete={() => handleDelete(character.id)}
+              startOpen={character.id === freshId}
             />
           </div>
         </div>
@@ -75,6 +78,7 @@ export function OwnHeroesList({
   comments: Record<string, Comment[]>;
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
+  const [freshId, setFreshId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const { dropTarget, dragHandle } = useDragReorder(characters, setCharacters, (orderedIds) =>
     startTransition(() => reorderPopArcCharacters(studentId, false, orderedIds))
@@ -83,6 +87,7 @@ export function OwnHeroesList({
   function handleAdd() {
     startTransition(async () => {
       const character = await createPopArcCharacter(studentId, false);
+      setFreshId(character.id);
       setCharacters((prev) => [...prev, character]);
     });
   }
@@ -104,6 +109,7 @@ export function OwnHeroesList({
               suggestions={suggestions[character.id] ?? {}}
               initialComments={comments[character.id] ?? []}
               onDelete={() => handleDelete(character.id)}
+              startOpen={character.id === freshId}
             />
           </div>
         </div>

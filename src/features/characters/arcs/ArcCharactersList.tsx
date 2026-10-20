@@ -20,6 +20,7 @@ export default function ArcCharactersList({
   comments: Record<string, Comment[]>;
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
+  const [freshId, setFreshId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const { dropTarget, dragHandle } = useDragReorder(characters, setCharacters, (orderedIds) =>
     startTransition(() => reorderCharacters(bookId, orderedIds))
@@ -28,6 +29,7 @@ export default function ArcCharactersList({
   function handleAdd() {
     startTransition(async () => {
       const character = await createCharacter(bookId);
+      setFreshId(character.id);
       setCharacters((prev) => [...prev, character]);
     });
   }
@@ -47,6 +49,7 @@ export default function ArcCharactersList({
               suggestions={suggestions[character.id] ?? {}}
               initialComments={comments[character.id] ?? []}
               onDeleted={handleDeleted}
+              startOpen={character.id === freshId}
             />
           </div>
         </div>

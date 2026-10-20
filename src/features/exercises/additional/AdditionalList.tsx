@@ -9,6 +9,7 @@ import CardSaveButton from "@/components/CardSaveButton";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { blurOnEnter } from "@/lib/blurOnEnter";
+import InlineTitle from "@/components/InlineTitle";
 import {
   createAdditionalSection,
   updateSectionTitle,
@@ -101,14 +102,12 @@ function SectionBody({
   isMentorViewer,
   suggestions,
   comments,
-  onTitle,
   onDelete,
 }: {
   section: FreeSection;
   isMentorViewer: boolean;
   suggestions: Record<string, Record<string, string>>;
   comments: Record<string, Comment[]>;
-  onTitle: (id: string, value: string) => void;
   onDelete: (id: string) => void;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -117,21 +116,6 @@ function SectionBody({
 
   return (
     <div ref={rootRef}>
-      {canManage ? (
-        <input
-          defaultValue={section.title}
-          onBlur={(e) => onTitle(section.id, e.target.value)}
-          onKeyDown={blurOnEnter}
-          placeholder={section.type === "TABLE" ? "Название таблицы" : "Вопрос"}
-          className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-3"
-          style={{ borderColor: "var(--rule)" }}
-        />
-      ) : (
-        section.type === "TEXT" && (
-          <p className="heading text-[14px] font-semibold mb-3">{section.title}</p>
-        )
-      )}
-
       {section.type === "TEXT" ? (
         <SuggestableField
           model="FreeSection"
@@ -140,7 +124,7 @@ function SectionBody({
           value={section.content}
           suggestion={suggestions[section.id]?.content}
           placeholder="Ответ..."
-          className="outline-none bg-transparent text-[13.5px] leading-relaxed"
+          className="reading outline-none bg-transparent"
           style={{ width: "100%" }}
           resizable
         />
@@ -176,11 +160,13 @@ export default function AdditionalList({
   comments: Record<string, Comment[]>;
 }) {
   const [sections, setSections] = useState(initialSections);
+  const [freshId, setFreshId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   function handleAdd(type: "TEXT" | "TABLE") {
     startTransition(async () => {
       const section = await createAdditionalSection(studentId, type, 2, 2);
+      setFreshId(section.id);
       setSections((prev) => [...prev, section]);
     });
   }
@@ -213,10 +199,21 @@ export default function AdditionalList({
           + таблица
         </Button>
       </div>
-      {sections.map((section) => (
+      {sections.map((section) => {
+        const canRename = isMentorViewer || section.createdByStudent;
+        return (
         <Accordion
           key={section.id}
-          title={section.title || "Без названия"}
+          defaultOpen={section.id === freshId}
+          title={canRename ? (
+            <InlineTitle
+              value={section.title}
+              autoFocus={section.id === freshId}
+              placeholder={section.type === "TABLE" ? "Название таблицы" : "Вопрос"}
+              onSave={(value) => handleTitle(section.id, value)}
+              className="text-[14.5px]"
+            />
+          ) : (section.title || "Без названия")}
           headerExtra={
             <TaskStatusMenu status={section.status} onChange={(status) => handleStatus(section.id, status)} />
           }
@@ -226,11 +223,11 @@ export default function AdditionalList({
             isMentorViewer={isMentorViewer}
             suggestions={suggestions}
             comments={comments}
-            onTitle={handleTitle}
             onDelete={handleDelete}
           />
         </Accordion>
-      ))}
+        );
+      })}
 
     </div>
   );

@@ -13,6 +13,7 @@ import { ARC_GROUPS } from "@/features/characters/fields";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
 import { updatePopArcType } from "./actions";
 import { Button } from "@/components/ui/Button";
+import { CardTitle } from "@/components/InlineTitle";
 
 const ARC_TYPE_INDEX: Record<ArcType, number> = {
   POSITIVE: 0,
@@ -149,14 +150,16 @@ export default function PopArcCard({
   suggestions,
   initialComments,
   onDelete,
+  startOpen = false,
 }: {
   character: PopArcCharacter;
   readOnly: boolean;
   suggestions: Record<string, string>;
   initialComments: Comment[];
   onDelete: () => void;
+  startOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [name, setName] = useState(character.name);
   const [photoUrl, setPhotoUrl] = useState(character.photoUrl);
   const [arcType, setArcType] = useState(character.arcType);
@@ -192,7 +195,20 @@ export default function PopArcCard({
             backgroundPosition: "center",
           }}
         />
-        <span className="heading flex-1 font-semibold text-[14.5px]">{name || "Без имени"}</span>
+        {readOnly ? (
+          <span className="heading flex-1 font-semibold text-[14.5px]">{name || "Без имени"}</span>
+        ) : (
+          <CardTitle
+            value={name}
+            autoFocus={startOpen}
+            placeholder="Имя"
+            model="PopArcCharacter"
+            recordId={character.id}
+            suggestion={suggestions.name}
+            onSave={setName}
+            className="text-[14.5px]"
+          />
+        )}
         {arcType && (
           <span
             className="font-mono-label text-[9.5px] uppercase px-2 py-1 rounded-full"
@@ -243,26 +259,6 @@ export default function PopArcCard({
                 style={{ width: 90, height: 90, minWidth: 90 }}
               />
             )}
-            <div className="flex-1 min-w-0">
-              <label className="block text-[12.5px] mb-1.5" style={{ color: "var(--faded)" }}>
-                Имя
-              </label>
-              {readOnly ? (
-                <p className="heading font-semibold text-[18px] pb-1">{name}</p>
-              ) : (
-                <SuggestableField
-                  model="PopArcCharacter"
-                  recordId={character.id}
-                  field="name"
-                  value={name}
-                  suggestion={suggestions.name}
-                  as="input"
-                  onSaved={setName}
-                  className="heading font-semibold text-[18px] outline-none bg-transparent border-b w-full py-1"
-                  style={{ borderColor: "var(--rule)" }}
-                />
-              )}
-            </div>
             {!readOnly && (
               <div className="flex gap-1.5 flex-shrink-0">
                 <CardSaveButton scopeRef={rootRef} />

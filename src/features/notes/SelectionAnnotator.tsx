@@ -16,23 +16,33 @@ type HostLike = {
   dataset?: { notesUi?: string; annotateBtn?: string };
 };
 
-/** Поле, в котором человек правит текст, или сама панель заметок.
- *  Выделение там не должно поднимать «Заметка»: иначе кнопка съедает
- *  Delete, Backspace и замену набора. */
+/** Панель заметок и поле режима правок не поднимают «Заметку».
+ *  Обычный текст и поля ввода поднимают: цитату берут из выделения,
+ *  а Delete и набор кнопка не перехватывает. */
 export function blocksNote(node: HostLike | null | undefined): boolean {
   let el = node ?? null;
   while (el) {
     if (el.dataset?.notesUi === "1" || el.dataset?.annotateBtn !== undefined) return true;
     if (el.getAttribute?.("data-review-field") != null) return true;
-    if (el.isContentEditable) return true;
-    const tag = el.tagName;
-    if (tag === "TEXTAREA" || tag === "SELECT") return true;
-    if (tag === "INPUT" && TEXTUAL_INPUT.has((el.type ?? "text").toLowerCase())) return true;
-    const role = el.getAttribute?.("role");
-    if (role === "textbox" || role === "searchbox") return true;
     el = el.parentElement ?? null;
   }
   return false;
+}
+
+export function isTextField(node: HostLike | null | undefined): boolean {
+  if (!node || blocksNote(node)) return false;
+  const tag = node.tagName;
+  if (tag === "TEXTAREA") return true;
+  if (tag === "INPUT" && TEXTUAL_INPUT.has((node.type ?? "text").toLowerCase())) return true;
+  return false;
+}
+
+/** Фрагмент внутри input/textarea. Пустое и слишком короткое выделение не цитата. */
+export function fieldQuote(value: string, start: number | null, end: number | null): string | null {
+  if (start == null || end == null || end <= start) return null;
+  const text = value.slice(start, end);
+  if (text.trim().length < 2) return null;
+  return text;
 }
 
 function hostOf(node: Node | null): HTMLElement | null {
@@ -49,18 +59,65 @@ function readableLabel(): string {
 
 type Found = { text: string; rect: DOMRect | null };
 
-// Выделение в поле ввода и в режиме правок не предлагаем заметить: человек
-// выделяет, чтобы удалить или заменить. Кнопка остаётся на обычном тексте страницы.
+function caretRect(field: HTMLTextAreaElement | HTMLInputElement, index: number): DOMRect {
+  const fieldRect = field.getBoundingClientRect();
+  if (field instanceof HTMLInputElement || field.clientWidth < 8) {
+    return new DOMRect(fieldRect.left + 8, fieldRect.top, 0, fieldRect.height);
+  }
+  const mirror = document.createElement("div");
+  const style = getComputedStyle(field);
+  mirror.style.position = "fixed";
+  mirror.style.left = "0";
+  mirror.style.top = "0";
+  mirror.style.visibility = "hidden";
+  mirror.style.pointerEvents = "none";
+  mirror.style.whiteSpace = "pre-wrap";
+  mirror.style.overflowWrap = "break-word";
+  mirror.style.wordBreak = style.wordBreak;
+  mirror.style.width = `${field.clientWidth}px`;
+  mirror.style.font = style.font;
+  mirror.style.lineHeight = style.lineHeight;
+  mirror.style.letterSpacing = style.letterSpacing;
+  mirror.style.padding = style.padding;
+  mirror.style.border = style.border;
+  mirror.textContent = field.value.slice(0, index);
+  const mark = document.createElement("span");
+  mark.textContent = field.value.slice(index, index + 1) || ".";
+  mirror.appendChild(mark);
+  document.body.appendChild(mirror);
+  const markRect = mark.getBoundingClientRect();
+  const mirrorRect = mirror.getBoundingClientRect();
+  mirror.remove();
+  const top = fieldRect.top + (markRect.top - mirrorRect.top) - field.scrollTop;
+  const left = fieldRect.left + (markRect.left - mirrorRect.left) - field.scrollLeft;
+  return new DOMRect(left, Math.min(Math.max(top, fieldRect.top), fieldRect.bottom), markRect.width, markRect.height || 18);
+}
+
 function readSelection(): Found | null {
   const active = document.activeElement;
   if (active instanceof HTMLElement && active !== document.body && blocksNote(active)) return null;
+
+  if (
+    active instanceof HTMLTextAreaElement ||
+    (active instanceof HTMLInputElement && TEXTUAL_INPUT.has((active.type || "text").toLowerCase()))
+  ) {
+    const quote = fieldQuote(active.value, active.selectionStart, active.selectionEnd);
+    if (!quote) return null;
+    return { text: quote, rect: caretRect(active, active.selectionStart ?? 0) };
+  }
 
   const sel = window.getSelection();
   if (!sel || sel.isCollapsed || sel.rangeCount === 0) return null;
   if (blocksNote(hostOf(sel.anchorNode)) || blocksNote(hostOf(sel.focusNode))) return null;
   const text = sel.toString();
-  if (!text.trim()) return null;
-  return { text, rect: sel.getRangeAt(0).getBoundingClientRect() };
+  if (text.trim().length < 2) return null;
+  const rect = sel.getRangeAt(0).getBoundingClientRect();
+  return { text, rect };
+}
+
+function editsText(event: KeyboardEvent) {
+  if (event.metaKey || event.ctrlKey || event.altKey) return false;
+  return event.key === "Backspace" || event.key === "Delete" || event.key === "Enter" || event.key.length === 1;
 }
 
 export default function SelectionAnnotator({
@@ -69,30 +126,26 @@ export default function SelectionAnnotator({
   onAnnotate: (anchor: Anchor) => void;
 }) {
   const [btn, setBtn] = useState<{ x: number; y: number; anchor: Anchor } | null>(null);
-  const pointer = useRef<{ x: number; y: number } | null>(null);
+  const pointing = useRef(false);
 
   useEffect(() => {
+    let timer = 0;
+
     function evaluate() {
-      // Defer so the browser finalizes the selection after the event.
-      window.setTimeout(() => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
         const found = readSelection();
-        if (!found || found.text.trim().length < 2) {
+        if (!found) {
           setBtn(null);
           return;
         }
-
-        // Prefer the pointer position (works for both DOM and textarea
-        // selections); fall back to the selection/field rectangle.
-        let x = pointer.current?.x ?? 0;
-        let y = pointer.current?.y ?? 0;
-        if (!x && !y) {
-          if (!found.rect) return;
-          x = found.rect.left + found.rect.width / 2;
-          y = found.rect.top;
+        const rect = found.rect;
+        if (!rect || (rect.width === 0 && rect.height === 0 && rect.top === 0)) {
+          setBtn(null);
+          return;
         }
-        x = Math.min(Math.max(x, 90), window.innerWidth - 90);
-        y = Math.max(y - 16, 46);
-
+        const x = Math.min(Math.max(rect.left + Math.min(rect.width / 2, 48), 90), window.innerWidth - 90);
+        const y = Math.max(rect.top - 8, 46);
         const raw = found.text.trim();
         setBtn({
           x,
@@ -103,36 +156,46 @@ export default function SelectionAnnotator({
             url: window.location.pathname + window.location.search,
           },
         });
-      }, 10);
+      }, 40);
     }
 
-    function onMouseUp(e: MouseEvent) {
-      if ((e.target as HTMLElement)?.closest?.("[data-annotate-btn]")) return;
-      pointer.current = { x: e.clientX, y: e.clientY };
-      evaluate();
-    }
-
-    function onKeyUp(e: KeyboardEvent) {
-      // Only react to keyboard selection gestures (Shift+arrows, Ctrl/Cmd+A).
-      if (e.shiftKey || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a")) {
-        pointer.current = null; // use rect-based positioning
-        evaluate();
-      }
-    }
-
-    function onMouseDown(e: MouseEvent) {
-      // Don't dismiss when the click lands on our floating button.
-      if ((e.target as HTMLElement)?.closest?.("[data-annotate-btn]")) return;
+    function onPointerDown(event: PointerEvent) {
+      if ((event.target as HTMLElement)?.closest?.("[data-annotate-btn]")) return;
+      pointing.current = true;
       setBtn(null);
     }
 
-    document.addEventListener("mouseup", onMouseUp);
+    function onPointerUp(event: PointerEvent) {
+      pointing.current = false;
+      if ((event.target as HTMLElement)?.closest?.("[data-annotate-btn]")) return;
+      evaluate();
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (editsText(event)) setBtn(null);
+    }
+
+    function onKeyUp(event: KeyboardEvent) {
+      if (event.shiftKey || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a")) evaluate();
+    }
+
+    function onSelectionChange() {
+      if (pointing.current) return;
+      evaluate();
+    }
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("pointerup", onPointerUp);
+    document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
-    document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("selectionchange", onSelectionChange);
     return () => {
-      document.removeEventListener("mouseup", onMouseUp);
+      window.clearTimeout(timer);
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("pointerup", onPointerUp);
+      document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("keyup", onKeyUp);
-      document.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("selectionchange", onSelectionChange);
     };
   }, []);
 
@@ -141,15 +204,10 @@ export default function SelectionAnnotator({
   return (
     <button
       data-annotate-btn=""
-      // Prevent the mousedown from stealing focus / collapsing the selection
-      // before our click handler captures the quote.
-      onMouseDown={(e) => e.preventDefault()}
+      onMouseDown={(event) => event.preventDefault()}
       onClick={() => {
         onAnnotate(btn.anchor);
         setBtn(null);
-        const active = document.activeElement;
-        if (active instanceof HTMLElement && blocksNote(active)) return;
-        window.getSelection()?.removeAllRanges();
       }}
       className="flex items-center gap-1.5 rounded-full text-[12px] font-medium px-3 py-1.5"
       style={{

@@ -3,7 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import { CircleHelp } from "lucide-react";
-import { AUTHOR_RANKS, STAR_POINTS, starsLabel } from "./rules";
+import { AUTHOR_RANKS, STAR_LEGEND, STAR_POINTS, starsLabel } from "./rules";
 
 const ROWS = [
   {
@@ -67,6 +67,13 @@ export default function StarsHelp() {
                 <div className="site-dialog-title" id={titleId}>
                   За что дают звёзды
                 </div>
+                <ul className="mt-4 flex flex-wrap gap-2 text-[13px]" style={{ color: "var(--ink2)" }}>
+                  {STAR_LEGEND.map((item) => (
+                    <li key={item.label} className="rounded-full px-3 py-1" style={{ background: "var(--soft)" }}>
+                      {item.points} — {item.label}
+                    </li>
+                  ))}
+                </ul>
                 <ul className="mt-4 flex flex-col gap-3">
                   {ROWS.map((row) => (
                     <li key={row.title} className="flex items-start gap-3">
