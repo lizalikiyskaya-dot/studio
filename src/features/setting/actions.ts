@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import type { WorldCategory } from "@/generated/prisma/client";
 import { resolveShares } from "./settingMix";
-import { isEntryCategory } from "./worldBible";
+import { isEntryCategory, themeNoteKey } from "./worldBible";
 
 const GRAPES_FIELDS = [
   "grapesGeography",
@@ -190,5 +190,52 @@ export async function updateWorldEntryCategory(entryId: string, category: WorldC
   const book = await prisma.book.findUniqueOrThrow({ where: { id: entry.bookId } });
   await requireCabinetAccess(book.studentId);
   await prisma.worldEntry.update({ where: { id: entryId }, data: { category } });
+}
+
+const THEME_SCOPES = new Set(["book", "cycle", "story"]);
+
+function missingThemeTable(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const code = "code" in error ? String((error as { code?: unknown }).code) : "";
+  if (code === "P2021" || code === "42P01") return true;
+  const message = "message" in error ? String((error as { message?: unknown }).message) : "";
+  return /ThemeNote/.test(message) && /does not exist|не существует|42P01/i.test(message);
+}
+
+async function themeStudentId(scope: string, ownerId: string) {
+  if (scope === "book") return (await prisma.book.findUnique({ where: { id: ownerId }, select: { studentId: true } }))?.studentId ?? null;
+  if (scope === "cycle") return (await prisma.cycle.findUnique({ where: { id: ownerId }, select: { studentId: true } }))?.studentId ?? null;
+  if (scope === "story") return (await prisma.story.findUnique({ where: { id: ownerId }, select: { studentId: true } }))?.studentId ?? null;
+  return null;
+}
+
+export async function loadThemeNotes(scope: string, ownerId: string) {
+  if (!THEME_SCOPES.has(scope)) return {};
+  try {
+    const rows = await prisma.themeNote.findMany({ where: { scope, ownerId } });
+    const notes: Record<string, string> = {};
+    for (const row of rows) notes[themeNoteKey(row.settingKey, row.theme)] = row.body;
+    return notes;
+  } catch (error) {
+    if (missingThemeTable(error)) return {};
+    throw error;
+  }
+}
+
+export async function saveThemeNote(scope: string, ownerId: string, settingKey: string, theme: string, body: string) {
+  if (!THEME_SCOPES.has(scope) || !theme) return;
+  const studentId = await themeStudentId(scope, ownerId);
+  if (!studentId) return;
+  await requireCabinetAccess(studentId);
+  try {
+    await prisma.themeNote.upsert({
+      where: { scope_ownerId_settingKey_theme: { scope, ownerId, settingKey, theme } },
+      create: { scope, ownerId, settingKey, theme, body },
+      update: { body },
+    });
+  } catch (error) {
+    if (missingThemeTable(error)) return;
+    throw error;
+  }
 }
 

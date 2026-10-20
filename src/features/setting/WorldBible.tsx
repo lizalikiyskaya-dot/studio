@@ -16,6 +16,7 @@ import {
   isEntryCategory,
   nextThemeCue,
   themeFill,
+  themeNoteKey,
   toggleCheckLine,
   type BibleTheme,
   type Fill,
@@ -27,6 +28,8 @@ import {
   createWorldEntry,
   deleteGrapesSetting,
   deleteWorldEntry,
+  loadThemeNotes,
+  saveThemeNote,
   toggleFantasyLock,
   updateFantasyText,
   updateWorldEntryBody,
@@ -107,6 +110,7 @@ export default function WorldBible({
   const [unlocked, setUnlocked] = useState(initialUnlocked);
   const [openTheme, setOpenTheme] = useState<BibleTheme | null>(null);
   const [notes, setNotes] = useState(fantasyNotes);
+  const [themeNotes, setThemeNotes] = useState<Record<string, string>>({});
   const [mobileNotes, setMobileNotes] = useState(false);
   const [wide, setWide] = useState(false);
   const [nudge, setNudge] = useState(false);
@@ -120,6 +124,16 @@ export default function WorldBible({
   const cue = nextThemeCue(grapes, entriesVisible ? entries : [], entriesVisible);
   const themeEntries = openTheme?.category ? entries.filter((entry) => entry.category === openTheme.category) : [];
   const selected = themeEntries.find((entry) => entry.id === selectedId) ?? themeEntries[0] ?? null;
+
+  useEffect(() => {
+    let cancel = false;
+    void loadThemeNotes(scope, recordId).then((rows) => {
+      if (!cancel) setThemeNotes(rows);
+    });
+    return () => {
+      cancel = true;
+    };
+  }, [scope, recordId]);
 
   useLayoutEffect(() => {
     const query = window.matchMedia("(min-width: 981px)");
@@ -143,6 +157,17 @@ export default function WorldBible({
     setOpenTheme((current) => (current?.id === theme.id ? null : theme));
     setSelectedId(null);
     setMobileNotes(true);
+  }
+
+  function saveOpenThemeNote(value: string) {
+    if (!openTheme || !table || !canEdit) return;
+    const settingKey = openTheme.kind === "grapes" ? table.id : "";
+    const key = themeNoteKey(settingKey, openTheme.id);
+    setThemeNotes((prev) => ({ ...prev, [key]: value }));
+    const themeId = openTheme.id;
+    startTransition(() => {
+      void saveThemeNote(scope, recordId, settingKey, themeId, value);
+    });
   }
 
   function saveNotes(value: string) {
@@ -267,6 +292,9 @@ export default function WorldBible({
       onNotes={saveNotes}
       suggestions={fantasySuggestions}
       themeLabel={openTheme?.label ?? null}
+      themeNote={openTheme && table ? themeNotes[themeNoteKey(openTheme.kind === "grapes" ? table.id : "", openTheme.id)] ?? "" : ""}
+      themeKey={openTheme && table ? `${openTheme.kind === "grapes" ? table.id : ""}:${openTheme.id}` : "closed"}
+      onThemeNote={saveOpenThemeNote}
       nudged={nudge}
       onNudgeEnd={() => setNudge(false)}
     />
@@ -666,6 +694,9 @@ function WorldSticker({
   onNotes,
   suggestions,
   themeLabel,
+  themeNote,
+  themeKey,
+  onThemeNote,
   nudged,
   onNudgeEnd,
 }: {
@@ -677,6 +708,9 @@ function WorldSticker({
   onNotes: (value: string) => void;
   suggestions?: Record<string, string>;
   themeLabel: string | null;
+  themeNote: string;
+  themeKey: string;
+  onThemeNote: (value: string) => void;
   nudged: boolean;
   onNudgeEnd: () => void;
 }) {
@@ -702,10 +736,23 @@ function WorldSticker({
       )}
       <div className="mt-3 border-t pt-3" style={{ borderColor: "rgba(92,80,22,0.18)" }}>
         <h4 className="text-[13px] font-semibold" style={ink}>К этой теме</h4>
-        <p className="mt-1 text-[12.5px] leading-snug" style={ink}>
-          {themeLabel ? `«${themeLabel}»` : "Откройте тему."} Отдельного поля для заметки темы нет.
-        </p>
-        <textarea disabled aria-label="Заметка темы" placeholder="Появится после отдельного поля" className="mt-2 w-full text-[13px] outline-none" style={{ ...style, minHeight: 48, opacity: 0.55 }} />
+        {themeLabel ? (
+          canEdit ? (
+            <textarea
+              key={themeKey}
+              defaultValue={themeNote}
+              aria-label={`Заметка темы ${themeLabel}`}
+              placeholder="Заметка только к этой теме"
+              className="mt-1 w-full text-[14px] leading-relaxed outline-none"
+              style={{ ...style, minHeight: 72 }}
+              onBlur={(event) => onThemeNote(event.target.value)}
+            />
+          ) : (
+            <p className="mt-1 text-[14px] leading-relaxed" style={{ fontFamily: "var(--font-serif), Georgia, serif" }}>{themeNote || "Пока пусто"}</p>
+          )
+        ) : (
+          <p className="mt-1 text-[12.5px] leading-snug" style={ink}>Откройте тему.</p>
+        )}
       </div>
     </div>
   );

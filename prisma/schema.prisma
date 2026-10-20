@@ -825,6 +825,22 @@ model StoryWorldEntry {
   @@index([storyId])
 }
 
+// Заметка к одной карточке «Библии мира». Не путать с fantasyNotes (на весь мир).
+// settingKey — id таблицы GRAPES («primary» или GrapesSetting), чтобы заметки
+// разных таблиц не смешивались. У тем-записей пустая строка.
+model ThemeNote {
+  id         String   @id @default(cuid())
+  scope      String
+  ownerId    String
+  settingKey String   @default("")
+  theme      String
+  body       String   @default("")
+  updatedAt  DateTime @updatedAt
+
+  @@unique([scope, ownerId, settingKey, theme])
+  @@index([ownerId])
+}
+
 // Журнал писем «сегодня день оплаты». Одна строка на человека и календарный
 // день срабатывания. Повторный запуск в тот же день упирается в уникальный ключ.
 model PaymentReminderLog {

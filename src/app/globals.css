@@ -2119,6 +2119,7 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   100% { transform: rotate(-1deg) translateY(0); }
 }
 .setting-stage { display: flex; flex-direction: column; gap: 16px; }
+.setting-top { display: flex; flex-direction: column; gap: 16px; align-items: stretch; }
 .setting-stage-row { display: flex; flex-direction: column; gap: 16px; align-items: stretch; }
 .setting-stage-main, .setting-stage-side { min-width: 0; }
 .setting-banner {
@@ -2142,14 +2143,14 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   border: 1px solid var(--border);
 }
 @media (min-width: 981px) {
-  .setting-stage-row { flex-direction: row; align-items: flex-start; }
-  .setting-stage-main { flex: 1 1 auto; }
-  .setting-stage-side { width: 300px; flex: 0 0 300px; }
+  .setting-top { flex-direction: row; align-items: stretch; }
+  .setting-top .setting-banner { flex: 1 1 auto; width: auto; height: auto; min-height: 176px; }
+  .setting-top .setting-stage-side { width: 300px; flex: 0 0 300px; }
   .setting-banner { height: 176px; }
 }
 .bible-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-@container bible (min-width: 520px) {
-  .bible-chips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@container bible (min-width: 560px) {
+  .bible-chips { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (min-width: 981px) {
   .bible-layout { flex-direction: row; align-items: flex-start; }

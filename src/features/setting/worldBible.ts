@@ -241,6 +241,11 @@ export function toggleCheckLine(text: string, index: number): string {
   return lines.join("\n");
 }
 
+/** Ключ заметки темы: таблица GRAPES и id карточки. */
+export function themeNoteKey(settingKey: string, theme: string) {
+  return `${settingKey}\u0000${theme}`;
+}
+
 export function appendCheckLine(text: string): string {
   const trimmed = text.replace(/\s+$/, "");
   return trimmed ? `${trimmed}\n- [ ] ` : "- [ ] ";
