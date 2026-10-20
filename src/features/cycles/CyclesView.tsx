@@ -75,6 +75,8 @@ export default async function CyclesView({
                   settingFilter: activeCycle.settingFilter,
                   settingConflict: activeCycle.settingConflict,
                   settingMagnet: activeCycle.settingMagnet,
+                  fantasyGeneral: activeCycle.fantasyGeneral,
+                  fantasyNotes: activeCycle.fantasyNotes,
                 }}
               />
             ),

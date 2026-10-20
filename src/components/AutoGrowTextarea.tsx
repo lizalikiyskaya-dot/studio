@@ -18,9 +18,10 @@ const AutoGrowTextarea = forwardRef<
     placeholder?: string;
     style?: React.CSSProperties;
     resizable?: boolean;
+    ariaLabel?: string;
   }
 >(function AutoGrowTextarea(
-  { defaultValue, onBlur, onChange, className, placeholder, style, resizable },
+  { defaultValue, onBlur, onChange, className, placeholder, style, resizable, ariaLabel },
   forwardedRef
 ) {
   const innerRef = useRef<HTMLTextAreaElement>(null);
@@ -50,6 +51,7 @@ const AutoGrowTextarea = forwardRef<
       ref={ref}
       defaultValue={defaultValue}
       placeholder={placeholder}
+      aria-label={ariaLabel}
       rows={1}
       onInput={(e) => {
         resize(e.currentTarget);

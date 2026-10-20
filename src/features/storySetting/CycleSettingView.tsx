@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import type { Cycle } from "@/generated/prisma/client";
-import CycleGrapesTable from "./CycleGrapesTable";
 import CycleSettingTypeSection from "./CycleSettingTypeSection";
-import CycleFantasySection from "./CycleFantasySection";
+import SettingPhotoBanner from "@/features/setting/SettingPhotoBanner";
+import WorldBible from "@/features/setting/WorldBible";
+import { GRAPES_FIELDS, type GrapesBag } from "@/features/setting/worldBible";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
-import { GrapesSection } from "@/components/GrapesLetterCard";
 
 export default async function CycleSettingView({ cycle }: { cycle: Cycle }) {
   const suggestions = await getSuggestionsForRecords("Cycle", [cycle.id]);
@@ -16,25 +16,40 @@ export default async function CycleSettingView({ cycle }: { cycle: Cycle }) {
   });
   const session = await getSession();
   const isMentor = session?.role === "MENTOR";
-  const showFantasy = isMentor || cycle.fantasyUnlocked;
+  const grapes = {} as GrapesBag;
+  for (const field of GRAPES_FIELDS) grapes[field] = cycle[field] ?? "";
 
   return (
-    <div>
-      <GrapesSection>
-        <div className="mt-2.5">
-          <CycleGrapesTable cycleId={cycle.id} cycle={cycle} suggestions={cycleSuggestions} />
-        </div>
-      </GrapesSection>
-      <div className={`mt-4 grid grid-cols-1 gap-4 ${showFantasy ? "xl:grid-cols-[1.25fr_1fr]" : ""}`}>
+    <div className="setting-stage">
+      <SettingPhotoBanner recordId={cycle.id} photoUrl={cycle.settingPhotoUrl} canEdit kind="cycle-setting-photo" />
+      <div className="setting-stage-row">
+      <div className="setting-stage-main">
+      <WorldBible
+        scope="cycle"
+        recordId={cycle.id}
+        tables={[{
+          id: "primary",
+          title: "Сеттинг",
+          model: "Cycle",
+          recordId: cycle.id,
+          values: grapes,
+          suggestions: cycleSuggestions,
+          titleField: null,
+        }]}
+        entries={worldEntries}
+        fantasyGeneral={cycle.fantasyGeneral}
+        fantasyNotes={cycle.fantasyNotes}
+        fantasySuggestions={cycleSuggestions}
+        canEdit
+        allowTables={false}
+        isMentor={isMentor}
+        unlocked={cycle.fantasyUnlocked}
+        photoKind="cycle-world-entry-photo"
+      />
+      </div>
+      <div className="setting-stage-side">
         <CycleSettingTypeSection cycleId={cycle.id} cycle={cycle} suggestion={cycleSuggestions.settingMix} />
-        {showFantasy && (
-          <CycleFantasySection
-            cycleId={cycle.id}
-            cycle={cycle}
-            initialEntries={worldEntries}
-            isMentor={isMentor}
-          />
-        )}
+      </div>
       </div>
     </div>
   );

@@ -1,12 +1,12 @@
 "use client";
 
 import type { Story, CycleWorldEntry, StoryWorldEntry } from "@/generated/prisma/client";
-import StoryGrapesTable from "./StoryGrapesTable";
 import StorySettingTypeSection from "./StorySettingTypeSection";
-import StoryFantasySection from "./StoryFantasySection";
-import { describeShares, resolveShares } from "@/features/setting/settingMix";
-import EmptyState from "@/components/EmptyState";
-import { GrapesSection } from "@/components/GrapesLetterCard";
+import SettingMixPanel from "@/features/setting/SettingMixPanel";
+import SettingPhotoBanner from "@/features/setting/SettingPhotoBanner";
+import WorldBible from "@/features/setting/WorldBible";
+import { GRAPES_FIELDS, type GrapesBag } from "@/features/setting/worldBible";
+import { resolveShares } from "@/features/setting/settingMix";
 
 type CycleSettingSnap = {
   grapesGeography: string;
@@ -23,57 +23,14 @@ type CycleSettingSnap = {
   settingFilter?: number | null;
   settingConflict?: number | null;
   settingMagnet?: number | null;
+  fantasyGeneral?: string;
+  fantasyNotes?: string;
 };
 
-const GRAPES: { field: keyof CycleSettingSnap; letter: string; label: string }[] = [
-  { field: "grapesGeography", letter: "Г", label: "География" },
-  { field: "grapesReligion", letter: "Р", label: "Религия / верования" },
-  { field: "grapesAchievements", letter: "Д", label: "Достижения" },
-  { field: "grapesPolitics", letter: "П", label: "Политика" },
-  { field: "grapesEconomy", letter: "Э", label: "Экономика" },
-  { field: "grapesSocial", letter: "С", label: "Соц. структура" },
-];
-
-function SharedGrapes({ cycle }: { cycle: CycleSettingSnap }) {
-  return (
-    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-      {GRAPES.map(({ field, letter, label }) => (
-        <div key={field} className="rounded-[16px] p-3" style={{ background: "var(--soft)" }}>
-          <div className="flex items-center gap-1.5 text-[12.5px] font-semibold">
-            <span className="grid h-5 w-5 place-items-center rounded-[14px] bg-white text-[11px] font-bold">{letter}</span>
-            {label}
-          </div>
-          <p className="mt-1.5 text-[13px] leading-snug" style={{ color: cycle[field] ? "var(--ink)" : "var(--muted)" }}>
-            {(cycle[field] as string) || "Пока пусто"}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function SharedSettingType({ cycle }: { cycle: CycleSettingSnap }) {
-  const view = describeShares(resolveShares({
-    settingManifest: cycle.settingManifest ?? null,
-    settingFilter: cycle.settingFilter ?? null,
-    settingConflict: cycle.settingConflict ?? null,
-    settingMagnet: cycle.settingMagnet ?? null,
-    settingMapX: cycle.settingMapX,
-    settingMapY: cycle.settingMapY,
-  }));
-  return (
-    <section className="rounded-[24px] p-4" style={{ border: "1px solid var(--border)", background: "#fff" }}>
-      <h2 className="text-[17px] font-semibold">Тип сеттинга</h2>
-      <p className="mt-2 text-[16px] font-semibold leading-snug">{view.title}</p>
-      <p className="mt-1 text-[13px] leading-snug" style={{ color: "var(--ink2)" }}>{view.meaning}</p>
-      {cycle.settingPhotoUrl ? (
-        <div
-          className="mt-3 h-[180px] w-full rounded-[14px] bg-cover bg-center"
-          style={{ backgroundImage: `url(${cycle.settingPhotoUrl})` }}
-        />
-      ) : null}
-    </section>
-  );
+function grapesOf(source: CycleSettingSnap): GrapesBag {
+  const bag = {} as GrapesBag;
+  for (const field of GRAPES_FIELDS) bag[field] = source[field] ?? "";
+  return bag;
 }
 
 export default function StorySettingSection({
@@ -89,45 +46,77 @@ export default function StorySettingSection({
 }) {
   const isShared = story.settingSource === "SHARED" && !!story.cycleId && !!cycleSetting;
 
+  const shared = isShared && cycleSetting ? cycleSetting : null;
+
   return (
-    <div>
-      {isShared && cycleSetting ? (
-        <>
-          <h2 className="text-[17px] font-semibold">Метод GRAPES</h2>
-          <div className="mt-2.5">
-            <SharedGrapes cycle={cycleSetting} />
-          </div>
-        </>
+    <div className="setting-stage">
+      {shared ? (
+        <SettingPhotoBanner recordId={story.cycleId ?? story.id} photoUrl={shared.settingPhotoUrl} canEdit={false} kind="cycle-setting-photo" />
       ) : (
-        <GrapesSection>
-          <div className="mt-2.5">
-            <StoryGrapesTable story={story} />
-          </div>
-        </GrapesSection>
+        <SettingPhotoBanner recordId={story.id} photoUrl={story.settingPhotoUrl} canEdit kind="story-setting-photo" />
       )}
-      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1.25fr_1fr]">
-        {isShared && cycleSetting ? (
-          <SharedSettingType cycle={cycleSetting} />
-        ) : (
-          <StorySettingTypeSection story={story} />
-        )}
-        {isShared ? (
-          <section className="rounded-[24px] p-4" style={{ border: "1px solid var(--border)", background: "#fff" }}>
-            <h2 className="text-[17px] font-semibold">Фэнтези мир</h2>
-            <div className="mt-3 flex flex-col gap-2">
-              {cycleWorldEntries.length === 0 ? (
-                <EmptyState compact cue="Самое время описать мир" detail="Записи сеттинга цикла появятся здесь." />
-              ) : cycleWorldEntries.map((entry) => (
-                <div key={entry.id} className="rounded-[16px] p-3" style={{ background: "var(--soft)" }}>
-                  <div className="text-[14px] font-semibold">{entry.title || "Без названия"}</div>
-                  {entry.body ? <p className="mt-0.5 text-[12.5px] leading-snug" style={{ color: "var(--ink2)" }}>{entry.body}</p> : null}
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : (
-          <StoryFantasySection story={story} storyId={story.id} initialEntries={storyWorldEntries} />
-        )}
+      <div className="setting-stage-row">
+        <div className="setting-stage-main">
+          {shared ? (
+            <WorldBible
+              scope="cycle"
+              recordId={story.cycleId ?? story.id}
+              tables={[{
+                id: "primary",
+                title: "Сеттинг цикла",
+                model: "Cycle",
+                recordId: story.cycleId ?? story.id,
+                values: grapesOf(shared),
+                suggestions: {},
+                titleField: null,
+              }]}
+              entries={cycleWorldEntries}
+              fantasyGeneral={shared.fantasyGeneral ?? ""}
+              fantasyNotes={shared.fantasyNotes ?? ""}
+              canEdit={false}
+              allowTables={false}
+              isMentor={false}
+              unlocked
+              photoKind="cycle-world-entry-photo"
+            />
+          ) : (
+            <WorldBible
+              scope="story"
+              recordId={story.id}
+              tables={[{
+                id: "primary",
+                title: "Сеттинг",
+                model: "Story",
+                recordId: story.id,
+                values: grapesOf(story),
+                suggestions: {},
+                titleField: null,
+              }]}
+              entries={storyWorldEntries}
+              fantasyGeneral={story.fantasyGeneral}
+              fantasyNotes={story.fantasyNotes}
+              canEdit
+              allowTables={false}
+              isMentor={false}
+              unlocked
+              photoKind="story-world-entry-photo"
+            />
+          )}
+        </div>
+        <div className="setting-stage-side">
+          {shared ? (
+            <SettingMixPanel readOnly initial={resolveShares({
+              settingManifest: shared.settingManifest ?? null,
+              settingFilter: shared.settingFilter ?? null,
+              settingConflict: shared.settingConflict ?? null,
+              settingMagnet: shared.settingMagnet ?? null,
+              settingMapX: shared.settingMapX,
+              settingMapY: shared.settingMapY,
+            })} />
+          ) : (
+            <StorySettingTypeSection story={story} />
+          )}
+        </div>
       </div>
     </div>
   );

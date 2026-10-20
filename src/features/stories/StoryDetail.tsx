@@ -54,6 +54,8 @@ type CycleSettingSnap = {
   settingChips: string[];
   settingMapX: number | null;
   settingMapY: number | null;
+  fantasyGeneral?: string;
+  fantasyNotes?: string;
 };
 
 export default function StoryDetail({

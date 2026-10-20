@@ -26,6 +26,8 @@ type CycleSettingSnap = {
   settingFilter?: number | null;
   settingConflict?: number | null;
   settingMagnet?: number | null;
+  fantasyGeneral?: string;
+  fantasyNotes?: string;
 };
 
 export default function StoriesList({

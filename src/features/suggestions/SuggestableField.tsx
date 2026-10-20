@@ -97,6 +97,7 @@ export default function SuggestableField({
   style,
   placeholder,
   resizable,
+  ariaLabel,
   onSaved,
 }: {
   model: SuggestableModel;
@@ -109,6 +110,7 @@ export default function SuggestableField({
   style?: React.CSSProperties;
   placeholder?: string;
   resizable?: boolean;
+  ariaLabel?: string;
   onSaved?: (value: string) => void;
 }) {
   const pathname = usePathname();
@@ -190,6 +192,7 @@ export default function SuggestableField({
             key={editorKey}
             defaultValue={draft}
             placeholder={placeholder}
+            aria-label={ariaLabel}
             onChange={(event) => handleDraft(event.target.value)}
             onBlur={(event) => handleBlur(event.target.value)}
             onKeyDown={(event) => {
@@ -206,6 +209,7 @@ export default function SuggestableField({
             key={editorKey}
             defaultValue={draft}
             placeholder={placeholder}
+            ariaLabel={ariaLabel}
             onChange={handleDraft}
             onBlur={handleBlur}
             className={className}
@@ -226,6 +230,7 @@ export default function SuggestableField({
       <input
         defaultValue={value}
         placeholder={placeholder}
+        aria-label={ariaLabel}
         onBlur={(e) => handleBlur(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
@@ -243,6 +248,7 @@ export default function SuggestableField({
     <AutoGrowTextarea
       defaultValue={value}
       placeholder={placeholder}
+      ariaLabel={ariaLabel}
       onBlur={handleBlur}
       className={className}
       style={style}
