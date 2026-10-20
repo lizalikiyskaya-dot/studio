@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/session";
 import { resolveActiveBook } from "@/lib/resolveBook";
 import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
@@ -44,8 +43,6 @@ export default async function SettingView({
     where: { bookId: activeBook.id },
     orderBy: { order: "asc" },
   });
-  const session = await getSession();
-  const isMentor = session?.role === "MENTOR";
   const bookGrapes = pickGrapes(activeBook);
   const tables: BibleTable[] = [
     {
@@ -98,8 +95,6 @@ export default async function SettingView({
           fantasySuggestions={bookSuggestions}
           canEdit
           allowTables
-          isMentor={isMentor}
-          unlocked={activeBook.fantasyUnlocked}
           photoKind="world-entry-photo"
         />
       </div>

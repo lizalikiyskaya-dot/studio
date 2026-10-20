@@ -3,7 +3,6 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import type { WorldCategory } from "@/generated/prisma/client";
 import { siteConfirm } from "@/components/SiteDialog";
-import ToggleSwitch from "@/components/ToggleSwitch";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import { Button } from "@/components/ui/Button";
@@ -32,7 +31,6 @@ import {
   deleteWorldEntry,
   loadThemeNotes,
   saveThemeNote,
-  toggleFantasyLock,
   updateFantasyText,
   updateWorldEntryBody,
   updateWorldEntryCategory,
@@ -43,7 +41,6 @@ import {
   createStoryWorldEntry,
   deleteCycleWorldEntry,
   deleteStoryWorldEntry,
-  toggleCycleFantasyLock,
   updateCycleFantasyText,
   updateCycleWorldEntryBody,
   updateCycleWorldEntryCategory,
@@ -89,8 +86,6 @@ export default function WorldBible({
   fantasySuggestions,
   canEdit,
   allowTables,
-  isMentor,
-  unlocked: initialUnlocked,
   photoKind,
 }: {
   scope: Scope;
@@ -102,14 +97,11 @@ export default function WorldBible({
   fantasySuggestions?: Record<string, string>;
   canEdit: boolean;
   allowTables: boolean;
-  isMentor: boolean;
-  unlocked: boolean;
   photoKind: PhotoKind;
 }) {
   const [tables, setTables] = useState(initialTables);
   const [tableId, setTableId] = useState(initialTables[0]?.id ?? "primary");
   const [entries, setEntries] = useState(initialEntries);
-  const [unlocked, setUnlocked] = useState(initialUnlocked);
   const [openTheme, setOpenTheme] = useState<BibleTheme | null>(null);
   const [notes, setNotes] = useState(fantasyNotes);
   const [themeNotes, setThemeNotes] = useState<Record<string, string>>({});
@@ -122,8 +114,7 @@ export default function WorldBible({
 
   const table = tables.find((item) => item.id === tableId) ?? tables[0];
   const grapes = table?.values ?? emptyGrapes();
-  const entriesVisible = scope === "story" || unlocked;
-  const cue = nextThemeCue(grapes, entriesVisible ? entries : [], entriesVisible);
+  const cue = nextThemeCue(grapes, entries, true);
   const themeEntries = openTheme?.category ? entries.filter((entry) => entry.category === openTheme.category) : [];
   const selected = themeEntries.find((entry) => entry.id === selectedId) ?? null;
 
@@ -226,14 +217,6 @@ export default function WorldBible({
     startTransition(() => deleteGrapesSetting(id));
   }
 
-  function handleToggleLock() {
-    setUnlocked((value) => !value);
-    startTransition(() => {
-      if (scope === "cycle") void toggleCycleFantasyLock(recordId);
-      else void toggleFantasyLock(recordId);
-    });
-  }
-
   function handleAddEntry() {
     if (!canEdit || !openTheme?.category) return;
     const category = openTheme.category;
@@ -326,30 +309,7 @@ export default function WorldBible({
 
   return (
     <section className="rounded-[24px] p-4" style={{ border: "1px solid var(--border)", background: "#fff" }}>
-      <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-[17px] font-semibold">Библия мира</h2>
-        {allowTables && table ? (
-          <label className="ml-auto flex items-center gap-2 rounded-[12px] px-2.5 py-1" style={{ border: "1px solid var(--border)" }}>
-            <span className="text-[12px]" style={{ color: "var(--muted)" }}>Таблица</span>
-            <select
-              aria-label="Таблица"
-              className="bg-transparent text-[13px] font-medium outline-none"
-              value={table.id}
-              onChange={(event) => setTableId(event.target.value)}
-            >
-              {tables.map((item) => (
-                <option key={item.id} value={item.id}>{item.title}</option>
-              ))}
-            </select>
-          </label>
-        ) : null}
-        {isMentor && scope !== "story" ? (
-          <span className={`flex items-center gap-2 text-[12.5px] ${allowTables ? "" : "ml-auto"}`} style={{ color: "var(--muted)" }}>
-            открыт наставником
-            <ToggleSwitch checked={unlocked} onChange={handleToggleLock} />
-          </span>
-        ) : null}
-      </div>
+      <h2 className="text-[17px] font-semibold">Библия мира</h2>
 
       {cue ? (
         <p className="mt-2.5 text-[13px]" style={{ color: "var(--ink2)" }}>
@@ -358,65 +318,83 @@ export default function WorldBible({
         </p>
       ) : null}
 
-      {allowTables && canEdit ? (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          {table?.titleField && table.model !== "Story" ? (
-            <SuggestableField
-              key={`${table.recordId}-${table.titleField}`}
-              model={table.model}
-              recordId={table.recordId}
-              field={table.titleField}
-              value={table.title}
-              suggestion={table.suggestions[table.titleField]}
-              as="input"
-              placeholder="название таблицы"
-              ariaLabel="Название таблицы"
-              className="min-w-0 flex-1 bg-transparent text-[14px] font-medium outline-none"
-              onSaved={(title) => setTables((prev) => prev.map((item) => item.id === table.id ? { ...item, title: title.trim() || item.title } : item))}
-            />
-          ) : null}
-          <button type="button" onClick={handleAddTable} className="text-[13px]" style={{ color: "var(--muted)" }}>+ таблица</button>
-          {table && table.id !== "primary" ? (
-            <button type="button" onClick={() => void handleDeleteTable()} className="text-[13px]" style={{ color: "var(--link)" }}>удалить таблицу</button>
-          ) : null}
-        </div>
-      ) : null}
-
       <div className="bible-layout">
         <div className="bible-main">
-          <div className="text-[12px]" style={{ color: "var(--muted)" }}>Метод GRAPES</div>
-          <ChipGrid
-            themes={grapesThemes}
-            openTheme={openTheme?.kind === "grapes" ? openTheme : null}
-            grapes={grapes}
-            bodies={bodies}
-            onOpen={openChip}
-            panel={openTheme?.kind === "grapes" && table ? (
-              <ThemePanel
-                theme={openTheme}
-                table={table}
-                canEdit={canEdit}
-                entries={themeEntries}
-                selected={selected}
-                photoKind={photoKind}
-                onClose={() => setOpenTheme(null)}
-                onPatchGrapes={patchGrapes}
-                onSelect={selectEntry}
-                onAdd={handleAddEntry}
-                onSaveBody={saveBody}
-                onCollapse={collapseEntry}
-                onTitle={handleTitle}
-                onDelete={handleDeleteEntry}
-                onCategory={handleCategory}
-                onPhoto={(photoUrl) => setEntries((prev) => prev.map((entry) => entry.id === selected?.id ? { ...entry, photoUrl } : entry))}
+          <div className="bible-groups">
+            <section className="bible-group">
+              <div className="mb-2.5 flex flex-wrap items-center gap-2">
+                <h3 className="bible-group-title">Метод GRAPES</h3>
+                {allowTables && table ? (
+                  <label className="ml-auto flex items-center gap-2 rounded-[12px] bg-white px-2.5 py-1" style={{ border: "1px solid var(--border)" }}>
+                    <span className="text-[12px]" style={{ color: "var(--muted)" }}>Таблица</span>
+                    <select
+                      aria-label="Таблица"
+                      className="bg-transparent text-[13px] font-medium outline-none"
+                      value={table.id}
+                      onChange={(event) => setTableId(event.target.value)}
+                    >
+                      {tables.map((item) => (
+                        <option key={item.id} value={item.id}>{item.title}</option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+              </div>
+              {allowTables && canEdit ? (
+                <div className="mb-2.5 flex flex-wrap items-center gap-2">
+                  {table?.titleField && table.model !== "Story" ? (
+                    <SuggestableField
+                      key={`${table.recordId}-${table.titleField}`}
+                      model={table.model}
+                      recordId={table.recordId}
+                      field={table.titleField}
+                      value={table.title}
+                      suggestion={table.suggestions[table.titleField]}
+                      as="input"
+                      placeholder="название таблицы"
+                      ariaLabel="Название таблицы"
+                      className="min-w-0 flex-1 bg-transparent text-[14px] font-medium outline-none"
+                      onSaved={(title) => setTables((prev) => prev.map((item) => item.id === table.id ? { ...item, title: title.trim() || item.title } : item))}
+                    />
+                  ) : null}
+                  <button type="button" onClick={handleAddTable} className="text-[13px]" style={{ color: "var(--muted)" }}>+ таблица</button>
+                  {table && table.id !== "primary" ? (
+                    <button type="button" onClick={() => void handleDeleteTable()} className="text-[13px]" style={{ color: "var(--link)" }}>удалить таблицу</button>
+                  ) : null}
+                </div>
+              ) : null}
+              <ChipGrid
+                themes={grapesThemes}
+                openTheme={openTheme?.kind === "grapes" ? openTheme : null}
+                grapes={grapes}
+                bodies={bodies}
+                onOpen={openChip}
+                panel={openTheme?.kind === "grapes" && table ? (
+                  <ThemePanel
+                    theme={openTheme}
+                    table={table}
+                    canEdit={canEdit}
+                    entries={themeEntries}
+                    selected={selected}
+                    photoKind={photoKind}
+                    onClose={() => setOpenTheme(null)}
+                    onPatchGrapes={patchGrapes}
+                    onSelect={selectEntry}
+                    onAdd={handleAddEntry}
+                    onSaveBody={saveBody}
+                    onCollapse={collapseEntry}
+                    onTitle={handleTitle}
+                    onDelete={handleDeleteEntry}
+                    onCategory={handleCategory}
+                    onPhoto={(photoUrl) => setEntries((prev) => prev.map((entry) => entry.id === selected?.id ? { ...entry, photoUrl } : entry))}
+                  />
+                ) : null}
               />
-            ) : null}
-          />
-          {!wide && openTheme?.kind === "grapes" ? <div className="bible-sticker-mobile">{sticker}</div> : null}
+              {!wide && openTheme?.kind === "grapes" ? <div className="bible-sticker-mobile">{sticker}</div> : null}
+            </section>
 
-          {entriesVisible ? (
-            <>
-              <div className="mt-3 text-[12px]" style={{ color: "var(--muted)" }}>Записи</div>
+            <section className="bible-group">
+              <h3 className="bible-group-title mb-2.5">Записи</h3>
               <ChipGrid
                 themes={entryThemes}
                 openTheme={openTheme?.kind === "entry" ? openTheme : null}
@@ -445,12 +423,8 @@ export default function WorldBible({
                 ) : null}
               />
               {!wide && openTheme?.kind === "entry" ? <div className="bible-sticker-mobile">{sticker}</div> : null}
-            </>
-          ) : (
-            <p className="mt-3 text-[13.5px]" style={{ color: "var(--muted)" }}>
-              Записи мира скрыты. Включите, если здесь есть фэнтези.
-            </p>
-          )}
+            </section>
+          </div>
 
           {!wide && !openTheme ? (
             <div className="bible-sticker-mobile">

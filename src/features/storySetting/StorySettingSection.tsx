@@ -89,8 +89,6 @@ export default function StorySettingSection({
               fantasyNotes={shared.fantasyNotes ?? ""}
               canEdit={false}
               allowTables={false}
-              isMentor={false}
-              unlocked
               photoKind="cycle-world-entry-photo"
             />
           ) : (
@@ -111,8 +109,6 @@ export default function StorySettingSection({
               fantasyNotes={story.fantasyNotes}
               canEdit
               allowTables={false}
-              isMentor={false}
-              unlocked
               photoKind="story-world-entry-photo"
             />
           )}
