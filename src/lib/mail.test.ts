@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { EMAIL_BRAND, EMAIL_SIGNATURE, mailFrom, renderEmail } from "./mail";
-import { approvedLetter, guideOpenedLetter, mentorEditLetter, passwordResetLetter, platformUpdateLetter, registrationStudentLetter } from "./notify";
+import { approvedLetter, dailyQuoteLetter, designerLetterPreviews, guideOpenedLetter, mentorEditLetter, passwordResetLetter, platformUpdateLetter, registrationStudentLetter, weeklyTaskLetter } from "./notify";
 
 function withEnv(values: Record<string, string | undefined>, run: () => void) {
   const previous = new Map<string, string | undefined>();
@@ -65,9 +65,44 @@ test("письма ученику: бренд, подпись, текст и п�
   assert.match(passwordResetLetter("Саша", "https://studio.example/reset").text, /Задать новый пароль: https:\/\/studio.example\/reset/);
   const sample = renderEmail({ title: "Проверка", paragraphs: ["Текст письма."] });
   assert.equal(sample.html.includes(EMAIL_SIGNATURE), false);
-  const update = platformUpdateLetter({ name: "Саша", updates: ["В заданиях ровнее строки."] });
+  const update = platformUpdateLetter({ name: "Саша" });
   assert.match(update.text, /Отчёт об обновлениях/);
   assert.match(update.text, /Лиза Андреенко/);
+  assert.match(update.text, /Еженедельное задание/);
+  assert.match(update.text, /Цитата дня/);
+  assert.match(update.text, /Задание недели/);
+  assert.doesNotMatch(update.text, /—/);
   assert.match(update.html, /#F6F1E8/);
   assert.match(update.html, /#FFD43B/);
+  assert.match(update.html, /max-width:600px/);
+
+  const weekly = weeklyTaskLetter({
+    name: "Саша",
+    title: "Комната после новости",
+    prompt: "Опиши комнату.",
+    lengthHint: "полстраницы",
+    publishedOn: "2026-10-24",
+    nextPublishedOn: "2026-10-31",
+  });
+  assert.match(weekly.text, /Комната после новости/);
+  assert.match(weekly.text, /Опиши комнату/);
+  assert.match(weekly.text, /Сдать до 30 октября 2026/);
+  assert.match(weekly.text, /Открыть задание: .*\/dashboard\/weekly/);
+  assert.doesNotMatch(weekly.text, /—/);
+
+  const quote = dailyQuoteLetter({
+    name: "Саша",
+    text: "Краткость — сестра таланта.",
+    author: "Антон Чехов",
+    source: "Письмо",
+  });
+  assert.match(quote.text, /Антон Чехов/);
+  assert.match(quote.text, /над календарём/);
+  assert.match(quote.html, /max-width:600px/);
+  assert.match(quote.text, /Открыть кабинет: .*\/dashboard\/tasks/);
+
+  const previews = designerLetterPreviews();
+  assert.match(previews.weekly.text, /полстраницы/);
+  assert.match(previews.quote.text, /Чехов/);
+  assert.match(previews.platform.text, /Саша|Виктория/);
 });
