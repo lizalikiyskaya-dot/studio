@@ -23,6 +23,7 @@ import {
 } from "./actions";
 import { appendMaterial, applyMaterialTitles, enqueueById, enqueueCreate, titleSaveFromField } from "./materialRows";
 import { BOOK_NOTE_MAX, storedBookNote, visibleBookMonth, visibleBookNote } from "./materialFile";
+import { BOOK_MONTHS, bookMonthYears, formatStoredBookMonth, parseStoredBookMonth } from "./bookMonthSelect";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
 import { Button } from "@/components/ui/Button";
 import EmptyState from "@/components/EmptyState";
@@ -139,21 +140,62 @@ function BookMonthInput({
   month: string | null;
   onCommit: (value: string) => void;
 }) {
-  const [value, setValue] = useState(month ?? "");
+  const parsed = parseStoredBookMonth(month);
+  const stored = (month ?? "").trim();
+  const [monthId, setMonthId] = useState(parsed ? String(parsed.month) : "");
+  const [year, setYear] = useState(parsed ? String(parsed.year) : "");
+  const years = bookMonthYears(new Date(), parsed?.year);
+
+  function apply(nextMonth: string, nextYear: string) {
+    setMonthId(nextMonth);
+    setYear(nextYear);
+    if (!nextMonth && !nextYear) {
+      if (stored) onCommit("");
+      return;
+    }
+    if (!nextMonth || !nextYear) return;
+    const formatted = formatStoredBookMonth(Number(nextMonth), Number(nextYear));
+    if (formatted && formatted !== stored) onCommit(formatted);
+  }
+
   return (
-    <input
-      value={value}
-      maxLength={80}
-      placeholder="например, ноябрь 2026"
-      aria-label="рекомендуемый месяц"
-      autoComplete="off"
-      onChange={(event) => setValue(event.target.value)}
-      onBlur={() => {
-        if (value.trim() !== (month ?? "").trim()) onCommit(value);
-      }}
-      onKeyDown={blurOnEnter}
-      className="fld"
-    />
+    <div className="fld-wrap">
+      {!parsed && stored ? (
+        <p className="mb-1.5 text-[13px] leading-snug" style={{ color: "var(--ink2)" }}>
+          {stored}
+        </p>
+      ) : null}
+      <div className="flex gap-2">
+        <select
+          aria-label="месяц"
+          value={monthId}
+          onChange={(event) => apply(event.target.value, year)}
+          className="fld min-w-0"
+          style={{ flex: "1 1 auto", width: "auto" }}
+        >
+          <option value="">не указан</option>
+          {BOOK_MONTHS.map((row) => (
+            <option key={row.id} value={row.id}>
+              {row.name}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="год"
+          value={year}
+          onChange={(event) => apply(monthId, event.target.value)}
+          className="fld"
+          style={{ flex: "0 0 120px", width: 120 }}
+        >
+          <option value="">не указан</option>
+          {years.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
   );
 }
 

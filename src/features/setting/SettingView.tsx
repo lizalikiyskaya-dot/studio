@@ -10,6 +10,7 @@ import FantasySection from "./FantasySection";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import PageHeader from "@/components/PageHeader";
+import { GrapesSection } from "@/components/GrapesLetterCard";
 
 export default async function SettingView({
   studentId,
@@ -56,28 +57,29 @@ export default async function SettingView({
         actions={<BookSelect books={books} activeBookId={activeBook.id} compact />}
       />
 
-      <h2 className="mt-1 text-[17px] font-semibold">Метод GRAPES</h2>
-      <div className="mt-2.5">
-        <div className="mb-2">
-          <SuggestableField
-            model="Book"
-            recordId={activeBook.id}
-            field="grapesTitle"
-            value={(activeBook.grapesTitle ?? "").trim() ? activeBook.grapesTitle : "Сеттинг 1"}
-            suggestion={bookSuggestions.grapesTitle}
-            as="input"
-            className="heading w-full bg-transparent text-[16px] font-semibold outline-none border-b pb-1"
-            style={{ borderColor: "var(--rule)" }}
-          />
+      <GrapesSection>
+        <div className="mt-2.5">
+          <div className="mb-2">
+            <SuggestableField
+              model="Book"
+              recordId={activeBook.id}
+              field="grapesTitle"
+              value={(activeBook.grapesTitle ?? "").trim() ? activeBook.grapesTitle : "Сеттинг 1"}
+              suggestion={bookSuggestions.grapesTitle}
+              as="input"
+              className="heading w-full bg-transparent text-[16px] font-semibold outline-none border-b pb-1"
+              style={{ borderColor: "var(--rule)" }}
+            />
+          </div>
+          <GrapesTable recordId={activeBook.id} values={activeBook} suggestions={bookSuggestions} />
         </div>
-        <GrapesTable recordId={activeBook.id} values={activeBook} suggestions={bookSuggestions} />
-      </div>
-      <ExtraGrapesList
-        key={activeBook.id}
-        bookId={activeBook.id}
-        initialSettings={extraGrapes}
-        suggestions={extraGrapesSuggestions}
-      />
+        <ExtraGrapesList
+          key={activeBook.id}
+          bookId={activeBook.id}
+          initialSettings={extraGrapes}
+          suggestions={extraGrapesSuggestions}
+        />
+      </GrapesSection>
 
       <div className={`mt-4 grid grid-cols-1 gap-4 ${showFantasy ? "xl:grid-cols-[1.25fr_1fr]" : ""}`}>
         <SettingTypeSection bookId={activeBook.id} book={activeBook} suggestion={bookSuggestions.settingMix} />

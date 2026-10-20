@@ -219,7 +219,7 @@ input, textarea, select, [contenteditable="true"] {
   .task-move-arrows { display: none; }
   .task-move-handle { display: inline-flex; }
 }
-.banner-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+.banner-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; align-items: start; }
 .banner-deadlines { border-radius: 22px; background: #F6F6F4; padding: 20px 20px 12px; }
 .banner-call {
   position: relative;
