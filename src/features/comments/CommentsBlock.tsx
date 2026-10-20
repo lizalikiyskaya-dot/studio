@@ -2,7 +2,7 @@
 
 import { siteConfirm } from "@/components/SiteDialog";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 import type { Comment } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/Button";
@@ -91,6 +91,18 @@ export default function CommentsBlock({
   initialComments: Comment[];
 }) {
   const [comments, setComments] = useState(initialComments);
+  const commentKey = initialComments.map((comment) => `${comment.id}:${comment.text}`).join("|");
+  useEffect(() => {
+    setComments((prev) => {
+      const ids = new Set(initialComments.map((comment) => comment.id));
+      const extra = prev.filter((comment) => !ids.has(comment.id));
+      const same = extra.length === 0
+        && prev.length === initialComments.length
+        && prev.every((comment, index) => comment.id === initialComments[index]?.id && comment.text === initialComments[index]?.text);
+      if (same) return prev;
+      return [...initialComments, ...extra];
+    });
+  }, [commentKey, initialComments]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 

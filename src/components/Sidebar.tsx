@@ -142,6 +142,16 @@ export default function Sidebar({
   const setReviewModeState = useSetCanSuggest();
   const [, startTransition] = useTransition();
   const [sheet, setSheet] = useState<null | "calendar" | "sections">(null);
+  const [liveNotesCount, setLiveNotesCount] = useState(notesCount);
+  useEffect(() => { setLiveNotesCount(notesCount); }, [notesCount]);
+  useEffect(() => {
+    function onCount(event: Event) {
+      const detail = (event as CustomEvent<number>).detail;
+      if (typeof detail === "number") setLiveNotesCount(detail);
+    }
+    window.addEventListener("studio:notes-open-count", onCount);
+    return () => window.removeEventListener("studio:notes-open-count", onCount);
+  }, []);
   const sheetRef = useRef<HTMLDivElement>(null);
   const sheetBodyRef = useRef<HTMLDivElement>(null);
   useSheetSwipe(sheet != null, () => setSheet(null), sheetRef, sheetBodyRef);
@@ -380,7 +390,7 @@ export default function Sidebar({
             <button type="button" className="notes-chip" onClick={() => window.dispatchEvent(new Event("studio:toggle-notes"))}>
               <MessageSquareText size={16} />
               Заметки
-              {notesCount > 0 && <span className="notes-count">{notesCount}</span>}
+              {typeof liveNotesCount === "number" && liveNotesCount > 0 && <span className="notes-count">{liveNotesCount}</span>}
             </button>
           )}
           {!mentorViewLabel && (

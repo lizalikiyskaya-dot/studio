@@ -68,7 +68,7 @@ export default async function DashboardLayout({
         studentId={user.id}
         avatarUrl={avatar[0]?.has ? userAvatarPath(user.id) : null}
         beacons={beacons}
-        notesCount={notes.length}
+        notesCount={notes.filter((note) => !note.resolved).length}
         bookWorkshopUnlocked={user.bookWorkshopUnlocked}
         storyWorkshopUnlocked={user.storyWorkshopUnlocked}
         books={books}
@@ -82,7 +82,7 @@ export default async function DashboardLayout({
       >
         {children}
       </Sidebar>
-      <NotesPanel studentId={user.id} initialNotes={notes} initialComments={noteComments} />
+      <NotesPanel studentId={user.id} viewerRole="STUDENT" initialNotes={notes} initialComments={noteComments} />
       <PresencePing />
     </>
   );

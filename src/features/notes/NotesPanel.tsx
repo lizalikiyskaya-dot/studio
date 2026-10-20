@@ -7,10 +7,21 @@ import { useSheetSwipe } from "@/components/useSheetSwipe";
 import { useRouter } from "next/navigation";
 import { Pencil, X, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, CornerDownRight, Quote } from "lucide-react";
 import type { Note, Comment } from "@/generated/prisma/client";
-import { createNote, updateNote, deleteNote, resolveNote, reopenNote } from "./actions";
+import { createNote, updateNote, deleteNote, resolveNote, reopenNote, pollNotes } from "./actions";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import SelectionAnnotator, { type Anchor } from "./SelectionAnnotator";
+import NoteMarks from "./NoteMarks";
 import EmptyState from "@/components/EmptyState";
+import { primeNoteChime, queueNoteChimes } from "./noteChime";
+import {
+  activityItems,
+  fromOther,
+  incomingChimes,
+  openNoteCount,
+  seenStorageKey,
+  unreadIds,
+  type ViewerRole,
+} from "./noteSignals";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -60,7 +71,7 @@ function NoteCard({
   onDelete,
   onResolve,
   onReopen,
-  onNavigate,
+  onJump,
 }: {
   note: Note;
   comments: Comment[];
@@ -68,7 +79,7 @@ function NoteCard({
   onDelete: (id: string) => void;
   onResolve: (id: string) => void;
   onReopen: (id: string) => void;
-  onNavigate: (url: string) => void;
+  onJump: (note: Note) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [collapsed, setCollapsed] = useState(note.resolved);
@@ -80,6 +91,12 @@ function NoteCard({
   return (
     <div
       className="rounded-[14px] mb-3 overflow-hidden"
+      onClick={(event) => {
+        if (!note.anchorUrl) return;
+        const target = event.target as HTMLElement;
+        if (target.closest("button, a, textarea, input, select, [data-comments]")) return;
+        onJump(note);
+      }}
       style={{
         background: note.resolved ? "var(--bg-surface-2)" : "#fff",
         border: "1px solid var(--border)",
@@ -146,7 +163,7 @@ function NoteCard({
           {/* anchored quote → click navigates back to the source */}
           {note.anchorQuote && (
             <button
-              onClick={() => note.anchorUrl && onNavigate(note.anchorUrl)}
+              onClick={() => note.anchorUrl && onJump(note)}
               disabled={!note.anchorUrl}
               className="w-full text-left rounded-[8px] px-2.5 py-2 mb-2.5 transition-colors"
               style={{
@@ -224,7 +241,9 @@ function NoteCard({
           )}
 
           {/* comments thread */}
-          <CommentsBlock model="Note" recordId={note.id} initialComments={comments} />
+          <div data-comments="">
+            <CommentsBlock model="Note" recordId={note.id} initialComments={comments} />
+          </div>
         </div>
       )}
     </div>
@@ -315,10 +334,12 @@ function ComposeArea({
 
 export default function NotesPanel({
   studentId,
+  viewerRole,
   initialNotes,
   initialComments,
 }: {
   studentId: string;
+  viewerRole: ViewerRole;
   initialNotes: Note[];
   initialComments: Record<string, Comment[]>;
 }) {
@@ -331,6 +352,10 @@ export default function NotesPanel({
   const [notes, setNotes] = useState(initialNotes);
   const [comments, setComments] = useState(initialComments);
   const [pendingAnchor, setPendingAnchor] = useState<Anchor | null>(null);
+  const [flashId, setFlashId] = useState<string | null>(null);
+  const [seen, setSeen] = useState<Set<string>>(new Set());
+  const [seenReady, setSeenReady] = useState(false);
+  const known = useRef<Set<string> | null>(null);
   const [, startTransition] = useTransition();
   const router = useRouter();
 
@@ -348,8 +373,100 @@ export default function NotesPanel({
     return () => query.removeEventListener("change", apply);
   }, []);
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(seenStorageKey(studentId, viewerRole));
+      const ids = raw ? JSON.parse(raw) as unknown : [];
+      setSeen(new Set(Array.isArray(ids) ? ids.filter((id) => typeof id === "string") : []));
+    } catch {
+      setSeen(new Set());
+    }
+    setSeenReady(true);
+  }, [studentId, viewerRole]);
+
+  useEffect(() => {
+    known.current = new Set(activityItems(initialNotes, initialComments).map((item) => item.id));
+    function prime() { primeNoteChime(); }
+    window.addEventListener("pointerdown", prime);
+    return () => window.removeEventListener("pointerdown", prime);
+    // Снимок на загрузке: уже лежащие заметки не звенят.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentId]);
+
+  useEffect(() => {
+    if (!flashId) return;
+    const timer = window.setTimeout(() => setFlashId(null), 2200);
+    return () => window.clearTimeout(timer);
+  }, [flashId]);
+
+  useEffect(() => {
+    let timer = 0;
+    let stopped = false;
+    async function tick() {
+      if (stopped || document.hidden) return;
+      try {
+        const data = await pollNotes(studentId);
+        const items = activityItems(data.notes, data.comments);
+        if (known.current) {
+          const result = incomingChimes(known.current, items, viewerRole);
+          known.current = result.next;
+          if (result.play.length) queueNoteChimes(result.play.length);
+        }
+        setNotes((prev) => {
+          const ids = new Set(data.notes.map((note) => note.id));
+          const extra = prev.filter((note) => !ids.has(note.id));
+          const same = extra.length === 0
+            && prev.length === data.notes.length
+            && prev.every((note, index) => {
+              const next = data.notes[index];
+              return next && note.id === next.id && note.text === next.text && note.resolved === next.resolved && note.anchorQuote === next.anchorQuote;
+            });
+          if (same) return prev;
+          return [...data.notes, ...extra];
+        });
+        setComments((prev) => {
+          const prevIds = Object.values(prev).flat().map((comment) => `${comment.id}:${comment.text}`).join("|");
+          const nextIds = Object.values(data.comments).flat().map((comment) => `${comment.id}:${comment.text}`).join("|");
+          return prevIds === nextIds ? prev : data.comments;
+        });
+      } catch {
+        // Сеть или сессия: следующий тик попробует снова.
+      }
+    }
+    timer = window.setInterval(() => void tick(), 5000);
+    function onVisible() {
+      if (!document.hidden) void tick();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [studentId, viewerRole]);
+
   const openNotes = notes.filter((n) => !n.resolved);
   const resolvedNotes = notes.filter((n) => n.resolved);
+  const activity = activityItems(notes, comments);
+  const unread = seenReady ? unreadIds(seen, activity, viewerRole) : [];
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("studio:notes-open-count", { detail: openNoteCount(notes) }));
+  }, [notes]);
+
+  useEffect(() => {
+    if (!open || !seenReady) return;
+    const next = new Set(seen);
+    let changed = false;
+    for (const item of activity) {
+      if (!fromOther(viewerRole, item.author) || next.has(item.id)) continue;
+      next.add(item.id);
+      changed = true;
+    }
+    if (!changed) return;
+    setSeen(next);
+    localStorage.setItem(seenStorageKey(studentId, viewerRole), JSON.stringify([...next]));
+  }, [open, seenReady, seen, activity, viewerRole, studentId]);
 
   // A text selection fired the "Заметка" button: open the panel and attach
   // the quoted fragment to the compose box for the user to annotate.
@@ -359,9 +476,12 @@ export default function NotesPanel({
     setOpen(true);
   }
 
-  function handleNavigate(url: string) {
+  function handleJump(note: Note) {
+    if (!note.anchorUrl) return;
+    setFlashId(note.id);
     setOpen(false);
-    router.push(url);
+    const here = window.location.pathname + window.location.search;
+    if (here !== note.anchorUrl) router.push(note.anchorUrl);
   }
 
   function handleAdd(text: string) {
@@ -414,9 +534,11 @@ export default function NotesPanel({
       <SelectionAnnotator onAnnotate={handleAnnotate} />
 
       {/* FAB */}
+      <NoteMarks notes={notes} flashId={flashId} />
+
       <button
         onClick={() => setOpen(true)}
-        className="notes-fab flex items-center justify-center rounded-full"
+        className={`notes-fab flex items-center justify-center rounded-full${unread.length > 0 ? " is-unread" : ""}`}
         style={{
           position: "fixed",
           right: 28,
@@ -528,7 +650,7 @@ export default function NotesPanel({
                 onDelete={handleDelete}
                 onResolve={handleResolve}
                 onReopen={handleReopen}
-                onNavigate={handleNavigate}
+                onJump={handleJump}
               />
             ))}
           </div>
