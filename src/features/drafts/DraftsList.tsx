@@ -1,18 +1,22 @@
 "use client";
 
-import { siteConfirm, sitePrompt } from "@/components/SiteDialog";
+import { siteConfirm } from "@/components/SiteDialog";
 
 import { useState, useTransition, useRef } from "react";
 import type { Draft } from "@/generated/prisma/client";
 import FileAttachBox from "@/components/FileAttachBox";
 import { uploadFile } from "@/lib/uploadFile";
-import { blurOnEnter } from "@/lib/blurOnEnter";
-import { shortenUrl } from "@/lib/shortenUrl";
 import { createDraft, updateDraftField, deleteDraft, reorderDrafts } from "./actions";
-import { Button } from "@/components/ui/Button";
 import EmptyState from "@/components/EmptyState";
 import PageHeader from "@/components/PageHeader";
-import { ChevronDown, ChevronRight, GripVertical, Pencil, Plus } from "lucide-react";
+import { EntryLink, EntryNote, EntryTitle } from "@/features/entries/EntryParts";
+import { GripVertical, Plus, Trash2 } from "lucide-react";
+
+function draftDate(value: Date | string) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+}
 
 export default function DraftsList({
   studentId,
@@ -22,20 +26,12 @@ export default function DraftsList({
   initialDrafts: Draft[];
 }) {
   const [drafts, setDrafts] = useState(initialDrafts);
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   // Card is draggable ONLY while the grip handle is held, so selecting the
   // title / cutting text elsewhere doesn't get hijacked into a drag.
   const [armedId, setArmedId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const dragId = useRef<string | null>(null);
   const dragOverId = useRef<string | null>(null);
-
-  function toggleCollapsed(id: string) {
-    setCollapsed((prev) => {
-      const current = prev[id] ?? true;
-      return { ...prev, [id]: !current };
-    });
-  }
 
   function handleAdd() {
     startTransition(async () => {
@@ -60,12 +56,6 @@ export default function DraftsList({
     if (!(await siteConfirm("Удалить черновик?"))) return;
     setDrafts((prev) => prev.filter((d) => d.id !== id));
     startTransition(() => deleteDraft(id));
-  }
-
-  async function handleEditLink(id: string, current: string | null) {
-    const url = await sitePrompt("Ссылка", current ?? "");
-    if (url === null) return; // cancelled
-    handleField(id, "link", url);
   }
 
   function handleDragStart(id: string) {
@@ -115,11 +105,11 @@ export default function DraftsList({
           }
         />
       ) : (
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="draft-grid">
       {drafts.map((draft) => {
-        const isCollapsed = collapsed[draft.id] ?? true;
+        const dateLabel = draftDate(draft.createdAt);
         return (
-          <div
+          <article
             key={draft.id}
             draggable={armedId === draft.id}
             onDragStart={() => handleDragStart(draft.id)}
@@ -127,107 +117,45 @@ export default function DraftsList({
             onDrop={handleDrop}
             onDragEnd={() => setArmedId(null)}
             onMouseUp={() => setArmedId(null)}
-            className="rounded-[22px] overflow-hidden"
-            style={{ border: "1px solid var(--border)" }}
+            className="entry-card"
           >
-            {/* Header — always visible */}
-            <div
-              className="flex items-center gap-2 px-4 py-3 cursor-pointer select-none"
-              style={{ background: isCollapsed ? "transparent" : "var(--bg-surface-2)" }}
-              onClick={() => toggleCollapsed(draft.id)}
-            >
+            <div className="flex items-start gap-2">
               <GripVertical
-                size={14}
-                className="shrink-0 cursor-grab active:cursor-grabbing"
-                style={{ color: "var(--ink-faint)" }}
-                onClick={(e) => e.stopPropagation()}
+                size={16}
+                className="mt-1 shrink-0 cursor-grab active:cursor-grabbing"
+                style={{ color: "var(--muted)" }}
+                aria-hidden="true"
                 onMouseDown={() => setArmedId(draft.id)}
               />
-              <span className="entry-title flex-1 min-w-0 text-[16px] font-semibold truncate" style={{ color: "var(--ink)" }}>
-                {draft.title || "Без названия"}
-              </span>
-              {isCollapsed
-                ? <ChevronRight size={15} style={{ color: "var(--ink-faint)" }} />
-                : <ChevronDown size={15} style={{ color: "var(--ink-faint)" }} />
-              }
-            </div>
-
-            {/* Body */}
-            {!isCollapsed && (
-              <div className="px-4 pb-4 pt-2">
-                <input
-                  defaultValue={draft.title}
-                  onBlur={(e) => handleField(draft.id, "title", e.target.value)}
-                  onKeyDown={blurOnEnter}
-                  placeholder="Название"
-                  className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1 mb-2"
-                  style={{ borderColor: "var(--border)" }}
-                  onClick={(e) => e.stopPropagation()}
+              <div className="min-w-0 flex-1">
+                <EntryTitle
+                  value={draft.title}
+                  placeholder="Название рукописи"
+                  onSave={(value) => handleField(draft.id, "title", value)}
                 />
-                <input
-                  defaultValue={draft.note ?? ""}
-                  onBlur={(e) => handleField(draft.id, "note", e.target.value)}
-                  onKeyDown={blurOnEnter}
-                  placeholder="примечание"
-                  className="w-full outline-none bg-transparent text-[13px] italic mb-3"
-                  style={{ color: "var(--ink-soft)" }}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <div className="flex items-center gap-2 flex-wrap">
-                  {/* Link */}
-                  {draft.link ? (
-                    <div className="flex items-center gap-1.5">
-                      <a
-                        href={draft.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-[12.5px] underline-offset-2 underline"
-                        style={{ color: "var(--vi)" }}
-                      >
-                        {shortenUrl(draft.link)}
-                      </a>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleEditLink(draft.id, draft.link); }}
-                        title="Изменить ссылку"
-                        style={{ color: "var(--ink-faint)" }}
-                      >
-                        <Pencil size={11} />
-                      </button>
-                    </div>
-                  ) : (
-                    <Button
-                      onClick={(e) => { e.stopPropagation(); handleEditLink(draft.id, null); }}
-                      variant="dashed-accent"
-                      size="sm"
-                      pill
-                    >
-                      + ссылка
-                    </Button>
-                  )}
-
-                  {/* File */}
-                  {draft.fileData ? (
-                    <a
-                      href={draft.fileData}
-                      download={draft.fileName ?? "файл"}
-                      className="text-[13px] px-4 py-1.5 rounded-full inline-block"
-                      style={{ color: "var(--vi)", border: "1px solid var(--v)" }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {draft.fileName ?? "скачать"}
-                    </a>
-                  ) : (
-                    <FileAttachBox fileName={null} onUpload={(file) => handleFile(draft.id, file)} />
-                  )}
-
-                  <Button onClick={() => handleDelete(draft.id)} variant="secondary" size="sm" pill className="ml-auto">
-                    удалить
-                  </Button>
-                </div>
+                {dateLabel ? <p className="draft-meta">{dateLabel}</p> : null}
               </div>
-            )}
-          </div>
+              <button type="button" className="entry-delete" aria-label="Удалить рукопись" onClick={() => handleDelete(draft.id)}>
+                <Trash2 size={16} />
+              </button>
+            </div>
+            <EntryNote value={draft.note} onSave={(value) => handleField(draft.id, "note", value)} />
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <EntryLink value={draft.link ?? ""} onSave={(value) => handleField(draft.id, "link", value)} />
+              {draft.fileData ? (
+                <a
+                  href={draft.fileData}
+                  download={draft.fileName ?? "файл"}
+                  className="text-[13px] px-4 py-1.5 rounded-full inline-block"
+                  style={{ color: "var(--vi)", border: "1px solid var(--v)" }}
+                >
+                  {draft.fileName ?? "скачать"}
+                </a>
+              ) : (
+                <FileAttachBox fileName={null} onUpload={(file) => handleFile(draft.id, file)} />
+              )}
+            </div>
+          </article>
         );
       })}
       </div>
