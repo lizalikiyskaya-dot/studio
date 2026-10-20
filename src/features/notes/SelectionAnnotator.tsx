@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MessageSquarePlus } from "lucide-react";
+import { Pencil } from "lucide-react";
 
 export type Anchor = { quote: string; label: string; url: string };
 
@@ -209,21 +209,21 @@ export default function SelectionAnnotator({
         onAnnotate(btn.anchor);
         setBtn(null);
       }}
-      className="flex items-center gap-1.5 rounded-full text-[12px] font-medium px-3 py-1.5"
+      className="annotate-pop flex items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold"
       style={{
         position: "fixed",
         left: btn.x,
         top: btn.y,
+        height: 32,
         transform: "translate(-50%, -100%)",
         zIndex: 95,
-        background: "var(--ink)",
-        color: "#fff",
-        boxShadow: "0 4px 16px rgba(0,0,0,0.24)",
+        background: "var(--y)",
+        color: "var(--deep)",
+        boxShadow: "0 4px 14px rgba(43, 45, 92, 0.14)",
         whiteSpace: "nowrap",
-        cursor: "pointer",
       }}
     >
-      <MessageSquarePlus size={13} />
+      <Pencil size={14} strokeWidth={2.25} />
       Заметка
     </button>
   );
