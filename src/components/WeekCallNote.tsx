@@ -1,12 +1,8 @@
-"use client";
-
-import { useId, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export default function WeekCallNote({
   title,
   deadline,
-  note,
-  untilLabel,
   actions,
 }: {
   title: string;
@@ -15,30 +11,14 @@ export default function WeekCallNote({
   untilLabel: string;
   actions?: ReactNode;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const detailsId = useId();
-  const text = note.trim();
-
   return (
     <div className="banner-call">
-      <button
-        type="button"
-        className="banner-call-line"
-        aria-expanded={expanded}
-        aria-controls={detailsId}
-        onClick={() => setExpanded((open) => !open)}
-      >
-        <span className="banner-call-label">Опен-колл недели</span>
-        <span className="banner-call-title">{title}</span>
-        <span className="banner-call-deadline">до {deadline}</span>
-      </button>
-      {expanded ? (
-        <div id={detailsId} className="banner-call-body">
-          {text ? <p className="banner-call-note">{text}</p> : null}
-          {untilLabel ? <p className="banner-call-until">{untilLabel}</p> : null}
-          {actions ? <div className="banner-call-actions">{actions}</div> : null}
-        </div>
-      ) : null}
+      <span className="deadline-ribbon" aria-hidden="true" />
+      <p className="banner-call-label">Опен-колл недели</p>
+      <p className="banner-call-title">
+        {title} — приём до {deadline}
+      </p>
+      {actions ? <div className="banner-call-actions">{actions}</div> : null}
     </div>
   );
 }
