@@ -370,9 +370,13 @@ input, textarea, select, [contenteditable="true"] {
 
 .hover-lift.is-on { box-shadow: 0 0 0 2px #202020; }
 .photo-tools { opacity: 1; }
+@media (hover: hover) {
+  .photo-tools { opacity: 0; pointer-events: none; }
+  .group:hover .photo-tools,
+  .photo-tools.is-open { opacity: 1; pointer-events: auto; }
+}
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .photo-tools { opacity: 0; transition: opacity 200ms ease; }
-  .group:hover .photo-tools { opacity: 1; }
+  .photo-tools { transition: opacity 200ms ease; }
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .hover-lift {
