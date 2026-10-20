@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     after(async () => {
       try {
         const token = await issueResetToken(user.id);
-        if (token) await sendPasswordResetEmail({ name: user.name, email: user.email }, token);
+        if (token) await sendPasswordResetEmail(user, token);
       } catch (error) {
         console.error("[reset] письмо со ссылкой не ушло:", error);
       }

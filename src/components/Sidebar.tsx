@@ -14,6 +14,7 @@ import {
   ListChecks,
   LogOut,
   Megaphone,
+  Mail,
   Menu,
   MessageSquareText,
   Pencil,
@@ -303,6 +304,7 @@ export default function Sidebar({
         { key: "guides", href: "/mentor/guides", label: "Методички", icon: BookOpen, beacon: false, active: pathname === "/mentor/guides" || (pathname?.startsWith("/mentor/guides/") ?? false) },
         { key: "quotes", href: "/mentor/quotes", label: "Цитаты дня", icon: Quote, beacon: false, active: pathname === "/mentor/quotes" },
         { key: "weekly-admin", href: "/mentor/weekly", label: "Задания недели", icon: Sparkles, beacon: false, active: pathname === "/mentor/weekly" },
+        { key: "mail", href: "/mentor/mail", label: "Письма", icon: Mail, beacon: false, active: pathname === "/mentor/mail" || (pathname?.startsWith("/mentor/mail/") ?? false) },
         { key: "profile", href: "/mentor/profile", label: "Мой профиль", icon: Pencil, beacon: false, active: pathname === "/mentor/profile" },
       ]
     : [
