@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { resolveActiveBook } from "@/lib/resolveBook";
 import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
+import SettingPhotoBanner from "./SettingPhotoBanner";
 import SettingTypeSection from "./SettingTypeSection";
 import WorldBible, { type BibleTable } from "./WorldBible";
 import { GRAPES_FIELDS, type GrapesBag } from "./worldBible";
@@ -74,23 +75,35 @@ export default async function SettingView({
         actions={<BookSelect books={books} activeBookId={activeBook.id} compact />}
       />
 
-      <div className="mt-4 flex flex-col gap-4">
-        <SettingTypeSection bookId={activeBook.id} book={activeBook} suggestion={bookSuggestions.settingMix} />
-        <WorldBible
-          key={activeBook.id}
-          scope="book"
+      <div className="setting-stage mt-4">
+        <SettingPhotoBanner
           recordId={activeBook.id}
-          tables={tables}
-          entries={worldEntries}
-          fantasyGeneral={activeBook.fantasyGeneral}
-          fantasyNotes={activeBook.fantasyNotes}
-          fantasySuggestions={bookSuggestions}
+          photoUrl={activeBook.settingPhotoUrl}
           canEdit
-          allowTables
-          isMentor={isMentor}
-          unlocked={activeBook.fantasyUnlocked}
-          photoKind="world-entry-photo"
+          kind="setting-photo"
         />
+        <div className="setting-stage-row">
+          <div className="setting-stage-main">
+            <WorldBible
+              key={activeBook.id}
+              scope="book"
+              recordId={activeBook.id}
+              tables={tables}
+              entries={worldEntries}
+              fantasyGeneral={activeBook.fantasyGeneral}
+              fantasyNotes={activeBook.fantasyNotes}
+              fantasySuggestions={bookSuggestions}
+              canEdit
+              allowTables
+              isMentor={isMentor}
+              unlocked={activeBook.fantasyUnlocked}
+              photoKind="world-entry-photo"
+            />
+          </div>
+          <div className="setting-stage-side">
+            <SettingTypeSection bookId={activeBook.id} book={activeBook} suggestion={bookSuggestions.settingMix} />
+          </div>
+        </div>
       </div>
     </div>
   );

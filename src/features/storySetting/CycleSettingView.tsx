@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import type { Cycle } from "@/generated/prisma/client";
 import CycleSettingTypeSection from "./CycleSettingTypeSection";
+import SettingPhotoBanner from "@/features/setting/SettingPhotoBanner";
 import WorldBible from "@/features/setting/WorldBible";
 import { GRAPES_FIELDS, type GrapesBag } from "@/features/setting/worldBible";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
@@ -19,8 +20,10 @@ export default async function CycleSettingView({ cycle }: { cycle: Cycle }) {
   for (const field of GRAPES_FIELDS) grapes[field] = cycle[field] ?? "";
 
   return (
-    <div className="flex flex-col gap-4">
-      <CycleSettingTypeSection cycleId={cycle.id} cycle={cycle} suggestion={cycleSuggestions.settingMix} />
+    <div className="setting-stage">
+      <SettingPhotoBanner recordId={cycle.id} photoUrl={cycle.settingPhotoUrl} canEdit kind="cycle-setting-photo" />
+      <div className="setting-stage-row">
+      <div className="setting-stage-main">
       <WorldBible
         scope="cycle"
         recordId={cycle.id}
@@ -43,6 +46,11 @@ export default async function CycleSettingView({ cycle }: { cycle: Cycle }) {
         unlocked={cycle.fantasyUnlocked}
         photoKind="cycle-world-entry-photo"
       />
+      </div>
+      <div className="setting-stage-side">
+        <CycleSettingTypeSection cycleId={cycle.id} cycle={cycle} suggestion={cycleSuggestions.settingMix} />
+      </div>
+      </div>
     </div>
   );
 }

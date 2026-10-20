@@ -2,9 +2,11 @@
 
 import type { Story, CycleWorldEntry, StoryWorldEntry } from "@/generated/prisma/client";
 import StorySettingTypeSection from "./StorySettingTypeSection";
+import SettingMixPanel from "@/features/setting/SettingMixPanel";
+import SettingPhotoBanner from "@/features/setting/SettingPhotoBanner";
 import WorldBible from "@/features/setting/WorldBible";
 import { GRAPES_FIELDS, type GrapesBag } from "@/features/setting/worldBible";
-import { describeShares, resolveShares } from "@/features/setting/settingMix";
+import { resolveShares } from "@/features/setting/settingMix";
 
 type CycleSettingSnap = {
   grapesGeography: string;
@@ -31,30 +33,6 @@ function grapesOf(source: CycleSettingSnap): GrapesBag {
   return bag;
 }
 
-function SharedSettingType({ cycle }: { cycle: CycleSettingSnap }) {
-  const view = describeShares(resolveShares({
-    settingManifest: cycle.settingManifest ?? null,
-    settingFilter: cycle.settingFilter ?? null,
-    settingConflict: cycle.settingConflict ?? null,
-    settingMagnet: cycle.settingMagnet ?? null,
-    settingMapX: cycle.settingMapX,
-    settingMapY: cycle.settingMapY,
-  }));
-  return (
-    <section className="rounded-[24px] p-4" style={{ border: "1px solid var(--border)", background: "#fff" }}>
-      <h2 className="text-[17px] font-semibold">Тип сеттинга</h2>
-      <p className="mt-2 text-[16px] font-semibold leading-snug">{view.title}</p>
-      <p className="mt-1 text-[13px] leading-snug" style={{ color: "var(--ink2)" }}>{view.meaning}</p>
-      {cycle.settingPhotoUrl ? (
-        <div
-          className="mt-3 h-[180px] w-full rounded-[14px] bg-cover bg-center"
-          style={{ backgroundImage: `url(${cycle.settingPhotoUrl})` }}
-        />
-      ) : null}
-    </section>
-  );
-}
-
 export default function StorySettingSection({
   story,
   cycleWorldEntries,
@@ -71,53 +49,75 @@ export default function StorySettingSection({
   const shared = isShared && cycleSetting ? cycleSetting : null;
 
   return (
-    <div className="flex flex-col gap-4">
-      {shared ? <SharedSettingType cycle={shared} /> : <StorySettingTypeSection story={story} />}
+    <div className="setting-stage">
       {shared ? (
-        <WorldBible
-          scope="cycle"
-          recordId={story.cycleId ?? story.id}
-          tables={[{
-            id: "primary",
-            title: "Сеттинг цикла",
-            model: "Cycle",
-            recordId: story.cycleId ?? story.id,
-            values: grapesOf(shared),
-            suggestions: {},
-            titleField: null,
-          }]}
-          entries={cycleWorldEntries}
-          fantasyGeneral={shared.fantasyGeneral ?? ""}
-          fantasyNotes={shared.fantasyNotes ?? ""}
-          canEdit={false}
-          allowTables={false}
-          isMentor={false}
-          unlocked
-          photoKind="cycle-world-entry-photo"
-        />
+        <SettingPhotoBanner recordId={story.cycleId ?? story.id} photoUrl={shared.settingPhotoUrl} canEdit={false} kind="cycle-setting-photo" />
       ) : (
-        <WorldBible
-          scope="story"
-          recordId={story.id}
-          tables={[{
-            id: "primary",
-            title: "Сеттинг",
-            model: "Story",
-            recordId: story.id,
-            values: grapesOf(story),
-            suggestions: {},
-            titleField: null,
-          }]}
-          entries={storyWorldEntries}
-          fantasyGeneral={story.fantasyGeneral}
-          fantasyNotes={story.fantasyNotes}
-          canEdit
-          allowTables={false}
-          isMentor={false}
-          unlocked
-          photoKind="story-world-entry-photo"
-        />
+        <SettingPhotoBanner recordId={story.id} photoUrl={story.settingPhotoUrl} canEdit kind="story-setting-photo" />
       )}
+      <div className="setting-stage-row">
+        <div className="setting-stage-main">
+          {shared ? (
+            <WorldBible
+              scope="cycle"
+              recordId={story.cycleId ?? story.id}
+              tables={[{
+                id: "primary",
+                title: "Сеттинг цикла",
+                model: "Cycle",
+                recordId: story.cycleId ?? story.id,
+                values: grapesOf(shared),
+                suggestions: {},
+                titleField: null,
+              }]}
+              entries={cycleWorldEntries}
+              fantasyGeneral={shared.fantasyGeneral ?? ""}
+              fantasyNotes={shared.fantasyNotes ?? ""}
+              canEdit={false}
+              allowTables={false}
+              isMentor={false}
+              unlocked
+              photoKind="cycle-world-entry-photo"
+            />
+          ) : (
+            <WorldBible
+              scope="story"
+              recordId={story.id}
+              tables={[{
+                id: "primary",
+                title: "Сеттинг",
+                model: "Story",
+                recordId: story.id,
+                values: grapesOf(story),
+                suggestions: {},
+                titleField: null,
+              }]}
+              entries={storyWorldEntries}
+              fantasyGeneral={story.fantasyGeneral}
+              fantasyNotes={story.fantasyNotes}
+              canEdit
+              allowTables={false}
+              isMentor={false}
+              unlocked
+              photoKind="story-world-entry-photo"
+            />
+          )}
+        </div>
+        <div className="setting-stage-side">
+          {shared ? (
+            <SettingMixPanel readOnly initial={resolveShares({
+              settingManifest: shared.settingManifest ?? null,
+              settingFilter: shared.settingFilter ?? null,
+              settingConflict: shared.settingConflict ?? null,
+              settingMagnet: shared.settingMagnet ?? null,
+              settingMapX: shared.settingMapX,
+              settingMapY: shared.settingMapY,
+            })} />
+          ) : (
+            <StorySettingTypeSection story={story} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
