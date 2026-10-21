@@ -109,7 +109,7 @@ async function fromRss() {
     const pd = tag(it, 'pubDate');
     const dt = pd ? new Date(pd) : null;
     out.push({
-      id, title, byline: 'Лиза Ликийская',
+      id, title, byline: 'Лиза Андреенко',
       image: imgFrom(it, contentHtml),
       excerpt: clip(full, 180), full, link,
       _date: dt && !isNaN(dt) ? fmtDate(dt) : ''
@@ -126,7 +126,7 @@ function mapApiItems(items) {
       const link = (it.share_link || String(it.link || '')).split('?')[0];
       const id = idFromLink(link) || String(it.publication_id || it.id || '');
       const text = String(it.text || '').replace(/\s+/g, ' ').trim();
-      return { id, title: String(it.title).trim(), byline: 'Лиза Ликийская',
+      return { id, title: String(it.title).trim(), byline: 'Лиза Андреенко',
         image: it.image || '', excerpt: clip(text, 180), full: text, link,
         _date: pubDate(it.publication_date) };
     })

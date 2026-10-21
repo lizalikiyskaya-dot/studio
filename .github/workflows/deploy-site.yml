@@ -164,7 +164,7 @@ jobs:
             echo "попытка $attempt: HTTP $code"
             case "$code" in
               2*)
-                if grep -q "литературный наставник" "$body"; then
+                if grep -q "Лиза Андреенко" "$body"; then
                   echo "Лендинг ответил $code"
                   break
                 fi
