@@ -27,7 +27,7 @@
 <link rel="preload" href="assets/fonts/Onest_cyrillic_4c7562.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
 <link rel="preload" href="assets/fonts/PlayfairDisplay_cyrillic_e8da7b.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
 <link rel="stylesheet" href="assets/fonts/fonts.css?v=20261021">
-<link rel="stylesheet" href="styles.css?v=20261021d">
+<link rel="stylesheet" href="styles.css?v=20261022">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -121,7 +121,7 @@
         <p class="kicker">Пишете роман и&nbsp;хотите издаваться?</p>
         <h1 class="hero-title" id="hero-title">Доведу вашу книгу <span class="mk">до&nbsp;подачи</span> в&nbsp;издательство и&nbsp;на&nbsp;конкурсы</h1>
         <p class="hero-lead">Сопровождение автора на&nbsp;моей платформе. В&nbsp;личном кабинете теория, задания по&nbsp;вашей книге и&nbsp;опен-коллы и&nbsp;конкурсы, подобранные под&nbsp;неё.</p>
-        <a class="btn-pill" href="#apply">Подать заявку на&nbsp;сопровождение <span class="arr" aria-hidden="true">→</span></a>
+        <button type="button" class="btn-pill open-form">Подать заявку на&nbsp;сопровождение <span class="arr" aria-hidden="true">→</span></button>
         <p class="under">От&nbsp;3&nbsp;месяцев · 10&nbsp;000&nbsp;₽ в&nbsp;месяц · для взрослых авторов, готовых работать самостоятельно, можно без опыта</p>
         <div class="me">
           <p class="me-name">Лиза Андреенко</p>
@@ -223,27 +223,25 @@
   <section class="band" id="who" aria-labelledby="who-title">
     <div class="wrap">
       <h2 id="who-title">Кому подойдёт</h2>
-      <div class="who-grid">
-        <article class="card">
-          <h3>Подойдёт, если вы:</h3>
+      <div class="fit-grid">
+        <article class="fit fit-yes">
+          <h3><span class="mark" aria-hidden="true">✓</span> Подойдёт, если вы</h3>
           <ul>
-            <li>взрослый человек и&nbsp;относитесь к&nbsp;своей книге всерьёз;</li>
+            <li>относитесь к&nbsp;своей книге или рассказам всерьёз;</li>
             <li>хотите издаваться или публиковаться на&nbsp;сетевых платформах, а&nbsp;не&nbsp;писать в&nbsp;стол;</li>
-            <li>готовы работать сами: читать теорию, делать задания, отчитываться в&nbsp;Телеграме и&nbsp;писать по&nbsp;плану;</li>
+            <li>готовы работать: читать теорию, делать задания, отчитываться в&nbsp;Телеграме и&nbsp;писать по&nbsp;плану;</li>
             <li>готовы заниматься минимум 3&nbsp;месяца;</li>
-            <li>готовы к&nbsp;оплате 10&nbsp;000&nbsp;₽ в&nbsp;месяц.</li>
           </ul>
-          <p class="note">Опыт не&nbsp;важен. Можно прийти с&nbsp;готовой рукописью, с&nbsp;черновыми главами или просто с&nbsp;желанием написать первый рассказ.</p>
+          <p class="callout">Опыт не&nbsp;важен! Можно прийти с&nbsp;готовой рукописью, с&nbsp;черновыми главами или просто с&nbsp;желанием написать первый рассказ. План составляю индивидуально под каждого автора.</p>
         </article>
-        <article class="card">
-          <h3>Не&nbsp;подойдёт, если вы:</h3>
+        <article class="fit fit-no">
+          <h3><span class="mark" aria-hidden="true">✕</span> Не&nbsp;подойдёт, если вы</h3>
           <ul>
             <li>хотите, чтобы вас подгоняли;</li>
             <li>хотите, чтобы книгу дописали или отредактировали за&nbsp;вас;</li>
             <li>ждёте гарантию издания;</li>
-            <li>хотите попробовать на&nbsp;месяц (план работы рассчитан надолго и&nbsp;составляется под&nbsp;вас);</li>
-            <li>пишете исторический роман: временно не&nbsp;беру;</li>
-            <li>хотите через текст проработать личные травмы: я&nbsp;не&nbsp;психолог.</li>
+            <li>хотите попробовать на&nbsp;месяц (за&nbsp;месяц сложно отследить результат);</li>
+            <li>хотите через текст проработать личные травмы и&nbsp;написать текст, понятный только вам.</li>
           </ul>
         </article>
       </div>
@@ -254,26 +252,49 @@
   <section class="band band-white" id="how" aria-labelledby="how-title">
     <div class="wrap">
       <h2 id="how-title">Как мы&nbsp;работаем</h2>
-      <ol class="steps">
-        <li class="step">
+      <ol class="steps timeline">
+        <li class="step reveal">
           <span class="num" aria-hidden="true">1</span>
-          <h3>Заявка.</h3>
-          <p>Вы&nbsp;заполняете короткую анкету. Я&nbsp;отвечаю в&nbsp;течение двух дней в&nbsp;Телеграме или по&nbsp;почте. Если мы&nbsp;подходим друг другу, договариваемся о&nbsp;старте.</p>
+          <div>
+            <h3>Заявка</h3>
+            <p>Вы&nbsp;заполняете короткую анкету. Я&nbsp;отвечаю в&nbsp;течение двух дней в&nbsp;Телеграме или по&nbsp;почте. Если мы&nbsp;подходим друг другу, договариваемся о&nbsp;старте.</p>
+          </div>
         </li>
-        <li class="step">
+        <li class="step reveal">
           <span class="num" aria-hidden="true">2</span>
-          <h3>План и&nbsp;кабинет.</h3>
-          <p>Я&nbsp;составляю план работы. Вы&nbsp;получаете доступ к&nbsp;личному кабинету на&nbsp;платформе.</p>
+          <div>
+            <h3>План и&nbsp;кабинет</h3>
+            <p>Я&nbsp;составляю план работы. Вы&nbsp;получаете доступ к&nbsp;личному кабинету на&nbsp;платформе.</p>
+          </div>
         </li>
-        <li class="step">
+        <li class="step reveal">
           <span class="num" aria-hidden="true">3</span>
-          <h3>Теория и&nbsp;практика.</h3>
-          <p>Изучаем теорию и&nbsp;сразу применяем её&nbsp;к&nbsp;вашим текстам. Вы&nbsp;пишете и&nbsp;сдаёте задания в&nbsp;своём ритме. Я&nbsp;проверяю их&nbsp;по&nbsp;будням, обычно в&nbsp;течение 24&nbsp;часов.</p>
+          <div>
+            <h3>Теория и&nbsp;практика</h3>
+            <p>Изучаем теорию и&nbsp;сразу применяем её&nbsp;к&nbsp;вашим текстам. Если хотите пройти сначала теорию полностью, такой вариант тоже есть. Вы&nbsp;пишете и&nbsp;сдаёте задания в&nbsp;своём ритме. Я&nbsp;проверяю их&nbsp;по&nbsp;будням, обычно в&nbsp;течение 24&nbsp;часов.</p>
+          </div>
         </li>
-        <li class="step">
+        <li class="step reveal">
           <span class="num" aria-hidden="true">4</span>
-          <h3>Подготовка к&nbsp;подаче.</h3>
-          <p>Логлайн, аннотация, синопсис, письмо в&nbsp;издательство. Я&nbsp;подбираю под&nbsp;вашу книгу опен-коллы и&nbsp;конкурсы и&nbsp;добавляю их&nbsp;в&nbsp;кабинет. Вы&nbsp;отмечаете, куда уже отправили.</p>
+          <div>
+            <h3>Подготовка к&nbsp;подаче</h3>
+            <p>Логлайн, аннотация, синопсис, письмо в&nbsp;издательство. Я&nbsp;подбираю под&nbsp;вашу книгу опен-коллы и&nbsp;конкурсы и&nbsp;добавляю их&nbsp;в&nbsp;кабинет. Вы&nbsp;отмечаете, куда уже отправили.</p>
+          </div>
+        </li>
+        <li class="step reveal">
+          <span class="num" aria-hidden="true">5</span>
+          <div>
+            <h3>Сетевые платформы</h3>
+            <p>Если хотите пойти по&nbsp;пути самиздата и&nbsp;монетизировать свои книги, подскажу, как это сделать наиболее эффективно. Составим подробный план продвижения.</p>
+          </div>
+        </li>
+        <li class="step reveal">
+          <span class="num" aria-hidden="true">6</span>
+          <div>
+            <h3>Доступ к&nbsp;личному кабинету</h3>
+            <p>Остается у&nbsp;вас навсегда, если мы&nbsp;работали не&nbsp;менее трех месяцев. Методички по&nbsp;теории открыты будут те, которые успели изучить.</p>
+            <p class="step-note">*Если вы&nbsp;получили предложение от&nbsp;издательства или попали в&nbsp;лонг-лист любого конкурса, в&nbsp;подарок открываю все материалы навсегда, даже если мы&nbsp;их&nbsp;не&nbsp;успели пройти на&nbsp;обучении.</p>
+          </div>
         </li>
       </ol>
       <p class="theory">Теории много. Это нужно, чтобы потом вы&nbsp;могли расти как автор и&nbsp;без меня.</p>
@@ -286,30 +307,30 @@
       <p class="lead">Не&nbsp;нужно подстраивать расписание под&nbsp;встречи. Вы&nbsp;пишете, когда удобно, а&nbsp;я&nbsp;отвечаю так, чтобы к&nbsp;разбору можно было вернуться.</p>
       <div class="ways">
         <article class="way">
-          <h3>Текстом.</h3>
+          <h3>Текстом</h3>
           <p>Комментарии к&nbsp;главам и&nbsp;заданиям.</p>
         </article>
         <article class="way">
-          <h3>Голосовыми.</h3>
-          <p>Короткие пояснения в&nbsp;мессенджере.</p>
+          <h3>Голосовыми</h3>
+          <p>Короткие пояснения в&nbsp;мессенджере</p>
         </article>
         <article class="way">
-          <h3>Видео в&nbsp;Loom.</h3>
+          <h3>Видео запись</h3>
           <p>Для больших разборов записываю экран с&nbsp;вашим текстом и&nbsp;себя в&nbsp;кружочке. Видео можно пересмотреть в&nbsp;любой момент.</p>
         </article>
       </div>
-      <p class="closing">Ритм работы мы&nbsp;обсуждаем как взрослые люди. Я&nbsp;никого не&nbsp;подгоняю, но&nbsp;и&nbsp;не&nbsp;оставляю учеников надолго без ответа.</p>
+      <p class="closing">Ритм работы мы&nbsp;обсуждаем как взрослые люди. Я&nbsp;никого не&nbsp;подгоняю, но&nbsp;если вы&nbsp;пропали надолго, обязательно постучусь в&nbsp;чат :)</p>
     </div>
   </section>
 
   <section class="band band-white" id="platform" aria-labelledby="platform-title">
     <div class="wrap">
       <h2 id="platform-title">Ваш кабинет на&nbsp;платформе</h2>
-      <p class="lead">Всё по&nbsp;книге лежит в&nbsp;одном месте. Не&nbsp;нужно искать задания в&nbsp;переписке, а&nbsp;конкурсы по&nbsp;чатам.</p>
+      <p class="lead">Всё по&nbsp;сопровождению лежит в&nbsp;одном месте. Не&nbsp;нужно искать задания в&nbsp;переписке, а&nbsp;конкурсы по&nbsp;чатам.</p>
 
       <div class="feat">
         <div class="feat-copy">
-          <h3>Опен-коллы и&nbsp;конкурсы под&nbsp;вашу книгу.</h3>
+          <h3>Опен-коллы и&nbsp;конкурсы под&nbsp;вашу книгу</h3>
           <p>Я&nbsp;слежу за&nbsp;конкурсами и&nbsp;открытыми приёмами издательств и&nbsp;добавляю в&nbsp;кабинет те, что подходят именно вашей рукописи. У&nbsp;каждого есть дедлайн, ссылка и&nbsp;пояснение, что нужно для подачи.</p>
         </div>
         <figure class="shot" data-placeholder="shot-opencalls">
@@ -328,15 +349,15 @@
           </picture>
         </figure>
         <div class="feat-copy">
-          <h3>Трекер заявок.</h3>
+          <h3>Трекер заявок</h3>
           <p>Видно, куда рукопись уже отправлена и&nbsp;где ждём ответа.</p>
         </div>
       </div>
 
       <div class="feat">
         <div class="feat-copy">
-          <h3>Задания и&nbsp;план работы.</h3>
-          <p>Задания и&nbsp;упражнения под&nbsp;вашу книгу, план и&nbsp;трекер глав.</p>
+          <h3>Задания и&nbsp;план работы</h3>
+          <p>Задания и&nbsp;упражнения, план и&nbsp;трекер глав. Я&nbsp;обучаю в&nbsp;основном по&nbsp;зарубежным источникам, но&nbsp;привожу примеры и&nbsp;из&nbsp;русской литературы в&nbsp;том числе.</p>
         </div>
         <figure class="shot" data-placeholder="shot-tasks">
           <picture>
@@ -354,15 +375,21 @@
           </picture>
         </figure>
         <div class="feat-copy">
-          <h3>Мастерская книги.</h3>
+          <h3>Мастерская книги</h3>
           <p>Досье персонажей, арки персонажей, сеттинг. Для сборников есть мастерская рассказов и&nbsp;циклы рассказов.</p>
         </div>
       </div>
 
-      <div class="feat-solo">
-        <h3>Методички и&nbsp;материалы.</h3>
-        <p>Теория, которую можно читать в&nbsp;своём темпе.</p>
-      </div>
+      <article class="materials">
+        <div>
+          <h3>Методички и&nbsp;материалы</h3>
+          <p>Теория, которую можно читать в&nbsp;своём темпе. В&nbsp;первую очередь мы&nbsp;проходим базовую теорию сторителлинга по&nbsp;стандартам большинства кафедр креативного письма. Далее&nbsp;– мои личные наработки, которые я&nbsp;собирала годами.</p>
+        </div>
+        <div>
+          <h3>Методички и&nbsp;материалы</h3>
+          <p>Практические упражнения по&nbsp;теории, которые помогают отработать знания, прежде чем применять их&nbsp;к&nbsp;своим текстам. Это и&nbsp;карточки составления арок персонажей из&nbsp;поп-культуры, и&nbsp;индивидуальные упражнения под&nbsp;вашу задачу.</p>
+        </div>
+      </article>
       <p class="shot-note">данные учеников скрыты или показаны с&nbsp;их&nbsp;согласия</p>
     </div>
   </section>
@@ -379,23 +406,18 @@
         </figure>
         <div class="case-copy">
           <p class="case-kicker"><strong>«Сохрани лицо», Анна Сиван.</strong> Книга выйдет в&nbsp;ЭКСМО в&nbsp;2027 году.</p>
-          <p>Анна пришла ко&nbsp;мне с&nbsp;идеей книги в&nbsp;жанре современного любовного романа (СЛР) и&nbsp;черновыми главами. До&nbsp;нашей встречи она написала одну книгу в&nbsp;жанре автофикшен. Новой историей Анна очень горела и&nbsp;хотела стать профессиональной писательницей.</p>
-          <p>Мы&nbsp;изучали теорию сторителлинга и&nbsp;сразу применяли её&nbsp;к&nbsp;книге. Анна писала главы, я&nbsp;их&nbsp;читала и&nbsp;давала обратную связь.</p>
-          <p>С&nbsp;января по&nbsp;апрель мы&nbsp;работали над рукописью. В&nbsp;мае вычитывали текст и&nbsp;вместе составляли заявки: логлайн, аннотацию, синопсис и&nbsp;письмо в&nbsp;издательство. В&nbsp;июне и&nbsp;июле Анна получила два предложения об&nbsp;издании, а&nbsp;в&nbsp;августе подписала договор с&nbsp;ЭКСМО. Ещё книга вошла в&nbsp;шорт-лист конкурса Литрес «Любовь между строк» 2026 года.</p>
+          <p>Анна пришла ко&nbsp;мне с&nbsp;идеей книги в&nbsp;жанре современного любовного романа (СЛР) и&nbsp;черновыми главами. До&nbsp;нашей встречи она написала одну книгу в&nbsp;жанре автофикшен, а&nbsp;теперь хотела попробовать себя в&nbsp;любимом жанре. Новой историей Анна очень горела, и&nbsp;уже с&nbsp;первого нашего разговора я&nbsp;почувствовала, что у&nbsp;неё огромный потенциал как у&nbsp;автора. Проблема была лишь в&nbsp;том, что Анна до&nbsp;сих пор писала интуитивно, сомневалась в&nbsp;себе и&nbsp;не&nbsp;видела системы, которая приведет её&nbsp;из&nbsp;точки А&nbsp;в&nbsp;точку Б.</p>
+          <p>Начинающие авторы, несмотря на&nbsp;то, что у&nbsp;них может быть потрясающая идея, талант и&nbsp;дисциплина, сомневаются в&nbsp;себе. Но&nbsp;сомнение чаще всего рождается из&nbsp;неопределенности: моя история точно цепляет? Где слабые моменты, а&nbsp;где сильные? Как и&nbsp;где публиковаться? Как выстроить процесс работы?</p>
+          <p>Так мы&nbsp;начали изучать теорию сторителлинга и&nbsp;сразу применять её&nbsp;к&nbsp;книге. Анна писала главы, я&nbsp;их&nbsp;читала и&nbsp;давала обратную связь. Параллельно мы&nbsp;разбирались, как устроен издательский рынок и&nbsp;рынок самиздата.</p>
+          <p>За&nbsp;4&nbsp;месяца совместной работы (Анна невероятно продуктивная!) рукопись была полностью готова к&nbsp;подаче на&nbsp;конкурсы и&nbsp;в&nbsp;издательства. Вместе с&nbsp;ней мы&nbsp;написали логлайн, аннотацию, синопсис и&nbsp;письмо в&nbsp;издательство. Примерно через полтора месяца после подачи Анна получила два предложения об&nbsp;издании. Ещё книга вошла в&nbsp;шорт-лист конкурса Литрес «Любовь между строк» 2026 года.</p>
         </div>
       </article>
       <figure class="quote case-review">
         <span class="qmark" aria-hidden="true">«</span>
         <blockquote>Начиная свой путь в&nbsp;писательском деле, я&nbsp;понимала, что не&nbsp;справлюсь без помощи наставника. Лиза стала для меня настоящей опорой! Мы&nbsp;прошли обучение, долго и&nbsp;упорно работали над рукописью, и&nbsp;теперь я&nbsp;уверенно могу сказать: она обладает настоящим талантом, эмпатией и&nbsp;профессионализмом. Я&nbsp;искренне благодарна, что случай свёл нас вместе. Думаю, без этих знаний и&nbsp;поддержки у&nbsp;меня ничего&nbsp;бы не&nbsp;получилось!</blockquote>
         <figcaption>
-          <picture>
-            <source srcset="assets/img/anna-sivan-480.webp" type="image/webp">
-            <img src="assets/img/anna-sivan-480.jpg" alt="" width="44" height="44">
-          </picture>
-          <span>
-            <span class="nm">Анна Сиван</span>
-            <span class="cap">автор «Сохрани лицо», ЭКСМО</span>
-          </span>
+          <span class="nm">Анна Сиван</span>
+          <span class="cap">автор «Сохрани лицо», ЭКСМО</span>
         </figcaption>
       </figure>
       <h3 class="subhead">Отзывы</h3>
@@ -425,9 +447,30 @@
         <div class="about-copy">
           <p>Меня зовут Лиза Андреенко. У&nbsp;меня степень MFA по&nbsp;креативному письму (Creative Writing), университет Дангук, Южная Корея.</p>
           <p>Больше 10&nbsp;лет пишу прозу и&nbsp;поэзию. Публиковалась в&nbsp;журнале «Реч#порт» (Syg.ma, 2018), альманахах «Вакуум» (2021) и&nbsp;«Порог-АК» (2022).</p>
-          <p>Продолжаю учиться: получаю дополнительное образование литературоведа, прохожу новые писательские и&nbsp;редакторские курсы.</p>
-          <p>Хочу, чтобы в&nbsp;современной русской литературе было больше хорошо обученных авторов, поэтому считаю, что учиться ремеслу нужно с&nbsp;самого начала.</p>
+          <p>Продолжаю учиться: получаю дополнительное образование литературоведа, постоянно прохожу новые писательские и&nbsp;редакторские курсы, даже если знаю теорию из&nbsp;программы.</p>
+          <p>Хочу, чтобы в&nbsp;современной русской литературе было больше хорошо обученных и&nbsp;уверенных авторов, поэтому своей миссией считаю сделать такое обучение доступным и&nbsp;эффективным.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band-compare" id="mentoring" aria-labelledby="mentoring-title">
+    <div class="wrap">
+      <div class="compare">
+        <article class="compare-card compare-mentor">
+          <div class="compare-visual" aria-hidden="true"><span class="person"></span></div>
+          <p class="compare-kicker">сопровождение</p>
+          <h2 id="mentoring-title">Что такое авторское сопровождение</h2>
+          <p>Авторское сопровождение&nbsp;— это когда с&nbsp;вами над книгой постоянно работает наставник, а&nbsp;не&nbsp;только читает её&nbsp;разово. Мы&nbsp;вместе разбираем теорию, вы&nbsp;применяете её&nbsp;к&nbsp;своему тексту, а&nbsp;я&nbsp;читаю главы, даю обратную связь и&nbsp;помогаю подготовить рукопись к&nbsp;подаче.</p>
+          <p>Такую услугу найти непросто. Обычно к&nbsp;наставнику попадают через знакомых или с&nbsp;писательских курсов, а&nbsp;стоит сопровождение чаще всего намного дороже.</p>
+        </article>
+        <article class="compare-card compare-course">
+          <div class="compare-visual crowd" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <p class="compare-kicker">курс</p>
+          <h3>Чем это отличается от&nbsp;курсов</h3>
+          <p><span class="mk">10&nbsp;000&nbsp;₽</span> в&nbsp;месяц&nbsp;— примерно столько стоит рассрочка за&nbsp;дорогой писательский курс. Только на&nbsp;курсе в&nbsp;группе часто несколько сотен человек, и&nbsp;куратор просто не&nbsp;успевает внимательно смотреть каждого.</p>
+          <p class="compare-aside">У&nbsp;меня по-другому. Я&nbsp;беру только тех авторов, с&nbsp;кем мы&nbsp;подходим друг другу и&nbsp;кому интересно работать вместе. А&nbsp;цену держу такой, чтобы индивидуальное сопровождение было доступно как можно большему числу авторов. Со&nbsp;временем она может вырасти, как и&nbsp;всё на&nbsp;рынке.</p>
+        </article>
       </div>
     </div>
   </section>
@@ -445,14 +488,14 @@
               <li>личный кабинет на&nbsp;платформе;</li>
               <li>план работы над&nbsp;книгой;</li>
               <li>теория и&nbsp;задания под&nbsp;вашу книгу;</li>
-              <li>обратная связь по&nbsp;будням: текстом, голосовыми или видео в&nbsp;Loom;</li>
+              <li>обратная связь по&nbsp;будням: текстом, голосовыми или видео;</li>
               <li>подбор опен-коллов и&nbsp;конкурсов под&nbsp;вашу книгу, они появляются в&nbsp;кабинете;</li>
               <li>подготовка к&nbsp;подаче: логлайн, аннотация, синопсис, письмо в&nbsp;издательство.</li>
             </ul>
           </div>
           <div>
             <p class="price-label">Не&nbsp;входит:</p>
-            <p class="out">редактура и&nbsp;корректура текста. По&nbsp;ходу работы указываю на&nbsp;паттерны и&nbsp;частые ошибки.</p>
+            <p class="out">полная редактура и&nbsp;корректура текста. По&nbsp;ходу работы указываю на&nbsp;паттерны и&nbsp;частые ошибки, предлагаю варианты редактуры отдельных сцен для вашего анализа.</p>
           </div>
         </div>
       </article>
@@ -477,11 +520,11 @@
         </details>
         <details>
           <summary>Как часто будет обратная связь?</summary>
-          <p>Я&nbsp;отвечаю по&nbsp;будням и&nbsp;стараюсь проверять задания в&nbsp;течение 24&nbsp;часов.</p>
+          <p>Я&nbsp;отвечаю по&nbsp;будням и&nbsp;стараюсь проверять задания в&nbsp;течение 24&nbsp;часов. Живу в&nbsp;Южной Корее, поэтому работаю по&nbsp;Сеульскому времени.</p>
         </details>
         <details>
           <summary>Будут ли созвоны?</summary>
-          <p>Как правило, нет: созвоны у&nbsp;меня редкое исключение. Я&nbsp;работаю текстом, голосовыми и&nbsp;видео-разборами в&nbsp;Loom. Так удобнее занятым людям: всё можно прочитать и&nbsp;посмотреть, когда есть время.</p>
+          <p>Как правило, нет: созвоны у&nbsp;меня редкое исключение. Я&nbsp;работаю текстом, голосовыми и&nbsp;видео-разборами. Так удобнее занятым людям: всё можно прочитать и&nbsp;посмотреть, когда есть время.</p>
         </details>
         <details>
           <summary>Можно ли прийти без готовой рукописи?</summary>
@@ -489,15 +532,15 @@
         </details>
         <details>
           <summary>С&nbsp;какими текстами вы&nbsp;не&nbsp;работаете?</summary>
-          <p>Пока не&nbsp;беру исторические романы. Не&nbsp;беру тексты, через которые автор хочет проработать личные травмы: я&nbsp;не&nbsp;психолог. Осторожно отношусь к&nbsp;темам, которые попадают под&nbsp;ограничения в&nbsp;России, и&nbsp;не&nbsp;берусь за&nbsp;тексты, которые расходятся с&nbsp;моими этическими принципами.</p>
+          <p>Пока не&nbsp;беру исторические романы. Не&nbsp;беру тексты, через которые автор хочет проработать личные травмы и&nbsp;написать текст, понятный только ему. Осторожно отношусь к&nbsp;темам, которые попадают под&nbsp;ограничения в&nbsp;России, и&nbsp;не&nbsp;берусь за&nbsp;тексты, которые расходятся с&nbsp;моими этическими принципами.</p>
         </details>
         <details>
           <summary>Можно ли заниматься меньше 3&nbsp;месяцев?</summary>
-          <p>Нет. Минимум 3&nbsp;месяца: за&nbsp;это время вы&nbsp;успеете и&nbsp;разобраться в&nbsp;теории, и&nbsp;применить её&nbsp;к&nbsp;своей книге.</p>
+          <p>Нет. Минимум 3&nbsp;месяца: за&nbsp;это время вы&nbsp;успеете и&nbsp;разобраться в&nbsp;базовой теории, и&nbsp;применить её&nbsp;к&nbsp;своей книге.</p>
         </details>
         <details>
           <summary>Как оплачивать?</summary>
-          <p>Помесячно, переводом на&nbsp;банковский счёт.</p>
+          <p>Помесячно, переводом на&nbsp;банковский счёт. Возможна оплата как на&nbsp;зарубежный счёт, так и&nbsp;на&nbsp;российский.</p>
         </details>
         <details>
           <summary>Конкурсы и&nbsp;опен-коллы отправляете вы&nbsp;за&nbsp;меня?</summary>
@@ -515,12 +558,22 @@
     <div class="wrap apply">
       <h2 id="apply-title">Готовы работать над&nbsp;книгой?</h2>
       <p class="lead apply-intro">Расскажите о&nbsp;себе и&nbsp;своей книге. Я&nbsp;посмотрю анкету и&nbsp;в&nbsp;течение двух дней напишу в&nbsp;Телеграм или на&nbsp;почту, подходит ли нам сопровождение.</p>
-      <a class="btn-pill" href="#anketa">Подать заявку на&nbsp;сопровождение <span class="arr" aria-hidden="true">→</span></a>
+      <button type="button" class="btn-pill open-form">Подать заявку на&nbsp;сопровождение <span class="arr" aria-hidden="true">→</span></button>
+      <p class="contact-line">Контакт для вопросов: e-mail <a href="mailto:lizandwriter@gmail.com">lizandwriter@gmail.com</a></p>
       <p class="under">Анкета на&nbsp;2&nbsp;минуты. Отвечу в&nbsp;течение двух дней в&nbsp;Телеграме или по&nbsp;почте.</p>
+      <noscript><p class="under">Чтобы отправить анкету, напишите на&nbsp;<a href="mailto:lizandwriter@gmail.com">lizandwriter@gmail.com</a>.</p></noscript>
+    </div>
+  </section>
 
+  <dialog id="anketa-dialog" class="form-dialog" aria-labelledby="anketa-title">
+    <div class="form-panel">
+      <div class="dialog-bar">
+        <button type="button" class="dialog-close" data-close-form aria-label="Закрыть">×</button>
+      </div>
+      <h2 id="anketa-title" class="dialog-title">Заявка на&nbsp;сопровождение</h2>
       <div id="form-ok" class="form-ok" hidden tabindex="-1">
         <p>Спасибо! Я&nbsp;посмотрю анкету и&nbsp;отвечу в&nbsp;течение двух дней в&nbsp;Телеграме или по&nbsp;почте.</p>
-        <p id="form-budget" hidden>Пока можно подписаться на&nbsp;мой канал <a href="https://t.me/lizeriaa">@lizeriaa</a> или на&nbsp;рассылку по&nbsp;почте.</p>
+        <p id="form-budget" hidden>Пока можно подписаться на&nbsp;рассылку по&nbsp;почте, чтобы вернуться ко&nbsp;мне позже</p>
       </div>
 
       <form id="anketa" class="form-card" novalidate>
@@ -589,7 +642,7 @@
         </fieldset>
 
         <fieldset class="fld">
-          <legend>Вы&nbsp;работаете самостоятельно по&nbsp;моим заданиям, обратная связь текстом, голосовыми и&nbsp;видео в&nbsp;Loom (или аналогах), без созвонов. Вам так подходит?</legend>
+          <legend>Вы&nbsp;работаете самостоятельно по&nbsp;моим заданиям, обратная связь текстом, голосовыми и&nbsp;видео, без созвонов. Вам так подходит?</legend>
           <div class="radios">
             <label><input type="radio" name="format" value="да" required> да</label>
             <label><input type="radio" name="format" value="есть вопросы"> есть вопросы</label>
@@ -606,9 +659,8 @@
         <noscript><p class="hint">Чтобы отправить анкету, включите JavaScript или напишите на&nbsp;<a href="mailto:lizandwriter@gmail.com">lizandwriter@gmail.com</a>.</p></noscript>
       </form>
 
-      <p class="contacts">Контакты: Telegram <a href="https://t.me/lizeriatt">@lizeriatt</a> · e-mail <a href="mailto:lizandwriter@gmail.com">lizandwriter@gmail.com</a></p>
     </div>
-  </section>
+  </dialog>
 </main>
 
 <footer class="site-foot">
@@ -620,6 +672,6 @@
     <p>Канал <a href="https://t.me/lizeriaa">@lizeriaa</a></p>
   </div>
 </footer>
-<script src="app.js?v=20261021"></script>
+<script src="app.js?v=20261022"></script>
 </body>
 </html>
