@@ -6,6 +6,45 @@
   var LEAD_URL = 'send.php';
   var BUDGET_NO = 'нет, сейчас не по бюджету';
 
+  (function () {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var wide = window.matchMedia('(min-width: 761px)').matches;
+    if (reduce || !wide || !('IntersectionObserver' in window)) return;
+    document.documentElement.classList.add('motion');
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        en.target.classList.add('in');
+        io.unobserve(en.target);
+      });
+    }, { threshold: 0.35, rootMargin: '0px 0px -8% 0px' });
+    document.querySelectorAll('.step.reveal').forEach(function (el, i) {
+      el.style.transitionDelay = Math.min(i, 5) * 70 + 'ms';
+      io.observe(el);
+    });
+  })();
+
+  var anketaDialog = document.getElementById('anketa-dialog');
+  var lastOpener = null;
+  document.querySelectorAll('.open-form').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!anketaDialog || typeof anketaDialog.showModal !== 'function') return;
+      lastOpener = btn;
+      anketaDialog.showModal();
+    });
+  });
+  if (anketaDialog) {
+    anketaDialog.addEventListener('click', function (e) {
+      if (e.target === anketaDialog) anketaDialog.close();
+    });
+    anketaDialog.addEventListener('close', function () {
+      if (lastOpener && typeof lastOpener.focus === 'function') lastOpener.focus();
+    });
+    document.querySelectorAll('[data-close-form]').forEach(function (btn) {
+      btn.addEventListener('click', function () { anketaDialog.close(); });
+    });
+  }
+
   document.querySelectorAll('[data-deadline]').forEach(function (card) {
     var parts = (card.getAttribute('data-deadline') || '').split('-');
     if (parts.length !== 3) return;
