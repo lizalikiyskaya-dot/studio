@@ -8,20 +8,113 @@
 
   (function () {
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var wide = window.matchMedia('(min-width: 761px)').matches;
-    if (reduce || !wide || !('IntersectionObserver' in window)) return;
-    document.documentElement.classList.add('motion');
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (!en.isIntersecting) return;
-        en.target.classList.add('in');
-        io.unobserve(en.target);
+    var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    var wide = window.matchMedia('(min-width: 1024px)').matches;
+    var root = document.documentElement;
+    if (!reduce) root.classList.add('motion');
+
+    if (!reduce && 'IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          en.target.classList.add('in');
+          io.unobserve(en.target);
+        });
+      }, { threshold: 0.2, rootMargin: '0px 0px -6% 0px' });
+      var order = new WeakMap();
+      document.querySelectorAll('.fit, .way, .feat, .materials, .quote, .compare-card, .price-card, .case-card, .about-photo, .about-copy, .step.reveal').forEach(function (el) {
+        el.classList.add('reveal');
+        var parent = el.parentElement;
+        var i = order.get(parent) || 0;
+        order.set(parent, i + 1);
+        if (wide) el.style.transitionDelay = Math.min(i, 5) * 60 + 'ms';
+        io.observe(el);
       });
-    }, { threshold: 0.35, rootMargin: '0px 0px -8% 0px' });
-    document.querySelectorAll('.step.reveal').forEach(function (el, i) {
-      el.style.transitionDelay = Math.min(i, 5) * 70 + 'ms';
-      io.observe(el);
-    });
+    }
+
+    var bar = document.querySelector('.progress span');
+    var nav = document.querySelector('.topnav');
+    var line = document.querySelector('.steps.timeline');
+    var ticking = false;
+    function frame() {
+      ticking = false;
+      var doc = document.documentElement;
+      var max = doc.scrollHeight - doc.clientHeight;
+      var p = max > 0 ? (doc.scrollTop || document.body.scrollTop) / max : 0;
+      if (bar) bar.style.transform = 'scaleX(' + p + ')';
+      if (nav) nav.classList.toggle('is-stuck', (doc.scrollTop || document.body.scrollTop) > 8);
+      if (line && root.classList.contains('motion')) {
+        var rect = line.getBoundingClientRect();
+        var head = window.innerHeight * 0.62;
+        var draw = (head - rect.top) / Math.max(rect.height, 1);
+        line.style.setProperty('--draw', String(Math.min(1, Math.max(0, draw))));
+      }
+    }
+    window.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(frame);
+    }, { passive: true });
+    frame();
+
+    if (!reduce) {
+      document.querySelectorAll('.faq details').forEach(function (d) {
+        var summary = d.querySelector('summary');
+        var box = d.querySelector('.faq-a');
+        if (!summary || !box) return;
+        summary.addEventListener('click', function (e) {
+          e.preventDefault();
+          if (d.open) {
+            box.style.gridTemplateRows = '0fr';
+            var closed = false;
+            var finish = function () {
+              if (closed) return;
+              closed = true;
+              d.open = false;
+              box.style.gridTemplateRows = '';
+            };
+            box.addEventListener('transitionend', function onEnd(ev) {
+              if (ev.propertyName !== 'grid-template-rows') return;
+              box.removeEventListener('transitionend', onEnd);
+              finish();
+            });
+            setTimeout(finish, 420);
+          } else {
+            d.open = true;
+            box.style.gridTemplateRows = '0fr';
+            requestAnimationFrame(function () {
+              requestAnimationFrame(function () { box.style.gridTemplateRows = '1fr'; });
+            });
+          }
+        });
+      });
+    }
+
+    if (fine && wide && !reduce) {
+      document.querySelectorAll('.quote, .way, .compare-card, .shot, .fit, .price-card').forEach(function (el) {
+        el.setAttribute('data-tilt', '');
+        el.addEventListener('pointermove', function (e) {
+          var r = el.getBoundingClientRect();
+          var x = (e.clientX - r.left) / r.width - 0.5;
+          var y = (e.clientY - r.top) / r.height - 0.5;
+          el.style.setProperty('--tx', (x * 5).toFixed(2) + 'deg');
+          el.style.setProperty('--ty', ((-y) * 4).toFixed(2) + 'deg');
+        });
+        el.addEventListener('pointerleave', function () {
+          el.style.setProperty('--tx', '0deg');
+          el.style.setProperty('--ty', '0deg');
+        });
+      });
+      document.querySelectorAll('.btn-pill').forEach(function (btn) {
+        btn.addEventListener('pointermove', function (e) {
+          var r = btn.getBoundingClientRect();
+          var x = (e.clientX - r.left) / r.width - 0.5;
+          var y = (e.clientY - r.top) / r.height - 0.5;
+          btn.style.transform = 'translate(' + (x * 8).toFixed(1) + 'px,' + (y * 6 - 1).toFixed(1) + 'px)';
+        });
+        btn.addEventListener('pointerleave', function () { btn.style.transform = ''; });
+      });
+    }
   })();
 
   var anketaDialog = document.getElementById('anketa-dialog');

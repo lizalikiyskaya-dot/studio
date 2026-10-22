@@ -2,6 +2,18 @@
    Onest — вариативный (wght 100–900), Literata italic — вариативный,
    Playfair Display и Marck Script — статичные. */
 
+/* Запасной курсив с той же шириной, что у Literata, чтобы кикер
+   не переносился второй строкой в момент подмены шрифта. */
+@font-face {
+  font-family: "Literata FB";
+  font-style: italic;
+  font-weight: 400 900;
+  src: local("Times New Roman"), local("Tinos"), local("Liberation Serif"), local("Noto Serif");
+  size-adjust: 111.3%;
+  ascent-override: 85%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
 @font-face {
   font-family: "Literata";
   font-style: italic;

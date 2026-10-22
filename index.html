@@ -25,9 +25,12 @@
 <meta name="twitter:image" content="https://lizalikiyskaya.ru/assets/img/hero_liza.jpg">
 <meta name="twitter:image:alt" content="Лиза Андреенко">
 <link rel="preload" href="assets/fonts/Onest_cyrillic_4c7562.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
+<link rel="preload" href="assets/fonts/Onest_latin_cebbb5.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/PlayfairDisplay_cyrillic_e8da7b.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
-<link rel="stylesheet" href="assets/fonts/fonts.css?v=20261021">
-<link rel="stylesheet" href="styles.css?v=20261022">
+<link rel="preload" href="assets/fonts/PlayfairDisplay_latin_77c3c9.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/Literata_cyrillic_73fab2.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css?v=20261022v3">
+<link rel="stylesheet" href="styles.css?v=20261022v3">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -43,11 +46,7 @@
       "alumniOf": {
         "@type": "CollegeOrUniversity",
         "name": "Университет Дангук"
-      },
-      "sameAs": [
-        "https://t.me/lizeriatt",
-        "https://t.me/lizeriaa"
-      ]
+      }
     },
     {
       "@type": "ProfessionalService",
@@ -79,6 +78,7 @@
 </script>
 </head>
 <body>
+<div class="progress" aria-hidden="true"><span></span></div>
 <a class="skip" href="#top">К содержанию</a>
 <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <symbol id="ico-horn" viewBox="0 0 24 24">
@@ -107,6 +107,7 @@
 
 <main id="top">
   <section class="hero" aria-labelledby="hero-title">
+    <div class="blob-clip" aria-hidden="true"><span class="blob blob-a"></span><span class="blob blob-b"></span></div>
     <div class="wrap">
       <div class="hero-copy">
         <div class="who">
@@ -219,6 +220,13 @@
       </div>
     </div>
   </section>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <p>логлайн · синопсис · аннотация · опен-коллы · конкурсы · теория · задания · кабинет</p>
+      <p>логлайн · синопсис · аннотация · опен-коллы · конкурсы · теория · задания · кабинет</p>
+    </div>
+  </div>
 
   <section class="band" id="who" aria-labelledby="who-title">
     <div class="wrap">
@@ -381,14 +389,9 @@
       </div>
 
       <article class="materials">
-        <div>
-          <h3>Методички и&nbsp;материалы</h3>
-          <p>Теория, которую можно читать в&nbsp;своём темпе. В&nbsp;первую очередь мы&nbsp;проходим базовую теорию сторителлинга по&nbsp;стандартам большинства кафедр креативного письма. Далее&nbsp;– мои личные наработки, которые я&nbsp;собирала годами.</p>
-        </div>
-        <div>
-          <h3>Методички и&nbsp;материалы</h3>
-          <p>Практические упражнения по&nbsp;теории, которые помогают отработать знания, прежде чем применять их&nbsp;к&nbsp;своим текстам. Это и&nbsp;карточки составления арок персонажей из&nbsp;поп-культуры, и&nbsp;индивидуальные упражнения под&nbsp;вашу задачу.</p>
-        </div>
+        <h3>Методички и&nbsp;материалы</h3>
+        <p>Теория, которую можно читать в&nbsp;своём темпе. В&nbsp;первую очередь мы&nbsp;проходим базовую теорию сторителлинга по&nbsp;стандартам большинства кафедр креативного письма. Далее&nbsp;– мои личные наработки, которые я&nbsp;собирала годами.</p>
+        <p>Практические упражнения по&nbsp;теории, которые помогают отработать знания, прежде чем применять их&nbsp;к&nbsp;своим текстам. Это и&nbsp;карточки составления арок персонажей из&nbsp;поп-культуры, и&nbsp;индивидуальные упражнения под&nbsp;вашу задачу.</p>
       </article>
       <p class="shot-note">данные учеников скрыты или показаны с&nbsp;их&nbsp;согласия</p>
     </div>
@@ -508,47 +511,47 @@
       <div class="faq">
         <details>
           <summary>Издательство точно возьмёт книгу?</summary>
-          <p>Нет, гарантировать это не&nbsp;может никто. Я&nbsp;помогаю довести рукопись до&nbsp;подачи и&nbsp;подобрать, куда её&nbsp;отправить.</p>
+          <div class="faq-a"><p>Нет, гарантировать это не&nbsp;может никто. Я&nbsp;помогаю довести рукопись до&nbsp;подачи и&nbsp;подобрать, куда её&nbsp;отправить.</p></div>
         </details>
         <details>
           <summary>Где можно ещё публиковаться помимо издательства?</summary>
-          <p>Существует множество сетевых платформ для чтения книг по&nbsp;мере выхода глав. Некоторым авторам такой формат подходит даже больше, чем издательство. Обязательно расскажу о&nbsp;плюсах и&nbsp;минусах разных форматов.</p>
+          <div class="faq-a"><p>Существует множество сетевых платформ для чтения книг по&nbsp;мере выхода глав. Некоторым авторам такой формат подходит даже больше, чем издательство. Обязательно расскажу о&nbsp;плюсах и&nbsp;минусах разных форматов.</p></div>
         </details>
         <details>
           <summary>Сколько времени нужно?</summary>
-          <p>В&nbsp;идеале 30–60 минут в&nbsp;день. Если вы&nbsp;очень заняты, можно заниматься по&nbsp;выходным и&nbsp;сдавать задания сразу пачкой. Ритм мы&nbsp;обсуждаем вместе.</p>
+          <div class="faq-a"><p>В&nbsp;идеале 30–60 минут в&nbsp;день. Если вы&nbsp;очень заняты, можно заниматься по&nbsp;выходным и&nbsp;сдавать задания сразу пачкой. Ритм мы&nbsp;обсуждаем вместе.</p></div>
         </details>
         <details>
           <summary>Как часто будет обратная связь?</summary>
-          <p>Я&nbsp;отвечаю по&nbsp;будням и&nbsp;стараюсь проверять задания в&nbsp;течение 24&nbsp;часов. Живу в&nbsp;Южной Корее, поэтому работаю по&nbsp;Сеульскому времени.</p>
+          <div class="faq-a"><p>Я&nbsp;отвечаю по&nbsp;будням и&nbsp;стараюсь проверять задания в&nbsp;течение 24&nbsp;часов. Живу в&nbsp;Южной Корее, поэтому работаю по&nbsp;Сеульскому времени.</p></div>
         </details>
         <details>
           <summary>Будут ли созвоны?</summary>
-          <p>Как правило, нет: созвоны у&nbsp;меня редкое исключение. Я&nbsp;работаю текстом, голосовыми и&nbsp;видео-разборами. Так удобнее занятым людям: всё можно прочитать и&nbsp;посмотреть, когда есть время.</p>
+          <div class="faq-a"><p>Как правило, нет: созвоны у&nbsp;меня редкое исключение. Я&nbsp;работаю текстом, голосовыми и&nbsp;видео-разборами. Так удобнее занятым людям: всё можно прочитать и&nbsp;посмотреть, когда есть время.</p></div>
         </details>
         <details>
           <summary>Можно ли прийти без готовой рукописи?</summary>
-          <p>Да. Можно прийти даже с&nbsp;желанием написать первый рассказ. Но&nbsp;нужно быть готовыми работать минимум 3&nbsp;месяца: я&nbsp;даю много теории, чтобы потом вы&nbsp;могли развиваться и&nbsp;без меня.</p>
+          <div class="faq-a"><p>Да. Можно прийти даже с&nbsp;желанием написать первый рассказ. Но&nbsp;нужно быть готовыми работать минимум 3&nbsp;месяца: я&nbsp;даю много теории, чтобы потом вы&nbsp;могли развиваться и&nbsp;без меня.</p></div>
         </details>
         <details>
           <summary>С&nbsp;какими текстами вы&nbsp;не&nbsp;работаете?</summary>
-          <p>Пока не&nbsp;беру исторические романы. Не&nbsp;беру тексты, через которые автор хочет проработать личные травмы и&nbsp;написать текст, понятный только ему. Осторожно отношусь к&nbsp;темам, которые попадают под&nbsp;ограничения в&nbsp;России, и&nbsp;не&nbsp;берусь за&nbsp;тексты, которые расходятся с&nbsp;моими этическими принципами.</p>
+          <div class="faq-a"><p>Пока не&nbsp;беру исторические романы. Не&nbsp;беру тексты, через которые автор хочет проработать личные травмы и&nbsp;написать текст, понятный только ему. Осторожно отношусь к&nbsp;темам, которые попадают под&nbsp;ограничения в&nbsp;России, и&nbsp;не&nbsp;берусь за&nbsp;тексты, которые расходятся с&nbsp;моими этическими принципами.</p></div>
         </details>
         <details>
           <summary>Можно ли заниматься меньше 3&nbsp;месяцев?</summary>
-          <p>Нет. Минимум 3&nbsp;месяца: за&nbsp;это время вы&nbsp;успеете и&nbsp;разобраться в&nbsp;базовой теории, и&nbsp;применить её&nbsp;к&nbsp;своей книге.</p>
+          <div class="faq-a"><p>Нет. Минимум 3&nbsp;месяца: за&nbsp;это время вы&nbsp;успеете и&nbsp;разобраться в&nbsp;базовой теории, и&nbsp;применить её&nbsp;к&nbsp;своей книге.</p></div>
         </details>
         <details>
           <summary>Как оплачивать?</summary>
-          <p>Помесячно, переводом на&nbsp;банковский счёт. Возможна оплата как на&nbsp;зарубежный счёт, так и&nbsp;на&nbsp;российский.</p>
+          <div class="faq-a"><p>Помесячно, переводом на&nbsp;банковский счёт. Возможна оплата как на&nbsp;зарубежный счёт, так и&nbsp;на&nbsp;российский.</p></div>
         </details>
         <details>
           <summary>Конкурсы и&nbsp;опен-коллы отправляете вы&nbsp;за&nbsp;меня?</summary>
-          <p>Нет. Я&nbsp;подбираю их&nbsp;под&nbsp;вашу книгу, добавляю в&nbsp;кабинет и&nbsp;помогаю подготовить заявку. Отправляете вы&nbsp;сами.</p>
+          <div class="faq-a"><p>Нет. Я&nbsp;подбираю их&nbsp;под&nbsp;вашу книгу, добавляю в&nbsp;кабинет и&nbsp;помогаю подготовить заявку. Отправляете вы&nbsp;сами.</p></div>
         </details>
         <details>
           <summary>Как быстро вы&nbsp;ответите на&nbsp;заявку?</summary>
-          <p>В&nbsp;течение двух дней, в&nbsp;Телеграме или по&nbsp;почте.</p>
+          <div class="faq-a"><p>В&nbsp;течение двух дней, в&nbsp;Телеграме или по&nbsp;почте.</p></div>
         </details>
       </div>
     </div>
@@ -667,11 +670,9 @@
   <div class="wrap foot-row">
     <p>© Лиза Андреенко</p>
     <p><a href="privacy.html">Политика конфиденциальности</a></p>
-    <p><a href="https://t.me/lizeriatt">Telegram @lizeriatt</a></p>
     <p><a href="mailto:lizandwriter@gmail.com">lizandwriter@gmail.com</a></p>
-    <p>Канал <a href="https://t.me/lizeriaa">@lizeriaa</a></p>
   </div>
 </footer>
-<script src="app.js?v=20261022"></script>
+<script src="app.js?v=20261022v3"></script>
 </body>
 </html>
