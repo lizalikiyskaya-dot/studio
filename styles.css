@@ -1316,7 +1316,7 @@ html.motion .steps.timeline .step.in .num {
     transform: none;
     transition: none;
   }
-  .ticker-track, .blob { animation: none; }
+  .blob { animation: none; }
   .shot img { transition: none; }
 }
 
@@ -1381,33 +1381,6 @@ html.motion .steps.timeline .step.in .num {
   50% { transform: rotate(3deg) translateY(-10px); }
 }
 
-.ticker {
-  overflow: hidden;
-  max-width: 100%;
-  border-block: 1px solid rgba(43, 45, 92, .08);
-  padding: 12px 0;
-  background: rgba(255, 255, 255, .35);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-}
-.ticker-track {
-  display: flex;
-  width: max-content;
-  animation: ticker 38s linear infinite;
-}
-.ticker p {
-  margin: 0;
-  padding-right: 2.4rem;
-  font-weight: 650;
-  letter-spacing: .04em;
-  color: var(--deep);
-  white-space: nowrap;
-}
-@keyframes ticker {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
 html.motion .reveal {
   opacity: 0;
   transform: translateY(14px);
@@ -1436,6 +1409,6 @@ html.motion .reveal[data-tilt] { transition: opacity .5s ease, transform .5s eas
 html.motion .reveal[data-tilt].in { transform: perspective(900px) rotateX(var(--ty, 0deg)) rotateY(var(--tx, 0deg)); }
 
 @media (prefers-reduced-motion: reduce) {
-  .ticker-track, .blob, .blob-a, .blob-b, .who2, .eks { animation: none; }
+  .blob, .blob-a, .blob-b, .who2, .eks { animation: none; }
   .shot img, .faq-a, .faq summary::after, .topnav, .topnav .wrap { transition: none; }
 }
