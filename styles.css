@@ -1177,8 +1177,16 @@ html.motion .steps.timeline .step.reveal.in {
   line-height: 1.5;
   color: var(--ink2);
 }
-.apply .under { margin-left: auto; margin-right: auto; text-align: center; }
+.apply .under {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  text-wrap: balance;
+}
 .apply .contact-line + .under { margin-top: 6px; }
+@media (min-width: 1024px) {
+  .apply .under { max-width: 72ch; }
+}
 
 .form-dialog {
   border: 0;
@@ -1193,18 +1201,25 @@ html.motion .steps.timeline .step.reveal.in {
   overscroll-behavior: contain;
 }
 .form-dialog::backdrop {
-  background: rgba(227, 236, 255, .55);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .form-dialog::backdrop { background: rgba(43, 45, 92, .72); }
+  background: rgba(255, 255, 255, .12);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
 .form-panel {
   position: relative;
-  background: #fff;
+  background: rgba(255, 255, 255, .62);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  backdrop-filter: blur(28px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, .72);
   border-radius: var(--radius);
   box-shadow: 0 24px 60px -28px rgba(43, 45, 92, .7);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .form-dialog::backdrop { background: rgba(43, 45, 92, .72); }
+  .form-panel {
+    background: #fff;
+    border-color: transparent;
+  }
 }
 .dialog-bar {
   position: sticky;
@@ -1213,7 +1228,7 @@ html.motion .steps.timeline .step.reveal.in {
   display: flex;
   justify-content: flex-end;
   padding: 12px 12px 0;
-  background: linear-gradient(#fff 68%, rgba(255, 255, 255, 0));
+  background: linear-gradient(rgba(255, 255, 255, .55) 60%, rgba(255, 255, 255, 0));
 }
 .dialog-title {
   font-family: var(--display);
@@ -1235,8 +1250,14 @@ html.motion .steps.timeline .step.reveal.in {
   cursor: pointer;
 }
 .dialog-close:hover { background: var(--accent-soft); }
-.form-dialog .form-card { margin-top: 0; box-shadow: none; border-radius: 0; padding-top: 12px; }
-.form-dialog .form-ok { margin-top: 0; box-shadow: none; border-radius: 0; }
+.form-dialog .form-card,
+.form-dialog .form-ok {
+  margin-top: 0;
+  box-shadow: none;
+  border-radius: 0;
+  background: transparent;
+}
+.form-dialog .form-card { padding-top: 12px; }
 
 @media (min-width: 720px) {
   .fit-grid { grid-template-columns: 1fr 1fr; align-items: stretch; }
