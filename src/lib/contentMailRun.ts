@@ -7,6 +7,7 @@ import { defaultBroadcast } from "@/lib/mailBroadcasts";
 import { envelopeFor, readBroadcast } from "@/lib/mailBroadcastStore";
 import { optOutSecret, signOptOut } from "@/lib/mailOptOut";
 import { deliverContentMail, sentMarker, type ContentStudent } from "@/lib/contentMail";
+import { withAddress } from "@/lib/addressForm";
 import { applyLetterTemplate, weeklyVolume, weeklyWhen } from "@/lib/letterTemplates";
 import { readLetterTemplate } from "@/lib/letterTemplateStore";
 
@@ -76,14 +77,14 @@ export async function runScheduledContentMail(now = new Date()) {
             nextPublishedOn: picked.upcoming?.publishedOn ?? null,
             unsubscribeUrl: url ?? undefined,
           });
-          return applyLetterTemplate("weekly-task", stored, { subject: "Задание недели", ...rendered }, {
+          return applyLetterTemplate("weekly-task", stored, { subject: "Задание недели", ...rendered }, withAddress(student.name, {
             имя: student.name,
             задание: current.title,
             текст: current.prompt,
             срок: weeklyWhen(current.publishedOn, picked.upcoming?.publishedOn ?? null),
             объём: weeklyVolume(current.lengthHint),
             отписка: url ?? "",
-          });
+          }));
         },
       };
     }
@@ -104,13 +105,13 @@ export async function runScheduledContentMail(now = new Date()) {
             source: row.source,
             unsubscribeUrl: url ?? undefined,
           });
-          return applyLetterTemplate("daily-quote", stored, { subject: "Цитата дня", ...rendered }, {
+          return applyLetterTemplate("daily-quote", stored, { subject: "Цитата дня", ...rendered }, withAddress(student.name, {
             имя: student.name,
             цитата: row.text,
             автор: row.author,
             источник: row.source ?? "",
             отписка: url ?? "",
-          });
+          }));
         },
       };
     }

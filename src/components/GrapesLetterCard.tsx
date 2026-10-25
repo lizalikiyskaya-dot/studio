@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
+import Collapse from "@/components/Collapse";
 import { Button } from "@/components/ui/Button";
 
 type GrapesActions = { expandAll: () => void; collapseAll: () => void };
@@ -78,14 +79,11 @@ export default function GrapesLetterCard({
       >
         <span className="grid h-5 w-5 place-items-center rounded-[14px] bg-white text-[11px] font-bold">{letter}</span>
         <span className="min-w-0 flex-1">{label}</span>
-        <ChevronDown
-          size={14}
-          style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}
-        />
+        <ChevronDown size={14} className={`chevron-turn${open ? " is-open" : ""}`} />
       </button>
-      <div className="mt-1.5" style={{ display: open ? "block" : "none" }}>
+      <Collapse open={open} className="mt-1.5">
         {children}
-      </div>
+      </Collapse>
     </div>
   );
 }

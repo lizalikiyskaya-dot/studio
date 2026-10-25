@@ -1,3 +1,4 @@
+import { addressForm, addressVars } from "@/lib/addressForm";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail } from "@/lib/mail";
 
 /** Утро по Москве, когда письмо ещё уместно. Час 9 включительно, 12 уже нет. */
@@ -110,7 +111,7 @@ function dateLabel(parts: MoscowParts): string {
 
 export function paymentLetterVars(person: { name: string; paymentAmount: number | null }, parts: MoscowParts): Record<string, string> {
   const сумма = person.paymentAmount != null ? `Сумма — ${rubles(person.paymentAmount)}.` : "";
-  return { имя: person.name, дата: dateLabel(parts), сумма };
+  return { ...addressVars(person.name), имя: person.name, дата: dateLabel(parts), сумма };
 }
 
 export function buildPaymentReminder(person: { name: string; paymentAmount: number | null }, parts: MoscowParts): {
@@ -121,7 +122,7 @@ export function buildPaymentReminder(person: { name: string; paymentAmount: numb
   const when = dateLabel(parts);
   const paragraphs = [`${escapeHtml(person.name)}, сегодня ${when} — день оплаты.`];
   if (person.paymentAmount != null) paragraphs.push(`Сумма — ${rubles(person.paymentAmount)}.`);
-  paragraphs.push("Если дата или сумма изменились, напишите мне в Телеграме.");
+  paragraphs.push(`Если дата или сумма изменились, ${addressForm(person.name).write} мне в Телеграме.`);
   const subject = "Сегодня день оплаты";
   const letter = renderEmail({
     title: subject,

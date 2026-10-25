@@ -228,7 +228,7 @@ export default function TasksTable({
         </div>
       </div>
 
-      <div className="task-filters" role="tablist" aria-label="Фильтр заданий">
+      <div className="status-cards" role="tablist" aria-label="Фильтр заданий">
         {TABS.map((tab) => {
           const count = tab.status == null ? tasks.length : tasks.filter((task) => task.status === tab.status).length;
           const on = tab.id === activeTab;
@@ -239,15 +239,12 @@ export default function TasksTable({
               role="tab"
               aria-selected={on}
               onClick={() => selectTab(tab.id)}
-              className={on ? "is-on" : undefined}
-              style={{
-                background: tab.bg,
-                color: tab.color,
-                opacity: on ? 1 : 0.72,
-              }}
+              className={`status-card hover-lift${on ? " is-on" : ""}`}
+              data-tone={tab.id}
+              style={{ background: tab.bg, color: tab.color }}
             >
-              <div className="task-filter-num">{count}</div>
-              <div className="task-filter-lbl">{tab.label}</div>
+              <div className="status-card-num">{count}</div>
+              <div className="status-card-lbl">{tab.label}</div>
             </button>
           );
         })}
@@ -264,7 +261,7 @@ export default function TasksTable({
           }
         />
       ) : (
-      <div className="task-sheet">
+      <div className="task-sheet" key={activeTab}>
         <div className="task-head" aria-hidden="true">
           <span>Задание</span>
           <span>Дедлайн</span>
@@ -278,6 +275,7 @@ export default function TasksTable({
           visible.map((task, index) => (
             <article
               key={task.id}
+              id={`task-${task.id}`}
               className="task-card"
               onDragOver={(event) => {
                 if (dragIdRef.current) event.preventDefault();

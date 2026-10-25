@@ -42,7 +42,7 @@ jobs:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Check required secrets
         id: gate
@@ -91,7 +91,12 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || '22' }}
-          command_timeout: 30m
+          # 30m хватало на одну сборку, но не на повторы.
+          # 40186892856 и 40200835824 (коммит 6531dab) оборвались на npm run build:
+          # next/font не достучался до fonts.googleapis.com, процесс вышел с кодом 1.
+          # Вручную та же сборка проходит примерно за 80 секунд. Три такие попытки
+          # с паузами укладываются в 45m; лимит задачи выше — 60 минут.
+          command_timeout: 45m
           request_pty: true
           envs: APP_PATH,RESTART_CMD,PM2_APP_NAME,SYSTEMD_SERVICE
           script: |
@@ -119,7 +124,7 @@ jobs:
           HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
         run: |
           set -euo pipefail
-          url="${HEALTHCHECK_URL:-https://studio.lizalikiyskaya.ru}"
+          url="${HEALTHCHECK_URL:-https://studio.lizandwriter.ru}"
           echo "Проверка сайта: $url"
           code="000"
           for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do

@@ -9,11 +9,13 @@ import type { SubmissionStatus, TaskStatus } from "@/generated/prisma/client";
  * 5 — конкурс, 10 — издательство: один раз на строку трекера, когда статус
  *     стал «отправлено», «ждём ответа», «принято» или «отклонено».
  *     «Не отправлено» звёзды не даёт. Снятие отметки звёзды не забирает.
+ * 3 — глава трекера, один раз когда статус стал «принята».
+ *     «Сдана» и «на проверке» звёзды не дают. Снятие статуса звёзды не забирает.
  *
- * Уже начисленные звёзды не снимаются, если статус или текст потом меняют.
- * Уже сделанная работа один раз дописывается файлом
- * docs/sql/2026-10-20-star-backfill.sql. Дальше звёзды появляются только
- * в момент события. Повтор того же источника очки не удваивает.
+ * «Заработано» — сумма начислений, по ней статус. «На счету» — начисления минус траты.
+ * Пока трат нет, числа равны. Уже начисленные звёзды не снимаются.
+ * Прошлая работа дописывается файлами docs/sql/2026-10-20-star-backfill.sql
+ * и docs/sql/2026-10-26-2-star-chapter.sql. Повтор того же источника очки не удваивает.
  */
 
 /** Разовая строка журнала: доплата до 100 за завершённую книгу, не задание. */
@@ -28,12 +30,14 @@ export const STAR_POINTS = {
   MAIN_TASK: 3,
   CONTEST: 5,
   PUBLISHER: 10,
+  CHAPTER: 3,
 } as const;
 
 /** Короткая легенда под счётчиком. Те же суммы, что в окне «За что дают звёзды». */
 export const STAR_LEGEND = [
   { points: STAR_POINTS.WEEKLY, label: "задание недели" },
   { points: STAR_POINTS.MAIN_TASK, label: "основное задание" },
+  { points: STAR_POINTS.CHAPTER, label: "принятая глава" },
   { points: STAR_POINTS.CONTEST, label: "отправка на конкурс" },
   { points: STAR_POINTS.PUBLISHER, label: "отправка в издательство" },
 ] as const;
@@ -90,6 +94,11 @@ export function rankProgressLine(total: number): string {
 
 export function mainTaskAwardsStars(status: TaskStatus): boolean {
   return status === "SUBMITTED" || status === "ACCEPTED";
+}
+
+/** Глава даёт звёзды только когда наставник поставил «принята». */
+export function chapterAwardsStars(status: string): boolean {
+  return status === "ACCEPTED";
 }
 
 /** Любой статус, кроме «не отправлено», значит, что текст уже ушёл. */

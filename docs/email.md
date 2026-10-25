@@ -24,7 +24,7 @@ SMTP_PORT=587
 SMTP_USER=lizalikiyskaya@gmail.com
 SMTP_PASSWORD=<пароль приложения Google, 16 символов, без пробелов>
 MAIL_FROM="Студия художественной прозы <lizalikiyskaya@gmail.com>"
-APP_URL=https://studio.lizalikiyskaya.ru
+APP_URL=https://studio.lizandwriter.ru
 ```
 
 Если `MAIL_FROM` не задан, имя остаётся «Студия художественной прозы»,
@@ -73,7 +73,7 @@ Gmail (`smtp.gmail.com`) примет чужой адрес «От», тольк
 
 Пароль приложения создаётся при включённой двухфакторке:
 myaccount.google.com → Безопасность → Пароли приложений. Тот же пароль
-используется лендингом `lizalikiyskaya.ru` (там он лежит в `/etc/msmtprc`).
+используется лендингом `lizandwriter.ru` (там он лежит в `/etc/msmtprc`).
 
 ## Как часто приходят письма об изменениях
 

@@ -1,3 +1,4 @@
+import { addressForm } from "@/lib/addressForm";
 import { appUrl, renderEmail, type RenderedEmail } from "@/lib/mail";
 import { sectionLabel } from "@/lib/sections";
 
@@ -23,7 +24,7 @@ export function mentorWorkLetter(input: { name: string; studentId: string; piece
   return renderEmail({
     title: "Наставник внёс правку",
     blocks: [
-      { kind: "p", text: `${name}, я внесла правки в ваш кабинет.` },
+      { kind: "p", text: `${name}, я внесла правки в ${addressForm(input.name).yourM} кабинет.` },
       ...pieces.map((piece) => ({
         kind: "section" as const,
         title: sectionLabel(piece.section),

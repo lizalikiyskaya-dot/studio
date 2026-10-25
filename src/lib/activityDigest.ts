@@ -11,6 +11,7 @@ import {
   type BroadcastSetting,
   type DigestRow,
 } from "@/lib/mailBroadcasts";
+import { withAddress } from "@/lib/addressForm";
 import { mentorWorkLetter, studentOnlineLetter, studentWorkLetter, type DigestPiece } from "@/lib/activityLetters";
 import { broadcastOpen, envelopeFor, readBroadcast, whoFor, type BroadcastRead } from "@/lib/mailBroadcastStore";
 import { applyLetterTemplate, type LetterKey } from "@/lib/letterTemplates";
@@ -198,12 +199,12 @@ export async function flushDigests(options: {
         const cabinet = kind === "mentor-edit"
           ? `${appUrl()}/dashboard/${path}`
           : `${appUrl()}/student-view/${studentId}/${path}`;
-        const dressed = await options.dress(kind, { subject, html, text }, {
+        const dressed = await options.dress(kind, { subject, html, text }, withAddress(student.name, {
           имя: student.name,
           правки: editsText(pieces),
           когда: group[0].detail || "",
           кабинет: cabinet,
-        });
+        }));
         subject = dressed.subject;
         html = dressed.html;
         text = dressed.text;

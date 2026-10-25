@@ -124,11 +124,16 @@ function DeleteButton({ onClick }: { onClick: () => void }) {
 export default function StudentsList({ initialStudents }: { initialStudents: Student[] }) {
   const [students, setStudents] = useState(initialStudents);
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "online" | "unpaid">("all");
   const [, startTransition] = useTransition();
   const visible = students.filter((s) => {
     const q = query.trim().toLowerCase();
-    if (!q) return true;
-    return s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q);
+    if (q && !s.name.toLowerCase().includes(q) && !s.email.toLowerCase().includes(q)) return false;
+    if (filter === "online") {
+      return Boolean(s.lastSeenAt && Date.now() - new Date(s.lastSeenAt).getTime() < 3 * 60_000);
+    }
+    if (filter === "unpaid") return getAccessStatus(s.status, s.paymentStatus) !== "OPEN";
+    return true;
   });
 
   function handleCycleAccess(id: string) {
@@ -174,31 +179,47 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
 
   return (
     <div className="mb-10">
-      <label className="mb-4 flex items-center gap-2 h-11 w-full max-w-[280px] rounded-full px-4 text-[14px]" style={{ background: "var(--soft)", color: "var(--muted)" }}>
-        <span className="sr-only">Найти ученика</span>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Найти ученика"
-          className="w-full bg-transparent outline-none"
-          style={{ color: "var(--ink)" }}
-        />
-      </label>
+      <div className="mentor-tools">
+        <label className="flex items-center gap-2 h-11 w-full max-w-[280px] rounded-full px-4 text-[14px]" style={{ background: "var(--soft)", color: "var(--muted)" }}>
+          <span className="sr-only">Найти ученика</span>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Найти ученика"
+            className="w-full bg-transparent outline-none"
+            style={{ color: "var(--ink)" }}
+          />
+        </label>
+        <div className="mentor-seg" role="tablist" aria-label="Фильтр учеников">
+          {(
+            [
+              ["all", "Все"],
+              ["online", "Онлайн"],
+              ["unpaid", "Без оплаты"],
+            ] as const
+          ).map(([id, label]) => (
+            <button key={id} type="button" role="tab" aria-selected={filter === id} className={filter === id ? "is-on" : undefined} onClick={() => setFilter(id)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
       {visible.length === 0 && (
         <p className="text-[14px] mb-4" style={{ color: "var(--muted)" }}>Никого не нашли. Список учеников на месте — измените запрос.</p>
       )}
 
+      <div className="mentor-students" key={filter}>
       <div className="sheet mentor-sheet">
         <div className="mentor-grid">
         <div className="mentor-row mentor-head" role="row">
           <div />
           <div>Ученик</div>
-          <div className="mentor-h-now">Сейчас в работе</div>
+          <div className="mentor-h-now">Последнее</div>
           <div>Доступ</div>
           <div className="mentor-h-pay">День оплаты</div>
           <div>В сети</div>
           <div className="mentor-h-ws">Мастерские</div>
-          <div>Кабинет</div>
+          <div className="mentor-h-cabinet">Кабинет</div>
           <div />
         </div>
         {visible.map((s) => {
@@ -224,8 +245,8 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                 bookUnlocked={s.bookWorkshopUnlocked}
                 storyUnlocked={s.storyWorkshopUnlocked}
               />
-              <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" size="sm" pill title="Открыть кабинет" className="!h-8 !px-2 !text-[13px]">
-                Кабинет
+              <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" size="sm" pill title="Открыть кабинет" className="mentor-open !h-8 !px-3 !text-[12.5px]">
+                Открыть кабинет
               </LinkButton>
               <DeleteButton onClick={() => handleDelete(s.id)} />
             </div>
@@ -275,15 +296,16 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                 </div>
                 <PresenceIndicator lastSeenAt={s.lastSeenAt} />
               </div>
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" size="sm" pill title="Открыть кабинет">
-                  Кабинет
+              <div className="mentor-card-actions">
+                <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" size="sm" pill title="Открыть кабинет" className="mentor-open">
+                  Открыть кабинет
                 </LinkButton>
                 <DeleteButton onClick={() => handleDelete(s.id)} />
               </div>
             </article>
           );
         })}
+      </div>
       </div>
     </div>
   );

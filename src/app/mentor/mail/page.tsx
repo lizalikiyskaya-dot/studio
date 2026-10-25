@@ -98,6 +98,7 @@ export default async function MentorMailPage({
     <div>
       <h1 className="page-title mt-1 mb-4">{markedTitle("Письма")}</h1>
       <MailTabs active={tab} type={type} student={student} />
+      <div key={tab} className="panel-fade">
       {tab === "write" ? <ComposeMail students={recipients} /> : null}
       {tab === "templates" ? <LetterTemplates ready={letters.ready} rows={letters.rows} /> : null}
       {tab === "automatic" ? (
@@ -198,6 +199,7 @@ export default async function MentorMailPage({
       )}
         </>
       ) : null}
+      </div>
     </div>
   );
 }

@@ -11,7 +11,7 @@ export default async function Page({ params }: { params: Promise<{ studentId: st
       isMentor
       tasks={data.tasks}
       submissions={data.submissions}
-      total={data.total}
+      account={data.account}
       today={data.today}
     />
   );

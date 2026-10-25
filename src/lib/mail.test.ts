@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { EMAIL_BRAND, EMAIL_SIGNATURE, mailFrom, pickIpv4SmtpHost, renderEmail } from "./mail";
+import {
+  EMAIL_BRAND,
+  EMAIL_SIGNATURE,
+  isRetryableMailError,
+  mailFrom,
+  pickIpv4SmtpHost,
+  renderEmail,
+  sendMail,
+  setEmailLogForTests,
+  setMailTransportSourceForTests,
+} from "./mail";
 import { approvedLetter, dailyQuoteLetter, designerLetterPreviews, guideOpenedLetter, mentorEditLetter, passwordResetLetter, platformUpdateLetter, registrationStudentLetter, weeklyTaskLetter } from "./notify";
 
 function withEnv(values: Record<string, string | undefined>, run: () => void) {
@@ -68,7 +78,7 @@ test("письма ученику: бренд, подпись, текст и п�
     assert.equal(letter.html.includes("Закладка"), false);
     assert.equal(letter.text.includes("Закладка"), false);
   }
-  assert.match(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /я открыла вам методичку/);
+  assert.match(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /я открыла тебе методичку/);
   assert.match(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /Материалы/);
   assert.doesNotMatch(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /\/dashboard\/guides\//);
   assert.match(passwordResetLetter("Саша", "https://studio.example/reset").text, /Задать новый пароль: https:\/\/studio.example\/reset/);
@@ -118,4 +128,71 @@ test("письма ученику: бренд, подпись, текст и п�
   assert.match(previews.weekly.text, /полстраницы/);
   assert.match(previews.quote.text, /Чехов/);
   assert.match(previews.platform.text, /Саша|Виктория/);
+});
+
+test("обрыв SMTP сбрасывает транспорт и повторяет отправку один раз", async () => {
+  assert.equal(isRetryableMailError(Object.assign(new Error("Connection timeout"), { code: "ETIMEDOUT" })), true);
+  assert.equal(isRetryableMailError(Object.assign(new Error("Mailbox unavailable"), { responseCode: 550 })), false);
+
+  const logs: { status: string; error: string | null }[] = [];
+  setEmailLogForTests(async (_input, status, error) => {
+    logs.push({ status, error });
+  });
+  let opened = 0;
+  try {
+    setMailTransportSourceForTests(async () => {
+      opened += 1;
+      if (opened === 1) {
+        return { sendMail: async () => { throw Object.assign(new Error("Connection timeout"), { code: "ETIMEDOUT" }); } };
+      }
+      return { sendMail: async () => {} };
+    });
+    const sent = await sendMail({
+      to: "demo@example.com",
+      subject: "Проверка",
+      html: "<p>Текст</p>",
+      from: "Студия <demo@example.com>",
+    });
+    assert.equal(sent, true);
+    assert.equal(opened, 2);
+    assert.deepEqual(logs, [{ status: "sent", error: null }]);
+
+    opened = 0;
+    logs.length = 0;
+    setMailTransportSourceForTests(async () => {
+      opened += 1;
+      return { sendMail: async () => { throw new Error("Connection timeout"); } };
+    });
+    const failed = await sendMail({
+      to: "demo@example.com",
+      subject: "Проверка",
+      html: "<p>Текст</p>",
+      from: "Студия <demo@example.com>",
+    });
+    assert.equal(failed, false);
+    assert.equal(opened, 2);
+    assert.equal(logs.length, 1);
+    assert.equal(logs[0]?.status, "failed");
+    assert.match(logs[0]?.error ?? "", /Connection timeout/);
+
+    opened = 0;
+    logs.length = 0;
+    setMailTransportSourceForTests(async () => {
+      opened += 1;
+      return { sendMail: async () => { throw Object.assign(new Error("Mailbox unavailable"), { responseCode: 550 }); } };
+    });
+    const rejected = await sendMail({
+      to: "demo@example.com",
+      subject: "Проверка",
+      html: "<p>Текст</p>",
+      from: "Студия <demo@example.com>",
+    });
+    assert.equal(rejected, false);
+    assert.equal(opened, 1);
+    assert.equal(logs.length, 1);
+    assert.equal(logs[0]?.status, "failed");
+  } finally {
+    setMailTransportSourceForTests(null);
+    setEmailLogForTests(null);
+  }
 });

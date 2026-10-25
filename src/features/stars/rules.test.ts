@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { AUTHOR_RANKS, mainTaskAwardsStars, rankForStars, rankProgressLine, starsLabel, submissionReadyForStars } from "./rules";
+import { AUTHOR_RANKS, chapterAwardsStars, mainTaskAwardsStars, rankForStars, rankProgressLine, starsLabel, submissionReadyForStars } from "./rules";
 
 test("статус по сумме звёзд совпадает с порогами", () => {
   assert.equal(rankForStars(0).current.title, "Начинающий автор");
@@ -58,6 +58,14 @@ test("основное задание даёт звёзды за сдачу и �
   assert.equal(mainTaskAwardsStars("NEEDS_REVISION"), false);
   assert.equal(mainTaskAwardsStars("SUBMITTED"), true);
   assert.equal(mainTaskAwardsStars("ACCEPTED"), true);
+});
+
+test("глава даёт звёзды только за статус «принята»", () => {
+  assert.equal(chapterAwardsStars("IN_PROGRESS"), false);
+  assert.equal(chapterAwardsStars("SUBMITTED"), false);
+  assert.equal(chapterAwardsStars("IN_REVIEW"), false);
+  assert.equal(chapterAwardsStars("NEEDS_REVISION"), false);
+  assert.equal(chapterAwardsStars("ACCEPTED"), true);
 });
 
 test("конкурс и издательство: звёзды только после отметки «отправлено»", () => {

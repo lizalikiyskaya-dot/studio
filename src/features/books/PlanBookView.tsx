@@ -8,6 +8,8 @@ import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import PageHeader from "@/components/PageHeader";
 import { HeaderButton } from "@/components/headerAction";
 import { Plus } from "lucide-react";
+import { formatWeeklyDate, moscowToday, pickWeekly } from "@/features/weekly/schedule";
+import type { ChapterWeeklyCard } from "./ChapterSide";
 
 export default async function PlanBookView({
   studentId,
@@ -42,6 +44,8 @@ export default async function PlanBookView({
     }),
   ]);
   const suggestions = await getSuggestionsForRecords("PlanChapter", chapters.map((c) => c.id));
+  const weekly = await loadWeekly();
+  const canReview = basePath.startsWith("/student-view");
 
   return (
     <div>
@@ -60,7 +64,23 @@ export default async function PlanBookView({
         initialChapters={chapters}
         initialActs={acts}
         suggestions={suggestions}
+        canReview={canReview}
+        weekly={weekly}
+        weeklyHref={`${basePath}/weekly`}
       />
     </div>
   );
+}
+
+async function loadWeekly(): Promise<ChapterWeeklyCard> {
+  try {
+    const tasks = await prisma.weeklyTask.findMany({ select: { id: true, title: true, publishedOn: true } });
+    const current = pickWeekly(tasks, moscowToday()).current;
+    if (!current) return null;
+    return { title: current.title, until: `с ${formatWeeklyDate(current.publishedOn)}` };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("WeeklyTask") || message.includes("P2021")) return null;
+    throw error;
+  }
 }

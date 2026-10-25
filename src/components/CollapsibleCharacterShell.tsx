@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import Collapse from "@/components/Collapse";
 
 export default function CollapsibleCharacterShell({
   name,
@@ -40,19 +41,13 @@ export default function CollapsibleCharacterShell({
         />
         {title ?? <span className="heading min-w-0 flex-1 font-semibold text-[14.5px]">{name || "Без имени"}</span>}
         {headerExtra}
-        <span
-          className="flex-shrink-0"
-          style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}
-        >
+        <span className={`chevron-turn${open ? " is-open" : ""}`}>
           <ChevronDown size={15} />
         </span>
       </div>
-      <div
-        className="px-4 pb-5 pt-1 border-t"
-        style={{ borderColor: "var(--border)", display: open ? "block" : "none" }}
-      >
+      <Collapse open={open} className="collapse-body px-4 pb-5 pt-1">
         {children}
-      </div>
+      </Collapse>
     </div>
   );
 }

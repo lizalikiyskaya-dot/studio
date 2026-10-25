@@ -1,3 +1,4 @@
+import { addressVars } from "@/lib/addressForm";
 import { activityLetterSamples } from "@/lib/activityLetters";
 import { applyLetterTemplate, type LetterDraft, type LetterKey, type LetterOutput } from "@/lib/letterTemplates";
 import { buildPaymentReminder, moscowParts } from "@/lib/paymentReminders";
@@ -20,24 +21,24 @@ const SAMPLE: Record<LetterKey, Record<string, string>> = {
     текст: "Опиши комнату так, чтобы по ней было ясно: хозяин только что узнал что-то плохое.",
     срок: "Открыто с 24 октября 2026 г. Сдать до 30 октября 2026 г.",
     объём: "Объём: полстраницы",
-    отписка: "https://studio.lizalikiyskaya.ru/unsubscribe?token=preview-weekly",
+    отписка: "https://studio.lizandwriter.ru/unsubscribe?token=preview-weekly",
   },
   "daily-quote": {
     имя: "Виктория",
     цитата: "Краткость — сестра таланта.",
     автор: "Антон Чехов",
     источник: "Письмо брату Александру, 11 апреля 1889",
-    отписка: "https://studio.lizalikiyskaya.ru/unsubscribe?token=preview-quote",
+    отписка: "https://studio.lizandwriter.ru/unsubscribe?token=preview-quote",
   },
   payment: { имя: "Виктория", дата: "20 октября", сумма: "Сумма — 3 500 ₽." },
   guide: { имя: "Виктория", название: "Сцена", описание: "Коротко о том, как собрать сцену." },
   registration: { имя: "Виктория" },
   "registration-mentor": { имя: "Виктория", почта: "vika@example.com", когда: "20 октября, 10:00" },
   approved: { имя: "Виктория" },
-  password: { имя: "Виктория", ссылка: "https://studio.lizalikiyskaya.ru/reset-password?token=sample" },
-  "mentor-edit": { имя: "Виктория", правки: "Задания\nПредложение", кабинет: "https://studio.lizalikiyskaya.ru/dashboard/tasks" },
-  "student-edit": { имя: "Виктория", правки: "Сеттинг\nЗаметка", кабинет: "https://studio.lizalikiyskaya.ru/student-view/sample/setting" },
-  "student-online": { имя: "Виктория", когда: "20 октября, 10:15, Москва", кабинет: "https://studio.lizalikiyskaya.ru/student-view/sample/tasks" },
+  password: { имя: "Виктория", ссылка: "https://studio.lizandwriter.ru/reset-password?token=sample" },
+  "mentor-edit": { имя: "Виктория", правки: "Задания\nПредложение", кабинет: "https://studio.lizandwriter.ru/dashboard/tasks" },
+  "student-edit": { имя: "Виктория", правки: "Сеттинг\nЗаметка", кабинет: "https://studio.lizandwriter.ru/student-view/sample/setting" },
+  "student-online": { имя: "Виктория", когда: "20 октября, 10:15, Москва", кабинет: "https://studio.lizandwriter.ru/student-view/sample/tasks" },
 };
 
 function designed(key: LetterKey): LetterOutput {
@@ -114,5 +115,6 @@ function designed(key: LetterKey): LetterOutput {
 
 /** Превью в редакторе. Стандартный текст показывает настоящее письмо, правка подставляет образец. */
 export function previewLetter(key: LetterKey, draft: LetterDraft): LetterOutput {
-  return applyLetterTemplate(key, draft, designed(key), SAMPLE[key]);
+  const sample = SAMPLE[key];
+  return applyLetterTemplate(key, draft, designed(key), { ...addressVars(sample.имя ?? ""), ...sample });
 }
