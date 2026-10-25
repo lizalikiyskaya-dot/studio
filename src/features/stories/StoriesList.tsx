@@ -123,8 +123,8 @@ export default function StoriesList({
       {stories
         .filter((s) => s.id === openId)
         .map((story) => (
+          <div key={story.id} className="panel-fade">
           <StoryDetail
-            key={story.id}
             story={story}
             cycleCharacters={cycleCharacters}
             cycleWorldEntries={cycleWorldEntries}
@@ -133,6 +133,7 @@ export default function StoriesList({
             cycleSetting={cycleSetting}
             onDelete={() => handleDelete(story.id)}
           />
+          </div>
         ))}
     </div>
   );

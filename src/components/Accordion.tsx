@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import Collapse from "@/components/Collapse";
 
 export default function Accordion({
   title,
@@ -20,10 +21,7 @@ export default function Accordion({
 }) {
   const [open, setOpen] = useState(!!defaultOpen);
   const chevron = (
-    <span
-      className="flex-shrink-0"
-      style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}
-    >
+    <span className={`chevron-turn${open ? " is-open" : ""}`}>
       <ChevronDown size={15} />
     </span>
   );
@@ -57,12 +55,9 @@ export default function Accordion({
           </>
         )}
       </div>
-      <div
-        className="px-4 pb-5 pt-1 border-t"
-        style={{ borderColor: "var(--rule)", display: open ? "block" : "none" }}
-      >
+      <Collapse open={open} className="collapse-body px-4 pb-5 pt-1">
         {children}
-      </div>
+      </Collapse>
     </div>
   );
 }

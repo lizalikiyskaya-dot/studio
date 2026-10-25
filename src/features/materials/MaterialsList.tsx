@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { MaterialCategory, MaterialStatus } from "@/generated/prisma/client";
 import { materialToRow, type MaterialRow } from "./materialFile";
 import Accordion from "@/components/Accordion";
+import Collapse from "@/components/Collapse";
 import InlineTitle from "@/components/InlineTitle";
 import FileAttachBox from "@/components/FileAttachBox";
 import { uploadFile } from "@/lib/uploadFile";
@@ -523,7 +524,7 @@ function HandoutsList({
                 className="mt-1 grid h-5 w-5 shrink-0 place-items-center"
                 title={open ? "Свернуть" : "Развернуть"}
               >
-                <ChevronDown size={15} style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }} />
+                <ChevronDown size={15} className={`chevron-turn${open ? " is-open" : ""}`} />
               </button>
               {canManage && (
                 <GripVertical
@@ -553,7 +554,7 @@ function HandoutsList({
               {MATERIAL_STATUS_LABEL[material.status]}
             </span>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-3" style={{ display: open ? "flex" : "none" }}>
+          <Collapse open={open} className="mt-3 flex flex-wrap items-center gap-3">
             {material.fileHref ? (
               <DownloadButton href={material.fileHref} fileName={material.fileName} bytes={material.fileBytes} />
             ) : canManage ? (
@@ -566,7 +567,7 @@ function HandoutsList({
                 удалить
               </Button>
             )}
-          </div>
+          </Collapse>
         </article>
         );
       })}
