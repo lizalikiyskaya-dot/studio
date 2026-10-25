@@ -1,9 +1,6 @@
-import Subtabs from "@/components/Subtabs";
 import PageHeader from "@/components/PageHeader";
-import PopArcsView from "./popArcs/PopArcsView";
-import BeliefView from "./belief/BeliefView";
-import StoryCircleView from "./storyCircle/StoryCircleView";
 import AdditionalView from "./additional/AdditionalView";
+import GraphView from "./graph/GraphView";
 
 export default function ExercisesView({
   studentId,
@@ -16,29 +13,11 @@ export default function ExercisesView({
     <div>
       <PageHeader
         title="Упражнения"
+        description="Жёлтая точка — ход уже написан. Все ходы на этой странице, их можно править сразу."
       />
-      <div>
-        <Subtabs
-          tabs={[
-            {
-              label: "Создание арки персонажа",
-              content: <PopArcsView studentId={studentId} isMentorViewer={isMentorViewer} />,
-            },
-            {
-              label: "Начало / конец пути героя",
-              content: <BeliefView studentId={studentId} isMentorViewer={isMentorViewer} />,
-            },
-            {
-              label: "Путь героя по Дэну Хармону",
-              content: <StoryCircleView studentId={studentId} isMentorViewer={isMentorViewer} />,
-            },
-            {
-              label: "Дополнительно",
-              content: <AdditionalView studentId={studentId} isMentorViewer={isMentorViewer} />,
-            },
-          ]}
-        />
-      </div>
+      <GraphView studentId={studentId} isMentorViewer={isMentorViewer} />
+      <h2 className="heading mb-3 mt-8 text-[20px]">Дополнительно</h2>
+      <AdditionalView studentId={studentId} isMentorViewer={isMentorViewer} />
     </div>
   );
 }

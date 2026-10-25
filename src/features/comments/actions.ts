@@ -31,11 +31,14 @@ export async function getCommentsForRecords(model: CommentableModel, recordIds: 
   return map;
 }
 
-export async function addComment(model: CommentableModel, recordId: string, text: string) {
+export async function addComment(model: CommentableModel, recordId: string, text: string, field?: string) {
   const studentId = await getStudentIdForRecord(model, recordId);
   const session = await requireCabinetAccess(studentId);
   const author = session.role === "MENTOR" ? "Наставник" : "Ученик";
-  const comment = await prisma.comment.create({ data: { model, recordId, author, text } });
+  const move = field?.trim().slice(0, 80);
+  const comment = await prisma.comment.create({
+    data: { model, recordId, author, text, ...(move ? { field: move } : {}) },
+  });
   await queueCabinetChange({
     studentId,
     byMentor: session.role === "MENTOR",
