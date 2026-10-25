@@ -16,13 +16,13 @@ export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
   ACCEPTED: "принято",
 };
 
-export const TASK_FILTERS: { id: string; label: string; status: TaskStatus | null; bg: string; color: string }[] = [
-  { id: "progress", label: "В процессе", status: "IN_PROGRESS", bg: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)" },
-  { id: "planned", label: "Запланировано", status: "PLANNED", bg: "var(--soft)", color: "var(--ink)" },
-  { id: "submitted", label: "Сдано на проверку", status: "SUBMITTED", bg: "var(--pill-vio-bg)", color: "var(--pill-vio-fg)" },
-  { id: "revision", label: "На доработке", status: "NEEDS_REVISION", bg: "var(--pill-or-bg)", color: "var(--pill-or-fg)" },
-  { id: "accepted", label: "Принято", status: "ACCEPTED", bg: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)" },
-  { id: "all", label: "Все задачи", status: null, bg: "var(--deep)", color: "#fff" },
+export const TASK_FILTERS: { id: string; label: string; status: TaskStatus | null; bg: string; color: string; ring: string }[] = [
+  { id: "progress", label: "В процессе", status: "IN_PROGRESS", bg: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)", ring: "#18638f" },
+  { id: "planned", label: "Запланировано", status: "PLANNED", bg: "var(--soft)", color: "var(--ink)", ring: "#8a8a8a" },
+  { id: "submitted", label: "Сдано на проверку", status: "SUBMITTED", bg: "var(--pill-vio-bg)", color: "var(--pill-vio-fg)", ring: "#4b3fc0" },
+  { id: "revision", label: "На доработке", status: "NEEDS_REVISION", bg: "var(--pill-or-bg)", color: "var(--pill-or-fg)", ring: "#9a4b12" },
+  { id: "accepted", label: "Принято", status: "ACCEPTED", bg: "var(--pill-mint-bg)", color: "var(--pill-mint-fg)", ring: "#14684b" },
+  { id: "all", label: "Все задачи", status: null, bg: "var(--deep)", color: "#fff", ring: "#2b2d5c" },
 ];
 
 export function isTaskStatus(value: string): value is TaskStatus {

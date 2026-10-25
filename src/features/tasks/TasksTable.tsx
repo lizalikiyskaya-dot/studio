@@ -228,7 +228,7 @@ export default function TasksTable({
         </div>
       </div>
 
-      <div className="task-filters" role="tablist" aria-label="Фильтр заданий">
+      <div className="status-cards" role="tablist" aria-label="Фильтр заданий">
         {TABS.map((tab) => {
           const count = tab.status == null ? tasks.length : tasks.filter((task) => task.status === tab.status).length;
           const on = tab.id === activeTab;
@@ -239,15 +239,15 @@ export default function TasksTable({
               role="tab"
               aria-selected={on}
               onClick={() => selectTab(tab.id)}
-              className={on ? "is-on" : undefined}
+              className={`status-card hover-lift${on ? " is-on" : ""}`}
               style={{
                 background: tab.bg,
                 color: tab.color,
-                opacity: on ? 1 : 0.72,
+                "--card-ring": tab.ring,
               }}
             >
-              <div className="task-filter-num">{count}</div>
-              <div className="task-filter-lbl">{tab.label}</div>
+              <div className="status-card-num">{count}</div>
+              <div className="status-card-lbl">{tab.label}</div>
             </button>
           );
         })}

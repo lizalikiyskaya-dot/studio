@@ -249,16 +249,24 @@ textarea.reading,
   .task-move-arrows { display: none; }
   .task-move-handle { display: inline-flex; }
 }
-.task-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-.task-filters button {
-  flex: 1 1 108px;
+.status-cards { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.status-card {
+  flex: 1 1 148px;
   min-width: 0;
-  border-radius: 14px;
-  padding: 8px 12px;
+  border: 0;
+  border-radius: 18px;
+  padding: 14px 16px 13px;
   text-align: left;
+  opacity: 0.78;
 }
-.task-filter-num { font-size: 18px; font-weight: 650; line-height: 1; }
-.task-filter-lbl { margin-top: 3px; font-size: 12px; line-height: 1.25; opacity: 0.85; }
+.status-card.is-on { opacity: 1; }
+.status-card-num { font-size: 24px; font-weight: 650; line-height: 1; }
+.status-card-lbl { margin-top: 6px; font-size: 12.5px; line-height: 1.25; opacity: 0.85; }
+.status-card:focus { outline: none; }
+.status-card:focus-visible {
+  outline: 2px solid var(--card-ring, currentColor);
+  outline-offset: 3px;
+}
 .task-sheet {
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -338,8 +346,8 @@ textarea.reading,
 }
 @media (max-width: 760px) {
   .task-head { display: none; }
-  .task-filters button { flex-basis: calc(50% - 8px); padding: 7px 10px; }
-  .task-filter-num { font-size: 16px; }
+  .status-card { flex-basis: calc(50% - 8px); padding: 12px 14px; }
+  .status-card-num { font-size: 22px; }
   .task-card {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
@@ -600,7 +608,12 @@ textarea.reading,
   .mail-filter .pill-select-wrap { width: auto; flex: 1 1 auto; }
 }
 
-.hover-lift.is-on { box-shadow: 0 0 0 2px #202020; }
+.hover-lift.is-on { box-shadow: 0 0 0 2px var(--card-ring, currentColor); }
+.hover-lift:focus { outline: none; }
+.hover-lift:focus-visible {
+  outline: 2px solid var(--card-ring, currentColor);
+  outline-offset: 3px;
+}
 .photo-tools { opacity: 1; }
 @media (hover: hover) {
   .photo-tools { opacity: 0; pointer-events: none; }
@@ -619,7 +632,10 @@ textarea.reading,
     box-shadow: 0 12px 28px rgba(32, 32, 32, 0.1);
   }
   .hover-lift.is-on:hover {
-    box-shadow: 0 0 0 2px #202020, 0 12px 28px rgba(32, 32, 32, 0.1);
+    box-shadow: 0 0 0 2px var(--card-ring, currentColor), 0 12px 28px rgba(32, 32, 32, 0.1);
+  }
+  .hover-lift:active {
+    transform: translateY(1px) scale(0.98);
   }
 }
 
@@ -3035,6 +3051,43 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .plan-scene:active,
   .sheet-grab:active {
     cursor: grabbing;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :where(
+    a,
+    button,
+    [role="tab"],
+    [role="button"],
+    summary,
+    .btn-y,
+    .hover-lift,
+    .status-card,
+    .task-card,
+    .entry-card,
+    .mail-tabs a,
+    .plan-switch button,
+    .seg button,
+    .plan-chip,
+    .plan-status
+  ) {
+    transition-property: background-color, background, color, border-color, box-shadow, transform, opacity;
+    transition-duration: 180ms;
+    transition-timing-function: ease;
+  }
+  :where(a, button, [role="tab"], .btn-y, .hover-lift, .status-card):active {
+    transform: translateY(1px) scale(0.985);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(a, button, [role="tab"], .hover-lift, .status-card, .btn-y, .task-card, .entry-card) {
+    transition: none;
+    animation: none;
+  }
+  :where(a, button, .hover-lift, .status-card, .btn-y):active {
+    transform: none;
   }
 }
 
