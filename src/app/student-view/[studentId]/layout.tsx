@@ -10,6 +10,7 @@ import { SuggestionProvider } from "@/features/suggestions/SuggestionContext";
 import { loadWorkshopBooks } from "@/lib/workshopBooks";
 import { loadWorkshopCycles } from "@/lib/workshopCycles";
 import { loadDailyQuote } from "@/lib/loadDailyQuote";
+import { loadWeekSide } from "@/lib/weekSide";
 
 export default async function StudentViewLayout({
   children,
@@ -38,7 +39,7 @@ export default async function StudentViewLayout({
   });
   if (!student || student.role !== "STUDENT") notFound();
 
-  const [tasks, notes, books, cycles, dailyQuote] = await Promise.all([
+  const [tasks, notes, books, cycles, dailyQuote, weekSide] = await Promise.all([
     prisma.task.findMany({
       where: { studentId: student.id, deadline: { not: null } },
       select: { id: true, title: true, deadline: true },
@@ -47,6 +48,7 @@ export default async function StudentViewLayout({
     loadWorkshopBooks(student.id),
     loadWorkshopCycles(student.id),
     loadDailyQuote(),
+    loadWeekSide(student.id, `/student-view/${studentId}`),
   ]);
   const [noteComments, beacons] = await Promise.all([
     getCommentsForRecords("Note", notes.map((n) => n.id)),
@@ -69,6 +71,7 @@ export default async function StudentViewLayout({
         books={books}
         cycles={cycles}
         dailyQuote={dailyQuote}
+        weekSide={weekSide}
         calendar={{
           tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
           paymentDay: student.paymentDay,
