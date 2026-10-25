@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Star } from "lucide-react";
 import StarsHelp from "./StarsHelp";
-import { rankForStars, starsLabel } from "./rules";
+import { rankForStars, rankProgressLine, starsLabel } from "./rules";
 
 export default function StarsStatus({
   total,
@@ -10,7 +10,7 @@ export default function StarsStatus({
   total: number;
   href?: string;
 }) {
-  const { current, next, remaining } = rankForStars(total);
+  const { current, next } = rankForStars(total);
 
   return (
     <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -33,7 +33,7 @@ export default function StarsStatus({
       <StarsHelp />
       {next ? (
         <span className="text-[13px]" style={{ color: "var(--muted)" }}>
-          до статуса «{next.title}» ещё {starsLabel(remaining)}
+          {rankProgressLine(total)}
         </span>
       ) : (
         <span className="text-[13px]" style={{ color: "var(--muted)" }}>

@@ -2367,6 +2367,10 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   box-shadow: 0 24px 60px -28px rgba(43, 45, 92, 0.55);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+.stars-help-card {
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+}
 .site-dialog-title,
 .site-dialog-message {
   font-size: 16px;
