@@ -3,7 +3,7 @@
 > **Автодеплой.** Пуш в ветку `site` выкладывает лендинг сам. Одноразовая настройка сервера и секретов GitHub — в [docs/deploy-site.md](docs/deploy-site.md). Ниже — как устроен сервер (nginx, PHP, пароль админки), если сайт поднимают с нуля или правят конфиг. Пароль в репозиторий и в секреты деплоя не кладут.
 
 Статический сайт + один PHP-обработчик (`save.php`) для админки. Нужен **nginx + PHP-FPM 7.4+**.
-Домен: `lizalikiyskaya.ru`. Корень примера: `/var/www/likiya`.
+Домен: `lizandwriter.ru`. Корень примера: `/var/www/likiya`.
 
 ---
 
@@ -59,7 +59,7 @@ sudo php-fpm8.3 -t && sudo systemctl reload php8.3-fpm
 ```nginx
 server {
     listen 80;
-    server_name lizalikiyskaya.ru www.lizalikiyskaya.ru;
+    server_name lizandwriter.ru www.lizandwriter.ru;
     root /var/www/likiya;
     index index.html;
 
@@ -114,7 +114,7 @@ sudo systemctl reload nginx
 
 ```bash
 sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d lizalikiyskaya.ru -d www.lizalikiyskaya.ru
+sudo certbot --nginx -d lizandwriter.ru -d www.lizandwriter.ru
 ```
 
 ## 7. Форма заявок (FormSubmit)  — действие Лизы
@@ -140,7 +140,7 @@ sudo certbot --nginx -d lizalikiyskaya.ru -d www.lizalikiyskaya.ru
 
 ## 9. Смоук-тест после деплоя
 
-- [ ] `https://lizalikiyskaya.ru/` открывается, фото грузятся
+- [ ] `https://lizandwriter.ru/` открывается, фото грузятся
 - [ ] `/privacy.html`, `/robots.txt`, `/sitemap.xml` отдают 200
 - [ ] На телефоне: блоки цен (заголовок→фото), отзывы (вертикальный список, не зависает)
 - [ ] Кнопка «Редактировать» в футере → ввод пароля → правка текста/фото → «Сохранить»

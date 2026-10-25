@@ -1,4 +1,4 @@
-# Выкладка лендинга lizalikiyskaya.ru. Файл должен жить в ветке site:
+# Выкладка лендинга lizandwriter.ru. Файл должен жить в ветке site:
 # push запускает workflow из того коммита, который запушили.
 # Ветка main этот файл не использует. Workflow студии (.github/workflows/deploy.yml)
 # срабатывает только на push в main и здесь не копируется.
@@ -144,11 +144,11 @@ jobs:
           SITE_URL: ${{ secrets.SITE_URL }}
         run: |
           set -euo pipefail
-          url="${SITE_URL:-https://lizalikiyskaya.ru}"
+          url="${SITE_URL:-https://lizandwriter.ru}"
           url="${url%/}"
           case "$url" in
-            *studio.lizalikiyskaya.ru*)
-              echo "SITE_URL указывает на студию ($url). Для лендинга оставьте секрет пустым или укажите https://lizalikiyskaya.ru" >&2
+            *studio.lizalikiyskaya.ru*|*studio.lizandwriter.ru*)
+              echo "SITE_URL указывает на студию ($url). Для лендинга оставьте секрет пустым или укажите https://lizandwriter.ru" >&2
               exit 1
               ;;
           esac
