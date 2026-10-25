@@ -25,10 +25,10 @@ const STATUS_STYLE: Record<WorkPlanStatus, React.CSSProperties> = {
   DONE: { background: "var(--ink)", color: "#fff", border: "none" },
 };
 
-const TABS: { id: string; label: string; status: WorkPlanStatus | null; bg: string; color: string; ring: string }[] = [
-  { id: "progress", label: "В процессе", status: "IN_PROGRESS", bg: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)", ring: "#18638f" },
-  { id: "planned", label: "Запланировано", status: "PLANNED", bg: "var(--soft)", color: "var(--ink)", ring: "#8a8a8a" },
-  { id: "all", label: "Все задачи", status: null, bg: "var(--deep)", color: "#fff", ring: "#2b2d5c" },
+const TABS: { id: string; label: string; status: WorkPlanStatus | null; bg: string; color: string }[] = [
+  { id: "progress", label: "В процессе", status: "IN_PROGRESS", bg: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)" },
+  { id: "planned", label: "Запланировано", status: "PLANNED", bg: "var(--soft)", color: "var(--ink)" },
+  { id: "all", label: "Все задачи", status: null, bg: "var(--deep)", color: "#fff" },
 ];
 
 function monthOptions() {
@@ -201,11 +201,8 @@ export default function WorkPlanTable({
               aria-selected={on}
               onClick={() => selectTab(item.id)}
               className={`status-card hover-lift${on ? " is-on" : ""}`}
-              style={{
-                background: item.bg,
-                color: item.color,
-                "--card-ring": item.ring,
-              }}
+              data-tone={item.id}
+              style={{ background: item.bg, color: item.color }}
             >
               <div className="status-card-num">{count}</div>
               <div className="status-card-lbl">{item.label}</div>

@@ -103,7 +103,8 @@ export default function StoriesList({
               type="button"
               onClick={() => setOpenId(open ? null : story.id)}
               className={`hover-lift rounded-[18px] px-4 py-3 text-left${open ? " is-on" : ""}`}
-              style={{ border: "1px solid var(--border)", background: "#fff", "--card-ring": "#2b2d5c" }}
+              data-tone="deep"
+              style={{ border: "1px solid var(--border)", background: "#fff" }}
             >
               <span className="heading block text-[18px] font-semibold leading-tight">{story.title || "Без названия"}</span>
               {(story.logline || story.genre) ? (

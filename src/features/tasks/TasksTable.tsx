@@ -240,11 +240,8 @@ export default function TasksTable({
               aria-selected={on}
               onClick={() => selectTab(tab.id)}
               className={`status-card hover-lift${on ? " is-on" : ""}`}
-              style={{
-                background: tab.bg,
-                color: tab.color,
-                "--card-ring": tab.ring,
-              }}
+              data-tone={tab.id}
+              style={{ background: tab.bg, color: tab.color }}
             >
               <div className="status-card-num">{count}</div>
               <div className="status-card-lbl">{tab.label}</div>
