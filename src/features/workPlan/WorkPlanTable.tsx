@@ -25,10 +25,10 @@ const STATUS_STYLE: Record<WorkPlanStatus, React.CSSProperties> = {
   DONE: { background: "var(--ink)", color: "#fff", border: "none" },
 };
 
-const TABS: { id: string; label: string; status: WorkPlanStatus | null; bg: string; color: string }[] = [
-  { id: "progress", label: "В процессе", status: "IN_PROGRESS", bg: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)" },
-  { id: "planned", label: "Запланировано", status: "PLANNED", bg: "var(--soft)", color: "var(--ink)" },
-  { id: "all", label: "Все задачи", status: null, bg: "var(--deep)", color: "#fff" },
+const TABS: { id: string; label: string; status: WorkPlanStatus | null; bg: string; color: string; ring: string }[] = [
+  { id: "progress", label: "В процессе", status: "IN_PROGRESS", bg: "var(--pill-blue-bg)", color: "var(--pill-blue-fg)", ring: "#18638f" },
+  { id: "planned", label: "Запланировано", status: "PLANNED", bg: "var(--soft)", color: "var(--ink)", ring: "#8a8a8a" },
+  { id: "all", label: "Все задачи", status: null, bg: "var(--deep)", color: "#fff", ring: "#2b2d5c" },
 ];
 
 function monthOptions() {
@@ -189,7 +189,7 @@ export default function WorkPlanTable({
         }
       />
 
-      <div className="flex gap-3 mb-5 flex-wrap" role="tablist" aria-label="Фильтр плана работы">
+      <div className="status-cards" role="tablist" aria-label="Фильтр плана работы">
         {TABS.map((item) => {
           const count = item.status == null ? plans.length : plans.filter((plan) => plan.status === item.status).length;
           const on = item.id === activeTab;
@@ -200,15 +200,15 @@ export default function WorkPlanTable({
               role="tab"
               aria-selected={on}
               onClick={() => selectTab(item.id)}
-              className={`hover-lift rounded-[18px] px-4 py-3 flex-1 min-w-[120px] text-left${on ? " is-on" : ""}`}
+              className={`status-card hover-lift${on ? " is-on" : ""}`}
               style={{
                 background: item.bg,
                 color: item.color,
-                opacity: on ? 1 : 0.72,
+                "--card-ring": item.ring,
               }}
             >
-              <div className="text-[24px] font-semibold leading-none">{count}</div>
-              <div className="text-[12.5px] mt-1.5 opacity-80">{item.label}</div>
+              <div className="status-card-num">{count}</div>
+              <div className="status-card-lbl">{item.label}</div>
             </button>
           );
         })}
