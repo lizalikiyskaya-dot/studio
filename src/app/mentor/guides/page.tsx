@@ -7,7 +7,7 @@ export default async function MentorGuidesPage() {
 
   return (
     <div style={{ maxWidth: 760 }}>
-      <h1 className="page-title mt-1 mb-6">{markedTitle("Методички")}</h1>
+      <h1 className="page-title mt-1 mb-4">{markedTitle("Методички")}</h1>
 
       {library.ready ? (
         <GuidesLibrary initialGuides={library.guides} studentCount={library.studentCount} />

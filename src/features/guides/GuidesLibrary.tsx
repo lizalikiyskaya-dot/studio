@@ -3,7 +3,8 @@
 import { siteAlert, siteChoice, siteConfirm } from "@/components/SiteDialog";
 
 import { useState } from "react";
-import { GripVertical } from "lucide-react";
+import { ChevronDown, GripVertical } from "lucide-react";
+import Collapse from "@/components/Collapse";
 import { Button } from "@/components/ui/Button";
 import DownloadButton from "@/components/DownloadButton";
 import { Badge } from "@/components/ui/Badge";
@@ -41,6 +42,7 @@ export default function GuidesLibrary({
   const [guides, setGuides] = useState(initialGuides);
   const [busy, setBusy] = useState(false);
   const [shownIds, setShownIds] = useState<Record<string, boolean>>({});
+  const [descOpen, setDescOpen] = useState<Record<string, boolean>>({});
   const { dropTarget, dragHandle } = useDragReorder(guides, setGuides, (ids) => {
     void reorderGuides(ids).then(async (result) => {
       if (!result.ok) await siteAlert(result.error);
@@ -136,21 +138,22 @@ export default function GuidesLibrary({
       {guides.map((guide, index) => {
         const opened = guide.visibleCount > 0;
         const shown = shownIds[guide.id] ?? false;
+        const descriptionOpen = descOpen[guide.id] ?? false;
         return (
           <article
             key={guide.id}
             {...dropTarget(guide.id)}
-            className="guide-card rounded-[24px] px-5 py-4 mb-4"
+            className="guide-card rounded-[18px] px-3.5 py-3 mb-2.5"
             style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
           >
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-1.5">
               <span
                 {...dragHandle(guide.id)}
-                className="mt-3 cursor-grab shrink-0"
+                className="mt-1.5 cursor-grab shrink-0"
                 style={{ color: "var(--muted)" }}
                 title="Перетащить, чтобы изменить порядок"
               >
-                <GripVertical size={16} />
+                <GripVertical size={14} />
               </span>
               <div className="min-w-0 flex-1">
                 <input
@@ -159,21 +162,35 @@ export default function GuidesLibrary({
                   onBlur={(event) => void saveTitle(guide.id, event.target.value)}
                   placeholder="Название методички"
                   maxLength={200}
-                  className="heading w-full bg-transparent outline-none text-[20px] font-semibold"
+                  className="heading w-full bg-transparent outline-none text-[17px] font-semibold leading-snug"
                 />
-                <textarea
-                  value={guide.description}
-                  onChange={(event) => patch(guide.id, { description: event.target.value })}
-                  onBlur={(event) => void saveDescription(guide.id, event.target.value)}
-                  placeholder="Коротко, о чём методичка"
-                  maxLength={1000}
-                  rows={2}
-                  className="fld mt-2"
-                />
+                <div className="guide-desc">
+                  <button
+                    type="button"
+                    className="entry-note-toggle guide-desc-toggle"
+                    aria-expanded={descriptionOpen}
+                    onClick={() => setDescOpen((prev) => ({ ...prev, [guide.id]: !descriptionOpen }))}
+                  >
+                    <ChevronDown size={15} aria-hidden="true" className={`chevron-turn${descriptionOpen ? " is-open" : ""}`} />
+                    Описание
+                    {guide.description.trim() ? <span className="entry-note-dot" aria-hidden="true" /> : null}
+                  </button>
+                  <Collapse open={descriptionOpen}>
+                    <textarea
+                      value={guide.description}
+                      onChange={(event) => patch(guide.id, { description: event.target.value })}
+                      onBlur={(event) => void saveDescription(guide.id, event.target.value)}
+                      placeholder="Коротко, о чём методичка"
+                      maxLength={1000}
+                      rows={2}
+                      className="fld guide-desc-field"
+                    />
+                  </Collapse>
+                </div>
 
-                <div className="mt-3 flex items-center gap-3 flex-wrap">
+                <div className="mt-2 flex items-center gap-2.5 flex-wrap">
                   <label
-                    className="text-[13.5px] px-4 h-8 rounded-full cursor-pointer inline-flex items-center"
+                    className="text-[13px] px-3 h-7 rounded-full cursor-pointer inline-flex items-center"
                     style={{ color: "var(--ink)", background: "var(--y)", fontWeight: 600 }}
                   >
                     {guide.hasFile ? "Заменить файл" : "Загрузить файл"}
@@ -202,7 +219,7 @@ export default function GuidesLibrary({
                   )}
                 </div>
 
-                <div className="mt-4 flex items-center gap-2 flex-wrap">
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
                   <Badge tone={opened ? "mint" : "neutral"}>{opened ? "открыта" : "скрыта"}</Badge>
                   <span className="text-[13px]" style={{ color: "var(--ink2)" }}>
                     {studentCount === 0
@@ -229,7 +246,7 @@ export default function GuidesLibrary({
                   </div>
                 ) : null}
 
-                <div className="mt-3 flex items-center gap-2 flex-wrap">
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
                   <Button type="button" variant="primary" size="sm" pill onClick={() => void handleAll(guide.id, true)}>
                     Показать всем
                   </Button>
