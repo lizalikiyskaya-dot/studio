@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { markedTitle } from "@/components/markedTitle";
+import { loadBadges } from "@/features/badges/load";
 import { starAccount } from "@/features/stars/award";
 import { loadStreak } from "@/features/streak/load";
 import TasksTable from "./TasksTable";
@@ -14,7 +15,7 @@ export default async function TasksView({
   studentId: string;
   basePath: string;
 }) {
-  const [tasks, student, stars, streak] = await Promise.all([
+  const [tasks, student, stars, streak, badges] = await Promise.all([
     prisma.task.findMany({
       where: { studentId },
       orderBy: { order: "asc" },
@@ -22,6 +23,7 @@ export default async function TasksView({
     prisma.user.findUnique({ where: { id: studentId }, select: { name: true } }),
     starAccount(studentId),
     loadStreak(studentId),
+    loadBadges(studentId),
   ]);
 
   return (
@@ -34,6 +36,8 @@ export default async function TasksView({
         streak={streak}
         playStars={basePath === "/dashboard"}
         basePath={basePath}
+        badgeWidget={badges.widget}
+        badgeLine={badges.line}
       />
       <TasksTable
         studentId={studentId}

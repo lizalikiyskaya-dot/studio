@@ -1,4 +1,6 @@
 import Mark from "@/components/Mark";
+import BadgeWidget from "@/features/badges/BadgeWidget";
+import type { BadgeView } from "@/features/badges/view";
 import StarsStatus, { type StarPlaque } from "@/features/stars/StarsStatus";
 import type { StreakPlaque } from "@/features/streak/weeks";
 import type { Task } from "@/generated/prisma/client";
@@ -34,6 +36,8 @@ export default function CabinetHello({
   streak,
   playStars,
   basePath,
+  badgeWidget,
+  badgeLine,
 }: {
   name: string;
   tasks: Task[];
@@ -42,6 +46,8 @@ export default function CabinetHello({
   streak: StreakPlaque;
   playStars: boolean;
   basePath: string;
+  badgeWidget: BadgeView[];
+  badgeLine: string;
 }) {
   const now = new Date();
   const parts = moscowParts(now);
@@ -86,6 +92,7 @@ export default function CabinetHello({
         markVacation={!playStars}
         href={`${basePath}/weekly`}
       />
+      <BadgeWidget href={`${basePath}/badges`} badges={badgeWidget} line={badgeLine} />
     </section>
   );
 }
