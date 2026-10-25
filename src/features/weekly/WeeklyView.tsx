@@ -1,6 +1,6 @@
 import PageHeader from "@/components/PageHeader";
 import ReadingText from "@/components/ReadingText";
-import StarsStatus from "@/features/stars/StarsStatus";
+import StarsStatus, { type StarPlaque } from "@/features/stars/StarsStatus";
 import { formatWeeklyDate, pickWeekly, weekPhase } from "./schedule";
 import WeeklyForm from "./WeeklyForm";
 
@@ -30,7 +30,7 @@ export default function WeeklyView({
   isMentor,
   tasks,
   submissions,
-  total,
+  account,
   today,
 }: {
   studentId: string;
@@ -38,7 +38,7 @@ export default function WeeklyView({
   isMentor: boolean;
   tasks: TaskRow[];
   submissions: SubmissionRow[];
-  total: number;
+  account: StarPlaque;
   today: string;
 }) {
   const byTask = new Map(submissions.map((row) => [row.weeklyTaskId, row]));
@@ -60,7 +60,7 @@ export default function WeeklyView({
   return (
     <div className="weekly-page">
       <PageHeader title="Задание недели" />
-      <StarsStatus total={total} />
+      <StarsStatus studentId={studentId} account={account} play={!isMentor} />
 
       {!focus ? (
         <p className="mt-5 text-[15px]" style={{ color: "var(--ink2)" }}>

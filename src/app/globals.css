@@ -3246,3 +3246,44 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   }
 }
 
+.stars-badge { position: relative; }
+.stars-flight {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: var(--ink);
+  filter: drop-shadow(0 6px 8px rgba(32, 32, 32, 0.14));
+  animation: stars-fly 0.9s linear both;
+}
+@keyframes stars-fly {
+  0% { transform: translate(12px, -86px) scale(1.55); opacity: 0; }
+  10% { opacity: 1; }
+  94% { opacity: 1; }
+  100% { transform: translate(0, 0) scale(0.7); opacity: 0; }
+}
+.stars-pill.is-level-up {
+  animation: stars-plaque 1s ease;
+}
+@keyframes stars-plaque {
+  0%, 50% { box-shadow: none; }
+  72% { box-shadow: 0 0 0 5px rgba(255, 212, 59, 0.55); }
+  100% { box-shadow: none; }
+}
+.stars-rank.is-revealing {
+  animation: stars-rank-in 0.28s ease both;
+}
+@keyframes stars-rank-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stars-flight,
+  .stars-rank.is-revealing,
+  .stars-pill.is-level-up {
+    animation: none;
+  }
+}
+

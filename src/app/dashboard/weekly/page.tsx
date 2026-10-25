@@ -14,7 +14,7 @@ export default async function Page() {
       isMentor={false}
       tasks={data.tasks}
       submissions={data.submissions}
-      total={data.total}
+      account={data.account}
       today={data.today}
     />
   );
