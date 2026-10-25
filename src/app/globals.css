@@ -260,6 +260,13 @@ textarea.reading,
   opacity: 0.78;
 }
 .status-card.is-on { opacity: 1; }
+.status-card[data-tone="progress"] { --card-ring: #18638f; }
+.status-card[data-tone="planned"] { --card-ring: #8a8a8a; }
+.status-card[data-tone="submitted"] { --card-ring: #4b3fc0; }
+.status-card[data-tone="revision"] { --card-ring: #9a4b12; }
+.status-card[data-tone="accepted"] { --card-ring: #14684b; }
+.status-card[data-tone="all"] { --card-ring: #2b2d5c; }
+.hover-lift[data-tone="deep"] { --card-ring: #2b2d5c; }
 .status-card-num { font-size: 24px; font-weight: 650; line-height: 1; }
 .status-card-lbl { margin-top: 6px; font-size: 12.5px; line-height: 1.25; opacity: 0.85; }
 .status-card:focus { outline: none; }
