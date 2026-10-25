@@ -8,7 +8,7 @@ export const DEADLINE_ZONE = "Europe/Moscow";
  * К кому студия обращается на «Вы».
  * Отдельного поля в карточке ученика нет: правило сидит в этом списке.
  * Сравнение по первому слову имени, без учёта регистра.
- * Виктория: «Вы», «Вас», «Ваша». Остальные: «ты».
+ * Виктория: «Вы». Остальные: «ты».
  */
 export const FORMAL_ADDRESS_NAMES = ["Виктория"] as const;
 
@@ -90,11 +90,8 @@ export function formatDeadline(deadline: Date): string {
   }).format(deadline);
 }
 
-function taskLine(task: { id: string; title: string; deadline: Date }, baseUrl: string): string {
-  const title = escapeHtml(task.title.trim() || "Задание");
-  const when = escapeHtml(formatDeadline(task.deadline));
-  const url = taskUrl(baseUrl, task.id);
-  return `«${title}». Срок ${when}. <a href="${escapeHtml(url)}" style="color:#4B3FC0;text-decoration:underline;">${escapeHtml(url)}</a>`;
+function quotedTitle(title: string): string {
+  return `«${escapeHtml(title.trim() || "Задание")}»`;
 }
 
 export function buildDeadlineLetter(input: {
@@ -104,34 +101,40 @@ export function buildDeadlineLetter(input: {
 }): DeadlineLetter {
   const formal = usesFormalAddress(input.name);
   const many = input.tasks.length > 1;
-  const when = formatDeadline(input.tasks[0].deadline);
+  const when = escapeHtml(formatDeadline(input.tasks[0].deadline));
+  const name = escapeHtml(input.name);
   const subject = many ? "Завтра сроки по заданиям" : "Завтра срок по заданию";
-  const greeting = formal
-    ? `${escapeHtml(input.name)}, завтра, ${escapeHtml(when)}, у Вас ${many ? "сроки" : "срок"}.`
-    : `${escapeHtml(input.name)}, завтра, ${escapeHtml(when)}, у тебя ${many ? "сроки" : "срок"}.`;
-  const heading = formal ? (many ? "Ваши работы:" : "Ваша работа:") : many ? "Работы:" : "Работа:";
+  const opening = many
+    ? `${name}, напоминаю: завтра, ${when}, срок по заданиям:`
+    : `${name}, напоминаю: завтра, ${when}, срок по заданию ${quotedTitle(input.tasks[0].title)}.`;
+  const titles = many ? input.tasks.map((task) => quotedTitle(task.title)) : [];
   const closing = formal
-    ? many
-      ? "Если Вы уже сдали эти работы, это письмо можно не читать."
-      : "Если Вы уже сдали свою работу, это письмо можно не читать."
-    : many
-      ? "Если работы уже сданы, это письмо можно не читать."
-      : "Если работа уже сдана, это письмо можно не читать.";
+    ? "Если Вы уже сдали работу, это письмо можно не читать."
+    : "Если ты уже сдал работу, это письмо можно не читать.";
+  const home = input.baseUrl.replace(/\/+$/, "");
   const letter = renderEmail({
     title: subject,
-    paragraphs: [greeting, heading, ...input.tasks.map((task) => taskLine(task, input.baseUrl)), closing],
+    paragraphs: [opening, ...titles, closing],
     action: many
-      ? { label: "Открыть задания", url: `${input.baseUrl.replace(/\/+$/, "")}/dashboard/tasks` }
-      : { label: "Открыть задание", url: taskUrl(input.baseUrl, input.tasks[0].id) },
+      ? { label: "Открыть задания", url: `${home}/dashboard/tasks` }
+      : { label: "Открыть задание", url: taskUrl(home, input.tasks[0].id) },
     footnote: "Письмо приходит в 9:00 по Москве, если срок завтра. Отключить его может наставник.",
     signature: EMAIL_SIGNATURE,
+    siteUrl: home,
   });
   return { subject, html: letter.html, text: letter.text };
 }
 
-export function deadlinePreviewLetters(baseUrl = "https://studio.lizalikiyskaya.ru"): {
+/** Превью: APP_URL, если он задан. Иначе адрес студии, не запасной из appUrl(). */
+export function deadlinePreviewBaseUrl(env: NodeJS.ProcessEnv = process.env): string {
+  const configured = env.APP_URL?.trim();
+  return (configured || "https://studio.lizandwriter.ru").replace(/\/+$/, "");
+}
+
+export function deadlinePreviewLetters(baseUrl = deadlinePreviewBaseUrl()): {
   formal: DeadlineLetter;
   informal: DeadlineLetter;
+  several: DeadlineLetter;
 } {
   const deadline = new Date("2026-10-26T00:00:00Z");
   return {
@@ -144,6 +147,14 @@ export function deadlinePreviewLetters(baseUrl = "https://studio.lizalikiyskaya.
       name: "Саша",
       baseUrl,
       tasks: [{ id: "night", title: "Ночной разговор", deadline }],
+    }),
+    several: buildDeadlineLetter({
+      name: "Виктория",
+      baseUrl,
+      tasks: [
+        { id: "scene", title: "Сцена в кухне", deadline },
+        { id: "night", title: "Ночной разговор", deadline },
+      ],
     }),
   };
 }

@@ -4,6 +4,8 @@ import { defaultBroadcast, normalizeBroadcast } from "./mailBroadcasts";
 import {
   buildDeadlineLetter,
   deadlineMarker,
+  deadlinePreviewBaseUrl,
+  deadlinePreviewLetters,
   deadlineReminderLogLine,
   deliverDeadlineReminders,
   FORMAL_ADDRESS_NAMES,
@@ -207,12 +209,14 @@ test("несколько заданий на завтра собираются �
   });
   assert.equal(both.sent, 1);
   assert.equal(sent[1].subject, "Завтра сроки по заданиям");
+  assert.match(sent[1].html, /срок по заданиям:/);
   assert.match(sent[1].html, /Сцена в кухне/);
   assert.match(sent[1].html, /Ночной разговор/);
   assert.match(sent[1].html, /data-deadline-task="a:2026-10-26"/);
   assert.match(sent[1].html, /data-deadline-task="b:2026-10-26"/);
-  assert.match(sent[1].html, new RegExp(`${BASE}/dashboard/tasks#task-a`));
-  assert.match(sent[1].html, new RegExp(`${BASE}/dashboard/tasks#task-b`));
+  assert.match(sent[1].html, new RegExp(`${BASE}/dashboard/tasks`));
+  assert.equal(sent[1].html.includes("#task-"), false);
+  assert.equal(sent[1].html.includes("Ваша работа"), false);
 });
 
 test("Виктория на «Вы», остальные на «ты», отключившие почту пропускаются", async () => {
@@ -226,12 +230,11 @@ test("Виктория на «Вы», остальные на «ты», откл
     baseUrl: BASE,
     tasks: [{ id: "scene", title: "Сцена в кухне", deadline: new Date("2026-10-26T00:00:00Z") }],
   });
-  assert.match(formal.html, /у Вас срок/);
-  assert.match(formal.html, /Ваша работа/);
-  assert.match(formal.html, /Если Вы уже сдали свою работу/);
+  assert.match(formal.text, /Виктория, напоминаю: завтра, 26 октября, срок по заданию «Сцена в кухне»/);
+  assert.match(formal.html, /Если Вы уже сдали работу, это письмо можно не читать/);
+  assert.equal(formal.html.includes("Ваша работа"), false);
+  assert.equal((formal.html.match(/<a /g) ?? []).length, 2);
   assert.match(formal.html, /Лиза Андреенко/);
-  assert.match(formal.text, /Сцена в кухне/);
-  assert.match(formal.text, /26 октября/);
   assert.match(formal.html, /#task-scene/);
   assert.equal(formal.html.includes("—"), false);
   assert.equal(formal.subject, "Завтра срок по заданию");
@@ -241,10 +244,18 @@ test("Виктория на «Вы», остальные на «ты», откл
     baseUrl: BASE,
     tasks: [{ id: "night", title: "Ночной разговор", deadline: new Date("2026-10-26T00:00:00Z") }],
   });
-  assert.match(informal.html, /у тебя срок/);
+  assert.match(informal.text, /Саша, напоминаю: завтра, 26 октября, срок по заданию «Ночной разговор»/);
   assert.equal(/(^|[^А-Яа-яЁё])Вы([^А-Яа-яЁё]|$)/.test(informal.html), false);
   assert.equal(informal.html.includes("Ваш"), false);
-  assert.match(informal.html, /Если работа уже сдана/);
+  assert.match(informal.html, /Если ты уже сдал работу, это письмо можно не читать/);
+
+  const preview = deadlinePreviewLetters("https://studio.lizandwriter.ru");
+  assert.match(preview.formal.html, /studio\.lizandwriter\.ru/);
+  assert.match(preview.formal.text, /studio\.lizandwriter\.ru/);
+  assert.equal(preview.formal.html.includes("lizalikiyskaya"), false);
+  assert.match(preview.several.text, /срок по заданиям:/);
+  assert.equal(deadlinePreviewBaseUrl({} as NodeJS.ProcessEnv), "https://studio.lizandwriter.ru");
+  assert.equal(deadlinePreviewBaseUrl({ APP_URL: "https://studio.example/" } as NodeJS.ProcessEnv), "https://studio.example");
 
   const sent: string[] = [];
   const result = await deliverDeadlineReminders({

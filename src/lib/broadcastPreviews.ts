@@ -1,6 +1,6 @@
 import { activityLetterSamples } from "@/lib/activityLetters";
 import { deadlinePreviewLetters } from "@/lib/deadlineReminders";
-import { appUrl, renderEmail } from "@/lib/mail";
+import { renderEmail } from "@/lib/mail";
 import { buildPaymentReminder, moscowParts } from "@/lib/paymentReminders";
 import { approvedLetter, dailyQuoteLetter, guideOpenedLetter, passwordResetLetter, registrationStudentLetter, weeklyTaskLetter } from "@/lib/notify";
 
@@ -27,7 +27,7 @@ export function broadcastPreviewHtml(): Record<string, BroadcastPreview> {
   const approved = approvedLetter("Виктория");
   const registration = registrationStudentLetter("Виктория");
   const password = passwordResetLetter("Виктория", "https://studio.lizalikiyskaya.ru/reset-password?token=sample");
-  const deadline = deadlinePreviewLetters(appUrl());
+  const deadline = deadlinePreviewLetters();
   const toMentor = renderEmail({
     title: "Новая заявка на доступ",
     paragraphs: ["Новая регистрация на платформе: Виктория."],
