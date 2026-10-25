@@ -83,10 +83,39 @@ test("автоматические значки: глава, серия, уро�
   for (const id of ["first-page", "first-week", "first-chapter", "spark", "candle", "first-entry", "level-5"]) {
     assert.ok(ids.includes(id), id);
   }
-  for (const id of ["ten-tasks", "lighthouse", "level-25", "level-70", "ten-thousand", "second-draft", "book-done", "back-in-line"]) {
+  for (const id of ["ten-tasks", "lighthouse", "level-25", "level-70", "ten-thousand", "second-draft", "book-done", "back-in-line", "publisher-yes"]) {
     assert.equal(ids.includes(id), false, id);
   }
   assert.deepEqual(missingAutoBadgeIds(ids, ["first-page", "spark"]), ids.filter((id) => id !== "first-page" && id !== "spark"));
+});
+
+test("журнал остаётся конкурсом, издательство принято отдельно", () => {
+  const contest = BADGES.find((badge) => badge.id === "contest-yes");
+  const publisher = BADGES.find((badge) => badge.id === "publisher-yes");
+  assert.ok(contest && publisher);
+  assert.equal(contest.section, "contest");
+  assert.equal(publisher.section, "contest");
+  assert.equal(hintFor(contest, false), "Дождись статуса «принято» на конкурсе или в журнале.");
+  assert.equal(hintFor(contest, true), "Дождитесь статуса «принято» на конкурсе или в журнале.");
+  assert.equal(hintFor(publisher, false), "Дождись статуса «принято» в издательстве.");
+  assert.equal(hintFor(publisher, true), "Дождитесь статуса «принято» в издательстве.");
+
+  const journal = emptyBadgeFacts();
+  journal.contestAccepted = true;
+  const journalIds = autoBadgeIds(journal);
+  assert.ok(journalIds.includes("contest-yes"));
+  assert.equal(journalIds.includes("publisher-yes"), false);
+
+  const sent = emptyBadgeFacts();
+  sent.publisherSent = true;
+  assert.ok(autoBadgeIds(sent).includes("publisher"));
+  assert.equal(autoBadgeIds(sent).includes("publisher-yes"), false);
+
+  const accepted = emptyBadgeFacts();
+  accepted.publisherSent = true;
+  accepted.publisherAccepted = true;
+  assert.ok(autoBadgeIds(accepted).includes("publisher"));
+  assert.ok(autoBadgeIds(accepted).includes("publisher-yes"));
 });
 
 test("виджет берёт три последних и считает, сколько ещё можно получить", () => {

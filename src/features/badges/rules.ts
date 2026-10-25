@@ -12,6 +12,7 @@ export type BadgeFacts = {
   contestRejected: boolean;
   contestAccepted: boolean;
   publisherSent: boolean;
+  publisherAccepted: boolean;
   streakBest: number;
   countedWeeks: readonly string[];
   vacationWeeks: readonly string[];
@@ -29,6 +30,7 @@ export function emptyBadgeFacts(): BadgeFacts {
     contestRejected: false,
     contestAccepted: false,
     publisherSent: false,
+    publisherAccepted: false,
     streakBest: 0,
     countedWeeks: [],
     vacationWeeks: [],
@@ -106,6 +108,7 @@ export function autoBadgeIds(facts: BadgeFacts): string[] {
   want("first-no", facts.contestRejected);
   want("contest-yes", facts.contestAccepted);
   want("publisher", facts.publisherSent);
+  want("publisher-yes", facts.publisherAccepted);
   want("spark", facts.streakBest >= 4);
   want("candle", facts.streakBest >= 8);
   want("lighthouse", facts.streakBest >= 12);
