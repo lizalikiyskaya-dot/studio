@@ -249,9 +249,13 @@ textarea.reading,
   .task-move-arrows { display: none; }
   .task-move-handle { display: inline-flex; }
 }
-.status-cards { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.status-cards {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
 .status-card {
-  flex: 1 1 148px;
   min-width: 0;
   border: 0;
   border-radius: 18px;
@@ -268,7 +272,16 @@ textarea.reading,
 .status-card[data-tone="all"] { --card-ring: #2b2d5c; }
 .hover-lift[data-tone="deep"] { --card-ring: #2b2d5c; }
 .status-card-num { font-size: 24px; font-weight: 650; line-height: 1; }
-.status-card-lbl { margin-top: 6px; font-size: 12.5px; line-height: 1.25; opacity: 0.85; }
+.status-card-lbl { margin-top: 6px; font-size: 12.5px; line-height: 1.25; opacity: 0.85; overflow-wrap: break-word; }
+@media (max-width: 899px) {
+  .status-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 900px) and (max-width: 1180px) {
+  .status-cards { gap: 8px; }
+  .status-card { padding: 10px 7px 9px; }
+  .status-card-num { font-size: 20px; }
+  .status-card-lbl { margin-top: 4px; font-size: 11px; }
+}
 .status-card:focus { outline: none; }
 .status-card:focus-visible {
   outline: 2px solid var(--card-ring, currentColor);
@@ -353,8 +366,10 @@ textarea.reading,
 }
 @media (max-width: 760px) {
   .task-head { display: none; }
-  .status-card { flex-basis: calc(50% - 8px); padding: 12px 14px; }
+  .status-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .status-card { padding: 12px 14px; }
   .status-card-num { font-size: 22px; }
+  .status-card-lbl { margin-top: 6px; font-size: 12.5px; }
   .task-card {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
