@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@/generated/prisma/client";
 import { AccessDeniedError, requireMentorSession } from "@/lib/access";
+import { moscowDateKey, reanchorAfterEdit } from "@/lib/dailyQuote";
 import { prisma } from "@/lib/prisma";
+import { readQuoteCursor, writeQuoteCursor } from "@/lib/quoteCursor";
 
 const LIMITS = { text: 2000, author: 200, source: 300, translator: 200 };
 
@@ -62,6 +64,20 @@ function unavailable(error: unknown): Fail | null {
   return null;
 }
 
+async function quoteIds(): Promise<string[]> {
+  const rows = await prisma.dailyQuote.findMany({
+    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+    select: { id: true },
+  });
+  return rows.map((row) => row.id);
+}
+
+async function keepToday(before: string[]) {
+  const after = await quoteIds();
+  const next = reanchorAfterEdit(before, after, await readQuoteCursor(), moscowDateKey());
+  await writeQuoteCursor(next);
+}
+
 export async function createQuote(input: {
   text: string;
   author: string;
@@ -73,10 +89,12 @@ export async function createQuote(input: {
   const fields = clean(input);
   if ("error" in fields) return fields;
   try {
+    const before = await quoteIds();
     const last = await prisma.dailyQuote.aggregate({ _max: { sortOrder: true } });
     const quote = await prisma.dailyQuote.create({
       data: { ...fields, sortOrder: (last._max.sortOrder ?? 0) + 1 },
     });
+    await keepToday(before);
     touch();
     return { ok: true, quote };
   } catch (error) {
@@ -112,7 +130,9 @@ export async function deleteQuote(id: string): Promise<Ok | Fail> {
   const denied = await mentor();
   if (denied) return denied;
   try {
+    const before = await quoteIds();
     await prisma.dailyQuote.delete({ where: { id } });
+    await keepToday(before);
   } catch (error) {
     const missing = unavailable(error);
     if (missing) return missing;
@@ -131,6 +151,7 @@ export async function moveQuote(id: string, direction: "up" | "down"): Promise<O
       orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
       select: { id: true },
     });
+    const before = quotes.map((quote) => quote.id);
     const index = quotes.findIndex((quote) => quote.id === id);
     const swapWith = direction === "up" ? index - 1 : index + 1;
     if (index < 0 || swapWith < 0 || swapWith >= quotes.length) return { ok: true };
@@ -140,6 +161,7 @@ export async function moveQuote(id: string, direction: "up" | "down"): Promise<O
     await prisma.$transaction(
       next.map((quoteId, order) => prisma.dailyQuote.update({ where: { id: quoteId }, data: { sortOrder: order + 1 } })),
     );
+    await keepToday(before);
   } catch (error) {
     const missing = unavailable(error);
     if (missing) return missing;

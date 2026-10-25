@@ -1,5 +1,5 @@
 import Mark from "@/components/Mark";
-import StarsStatus from "@/features/stars/StarsStatus";
+import StarsStatus, { type StarPlaque } from "@/features/stars/StarsStatus";
 import type { Task } from "@/generated/prisma/client";
 
 function ru(n: number, one: string, few: string, many: string) {
@@ -28,12 +28,16 @@ function part(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTyp
 export default function CabinetHello({
   name,
   tasks,
+  studentId,
   stars,
+  playStars,
   basePath,
 }: {
   name: string;
   tasks: Task[];
-  stars: number;
+  studentId: string;
+  stars: StarPlaque;
+  playStars: boolean;
   basePath: string;
 }) {
   const now = new Date();
@@ -71,7 +75,7 @@ export default function CabinetHello({
           Принято · {accepted}
         </span>
       </div>
-      <StarsStatus total={stars} href={`${basePath}/weekly`} />
+      <StarsStatus studentId={studentId} account={stars} play={playStars} href={`${basePath}/weekly`} />
     </section>
   );
 }

@@ -11,6 +11,7 @@ import { userAvatarPath } from "@/lib/cabinetImage";
 import { loadWorkshopBooks } from "@/lib/workshopBooks";
 import { loadWorkshopCycles } from "@/lib/workshopCycles";
 import { loadDailyQuote } from "@/lib/loadDailyQuote";
+import { loadWeekSide } from "@/lib/weekSide";
 
 export default async function DashboardLayout({
   children,
@@ -43,7 +44,7 @@ export default async function DashboardLayout({
   if (user.role === "MENTOR") redirect("/mentor");
   if (user.status !== "APPROVED") redirect("/pending");
 
-  const [tasks, notes, books, cycles, dailyQuote] = await Promise.all([
+  const [tasks, notes, books, cycles, dailyQuote, weekSide] = await Promise.all([
     prisma.task.findMany({
       where: { studentId: user.id, deadline: { not: null } },
       select: { id: true, title: true, deadline: true },
@@ -52,6 +53,7 @@ export default async function DashboardLayout({
     loadWorkshopBooks(user.id),
     loadWorkshopCycles(user.id),
     loadDailyQuote(),
+    loadWeekSide(user.id, "/dashboard"),
   ]);
   const [noteComments, beacons] = await Promise.all([
     getCommentsForRecords("Note", notes.map((n) => n.id)),
@@ -74,6 +76,7 @@ export default async function DashboardLayout({
         books={books}
         cycles={cycles}
         dailyQuote={dailyQuote}
+        weekSide={weekSide}
         calendar={{
           tasks: tasks.map((t) => ({ id: t.id, title: t.title, deadline: t.deadline!.toISOString() })),
           paymentDay: user.paymentDay,

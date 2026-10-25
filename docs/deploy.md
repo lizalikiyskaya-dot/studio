@@ -328,7 +328,7 @@ journalctl -u studio -n 100 --no-pager
 2. Запоминает контрольную сумму `.env` и `.env.deploy`.
 3. `git fetch origin main` и `git reset --hard origin/main`.
 4. `npm ci`, `npx prisma generate`.
-5. `npx prisma migrate deploy` только если в репозитории есть каталог `prisma/migrations`. Сейчас его нет, шаг пропускается.
+5. `npx prisma migrate deploy` только если в репозитории есть каталог `prisma/migrations`. Его нет и не должно быть: у этой базы нет таблицы `_prisma_migrations`, шаг пропускается. Схему меняют файлы `docs/sql`.
 6. `npm run build`.
 7. Снова проверяет, что `.env` и `.env.deploy` не изменились.
 8. Новые файлы `docs/sql/*.sql`: сначала бэкап базы, потом каждый файл один раз. Если бэкапа нет или SQL падает, скрипт здесь останавливается.
@@ -338,7 +338,7 @@ journalctl -u studio -n 100 --no-pager
 
 ## Схема базы
 
-Правки схемы лежат в `docs/sql/`. Правила для нового файла — в `docs/sql/README.md`: только добавление, повтор безопасен, имя лучше `YYYY-MM-DD-описание.sql`.
+Правки схемы лежат в `docs/sql/`. Каталога `prisma/migrations` нет: `prisma migrate deploy` на этой базе не запускать. Правила для нового файла — в `docs/sql/README.md`: только добавление, повтор безопасен, имя лучше `YYYY-MM-DD-описание.sql`.
 
 Пока в каталоге нет нового файла, деплой базу не трогает. Когда файл появляется в `main`, следующий деплой делает так:
 

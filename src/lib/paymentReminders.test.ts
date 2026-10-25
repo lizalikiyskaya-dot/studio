@@ -71,8 +71,8 @@ test("letter has no gendered forms and includes the amount only when it is set",
   assert.match(withAmount.html, /3[\s\u00a0]500 ₽/);
   assert.equal(without.html.includes("₽"), false);
   assert.match(withAmount.html, /Саша, сегодня/);
-  assert.match(withAmount.html, /напишите мне в Телеграме/);
-  assert.match(withAmount.text, /напишите мне в Телеграме/);
+  assert.match(withAmount.html, /напиши мне в Телеграме/);
+  assert.match(withAmount.text, /напиши мне в Телеграме/);
   assert.match(withAmount.text, /Лиза Андреенко/);
   assert.equal(withAmount.html.includes("Закладка"), false);
   assert.equal(withAmount.html.includes("ответьте на это письмо"), false);

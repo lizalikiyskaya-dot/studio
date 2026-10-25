@@ -15,10 +15,10 @@ export default function MailFilters({
 }) {
   function go(nextType: string, nextStudent: string) {
     const params = new URLSearchParams();
+    params.set("tab", "history");
     if (nextType) params.set("type", nextType);
     if (nextStudent) params.set("student", nextStudent);
-    const query = params.toString();
-    window.location.href = query ? `/mentor/mail?${query}` : "/mentor/mail";
+    window.location.href = `/mentor/mail?${params.toString()}`;
   }
 
   return (

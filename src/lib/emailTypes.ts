@@ -8,6 +8,7 @@ export const EMAIL_TYPE_LABEL: Record<string, string> = {
   guide: "Методичка",
   password: "Пароль",
   payment: "Оплата",
+  deadline: "Срок задания",
   "platform-update": "Обновления платформы",
   "weekly-task": "Задание недели",
   "daily-quote": "Цитата дня",

@@ -32,6 +32,15 @@ enum TaskStatus {
   ACCEPTED
 }
 
+// Статус главы в трекере. Ставит наставник, ученик только видит.
+enum ChapterReviewStatus {
+  IN_PROGRESS
+  SUBMITTED
+  IN_REVIEW
+  NEEDS_REVISION
+  ACCEPTED
+}
+
 enum SynopsisMode {
   TEXT
   LINK
@@ -112,6 +121,13 @@ enum StarKind {
   MAIN_TASK
   CONTEST
   PUBLISHER
+  CHAPTER
+}
+
+// Начисление растит «заработано» и «на счету». Трата уменьшает только «на счету».
+enum StarDirection {
+  EARN
+  SPEND
 }
 
 // Generic comment thread attachable to any record (used in Упражнения).
@@ -483,6 +499,7 @@ model PlanChapter {
   actBreakAfter    Boolean @default(false)
   actId            String?
   act              Act?    @relation(fields: [actId], references: [id], onDelete: SetNull)
+  reviewStatus     ChapterReviewStatus @default(IN_PROGRESS)
   blocks           StorylineBlock[]
 
   @@index([bookId])
@@ -910,17 +927,20 @@ model DailyQuote {
   @@index([sortOrder])
 }
 
-// Журнал звёзд. Уникальный ключ не даёт начислить дважды за один и тот же источник.
+// Журнал звёзд: каждая награда и каждая трата — отдельная строка.
+// Уникальный ключ не даёт начислить дважды за один и тот же источник.
 model StarAward {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   studentId String
-  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student   User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
   kind      StarKind
   points    Int
   sourceId  String
   // Пусто у обычных начислений. «завершение книги» — разовая доплата до 100.
-  note      String   @default("")
-  createdAt DateTime @default(now())
+  note      String         @default("")
+  // Старые строки — начисления. Сумма очков от этого не меняется.
+  direction StarDirection  @default(EARN)
+  createdAt DateTime       @default(now())
 
   @@unique([studentId, kind, sourceId])
   @@index([studentId])

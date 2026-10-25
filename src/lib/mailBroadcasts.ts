@@ -7,6 +7,7 @@ export const BROADCAST_KEYS = [
   "payment",
   "weekly-task",
   "daily-quote",
+  "deadline",
   "guide",
   "registration",
   "registration-mentor",
@@ -46,6 +47,7 @@ export const BROADCAST_META: BroadcastMeta[] = [
   { key: "payment", title: "День оплаты", mode: "clock", who: "students" },
   { key: "weekly-task", title: "Задание недели", mode: "clock", who: "students" },
   { key: "daily-quote", title: "Цитата дня", mode: "clock", who: "students" },
+  { key: "deadline", title: "Напоминание о сроке", mode: "clock", who: "students" },
   { key: "guide", title: "Методичка", mode: "event", who: "students" },
   { key: "registration", title: "Заявка ученику", mode: "event", who: "person" },
   { key: "registration-mentor", title: "Заявка наставнику", mode: "event", who: "mentor" },
@@ -95,6 +97,8 @@ export function defaultBroadcast(key: BroadcastKey): BroadcastSetting {
       return { ...base, enabled: false, weekdays: "6", hour: 10, minute: 0, windowMinutes: 60 };
     case "daily-quote":
       return { ...base, enabled: false, hour: 9, minute: 0, windowMinutes: 60 };
+    case "deadline":
+      return { ...base, enabled: true, hour: 9, minute: 0, windowMinutes: 60, sender: "env" };
     case "guide":
     case "registration":
     case "registration-mentor":
@@ -246,6 +250,10 @@ export function scheduleLabel(setting: BroadcastSetting, mode: BroadcastMode): s
   return `${days}, ${start}${end}, ${zone}`;
 }
 
+function keepsClock(key: BroadcastKey): boolean {
+  return key === "payment" || key === "weekly-task" || key === "daily-quote" || key === "deadline";
+}
+
 export function normalizeBroadcast(input: BroadcastSetting): { value: BroadcastSetting; error?: string } {
   if (!isBroadcastKey(input.key)) return { value: input, error: "Такой рассылки нет." };
   const base = defaultBroadcast(input.key);
@@ -263,9 +271,9 @@ export function normalizeBroadcast(input: BroadcastSetting): { value: BroadcastS
       enabled: input.enabled === true,
       timeZone,
       weekdays,
-      hour: input.key === "payment" || input.key === "weekly-task" || input.key === "daily-quote" ? (hour ?? base.hour ?? 9) : null,
+      hour: keepsClock(input.key) ? (hour ?? base.hour ?? 9) : null,
       minute,
-      windowMinutes: input.key === "payment" || input.key === "weekly-task" || input.key === "daily-quote" ? Math.max(1, windowMinutes) : windowMinutes,
+      windowMinutes: keepsClock(input.key) ? Math.max(1, windowMinutes) : windowMinutes,
       oncePerDay: input.key === "student-online" ? input.oncePerDay === true : false,
       audience: BROADCAST_META.find((item) => item.key === input.key)?.who === "students" ? audience : "all",
       studentIds: parseStudentIds(input.studentIds).join(","),

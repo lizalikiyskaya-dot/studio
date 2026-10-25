@@ -103,6 +103,7 @@ export default function StoriesList({
               type="button"
               onClick={() => setOpenId(open ? null : story.id)}
               className={`hover-lift rounded-[18px] px-4 py-3 text-left${open ? " is-on" : ""}`}
+              data-tone="deep"
               style={{ border: "1px solid var(--border)", background: "#fff" }}
             >
               <span className="heading block text-[18px] font-semibold leading-tight">{story.title || "Без названия"}</span>
@@ -122,8 +123,8 @@ export default function StoriesList({
       {stories
         .filter((s) => s.id === openId)
         .map((story) => (
+          <div key={story.id} className="panel-fade">
           <StoryDetail
-            key={story.id}
             story={story}
             cycleCharacters={cycleCharacters}
             cycleWorldEntries={cycleWorldEntries}
@@ -132,6 +133,7 @@ export default function StoriesList({
             cycleSetting={cycleSetting}
             onDelete={() => handleDelete(story.id)}
           />
+          </div>
         ))}
     </div>
   );

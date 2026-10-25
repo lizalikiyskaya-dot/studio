@@ -68,7 +68,7 @@ test("письма ученику: бренд, подпись, текст и п�
     assert.equal(letter.html.includes("Закладка"), false);
     assert.equal(letter.text.includes("Закладка"), false);
   }
-  assert.match(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /я открыла вам методичку/);
+  assert.match(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /я открыла тебе методичку/);
   assert.match(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /Материалы/);
   assert.doesNotMatch(guideOpenedLetter({ name: "Саша", title: "Сцена", description: "", guideId: "g1" }).text, /\/dashboard\/guides\//);
   assert.match(passwordResetLetter("Саша", "https://studio.example/reset").text, /Задать новый пароль: https:\/\/studio.example\/reset/);

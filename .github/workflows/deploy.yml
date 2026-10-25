@@ -91,9 +91,11 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || '22' }}
-          # Уже было 30m. Прогон 40186892856 упал через ~2 минуты со статусом 1:
-          # next/font не скачал Literata и Onest, это не «Run Command Timeout».
-          # 15m было бы короче нынешнего предела. 45m оставляют место повторам сборки.
+          # 30m хватало на одну сборку, но не на повторы.
+          # 40186892856 и 40200835824 (коммит 6531dab) оборвались на npm run build:
+          # next/font не достучался до fonts.googleapis.com, процесс вышел с кодом 1.
+          # Вручную та же сборка проходит примерно за 80 секунд. Три такие попытки
+          # с паузами укладываются в 45m; лимит задачи выше — 60 минут.
           command_timeout: 45m
           request_pty: true
           envs: APP_PATH,RESTART_CMD,PM2_APP_NAME,SYSTEMD_SERVICE

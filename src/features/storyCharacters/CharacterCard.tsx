@@ -4,6 +4,7 @@ import { siteConfirm } from "@/components/SiteDialog";
 
 import { useState, useTransition } from "react";
 import { ChevronDown } from "lucide-react";
+import Collapse from "@/components/Collapse";
 import type { ArcType } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
@@ -109,15 +110,12 @@ export default function CharacterCard({
             {ARC_TYPE_LABEL[character.arcType]}
           </span>
         )}
-        <span
-          className="flex-shrink-0"
-          style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}
-        >
+        <span className={`chevron-turn${open ? " is-open" : ""}`}>
           <ChevronDown size={15} />
         </span>
       </div>
 
-      <div className="px-4 pb-5 pt-1 border-t" style={{ borderColor: "var(--rule)", display: open ? "block" : "none" }}>
+      <Collapse open={open} className="collapse-body px-4 pb-5 pt-1">
         <div className="flex gap-5 items-center my-4">
           <ImageUploadBox
             value={photoUrl}
@@ -205,7 +203,7 @@ export default function CharacterCard({
             Сначала выберите тип арки выше.
           </p>
         )}
-      </div>
+      </Collapse>
     </div>
   );
 }

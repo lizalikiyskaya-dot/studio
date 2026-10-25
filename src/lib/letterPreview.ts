@@ -1,3 +1,4 @@
+import { addressVars } from "@/lib/addressForm";
 import { activityLetterSamples } from "@/lib/activityLetters";
 import { applyLetterTemplate, type LetterDraft, type LetterKey, type LetterOutput } from "@/lib/letterTemplates";
 import { buildPaymentReminder, moscowParts } from "@/lib/paymentReminders";
@@ -114,5 +115,6 @@ function designed(key: LetterKey): LetterOutput {
 
 /** Превью в редакторе. Стандартный текст показывает настоящее письмо, правка подставляет образец. */
 export function previewLetter(key: LetterKey, draft: LetterDraft): LetterOutput {
-  return applyLetterTemplate(key, draft, designed(key), SAMPLE[key]);
+  const sample = SAMPLE[key];
+  return applyLetterTemplate(key, draft, designed(key), { ...addressVars(sample.имя ?? ""), ...sample });
 }

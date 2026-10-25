@@ -57,6 +57,56 @@ function LinkCell({ value, onSave }: { value: string | null; onSave: (value: str
 
 const TABS = TASK_FILTERS;
 
+function noteIsLong(value: string) {
+  const text = value.trim();
+  return text.length > 110 || text.split(/\n/).length > 2;
+}
+
+function TaskNote({
+  value,
+  open,
+  onToggle,
+  onSave,
+}: {
+  value: string;
+  open: boolean;
+  onToggle: () => void;
+  onSave: (value: string) => void;
+}) {
+  if (!value && !open) {
+    return (
+      <button type="button" className="task-note-more" onClick={onToggle}>
+        + примечание
+      </button>
+    );
+  }
+  if (value && noteIsLong(value) && !open) {
+    return (
+      <div className="task-note-fold">
+        <p className="task-note-clamp">{value}</p>
+        <button type="button" className="task-note-more" onClick={onToggle}>
+          Показать полностью
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="task-note-fold">
+      <EditableWithLinks
+        defaultValue={value}
+        onSave={onSave}
+        placeholder="примечание..."
+        className="task-note"
+      />
+      {noteIsLong(value) ? (
+        <button type="button" className="task-note-more" onClick={onToggle}>
+          Свернуть
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 function toDateInputValue(date: Date | string | null): string {
   if (!date) return "";
   const d = new Date(date);
@@ -178,7 +228,7 @@ export default function TasksTable({
         </div>
       </div>
 
-      <div className="flex gap-3 mb-5 flex-wrap" role="tablist" aria-label="Фильтр заданий">
+      <div className="status-cards" role="tablist" aria-label="Фильтр заданий">
         {TABS.map((tab) => {
           const count = tab.status == null ? tasks.length : tasks.filter((task) => task.status === tab.status).length;
           const on = tab.id === activeTab;
@@ -189,15 +239,12 @@ export default function TasksTable({
               role="tab"
               aria-selected={on}
               onClick={() => selectTab(tab.id)}
-              className={`hover-lift rounded-[18px] px-4 py-3 flex-1 min-w-[120px] text-left${on ? " is-on" : ""}`}
-              style={{
-                background: tab.bg,
-                color: tab.color,
-                opacity: on ? 1 : 0.72,
-              }}
+              className={`status-card hover-lift${on ? " is-on" : ""}`}
+              data-tone={tab.id}
+              style={{ background: tab.bg, color: tab.color }}
             >
-              <div className="text-[24px] font-semibold leading-none">{count}</div>
-              <div className="text-[12.5px] mt-1.5 opacity-80">{tab.label}</div>
+              <div className="status-card-num">{count}</div>
+              <div className="status-card-lbl">{tab.label}</div>
             </button>
           );
         })}
@@ -214,110 +261,101 @@ export default function TasksTable({
           }
         />
       ) : (
-      <div className="sheet px-3 pt-2 pb-1">
-        <table>
-          <thead>
-            <tr>
-              <th>№</th>
-              <th>Описание задания</th>
-              <th>Дедлайн</th>
-              <th>Работа</th>
-              <th>Отзыв</th>
-              <th>Примечание</th>
-              <th>Статус</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {visible.length === 0 && (
-              <tr>
-                <td colSpan={8} style={{ color: "var(--muted)" }}>
-                  В этой вкладке заданий нет.
-                </td>
-              </tr>
-            )}
-            {visible.map((task, index) => (
-              <tr
-                key={task.id}
-                onDragOver={(event) => {
-                  if (dragIdRef.current) event.preventDefault();
-                }}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  dropOn(task.id, event.dataTransfer.getData("text/plain") || dragIdRef.current);
-                }}
-              >
-                <td className="whitespace-nowrap">
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="task-move-handle"
-                      draggable
-                      aria-label="Перетащить"
-                      title="Перетащить"
-                      onDragStart={(event) => {
-                        event.dataTransfer.effectAllowed = "move";
-                        event.dataTransfer.setData("text/plain", task.id);
-                        dragIdRef.current = task.id;
-                      }}
-                      onDragEnd={() => {
-                        dragIdRef.current = null;
-                      }}
-                    >
-                      <GripVertical size={14} />
-                    </span>
-                    <span className="task-move-arrows">
-                      <button type="button" className="task-move-btn" aria-label="Выше" title="Выше" disabled={index === 0} onClick={() => move(task.id, -1)}>
-                        <ChevronUp size={14} />
-                      </button>
-                      <button type="button" className="task-move-btn" aria-label="Ниже" title="Ниже" disabled={index === visible.length - 1} onClick={() => move(task.id, 1)}>
-                        <ChevronDown size={14} />
-                      </button>
-                    </span>
-                    <span className="tabular-nums" style={{ color: "var(--muted)" }}>{taskRowNumber(index)}</span>
-                  </div>
-                </td>
-                <td className="min-w-[180px]">
-                  <EditableWithLinks
-                    defaultValue={task.title}
-                    onSave={(v) => handleTitleBlur(task.id, v)}
-                    placeholder="Описание задания"
-                    className="entry-title w-full min-w-0 outline-none bg-transparent text-[15px] leading-snug"
-                  />
-                </td>
-                <td>
+      <div className="task-sheet" key={activeTab}>
+        <div className="task-head" aria-hidden="true">
+          <span>Задание</span>
+          <span>Дедлайн</span>
+          <span>Работа</span>
+          <span>Отзыв</span>
+          <span>Статус</span>
+        </div>
+        {visible.length === 0 ? (
+          <p className="task-empty">В этой вкладке заданий нет.</p>
+        ) : (
+          visible.map((task, index) => (
+            <article
+              key={task.id}
+              id={`task-${task.id}`}
+              className="task-card"
+              onDragOver={(event) => {
+                if (dragIdRef.current) event.preventDefault();
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                dropOn(task.id, event.dataTransfer.getData("text/plain") || dragIdRef.current);
+              }}
+            >
+              <div className="task-card-main">
+                <span
+                  className="task-move-handle"
+                  draggable
+                  aria-label="Перетащить"
+                  title="Перетащить"
+                  onDragStart={(event) => {
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", task.id);
+                    dragIdRef.current = task.id;
+                  }}
+                  onDragEnd={() => {
+                    dragIdRef.current = null;
+                  }}
+                >
+                  <GripVertical size={14} />
+                </span>
+                <span className="task-move-arrows">
+                  <button type="button" className="task-move-btn" aria-label="Выше" title="Выше" disabled={index === 0} onClick={() => move(task.id, -1)}>
+                    <ChevronUp size={14} />
+                  </button>
+                  <button type="button" className="task-move-btn" aria-label="Ниже" title="Ниже" disabled={index === visible.length - 1} onClick={() => move(task.id, 1)}>
+                    <ChevronDown size={14} />
+                  </button>
+                </span>
+                <span className="task-card-n">{taskRowNumber(index)}</span>
+                <EditableWithLinks
+                  defaultValue={task.title}
+                  onSave={(v) => handleTitleBlur(task.id, v)}
+                  placeholder="Описание задания"
+                  className="task-title"
+                />
+              </div>
+              <div className="task-card-meta">
+                <div className="task-card-deadline">
                   <DateField
                     value={toDateInputValue(task.deadline)}
                     onChange={(v) => handleDeadline(task.id, v)}
                   />
-                </td>
-                <td><LinkCell value={task.workLink} onSave={(v) => handleLink(task.id, "workLink", v)} /></td>
-                <td><LinkCell value={task.feedbackLink} onSave={(v) => handleLink(task.id, "feedbackLink", v)} /></td>
-                <td className="min-w-[140px]">
-                  {task.notes || expandedNotes.has(task.id) ? (
-                    <EditableWithLinks
-                      defaultValue={task.notes}
-                      onSave={(v) => handleNotes(task.id, v)}
-                      placeholder="примечание..."
-                      className="reading w-full outline-none bg-transparent"
-                    />
-                  ) : (
-                    <button type="button" className="text-[13px]" style={{ color: "var(--muted)" }} onClick={() => setExpandedNotes((prev) => new Set(prev).add(task.id))}>
-                      + примечание
-                    </button>
-                  )}
-                </td>
-                <td>
-                  <TaskStatusMenu status={task.status} onChange={(status) => handleStatus(task.id, status)} />
-                </td>
-                <td>
-                  <button onClick={() => handleDelete(task.id)} style={{ color: "var(--muted)" }} title="Удалить задание">
-                    <Trash2 size={15} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+                <div className="task-card-work">
+                  <LinkCell value={task.workLink} onSave={(v) => handleLink(task.id, "workLink", v)} />
+                </div>
+                <div className="task-card-feedback">
+                  <LinkCell value={task.feedbackLink} onSave={(v) => handleLink(task.id, "feedbackLink", v)} />
+                </div>
+              </div>
+              <div className="task-card-tools">
+                <TaskStatusMenu status={task.status} onChange={(status) => handleStatus(task.id, status)} />
+                <button type="button" onClick={() => handleDelete(task.id)} style={{ color: "var(--muted)" }} title="Удалить задание" aria-label="Удалить задание">
+                  <Trash2 size={15} />
+                </button>
+              </div>
+              <div className="task-card-note">
+                <TaskNote
+                  value={task.notes}
+                  open={expandedNotes.has(task.id)}
+                  onToggle={() =>
+                    setExpandedNotes((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(task.id)) next.delete(task.id);
+                      else next.add(task.id);
+                      return next;
+                    })
+                  }
+                  onSave={(v) => handleNotes(task.id, v)}
+                />
+              </div>
+            </article>
+          ))
+        )}
       </div>
       )}
       {banners}

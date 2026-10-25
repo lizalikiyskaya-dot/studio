@@ -1,7 +1,7 @@
 import { Prisma } from "@/generated/prisma/client";
 import PageHeader from "@/components/PageHeader";
 import QuotesEditor from "@/features/quotes/QuotesEditor";
-import { quoteIndexForDate } from "@/lib/dailyQuote";
+import { pinDailyQuote } from "@/lib/loadDailyQuote";
 import { prisma } from "@/lib/prisma";
 
 function missing(error: unknown): boolean {
@@ -27,17 +27,18 @@ export default async function MentorQuotesPage() {
     if (!missing(error)) throw error;
     ready = false;
   }
-  const todayIndex = quoteIndexForDate(new Date(), quotes.length);
-  const todayId = quotes[todayIndex]?.id ?? null;
+  const pinned = await pinDailyQuote(quotes);
+  const todayId = pinned.today?.id ?? null;
+  const tomorrowId = pinned.tomorrow?.id ?? null;
 
   return (
     <div>
       <PageHeader
         title="Цитаты дня"
-        description="Список над календарём в кабинете. День по Москве выбирает одну строку по порядку. Письма отсюда не уходят."
+        description="Список над календарём в кабинете. Каждый день берётся следующая цитата по этому порядку. Письма отсюда не уходят."
       />
       {ready ? (
-        <QuotesEditor quotes={quotes} todayId={todayId} />
+        <QuotesEditor quotes={quotes} todayId={todayId} tomorrowId={tomorrowId} />
       ) : (
         <div className="rounded-[24px] px-5 py-4" style={{ background: "var(--soft)", maxWidth: 720 }}>
           <p className="text-[15px]">Список ещё не подключён. После обновления сайта цитаты появятся здесь, ничего в кабинетах не пропадёт.</p>

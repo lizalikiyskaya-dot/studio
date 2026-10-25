@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowUpRight, ChevronDown, Pencil } from "lucide-react";
+import Collapse from "@/components/Collapse";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import { sitePrompt } from "@/components/SiteDialog";
@@ -42,18 +43,18 @@ export function EntryNote({
         aria-expanded={open}
         onClick={() => setOpen((item) => !item)}
       >
-        <ChevronDown size={16} aria-hidden="true" style={{ transform: open ? "rotate(180deg)" : undefined }} />
+        <ChevronDown size={16} aria-hidden="true" className={`chevron-turn${open ? " is-open" : ""}`} />
         Примечание
         {filled ? <span className="entry-note-dot" aria-hidden="true" /> : null}
       </button>
-      {open ? (
+      <Collapse open={open}>
         <EditableWithLinks
           defaultValue={value}
           onSave={onSave}
           placeholder="примечание..."
           className="entry-note-body"
         />
-      ) : null}
+      </Collapse>
     </div>
   );
 }

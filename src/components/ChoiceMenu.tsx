@@ -136,7 +136,7 @@ export default function ChoiceMenu<T extends string>({
         ? createPortal(
             <div
               ref={panelRef}
-              className="fixed z-50 p-1.5"
+              className="choice-pop fixed z-50 p-1.5"
               style={{
                 top: box.top,
                 left: box.left,

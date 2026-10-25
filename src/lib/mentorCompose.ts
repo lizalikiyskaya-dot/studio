@@ -1,5 +1,6 @@
 import { composeDraft } from "@/lib/letterCompose";
 import { applyLetterTemplate, weeklyVolume, weeklyWhen, type LetterDraft, type LetterKey } from "@/lib/letterTemplates";
+import { withAddress } from "@/lib/addressForm";
 import { EMAIL_SIGNATURE, appUrl, renderEmail } from "@/lib/mail";
 import { dailyQuoteLetter, platformUpdateLetter, weeklyTaskLetter } from "@/lib/notify";
 
@@ -94,18 +95,18 @@ function composeVars(
   quote: QuoteLetterInput | null,
 ): Record<string, string> {
   if (template === "weekly" && weekly) {
-    return {
+    return withAddress(name, {
       имя: name,
       задание: weekly.title,
       текст: weekly.prompt,
       срок: weeklyWhen(weekly.publishedOn, weekly.nextPublishedOn),
       объём: weeklyVolume(weekly.lengthHint),
-    };
+    });
   }
   if (template === "quote" && quote) {
-    return { имя: name, цитата: quote.text, автор: quote.author, источник: quote.source ?? "" };
+    return withAddress(name, { имя: name, цитата: quote.text, автор: quote.author, источник: quote.source ?? "" });
   }
-  return { имя: name };
+  return withAddress(name, { имя: name });
 }
 
 export function renderMentorCompose(input: {

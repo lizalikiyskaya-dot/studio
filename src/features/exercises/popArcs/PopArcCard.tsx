@@ -4,6 +4,7 @@ import { siteConfirm } from "@/components/SiteDialog";
 
 import { useRef, useState, useTransition } from "react";
 import { ChevronDown } from "lucide-react";
+import Collapse from "@/components/Collapse";
 import type { PopArcCharacter, ArcType, Comment } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import CardSaveButton from "@/components/CardSaveButton";
@@ -61,11 +62,11 @@ function FieldColumn({
 }) {
   return (
     <div>
-      <div className="font-mono-label text-[9px] mb-0.5" style={{ color: captionColor }}>
+      <div className="mb-1 text-[12.5px]" style={{ color: captionColor }}>
         {caption}
       </div>
       {readOnly ? (
-        <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
+        <p className="field-literary rounded-[14px] px-3.5 py-2.5 text-[15.5px] leading-relaxed" style={{ border: "1px solid var(--border)", background: "#fff", minHeight: 72 }}>
           {value || <span style={{ color: "var(--faded)" }}>—</span>}
         </p>
       ) : (
@@ -77,8 +78,8 @@ function FieldColumn({
           suggestion={suggestion}
           placeholder={placeholder}
           onSaved={onSaved}
-          className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
-          style={{ borderColor: "var(--rule)" }}
+          className="fld field-literary w-full !h-auto text-[15.5px] leading-relaxed"
+          style={{ minHeight: 72 }}
         />
       )}
     </div>
@@ -111,7 +112,7 @@ function FieldBlock({
   return (
     <div className="mb-4">
       {label && (
-        <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
+        <label className="mb-1.5 block text-[13px] font-medium" style={{ color: "var(--ink)" }}>
           {label}
         </label>
       )}
@@ -182,14 +183,15 @@ export default function PopArcCard({
   }
 
   return (
-    <div ref={rootRef} className="rounded-[18px] mb-4 max-w-[760px]" style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "var(--soft)" }}>
-      <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3.5 cursor-pointer">
+    <div ref={rootRef} className="rounded-[18px] mb-4 max-w-[760px]" style={{ border: "1px solid var(--border)", background: open ? "#fff" : "var(--soft)" }}>
+      <div onClick={() => setOpen((v) => !v)} className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3.5">
         <div
           className="rounded-full flex-shrink-0"
           style={{
             width: 32,
             height: 32,
-            border: "1px solid var(--rule)",
+            border: "1px solid var(--border)",
+            backgroundColor: "var(--soft)",
             backgroundImage: photoUrl ? `url(${photoUrl})` : undefined,
             backgroundSize: "cover",
             backgroundPosition: "center",
@@ -206,37 +208,32 @@ export default function PopArcCard({
             recordId={character.id}
             suggestion={suggestions.name}
             onSave={setName}
-            className="text-[14.5px]"
+            className="min-w-0 flex-1 text-[14.5px]"
           />
         )}
         {arcType && (
           <span
-            className="font-mono-label text-[9.5px] uppercase px-2 py-1 rounded-full"
+            className="shrink-0 rounded-full px-2.5 py-1 text-[12.5px] font-medium"
             style={{ background: ARC_TYPE_COLOR[arcType].bg, color: ARC_TYPE_COLOR[arcType].fg }}
           >
             {ARC_TYPE_LABEL[arcType]}
           </span>
         )}
-        <span
-          className="flex-shrink-0"
-          style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}
-        >
+        <span className={`chevron-turn${open ? " is-open" : ""}`}>
           <ChevronDown size={15} />
         </span>
       </div>
 
-      <div
-        className="px-4 pb-5 pt-1 border-t"
-        style={{ borderColor: "var(--rule)", display: open ? "block" : "none" }}
-      >
-          <div className="flex gap-5 items-center my-4">
+      <Collapse open={open} className="collapse-body px-4 pb-5 pt-1">
+          <div className="my-4 flex flex-wrap items-center gap-4">
             {readOnly ? (
               <div
                 className="rounded-full flex-shrink-0"
                 style={{
                   width: 90,
                   height: 90,
-                  border: "1px solid var(--rule)",
+                  border: "1px solid var(--border)",
+                  backgroundColor: "var(--soft)",
                   backgroundImage: photoUrl ? `url(${photoUrl})` : undefined,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
@@ -275,11 +272,11 @@ export default function PopArcCard({
                 key={type}
                 onClick={() => !readOnly && handleSelectType(type)}
                 disabled={readOnly}
-                className="text-[12.5px] px-3.5 py-1.5 rounded-full"
+                className="rounded-full px-3.5 py-1.5 text-[13px] font-medium"
                 style={{
-                  border: `1px solid ${arcType === type ? ARC_TYPE_COLOR[type].bg : "var(--rule)"}`,
-                  background: arcType === type ? ARC_TYPE_COLOR[type].bg : "transparent",
-                  color: arcType === type ? ARC_TYPE_COLOR[type].fg : "var(--ink-soft)",
+                  border: `1px solid ${arcType === type ? ARC_TYPE_COLOR[type].bg : "var(--border)"}`,
+                  background: arcType === type ? ARC_TYPE_COLOR[type].bg : "#fff",
+                  color: arcType === type ? ARC_TYPE_COLOR[type].fg : "var(--ink)",
                   cursor: readOnly ? "default" : "pointer",
                 }}
               >
@@ -313,7 +310,7 @@ export default function PopArcCard({
           )}
 
           <CommentsBlock model="PopArcCharacter" recordId={character.id} initialComments={initialComments} />
-      </div>
+      </Collapse>
     </div>
   );
 }

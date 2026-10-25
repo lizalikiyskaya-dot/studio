@@ -1,10 +1,18 @@
 import { activityLetterSamples } from "@/lib/activityLetters";
+import { deadlinePreviewLetters } from "@/lib/deadlineReminders";
 import { renderEmail } from "@/lib/mail";
 import { buildPaymentReminder, moscowParts } from "@/lib/paymentReminders";
 import { approvedLetter, dailyQuoteLetter, guideOpenedLetter, passwordResetLetter, registrationStudentLetter, weeklyTaskLetter } from "@/lib/notify";
 
+export type BroadcastPreview = {
+  subject: string;
+  html: string;
+  label?: string;
+  also?: { subject: string; html: string; label: string };
+};
+
 /** Образцы для превью в журнале. Никуда не отправляются. */
-export function broadcastPreviewHtml(): Record<string, { subject: string; html: string }> {
+export function broadcastPreviewHtml(): Record<string, BroadcastPreview> {
   const activity = activityLetterSamples();
   const payment = buildPaymentReminder(
     { name: "Виктория", paymentAmount: 3500 },
@@ -19,6 +27,7 @@ export function broadcastPreviewHtml(): Record<string, { subject: string; html: 
   const approved = approvedLetter("Виктория");
   const registration = registrationStudentLetter("Виктория");
   const password = passwordResetLetter("Виктория", "https://studio.lizandwriter.ru/reset-password?token=sample");
+  const deadline = deadlinePreviewLetters();
   const toMentor = renderEmail({
     title: "Новая заявка на доступ",
     paragraphs: ["Новая регистрация на платформе: Виктория."],
@@ -51,6 +60,12 @@ export function broadcastPreviewHtml(): Record<string, { subject: string; html: 
         source: "Письмо брату Александру, 11 апреля 1889",
         unsubscribeUrl: "https://studio.lizandwriter.ru/unsubscribe?token=preview-quote",
       }).html,
+    },
+    deadline: {
+      subject: deadline.formal.subject,
+      html: deadline.formal.html,
+      label: "Виктория, на «Вы»",
+      also: { subject: deadline.informal.subject, html: deadline.informal.html, label: "Саша, на «ты»" },
     },
     "mentor-edit": { subject: activity["mentor-edit"].subject, html: activity["mentor-edit"].letter.html },
     "student-edit": { subject: activity["student-edit"].subject, html: activity["student-edit"].letter.html },
