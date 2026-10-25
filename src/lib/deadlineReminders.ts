@@ -1,17 +1,11 @@
 import type { BroadcastSetting } from "@/lib/mailBroadcasts";
 import { calendarDay, clockOpen, parseStudentIds, zonedClock } from "@/lib/mailBroadcasts";
+import { addressForm, FORMAL_ADDRESS_NAMES, usesFormalAddress } from "@/lib/addressForm";
 import { EMAIL_SIGNATURE, escapeHtml, renderEmail } from "@/lib/mail";
 
 export const DEADLINE_ZONE = "Europe/Moscow";
 
-/**
- * К кому студия обращается на «Вы».
- * Отдельного поля в карточке ученика нет: правило сидит в этом списке.
- * Сравнение по первому слову имени, без учёта регистра.
- * Виктория: «Вы». Остальные: «ты».
- * «Работа уже сдана» одна на всех. Просьба написать отличается: «напишите» / «напиши».
- */
-export const FORMAL_ADDRESS_NAMES = ["Виктория"] as const;
+export { FORMAL_ADDRESS_NAMES, usesFormalAddress };
 
 const DONE_STATUSES = new Set(["SUBMITTED", "ACCEPTED"]);
 
@@ -58,12 +52,6 @@ export function deadlineDryRun(env: NodeJS.ProcessEnv = process.env): boolean {
 
 export function deadlineReminderLogLine(result: Pick<DeadlineRunResult, "dueOn" | "planned" | "sent" | "alreadySent" | "failed" | "dryRun">): string {
   return `[deadline-reminder] завтра ${result.dueOn}: к отправке ${result.planned}, ушло ${result.sent}, уже было ${result.alreadySent}, ошибок ${result.failed}, dry-run ${result.dryRun}`;
-}
-
-export function usesFormalAddress(name: string): boolean {
-  const first = name.trim().split(/\s+/)[0]?.toLocaleLowerCase("ru-RU") ?? "";
-  if (!first) return false;
-  return FORMAL_ADDRESS_NAMES.some((item) => item.toLocaleLowerCase("ru-RU") === first);
 }
 
 export function statusNeedsReminder(status: string): boolean {
@@ -117,9 +105,7 @@ export function buildDeadlineLetter(input: {
     : `${name}, напоминаю: завтра, ${when}, срок по заданию ${quotedTitle(input.tasks[0].title)}.`;
   const titles = many ? input.tasks.map((task) => quotedTitle(task.title)) : [];
   const closing = "Если работа уже сдана, это письмо можно не читать.";
-  const ask = usesFormalAddress(input.name)
-    ? `Если нужно больше времени на ${many ? "задания" : "задание"}, пожалуйста, напишите мне!)`
-    : `Если нужно больше времени на ${many ? "задания" : "задание"}, пожалуйста, напиши мне!)`;
+  const ask = `Если нужно больше времени на ${many ? "задания" : "задание"}, пожалуйста, ${addressForm(input.name).write} мне!`;
   const home = input.baseUrl.replace(/\/+$/, "");
   const letter = renderEmail({
     title: subject,
