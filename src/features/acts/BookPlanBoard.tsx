@@ -381,6 +381,7 @@ export default function BookPlanBoard({
         <button type="button" className="chapter-tool" onClick={addAct}>Новый акт</button>
       </div>
 
+      <div key={view} className="panel-fade">
       {chapters.length === 0 && acts.length === 0 ? (
         <EmptyState cue="Глав пока нет" action={
           <button type="button" className="btn-y px-4 text-[14px]" style={{ height: 40, width: "auto" }} onClick={() => addChapter(null)}>
@@ -394,6 +395,7 @@ export default function BookPlanBoard({
       ) : (
         <PlotMap columns={columns} numbers={numbers} onOpen={setOpenId} onMove={moveScene} onAdd={addChapter} />
       )}
+      </div>
 
       {open ? (
         <ChapterSheet

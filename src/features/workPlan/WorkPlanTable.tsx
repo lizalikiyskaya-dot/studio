@@ -222,7 +222,7 @@ export default function WorkPlanTable({
           }
         />
       ) : (
-      <div className="sheet px-3 pt-2 pb-1">
+      <div className="sheet px-3 pt-2 pb-1" key={activeTab}>
         <table>
           <thead>
             <tr>

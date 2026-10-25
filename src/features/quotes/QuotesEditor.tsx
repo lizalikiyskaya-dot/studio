@@ -190,11 +190,11 @@ export default function QuotesEditor({
               </span>
             </div>
             {!open ? (
-              <p className="field-literary mt-2 text-[16px] leading-relaxed" style={{ color: "var(--ink2)" }}>
+              <p className="field-literary panel-fade mt-2 text-[16px] leading-relaxed" style={{ color: "var(--ink2)" }}>
                 {quote.text.length > 180 ? `${quote.text.slice(0, 180)}…` : quote.text}
               </p>
             ) : (
-              <div>
+              <div className="panel-fade">
                 <label className="fld-label">
                   Текст
                   <textarea

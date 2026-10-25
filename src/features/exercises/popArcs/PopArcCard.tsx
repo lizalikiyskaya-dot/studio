@@ -4,6 +4,7 @@ import { siteConfirm } from "@/components/SiteDialog";
 
 import { useRef, useState, useTransition } from "react";
 import { ChevronDown } from "lucide-react";
+import Collapse from "@/components/Collapse";
 import type { PopArcCharacter, ArcType, Comment } from "@/generated/prisma/client";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import CardSaveButton from "@/components/CardSaveButton";
@@ -218,18 +219,12 @@ export default function PopArcCard({
             {ARC_TYPE_LABEL[arcType]}
           </span>
         )}
-        <span
-          className="flex-shrink-0"
-          style={{ color: "var(--faded)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}
-        >
+        <span className={`chevron-turn${open ? " is-open" : ""}`}>
           <ChevronDown size={15} />
         </span>
       </div>
 
-      <div
-        className="px-4 pb-5 pt-1 border-t"
-        style={{ borderColor: "var(--border)", display: open ? "block" : "none" }}
-      >
+      <Collapse open={open} className="collapse-body px-4 pb-5 pt-1">
           <div className="my-4 flex flex-wrap items-center gap-4">
             {readOnly ? (
               <div
@@ -315,7 +310,7 @@ export default function PopArcCard({
           )}
 
           <CommentsBlock model="PopArcCharacter" recordId={character.id} initialComments={initialComments} />
-      </div>
+      </Collapse>
     </div>
   );
 }

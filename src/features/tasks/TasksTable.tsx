@@ -261,7 +261,7 @@ export default function TasksTable({
           }
         />
       ) : (
-      <div className="task-sheet">
+      <div className="task-sheet" key={activeTab}>
         <div className="task-head" aria-hidden="true">
           <span>Задание</span>
           <span>Дедлайн</span>
