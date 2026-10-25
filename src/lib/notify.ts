@@ -1,3 +1,4 @@
+import { addressForm, withAddress } from "@/lib/addressForm";
 import { prisma } from "@/lib/prisma";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail, sendMail } from "@/lib/mail";
 import { optOutLinkLabel, type OptOutKind } from "@/lib/mailOptOut";
@@ -126,14 +127,14 @@ export async function notifyStudentOfMentorEdit(studentId: string, section: stri
   if (process.env.STUDENT_EDIT_EMAILS !== "on") return;
   const student = await prisma.user.findUnique({
     where: { id: studentId },
-    select: { email: true, status: true, emailNotifications: true },
+    select: { name: true, email: true, status: true, emailNotifications: true },
   });
   if (!student?.email || !student.emailNotifications) return;
   // Ученику без доступа писать незачем — он всё равно не откроет кабинет.
   if (student.status !== "APPROVED") return;
   if (!(await claimStudentWindow(studentId))) return;
 
-  const letter = mentorEditLetter(sectionLabel(section));
+  const letter = mentorEditLetter(sectionLabel(section), student.name);
   await sendMail({
     to: student.email,
     subject: "Наставник внёс изменения",
@@ -144,11 +145,12 @@ export async function notifyStudentOfMentorEdit(studentId: string, section: stri
 }
 
 /** Текст письма о правках. Само письмо не уходит, пока STUDENT_EDIT_EMAILS не равен on. */
-export function mentorEditLetter(section: string) {
+export function mentorEditLetter(section: string, name = "") {
+  const form = addressForm(name);
   return renderEmail({
     title: "Наставник внёс изменения",
     paragraphs: [
-      "Я поработала с вашим кабинетом. В разделе «" + escapeHtml(section) + "» есть новые правки.",
+      "Я поработала с " + form.yourMIns + " кабинетом. В разделе «" + escapeHtml(section) + "» есть новые правки.",
       "Разделы с изменениями отмечены маячками в боковом меню. Правки в тексте можно принять или отклонить.",
     ],
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
@@ -167,7 +169,7 @@ export async function notifyRegistration(user: { id: string; name: string; email
     const letter = await dressLetter(
       "registration",
       { subject: "Заявка на рассмотрении", ...toStudent },
-      { имя: user.name },
+      withAddress(user.name, { имя: user.name }),
     );
     await sendMail({
       to: user.email,
@@ -211,10 +213,11 @@ export async function notifyRegistration(user: { id: string; name: string; email
 }
 
 export function registrationStudentLetter(name: string) {
+  const form = addressForm(name);
   return renderEmail({
     title: "Заявка на рассмотрении",
     paragraphs: [
-      `${escapeHtml(name)}, я получила вашу заявку.`,
+      `${escapeHtml(name)}, я получила ${form.yourFAcc} заявку.`,
       "Посмотрю её и открою кабинет. Когда открою — напишу ещё раз.",
     ],
     action: { label: "Открыть платформу", url: `${appUrl()}/login` },
@@ -232,7 +235,7 @@ export async function notifyApproved(userId: string) {
 
   const gate = await mailGate("approved", userId);
   if (!gate.ok) return;
-  const letter = await dressLetter("approved", { subject: "Доступ в личный кабинет открыт", ...approvedLetter(user.name) }, { имя: user.name });
+  const letter = await dressLetter("approved", { subject: "Доступ в личный кабинет открыт", ...approvedLetter(user.name) }, withAddress(user.name, { имя: user.name }));
   await sendMail({
     to: user.email,
     subject: letter.subject,
@@ -246,11 +249,12 @@ export async function notifyApproved(userId: string) {
 }
 
 export function approvedLetter(name: string) {
+  const form = addressForm(name);
   return renderEmail({
     title: "Доступ в личный кабинет открыт",
     paragraphs: [
-      `${escapeHtml(name)}, я открыла вам кабинет.`,
-      "Входите той же почтой и паролем, что указали при регистрации.",
+      `${escapeHtml(name)}, я открыла ${form.toYou} кабинет.`,
+      `${form.enter} той же почтой и паролем, ${form.registered}.`,
     ],
     action: { label: "Войти в кабинет", url: `${appUrl()}/login` },
     signature: EMAIL_SIGNATURE,
@@ -286,7 +290,7 @@ export async function notifyStudentGuideOpened(
   const letter = await dressLetter(
     "guide",
     { subject: `Новая методичка: ${title}`, ...designed },
-    { имя: student.name, название: title, описание: guide.description.trim() },
+    withAddress(student.name, { имя: student.name, название: title, описание: guide.description.trim() }),
   );
   await sendMail({
     to: student.email,
@@ -302,7 +306,7 @@ export async function notifyStudentGuideOpened(
 
 export function guideOpenedLetter(guide: { name: string; title: string; description: string; guideId: string }) {
   const paragraphs = [
-    `${escapeHtml(guide.name)}, я открыла вам методичку «${escapeHtml(guide.title)}».`,
+    `${escapeHtml(guide.name)}, я открыла ${addressForm(guide.name).toYou} методичку «${escapeHtml(guide.title)}».`,
   ];
   const about = guide.description.trim();
   if (about) paragraphs.push(escapeHtml(about));
@@ -328,7 +332,7 @@ export async function sendPasswordResetEmail(
   const letter = await dressLetter(
     "password",
     { subject: "Восстановление пароля", ...passwordResetLetter(user.name, url) },
-    { имя: user.name, ссылка: url },
+    withAddress(user.name, { имя: user.name, ссылка: url }),
   );
   await sendMail({
     to: user.email,
@@ -343,15 +347,15 @@ export async function sendPasswordResetEmail(
 }
 
 export function passwordResetLetter(name: string, url: string) {
+  const form = addressForm(name);
   return renderEmail({
     title: "Восстановление пароля",
     paragraphs: [
-      `${escapeHtml(name)}, вы попросили сменить пароль.`,
+      `${escapeHtml(name)}, ${form.passwordAsk}`,
       "Ссылка действует один час и сработает только один раз.",
     ],
     action: { label: "Задать новый пароль", url },
-    footnote:
-      "Если вы не запрашивали смену пароля — просто удалите это письмо, пароль останется прежним.",
+    footnote: form.passwordFoot,
     signature: EMAIL_SIGNATURE,
   });
 }
@@ -384,6 +388,7 @@ function dayBefore(iso: string): string | null {
  */
 export function platformUpdateLetter(input: { name: string }) {
   const name = input.name.trim() || "Здравствуйте";
+  const form = addressForm(name);
   return renderEmail({
     title: "Отчёт об обновлениях",
     blocks: [
@@ -392,7 +397,7 @@ export function platformUpdateLetter(input: { name: string }) {
         kind: "section",
         title: "Задания",
         items: [
-          "Поле больше не съезжает в сторону, когда вы правите текст.",
+          `Поле больше не съезжает в сторону, когда ${form.whenEdit} текст.`,
           "Мою правку можно принять или отклонить по куску. Кнопки стоят у этого куска.",
         ],
         hint: "Куда нажать: левое меню, пункт «Задания».",
@@ -429,7 +434,7 @@ export function platformUpdateLetter(input: { name: string }) {
           "Если выделить текст внутри поля, кнопка «Заметка» не появляется. Стирание и набор работают как обычно.",
           "Заметку по-прежнему можно поставить на обычный текст страницы.",
         ],
-        hint: "Куда нажать: выделите текст страницы вне поля.",
+        hint: `Куда нажать: ${form.select} текст страницы вне поля.`,
       },
       {
         kind: "section",
@@ -443,7 +448,7 @@ export function platformUpdateLetter(input: { name: string }) {
         items: [
           "Это короткое необязательное задание на одну неделю.",
           "Оно не связано с основными заданиями.",
-          "Текст сдаёте на той же странице. За сдачу начисляются 2 звёздочки.",
+          `Текст ${form.submit} на той же странице. За сдачу начисляются 2 звёздочки.`,
         ],
         hint: "Куда нажать: левое меню, пункт «Задание недели».",
       },
@@ -456,7 +461,7 @@ export function platformUpdateLetter(input: { name: string }) {
           "Отдельной страницы нет.",
         ],
       },
-      { kind: "p", text: "Если пункт не находится, напишите мне." },
+      { kind: "p", text: `Если пункт не находится, ${form.write} мне.` },
     ],
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
     footnote: "Это общее письмо об обновлениях. Отключить письма можно в профиле.",

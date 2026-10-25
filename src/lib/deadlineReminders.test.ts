@@ -211,7 +211,7 @@ test("несколько заданий на завтра собираются �
   assert.equal(both.sent, 1);
   assert.equal(sent[1].subject, "Завтра сроки по заданиям");
   assert.match(sent[1].html, /срок по заданиям:/);
-  assert.match(sent[1].html, /Если нужно больше времени на задания, пожалуйста, напиши мне!\)/);
+  assert.match(sent[1].html, /Если нужно больше времени на задания, пожалуйста, напиши мне!/);
   assert.match(sent[1].html, /Сцена в кухне/);
   assert.match(sent[1].html, /Ночной разговор/);
   assert.match(sent[1].html, /data-deadline-task="a:2026-10-26"/);
@@ -234,7 +234,8 @@ test("Виктория на «Вы», остальные на «ты», откл
   });
   assert.match(formal.text, /Виктория, напоминаю: завтра, 26 октября, срок по заданию «Сцена в кухне»/);
   assert.match(formal.html, /Если работа уже сдана, это письмо можно не читать/);
-  assert.match(formal.text, /Если нужно больше времени на задание, пожалуйста, напишите мне!\)/);
+  assert.match(formal.text, /Если нужно больше времени на задание, пожалуйста, напишите мне!/);
+  assert.equal(formal.text.includes("мне!)"), false);
   assert.equal(/(^|[^А-Яа-яЁё])сдали([^А-Яа-яЁё]|$)/.test(formal.html), false);
   assert.equal(formal.html.includes("Ваша работа"), false);
   assert.equal((formal.html.match(/<a /g) ?? []).length, 2);
@@ -252,7 +253,8 @@ test("Виктория на «Вы», остальные на «ты», откл
   assert.equal(/(^|[^А-Яа-яЁё])Вы([^А-Яа-яЁё]|$)/.test(informal.html), false);
   assert.equal(informal.html.includes("Ваш"), false);
   assert.match(informal.html, /Если работа уже сдана, это письмо можно не читать/);
-  assert.match(informal.text, /Если нужно больше времени на задание, пожалуйста, напиши мне!\)/);
+  assert.match(informal.text, /Если нужно больше времени на задание, пожалуйста, напиши мне!/);
+  assert.equal(informal.text.includes("мне!)"), false);
   assert.equal(/(^|[^А-Яа-яЁё])сдал([^А-Яа-яЁё]|$)/.test(informal.html), false);
 
   const preview = deadlinePreviewLetters("https://studio.lizandwriter.ru");
@@ -260,7 +262,7 @@ test("Виктория на «Вы», остальные на «ты», откл
   assert.match(preview.formal.text, /studio\.lizandwriter\.ru/);
   assert.equal(preview.formal.html.includes("lizalikiyskaya"), false);
   assert.match(preview.several.text, /срок по заданиям:/);
-  assert.match(preview.several.text, /Если нужно больше времени на задания, пожалуйста, напишите мне!\)/);
+  assert.match(preview.several.text, /Если нужно больше времени на задания, пожалуйста, напишите мне!/);
   const found = matchDeadlineStudent([student(), student({ id: "v", name: "Виктория", email: "v@example.com" })], "v@example.com");
   assert.equal("student" in found ? found.student.id : "", "v");
   assert.equal("error" in matchDeadlineStudent([student(), student({ id: "s2", name: "Саша", email: "s2@example.com" })], "Саша"), true);
