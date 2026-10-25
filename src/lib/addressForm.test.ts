@@ -12,7 +12,10 @@ test("Виктория на «Вы», Надежда, Ваня и Ян на «т
   assert.equal(usesFormalAddress("Ваня"), false);
   assert.equal(usesFormalAddress("Ян"), false);
   const formal = addressForm("Виктория");
-  assert.equal(formal.passwordAsk, "Вы попросила сменить пароль.");
+  assert.equal(formal.registered, "что Вы указали при регистрации");
+  assert.equal(formal.passwordAsk, "Вы попросили сменить пароль.");
+  assert.equal(formal.passwordFoot, "Если Вы не просили сменить пароль, просто удалите это письмо, пароль останется прежним.");
+  assert.equal(/Вы\s+\S*ла\b/.test(`${formal.registered} ${formal.passwordAsk} ${formal.passwordFoot}`), false);
   assert.equal(formal.write, "напишите");
   const plain = addressForm("Надежда");
   assert.equal(plain.passwordAsk.includes("сделал"), false);
@@ -31,10 +34,12 @@ test("готовые письма ученику: тебе у Саши и Вам
   assert.match(approvedLetter("Надежда").text, /Входи той же почтой и паролем, которые указаны при регистрации/);
   assert.equal(approvedLetter("Ваня").text.includes("указали"), false);
   assert.match(approvedLetter("Виктория").text, /открыла Вам кабинет/);
-  assert.match(approvedLetter("Виктория").text, /Входите той же почтой и паролем, что Вы указала при регистрации/);
+  assert.match(approvedLetter("Виктория").text, /Входите той же почтой и паролем, что Вы указали при регистрации/);
   assert.match(passwordResetLetter("Ваня", "https://studio.example/reset").text, /вот ссылка, чтобы сменить пароль/);
   assert.equal(/попросил/.test(passwordResetLetter("Ян", "https://studio.example/reset").text), false);
-  assert.match(passwordResetLetter("Виктория", "https://studio.example/reset").text, /Вы попросила сменить пароль/);
+  assert.match(passwordResetLetter("Виктория", "https://studio.example/reset").text, /Вы попросили сменить пароль/);
+  assert.match(passwordResetLetter("Виктория", "https://studio.example/reset").text, /Если Вы не просили сменить пароль/);
+  assert.equal(/Вы\s+\S*ла\b/.test(passwordResetLetter("Виктория", "https://studio.example/reset").text), false);
   const parts = moscowParts(new Date("2026-10-19T06:30:00Z"));
   assert.match(buildPaymentReminder({ name: "Саша", paymentAmount: null }, parts).text, /напиши мне в Телеграме/);
   assert.match(buildPaymentReminder({ name: "Виктория", paymentAmount: null }, parts).text, /напишите мне в Телеграме/);
