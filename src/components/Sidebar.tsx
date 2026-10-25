@@ -185,7 +185,7 @@ export default function Sidebar({
       const bar = document.querySelector(".studio-tabbar");
       const barShown = !!bar && getComputedStyle(bar).display !== "none";
       const barTop = barShown ? bar!.getBoundingClientRect().top : window.innerHeight;
-      const banners = [...document.querySelectorAll<HTMLElement>(".banner-call, .banner-deadlines")]
+      const banners = [...document.querySelectorAll<HTMLElement>(".banner-call, .banner-deadlines, .banner-week")]
         .map((el) => el.getBoundingClientRect())
         .filter((rect) => {
           if (rect.width < 2 || rect.height < 2) return false;

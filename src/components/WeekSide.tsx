@@ -15,11 +15,10 @@ export default function WeekSide({
   return (
     <div className="week-side">
       {week.weekly ? (
-        <Link href={week.weekly.href} className="week-side-task">
-          <span className="deadline-ribbon" aria-hidden="true" />
-          <span className="week-side-kicker">Задание недели</span>
-          <span className="week-side-title">{week.weekly.title}</span>
-          <span className="week-side-when">{week.weekly.when}</span>
+        <Link href={week.weekly.href} className="banner-week">
+          <span className="banner-week-label">Задание недели</span>
+          <span className="banner-week-title">{week.weekly.title}</span>
+          <span className="banner-week-when">{week.weekly.when}</span>
         </Link>
       ) : null}
       {week.call ? (
@@ -32,11 +31,10 @@ export default function WeekSide({
         />
       ) : null}
       {deadline ? (
-        <div className="deadline-card">
-          <span className="deadline-ribbon" aria-hidden="true" />
-          <div className="deadline-kicker">Ближайший дедлайн по заданию</div>
-          <div className="serif deadline-title">{deadline.title}</div>
-          <div className="deadline-when">{deadline.when}</div>
+        <div className="banner-deadlines week-side-due">
+          <div className="banner-week-label">Ближайший дедлайн по заданию</div>
+          <div className="banner-week-title">{deadline.title}</div>
+          <div className="banner-week-when">{deadline.when}</div>
         </div>
       ) : null}
     </div>
