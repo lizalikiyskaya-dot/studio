@@ -42,7 +42,7 @@ jobs:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Check required secrets
         id: gate
@@ -91,7 +91,10 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || '22' }}
-          command_timeout: 30m
+          # Уже было 30m. Прогон 40186892856 упал через ~2 минуты со статусом 1:
+          # next/font не скачал Literata и Onest, это не «Run Command Timeout».
+          # 15m было бы короче нынешнего предела. 45m оставляют место повторам сборки.
+          command_timeout: 45m
           request_pty: true
           envs: APP_PATH,RESTART_CMD,PM2_APP_NAME,SYSTEMD_SERVICE
           script: |
