@@ -9,6 +9,7 @@ export const DEADLINE_ZONE = "Europe/Moscow";
  * Отдельного поля в карточке ученика нет: правило сидит в этом списке.
  * Сравнение по первому слову имени, без учёта регистра.
  * Виктория: «Вы». Остальные: «ты».
+ * Закрывающая фраза одна на всех: «работа уже сдана», без рода.
  */
 export const FORMAL_ADDRESS_NAMES = ["Виктория"] as const;
 
@@ -99,7 +100,6 @@ export function buildDeadlineLetter(input: {
   tasks: { id: string; title: string; deadline: Date }[];
   baseUrl: string;
 }): DeadlineLetter {
-  const formal = usesFormalAddress(input.name);
   const many = input.tasks.length > 1;
   const when = escapeHtml(formatDeadline(input.tasks[0].deadline));
   const name = escapeHtml(input.name);
@@ -108,9 +108,7 @@ export function buildDeadlineLetter(input: {
     ? `${name}, напоминаю: завтра, ${when}, срок по заданиям:`
     : `${name}, напоминаю: завтра, ${when}, срок по заданию ${quotedTitle(input.tasks[0].title)}.`;
   const titles = many ? input.tasks.map((task) => quotedTitle(task.title)) : [];
-  const closing = formal
-    ? "Если Вы уже сдали работу, это письмо можно не читать."
-    : "Если ты уже сдал работу, это письмо можно не читать.";
+  const closing = "Если работа уже сдана, это письмо можно не читать.";
   const home = input.baseUrl.replace(/\/+$/, "");
   const letter = renderEmail({
     title: subject,

@@ -231,7 +231,8 @@ test("Виктория на «Вы», остальные на «ты», откл
     tasks: [{ id: "scene", title: "Сцена в кухне", deadline: new Date("2026-10-26T00:00:00Z") }],
   });
   assert.match(formal.text, /Виктория, напоминаю: завтра, 26 октября, срок по заданию «Сцена в кухне»/);
-  assert.match(formal.html, /Если Вы уже сдали работу, это письмо можно не читать/);
+  assert.match(formal.html, /Если работа уже сдана, это письмо можно не читать/);
+  assert.equal(/(^|[^А-Яа-яЁё])сдали([^А-Яа-яЁё]|$)/.test(formal.html), false);
   assert.equal(formal.html.includes("Ваша работа"), false);
   assert.equal((formal.html.match(/<a /g) ?? []).length, 2);
   assert.match(formal.html, /Лиза Андреенко/);
@@ -247,7 +248,8 @@ test("Виктория на «Вы», остальные на «ты», откл
   assert.match(informal.text, /Саша, напоминаю: завтра, 26 октября, срок по заданию «Ночной разговор»/);
   assert.equal(/(^|[^А-Яа-яЁё])Вы([^А-Яа-яЁё]|$)/.test(informal.html), false);
   assert.equal(informal.html.includes("Ваш"), false);
-  assert.match(informal.html, /Если ты уже сдал работу, это письмо можно не читать/);
+  assert.match(informal.html, /Если работа уже сдана, это письмо можно не читать/);
+  assert.equal(/(^|[^А-Яа-яЁё])сдал([^А-Яа-яЁё]|$)/.test(informal.html), false);
 
   const preview = deadlinePreviewLetters("https://studio.lizandwriter.ru");
   assert.match(preview.formal.html, /studio\.lizandwriter\.ru/);
