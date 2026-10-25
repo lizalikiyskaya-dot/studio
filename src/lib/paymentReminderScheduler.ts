@@ -4,6 +4,8 @@ import { paymentLetterVars, runPaymentReminders, type ReminderPerson } from "@/l
 import { clockOpen, parseStudentIds, zonedClock } from "@/lib/mailBroadcasts";
 import { envelopeFor, readBroadcast } from "@/lib/mailBroadcastStore";
 import { runScheduledContentMail } from "@/lib/contentMailRun";
+import { deadlineReminderLogLine } from "@/lib/deadlineReminders";
+import { runScheduledDeadlineReminders } from "@/lib/deadlineReminderRun";
 import { applyLetterTemplate } from "@/lib/letterTemplates";
 import { readLetterTemplate } from "@/lib/letterTemplateStore";
 
@@ -143,6 +145,14 @@ export function startPaymentReminderScheduler() {
       })
       .catch((error) => {
         console.error("[content-mail] прогон не удался:", error);
+      });
+    runScheduledDeadlineReminders()
+      .then((result) => {
+        if (!result || result.planned === 0) return;
+        console.log(deadlineReminderLogLine(result));
+      })
+      .catch((error) => {
+        console.error("[deadline-reminder] прогон не удался:", error);
       });
   };
 

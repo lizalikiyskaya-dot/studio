@@ -348,8 +348,11 @@ export function renderEmail(options: {
   footnote?: string;
   /** Подпись в конце. Письмам ученику — «Лиза Андреенко». */
   signature?: string;
+  /** Адрес в подвале и в текстовой версии. Пусто: APP_URL или его запасной адрес. */
+  siteUrl?: string;
 }): RenderedEmail {
   const { title, paragraphs = [], blocks, action, footnote, signature } = options;
+  const home = (options.siteUrl?.trim() || appUrl()).replace(/\/+$/, "");
   const titleHtml = markedEmailTitle(title);
   const body =
     blocks && blocks.length > 0
@@ -394,7 +397,7 @@ export function renderEmail(options: {
   </table>
   <div style="margin:10px 0 0;font-family:${FONT_SERIF};font-size:16px;font-style:italic;line-height:1.3;color:#6553E8;">студия художественной прозы</div>`;
 
-  const host = escapeHtml(appUrl().replace(/^https?:\/\//, ""));
+  const host = escapeHtml(home.replace(/^https?:\/\//, ""));
   const html = `<!doctype html>
 <html lang="ru">
 <head>
@@ -446,7 +449,7 @@ export function renderEmail(options: {
   if (action) textLines.push(`${action.label}: ${action.url}`, "");
   if (signature) textLines.push(signature, "");
   if (footnote) textLines.push(htmlToPlain(footnote), "");
-  textLines.push(appUrl());
+  textLines.push(home);
 
   return { html, text: textLines.join("\n").replace(/\n{3,}/g, "\n\n").trim() };
 }

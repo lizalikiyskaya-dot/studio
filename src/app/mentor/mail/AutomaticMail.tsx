@@ -12,6 +12,7 @@ import {
   type BroadcastSetting,
   type MailTimeZone,
 } from "@/lib/mailBroadcasts";
+import type { BroadcastPreview } from "@/lib/broadcastPreviews";
 
 type Student = { id: string; name: string };
 
@@ -24,7 +25,7 @@ export default function AutomaticMail({
   ready: boolean;
   initial: BroadcastSetting[];
   students: Student[];
-  previews: Record<string, { subject: string; html: string }>;
+  previews: Record<string, BroadcastPreview>;
 }) {
   const [rows, setRows] = useState(initial);
   const [message, setMessage] = useState<string | null>(null);
@@ -69,14 +70,10 @@ export default function AutomaticMail({
               {preview ? (
                 <details className="mt-3">
                   <summary className="cursor-pointer text-[14px]">Превью шаблона</summary>
-                  <p className="mt-2 text-[14px]">Тема: {preview.subject}</p>
-                  <iframe
-                    title={`Превью: ${meta.title}`}
-                    sandbox=""
-                    srcDoc={preview.html}
-                    className="mt-2 w-full rounded-[12px]"
-                    style={{ height: 280, border: "1px solid var(--border)", background: "#F6F1E8" }}
-                  />
+                  <PreviewFrame title={meta.title} label={preview.label} subject={preview.subject} html={preview.html} />
+                  {preview.also ? (
+                    <PreviewFrame title={`${meta.title}, ${preview.also.label}`} label={preview.also.label} subject={preview.also.subject} html={preview.also.html} />
+                  ) : null}
                 </details>
               ) : null}
               <Button className="mt-3" type="button" onClick={() => save(row)} disabled={busy === row.key || !ready}>
@@ -87,10 +84,26 @@ export default function AutomaticMail({
         })}
       </ul>
       <p className="mt-3 text-[13px]" style={{ color: "var(--muted)" }}>
-        Дедлайны сами не уходят.
+        Напоминание о сроке уходит в 9:00 по Москве, если срок задания завтра. Одно письмо на ученика. Повторно за тот же срок не уходит.
       </p>
       {message ? <p className="mt-2 text-[14px]">{message}</p> : null}
     </section>
+  );
+}
+
+function PreviewFrame({ title, label, subject, html }: { title: string; label?: string; subject: string; html: string }) {
+  return (
+    <div className="mt-3">
+      {label ? <p className="text-[14px] font-semibold">{label}</p> : null}
+      <p className="mt-2 text-[14px]">Тема: {subject}</p>
+      <iframe
+        title={`Превью: ${title}`}
+        sandbox=""
+        srcDoc={html}
+        className="mt-2 w-full rounded-[12px]"
+        style={{ height: 280, border: "1px solid var(--border)", background: "#F6F1E8" }}
+      />
+    </div>
   );
 }
 
