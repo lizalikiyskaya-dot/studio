@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import type { SynopsisMode } from "@/generated/prisma/client";
+import { awardStars } from "@/features/stars/award";
+import { chapterAwardsStars } from "@/features/stars/rules";
 import { isChapterReview, type ChapterReviewValue } from "./chapterReview";
 
 async function attachAct(bookId: string, actId?: string | null) {
@@ -89,6 +91,7 @@ export async function updatePlanChapterReview(chapterId: string, status: Chapter
   const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
   await requireMentor(book.studentId);
   await prisma.planChapter.update({ where: { id: chapterId }, data: { reviewStatus: status } });
+  if (chapterAwardsStars(status)) await awardStars(book.studentId, "CHAPTER", chapter.id);
 }
 
 export async function updatePlanChapterColor(chapterId: string, color: string | null) {

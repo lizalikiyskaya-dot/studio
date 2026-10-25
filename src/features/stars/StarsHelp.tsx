@@ -17,6 +17,11 @@ const ROWS = [
     text: "Статусы «сдано на проверку» и «принято». «В процессе» и «на доработке» звёзд не дают.",
   },
   {
+    points: STAR_POINTS.CHAPTER,
+    title: "Глава",
+    text: "Статус «принята» в трекере глав. Один раз за главу. Другие статусы звёзд не дают.",
+  },
+  {
     points: STAR_POINTS.CONTEST,
     title: "Конкурс",
     text: "Статусы «отправлено», «ждём ответа», «принято» и «отклонено». «Не отправлено» — ноль.",
@@ -67,6 +72,9 @@ export default function StarsHelp() {
                 <div className="site-dialog-title" id={titleId}>
                   За что дают звёзды
                 </div>
+                <p className="mt-2 text-[14px] font-normal leading-snug" style={{ color: "var(--ink2)" }}>
+                  «Заработано» растит статус и не уменьшается. «На счету» можно тратить. Пока трат нет, числа равны.
+                </p>
                 <ul className="mt-4 flex flex-wrap gap-2 text-[13px]" style={{ color: "var(--ink2)" }}>
                   {STAR_LEGEND.map((item) => (
                     <li key={item.label} className="rounded-full px-3 py-1" style={{ background: "var(--soft)" }}>
