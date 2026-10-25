@@ -22,13 +22,16 @@
         });
       }, { threshold: 0.2, rootMargin: '0px 0px -6% 0px' });
       var order = new WeakMap();
-      document.querySelectorAll('.fit, .way, .feat, .materials, .quote, .compare-card, .price-card, .case-card, .about-photo, .about-copy, .step.reveal').forEach(function (el) {
+      document.querySelectorAll('.band > .wrap > h2, .band > .wrap > .lead, .ethics, .theory, .fit, .way, .feat, .materials, .quote, .compare-card, .price-card, .case-card, .about-photo, .about-copy, .step.reveal').forEach(function (el) {
         el.classList.add('reveal');
         var parent = el.parentElement;
         var i = order.get(parent) || 0;
         order.set(parent, i + 1);
-        if (wide) el.style.transitionDelay = Math.min(i, 5) * 60 + 'ms';
-        io.observe(el);
+        if (wide) el.style.transitionDelay = Math.min(i, 4) * 40 + 'ms';
+        var rect = el.getBoundingClientRect();
+        var view = window.innerHeight || document.documentElement.clientHeight;
+        if (rect.top < view * 0.92 && rect.bottom > 0) el.classList.add('in');
+        else io.observe(el);
       });
     }
 
