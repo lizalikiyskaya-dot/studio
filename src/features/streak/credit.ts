@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { syncAutoBadges } from "@/features/badges/sync";
 import { awardStars } from "@/features/stars/award";
 import { evaluateStreak, moscowMonday, streakMilestones } from "./weeks";
 
@@ -38,6 +39,7 @@ export async function creditStreakWeek(studentId: string, now = new Date()): Pro
     now,
   );
   await awardReached(studentId, stats.best);
+  await syncAutoBadges(studentId);
   return true;
 }
 

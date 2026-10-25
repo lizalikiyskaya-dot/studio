@@ -7,6 +7,7 @@ import { GUIDE_AUDIENCE, forgetGuidesSchema, guidesSchemaReady, listOpenedStuden
 import { notifyStudentGuideOpened } from "@/lib/notify";
 import { nextMaterialStatus } from "@/features/materials/status";
 import type { MaterialStatus } from "@/generated/prisma/client";
+import { ensureGuideBadge, removeGuideBadge } from "@/features/badges/sync";
 import { guideOpenShouldEmail } from "./openGuide";
 import type { ActionFail, ActionResult, LibraryGuide, OpenedStudent } from "./types";
 
@@ -65,6 +66,7 @@ export async function createGuide(): Promise<ActionResult<{ guide: LibraryGuide 
         order: true,
       },
     });
+    await ensureGuideBadge(guide.id, guide.title);
     touch();
     return {
       ok: true,
@@ -93,7 +95,9 @@ export async function updateGuideTitle(guideId: string, title: string): Promise<
   const denied = await mentorReady();
   if (denied) return denied;
   try {
-    await prisma.guide.update({ where: { id: guideId }, data: { title: cleanTitle(title) } });
+    const nextTitle = cleanTitle(title);
+    await prisma.guide.update({ where: { id: guideId }, data: { title: nextTitle } });
+    await ensureGuideBadge(guideId, nextTitle);
     touch();
     return { ok: true };
   } catch (error) {
@@ -124,6 +128,7 @@ export async function deleteGuide(guideId: string): Promise<ActionResult> {
   const denied = await mentorReady();
   if (denied) return denied;
   try {
+    await removeGuideBadge(guideId);
     await prisma.guide.delete({ where: { id: guideId } });
     touch();
     return { ok: true };

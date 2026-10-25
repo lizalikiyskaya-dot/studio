@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { StarKind } from "@/generated/prisma/client";
+import { syncAutoBadges } from "@/features/badges/sync";
 import { STAR_POINTS, type StarKindName } from "./rules";
 
 function isUniqueViolation(error: unknown): boolean {
@@ -59,12 +60,16 @@ export async function awardStars(
       },
     });
   } catch (error) {
-    if (isUniqueViolation(error)) return false;
+    if (isUniqueViolation(error)) {
+      await syncAutoBadges(studentId);
+      return false;
+    }
     throw error;
   }
   revalidatePath("/dashboard/tasks");
   revalidatePath("/dashboard/weekly");
   revalidatePath(`/student-view/${studentId}/tasks`);
   revalidatePath(`/student-view/${studentId}/weekly`);
+  await syncAutoBadges(studentId);
   return true;
 }
