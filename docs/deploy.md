@@ -1,6 +1,6 @@
 # Автодеплой студии
 
-После одноразовой настройки каждый push в ветку `main` сам обновляет сайт [https://studio.lizalikiyskaya.ru](https://studio.lizalikiyskaya.ru).
+После одноразовой настройки каждый push в ветку `main` сам обновляет сайт [https://studio.lizandwriter.ru](https://studio.lizandwriter.ru).
 
 Пока секреты GitHub не добавлены, push в `main` всё равно проходит: сборка в GitHub выполняется, а шаг деплоя пишет «Деплой пропущен» и завершается успешно. Сервер при этом не меняется.
 
@@ -190,7 +190,7 @@ pm2 startup
 
 ```bash
 pm2 describe studio
-curl -sS -o /dev/null -w '%{http_code}\n' -L https://studio.lizalikiyskaya.ru
+curl -sS -o /dev/null -w '%{http_code}\n' -L https://studio.lizandwriter.ru
 ```
 
 Код `2xx` (часто `200`) значит, что сайт открылся. Главная без входа перенаправляет на страницу входа, поэтому в проверке есть флаг `-L`.
@@ -285,7 +285,7 @@ printf '%s\n' 'RESTART_CMD=pm2 restart studio' > APP_PATH/.env.deploy
 | `PM2_APP_NAME` | Имя процесса из `pm2 list`, если не записали его в `.env.deploy` |
 | `SYSTEMD_SERVICE` | Имя сервиса, если не записали его в `.env.deploy` |
 | `RESTART_CMD` | Своя команда перезапуска. Если секрет задан, он важнее pm2 и systemd |
-| `HEALTHCHECK_URL` | Адрес для проверки после деплоя. По умолчанию `https://studio.lizalikiyskaya.ru` |
+| `HEALTHCHECK_URL` | Адрес для проверки после деплоя. По умолчанию `https://studio.lizandwriter.ru` |
 
 После того как секрет `SSH_KEY` сохранён в GitHub, секретный файл на своём компьютере удалите:
 

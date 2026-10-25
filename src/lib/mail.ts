@@ -35,7 +35,7 @@ export function mailConfigured(): boolean {
 }
 
 export function appUrl(): string {
-  return (process.env.APP_URL ?? "https://studio.lizalikiyskaya.ru").replace(/\/+$/, "");
+  return (process.env.APP_URL ?? "https://studio.lizandwriter.ru").replace(/\/+$/, "");
 }
 
 let cached: MailTransport | null = null;

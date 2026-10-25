@@ -26,7 +26,7 @@ export function broadcastPreviewHtml(): Record<string, BroadcastPreview> {
   });
   const approved = approvedLetter("Виктория");
   const registration = registrationStudentLetter("Виктория");
-  const password = passwordResetLetter("Виктория", "https://studio.lizalikiyskaya.ru/reset-password?token=sample");
+  const password = passwordResetLetter("Виктория", "https://studio.lizandwriter.ru/reset-password?token=sample");
   const deadline = deadlinePreviewLetters();
   const toMentor = renderEmail({
     title: "Новая заявка на доступ",
@@ -48,7 +48,7 @@ export function broadcastPreviewHtml(): Record<string, BroadcastPreview> {
         lengthHint: "полстраницы",
         publishedOn: "2026-10-24",
         nextPublishedOn: "2026-10-31",
-        unsubscribeUrl: "https://studio.lizalikiyskaya.ru/unsubscribe?token=preview-weekly",
+        unsubscribeUrl: "https://studio.lizandwriter.ru/unsubscribe?token=preview-weekly",
       }).html,
     },
     "daily-quote": {
@@ -58,7 +58,7 @@ export function broadcastPreviewHtml(): Record<string, BroadcastPreview> {
         text: "Краткость — сестра таланта.",
         author: "Антон Чехов",
         source: "Письмо брату Александру, 11 апреля 1889",
-        unsubscribeUrl: "https://studio.lizalikiyskaya.ru/unsubscribe?token=preview-quote",
+        unsubscribeUrl: "https://studio.lizandwriter.ru/unsubscribe?token=preview-quote",
       }).html,
     },
     deadline: {

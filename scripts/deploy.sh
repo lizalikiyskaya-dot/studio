@@ -270,7 +270,22 @@ main() {
   fi
 
   log "npm run build"
-  npm run build
+  # Повтор: сборка иногда обрывается на загрузке шрифтов Google и сразу выходит с кодом 1.
+  build_ok=0
+  for attempt in 1 2 3; do
+    if npm run build; then
+      build_ok=1
+      break
+    fi
+    if [ "$attempt" -eq 3 ]; then
+      die "npm run build не удался после 3 попыток"
+    fi
+    log "Сборка не удалась, попытка $attempt из 3. Повтор через 20 секунд."
+    sleep 20
+  done
+  if [ "$build_ok" -ne 1 ]; then
+    die "npm run build не удался"
+  fi
   assert_protected_files
 
   # Backup first, then docs/sql. A failure here must not reach restart_app:
