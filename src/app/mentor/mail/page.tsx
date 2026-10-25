@@ -11,6 +11,7 @@ import LetterTemplates from "./LetterTemplates";
 import { readLetterEditor } from "@/lib/letterTemplateStore";
 import { readBroadcastList } from "@/lib/mailBroadcastStore";
 import { broadcastPreviewHtml } from "@/lib/broadcastPreviews";
+import MailTabs, { parseMailTab } from "./MailTabs";
 
 const SEOUL = "Asia/Seoul";
 
@@ -33,7 +34,7 @@ function one(value: string | string[] | undefined): string {
 export default async function MentorMailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string | string[]; student?: string | string[] }>;
+  searchParams: Promise<{ type?: string | string[]; student?: string | string[]; tab?: string | string[] }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
@@ -42,6 +43,7 @@ export default async function MentorMailPage({
   const params = await searchParams;
   const type = one(params.type);
   const student = one(params.student);
+  const tab = parseMailTab(one(params.tab));
 
   const students = await prisma.user.findMany({
     where: { role: "STUDENT" },
@@ -95,16 +97,22 @@ export default async function MentorMailPage({
   return (
     <div>
       <h1 className="page-title mt-1 mb-4">{markedTitle("Письма")}</h1>
-      <ComposeMail students={recipients} />
-      <LetterTemplates ready={letters.ready} rows={letters.rows} />
-      <AutomaticMail
-        ready={broadcasts.ready}
-        initial={broadcasts.rows}
-        students={recipients.map((item) => ({ id: item.id, name: item.name }))}
-        previews={broadcastPreviewHtml()}
-      />
-      <MailFilters type={type} student={student} types={types} students={students} />
-      {!ready ? (
+      <MailTabs active={tab} type={type} student={student} />
+      {tab === "write" ? <ComposeMail students={recipients} /> : null}
+      {tab === "templates" ? <LetterTemplates ready={letters.ready} rows={letters.rows} /> : null}
+      {tab === "automatic" ? (
+        <AutomaticMail
+          ready={broadcasts.ready}
+          initial={broadcasts.rows}
+          students={recipients.map((item) => ({ id: item.id, name: item.name }))}
+          previews={broadcastPreviewHtml()}
+        />
+      ) : null}
+      {tab === "history" ? (
+        <>
+          <h2 className="text-[20px] mb-3">История</h2>
+          <MailFilters type={type} student={student} types={types} students={students} />
+          {!ready ? (
         <div className="rounded-[24px] px-5 py-4" style={{ background: "var(--soft)" }}>
           <p className="text-[15px]">Журнал ещё не подключен.</p>
         </div>
@@ -188,6 +196,8 @@ export default async function MentorMailPage({
           </ul>
         </>
       )}
+        </>
+      ) : null}
     </div>
   );
 }
