@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { Star } from "lucide-react";
 import StarsHelp from "./StarsHelp";
-import { AUTHOR_RANKS, rankForStars, starsLabel } from "./rules";
+import { AUTHOR_RANKS, rankForStars, rankProgressLine, starsLabel } from "./rules";
 import { unseenStarBeats, type StarBeat } from "./reveal";
 import { readSeenStars, writeSeenStars } from "./seenStars";
 
@@ -229,15 +229,9 @@ export default function StarsStatus({
       <span className="text-[13px]" style={{ color: "var(--ink2)" }}>
         На счету {starsLabel(shownBalance)}
       </span>
-      {live.next ? (
-        <span className="text-[13px]" style={{ color: "var(--muted)" }}>
-          до статуса «{live.next.title}» ещё {starsLabel(live.remaining)}
-        </span>
-      ) : (
-        <span className="text-[13px]" style={{ color: "var(--muted)" }}>
-          высший статус
-        </span>
-      )}
+      <span className="text-[13px]" style={{ color: "var(--muted)" }}>
+        {rankProgressLine(shown)}
+      </span>
       {href ? (
         <span onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
           <Link href={href} className="lnk text-[13px]">

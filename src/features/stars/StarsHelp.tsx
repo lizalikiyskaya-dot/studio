@@ -63,7 +63,7 @@ export default function StarsHelp() {
             <div className="site-dialog-root">
               <button type="button" className="site-dialog-backdrop" aria-label="Закрыть" onClick={() => setOpen(false)} />
               <div
-                className="site-dialog-card"
+                className="site-dialog-card stars-help-card"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}

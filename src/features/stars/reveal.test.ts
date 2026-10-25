@@ -3,19 +3,13 @@ import test from "node:test";
 import { AUTHOR_RANKS } from "./rules";
 import { unseenStarBeats } from "./reveal";
 
-const RANKS_12 = [
+const RANKS_6 = [
   { min: 0, title: "Начинающий автор" },
-  { min: 5, title: "Сочинитель" },
   { min: 10, title: "Автор черновиков" },
-  { min: 17, title: "Автор первой главы" },
   { min: 25, title: "Рассказчик" },
-  { min: 35, title: "Мастер диалога" },
   { min: 45, title: "Мастер сцены" },
-  { min: 57, title: "Архитектор сюжета" },
   { min: 70, title: "Романист" },
-  { min: 85, title: "Автор рукописи" },
   { min: 100, title: "Достоевский" },
-  { min: 150, title: "Живой классик" },
 ] as const;
 
 test("новые звёзды без смены статуса — один полёт", () => {
@@ -37,21 +31,21 @@ test("новые звёзды без смены статуса — один по
   assert.equal(beats[0].rankAfter, "Автор черновиков");
 });
 
-test("смена статуса открывает название и на 6, и на 12 ступенях", () => {
+test("смена статуса открывает название по текущим 12 ступеням", () => {
   const earns = [
     { id: "base", points: 8 },
     { id: "chapter", points: 3 },
   ];
-  const six = unseenStarBeats(earns, new Set(["base"]), 11, AUTHOR_RANKS);
-  assert.equal(six.length, 1);
-  assert.equal(six[0].levelUp, true);
-  assert.equal(six[0].rankBefore, "Начинающий автор");
-  assert.equal(six[0].rankAfter, "Автор черновиков");
+  const oldTable = unseenStarBeats(earns, new Set(["base"]), 11, RANKS_6);
+  assert.equal(oldTable.length, 1);
+  assert.equal(oldTable[0].levelUp, true);
+  assert.equal(oldTable[0].rankBefore, "Начинающий автор");
+  assert.equal(oldTable[0].rankAfter, "Автор черновиков");
 
-  const twelve = unseenStarBeats(earns, new Set(["base"]), 11, RANKS_12);
-  assert.equal(twelve[0].levelUp, true);
-  assert.equal(twelve[0].rankBefore, "Сочинитель");
-  assert.equal(twelve[0].rankAfter, "Автор черновиков");
+  const current = unseenStarBeats(earns, new Set(["base"]), 11, AUTHOR_RANKS);
+  assert.equal(current[0].levelUp, true);
+  assert.equal(current[0].rankBefore, "Сочинитель");
+  assert.equal(current[0].rankAfter, "Автор черновиков");
 
   const step = unseenStarBeats(
     [
@@ -60,7 +54,7 @@ test("смена статуса открывает название и на 6, �
     ],
     new Set(["base"]),
     17,
-    RANKS_12,
+    AUTHOR_RANKS,
   );
   assert.equal(step[0].levelUp, true);
   assert.equal(step[0].rankAfter, "Автор первой главы");
@@ -71,7 +65,7 @@ test("смена статуса открывает название и на 6, �
     ],
     new Set(["base"]),
     17,
-    AUTHOR_RANKS,
+    RANKS_6,
   )[0].levelUp, false);
 });
 

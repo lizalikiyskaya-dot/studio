@@ -46,11 +46,17 @@ export type StarKindName = keyof typeof STAR_POINTS;
 
 export const AUTHOR_RANKS = [
   { min: 0, title: "Начинающий автор" },
+  { min: 5, title: "Сочинитель" },
   { min: 10, title: "Автор черновиков" },
+  { min: 17, title: "Автор первой главы" },
   { min: 25, title: "Рассказчик" },
+  { min: 35, title: "Мастер диалога" },
   { min: 45, title: "Мастер сцены" },
+  { min: 57, title: "Архитектор сюжета" },
   { min: 70, title: "Романист" },
+  { min: 85, title: "Автор рукописи" },
   { min: 100, title: "Достоевский" },
+  { min: 150, title: "Живой классик" },
 ] as const;
 
 export function ruPlural(n: number, one: string, few: string, many: string): string {
@@ -78,6 +84,12 @@ export function rankForStars(total: number) {
     next,
     remaining: next ? next.min - total : 0,
   };
+}
+
+export function rankProgressLine(total: number): string {
+  const { next, remaining } = rankForStars(total);
+  if (!next) return "высший статус";
+  return `до статуса «${next.title}» ещё ${starsLabel(remaining)}`;
 }
 
 export function mainTaskAwardsStars(status: TaskStatus): boolean {
