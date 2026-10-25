@@ -278,6 +278,7 @@ export default function TasksTable({
           visible.map((task, index) => (
             <article
               key={task.id}
+              id={`task-${task.id}`}
               className="task-card"
               onDragOver={(event) => {
                 if (dragIdRef.current) event.preventDefault();
