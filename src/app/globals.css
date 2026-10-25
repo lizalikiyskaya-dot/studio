@@ -420,6 +420,29 @@ textarea.reading,
   outline: 2px solid var(--v);
   outline-offset: 2px;
 }
+.mail-tabs-wrap { max-width: 100%; overflow-x: auto; margin-bottom: 18px; scrollbar-width: none; }
+.mail-tabs-wrap::-webkit-scrollbar { display: none; }
+.mail-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--soft);
+  max-width: none;
+}
+.mail-tabs a {
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.mail-tabs a.is-on { background: #fff; font-weight: 650; box-shadow: 0 1px 2px rgba(32, 32, 32, 0.08); }
 .mail-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
 .mail-filter { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-width: 0; }
 .mail-filter .pill-select-wrap { width: 220px; max-width: 100%; min-width: 0; }
