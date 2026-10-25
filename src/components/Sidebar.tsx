@@ -24,6 +24,8 @@ import {
   X,
 } from "lucide-react";
 import CalendarWidget from "./CalendarWidget";
+import WeekSide from "./WeekSide";
+import type { WeekSideModel } from "@/lib/weekSide";
 import DailyQuote from "./DailyQuote";
 import MentorNearest from "./MentorNearest";
 import Wordmark from "./Wordmark";
@@ -109,6 +111,7 @@ export default function Sidebar({
   cycles,
   nearest,
   dailyQuote,
+  weekSide,
   children,
 }: {
   basePath: string;
@@ -131,6 +134,7 @@ export default function Sidebar({
   cycles?: WorkshopCycle[];
   nearest?: { deadlines: NearestDeadlineView[]; payments: NearestPaymentView[] };
   dailyQuote?: DailyQuoteRow | null;
+  weekSide?: WeekSideModel | null;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -181,7 +185,7 @@ export default function Sidebar({
       const bar = document.querySelector(".studio-tabbar");
       const barShown = !!bar && getComputedStyle(bar).display !== "none";
       const barTop = barShown ? bar!.getBoundingClientRect().top : window.innerHeight;
-      const banners = [...document.querySelectorAll<HTMLElement>(".banner-call, .banner-deadlines")]
+      const banners = [...document.querySelectorAll<HTMLElement>(".banner-call, .banner-deadlines, .banner-week")]
         .map((el) => el.getBoundingClientRect())
         .filter((rect) => {
           if (rect.width < 2 || rect.height < 2) return false;
@@ -343,6 +347,15 @@ export default function Sidebar({
     .map((task) => ({ ...task, time: new Date(task.deadline).getTime() }))
     .filter((task) => task.time >= todayStart.getTime())
     .sort((a, b) => a.time - b.time)[0];
+  const showWeekStack = !mentorMenuOnly && section !== "plan" && weekSide != null;
+  const deadlineCard = upcoming ? (
+    <div className="deadline-card">
+      <span className="deadline-ribbon" aria-hidden="true" />
+      <div className="deadline-kicker">{showWeekStack ? "Ближайший дедлайн по заданию" : "Ближайший дедлайн"}</div>
+      <div className="serif deadline-title">{upcoming.title || "Задание"}</div>
+      <div className="deadline-when">{formatDeadline(upcoming.deadline)}</div>
+    </div>
+  ) : null;
 
   const subItems = onBook && bookWorkshopUnlocked
     ? WORKSHOP_ITEMS
@@ -492,14 +505,12 @@ export default function Sidebar({
             </>
           )}
 
-          {upcoming && (
-            <div className="deadline-card">
-              <span className="deadline-ribbon" aria-hidden="true" />
-              <div className="deadline-kicker">Ближайший дедлайн</div>
-              <div className="serif deadline-title">{upcoming.title || "Задание"}</div>
-              <div className="deadline-when">{formatDeadline(upcoming.deadline)}</div>
-            </div>
-          )}
+          {showWeekStack ? (
+            <WeekSide
+              week={weekSide}
+              deadline={upcoming ? { title: upcoming.title || "Задание", when: formatDeadline(upcoming.deadline) } : null}
+            />
+          ) : deadlineCard}
 
           {mentorMenuOnly && (
             <nav className="mentor-side-nav side-card !p-2" aria-label="Разделы наставника">
@@ -623,14 +634,16 @@ export default function Sidebar({
                       />
                     </>
                   )}
-                  {upcoming && (
-                    <div className="deadline-card mt-3">
-                      <span className="deadline-ribbon" aria-hidden="true" />
-                      <div className="deadline-kicker">Ближайший дедлайн</div>
-                      <div className="serif deadline-title">{upcoming.title || "Задание"}</div>
-                      <div className="deadline-when">{formatDeadline(upcoming.deadline)}</div>
+                  {showWeekStack ? (
+                    <div className="mt-3">
+                      <WeekSide
+                        week={weekSide}
+                        deadline={upcoming ? { title: upcoming.title || "Задание", when: formatDeadline(upcoming.deadline) } : null}
+                      />
                     </div>
-                  )}
+                  ) : deadlineCard ? (
+                    <div className="mt-3">{deadlineCard}</div>
+                  ) : null}
                 </>
               ) : (
                 <>

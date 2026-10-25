@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import AddToTrackerButton from "@/features/submissions/AddToTrackerButton";
 import WeekCallNote from "@/components/WeekCallNote";
 import { DEADLINE_BANNER_LIMIT, deadlineMoreLabel } from "@/components/deadlineBanner";
+import { formatWeeklyDate, moscowToday, pickWeekly } from "@/features/weekly/schedule";
 
 function parseDeadline(value: string): Date | null {
   const text = value.trim();
@@ -35,13 +36,17 @@ export default async function StudioBanners({
   studentId: string;
   basePath: string;
 }) {
-  const [tasks, calls, submissions] = await Promise.all([
+  const [tasks, calls, submissions, weeklyTasks] = await Promise.all([
     prisma.task.findMany({
       where: { studentId, deadline: { not: null } },
       select: { id: true, title: true, deadline: true },
     }),
     prisma.openCall.findMany({ where: { studentId }, orderBy: { order: "asc" } }),
     prisma.submission.findMany({ where: { studentId }, select: { target: true, openCallId: true } }),
+    prisma.weeklyTask.findMany({
+      select: { id: true, publishedOn: true, title: true },
+      orderBy: { sortOrder: "asc" },
+    }),
   ]);
 
   const today = new Date();
@@ -59,7 +64,8 @@ export default async function StudioBanners({
     .filter((row): row is { call: (typeof calls)[number]; date: Date } => row.date != null && daysUntil(row.date) >= 0)
     .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
 
-  if (upcoming.length === 0 && !nearest) return null;
+  const weekly = pickWeekly(weeklyTasks, moscowToday()).current;
+  if (upcoming.length === 0 && !nearest && !weekly) return null;
 
   const nearestTarget = nearest?.call.target.trim().toLowerCase() ?? "";
   const inTracker = nearest
@@ -117,6 +123,13 @@ export default async function StudioBanners({
             </>
           }
         />
+      )}
+      {weekly && (
+        <Link href={`${basePath}/weekly`} className="banner-week">
+          <span className="banner-week-label">Задание недели</span>
+          <span className="banner-week-title">{weekly.title.trim() || "Задание недели"}</span>
+          <span className="banner-week-when">{formatWeeklyDate(weekly.publishedOn)}</span>
+        </Link>
       )}
     </div>
   );

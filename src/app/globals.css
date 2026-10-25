@@ -362,8 +362,43 @@ textarea.reading,
   .task-card-tools { justify-content: flex-end; }
   .task-title { font-size: 16px; font-weight: 600; }
 }
-.banner-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; align-items: start; }
+.banner-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 20px; align-items: start; }
 .banner-deadlines { border-radius: 22px; background: #F6F6F4; padding: 20px 20px 12px; }
+.banner-week {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--y);
+  color: var(--ink);
+  padding: 12px 16px 14px;
+  text-decoration: none;
+}
+.banner-week-label {
+  display: block;
+  margin: 0;
+  padding-right: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  color: var(--deep);
+}
+.banner-deadlines .banner-week-label { color: var(--muted); letter-spacing: 0.04em; }
+.banner-week-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 4px 0 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--ink);
+}
+.banner-week-when { display: block; margin: 8px 0 0; font-size: 13px; color: var(--ink2); }
 .banner-call {
   position: relative;
   overflow: hidden;
@@ -1118,6 +1153,14 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   padding-right: 22px;
 }
 .deadline-when { font-size: 12px; color: rgba(255, 255, 255, 0.65); margin-top: 5px; }
+.week-side { display: flex; flex-direction: column; gap: 8px; }
+.week-side .banner-week,
+.week-side .week-side-due { padding: 12px 14px 11px; border-radius: 16px; }
+.week-side .banner-week-title { font-size: 14px; font-weight: 650; }
+.week-side .banner-week-when { margin-top: 6px; font-size: 12px; }
+.week-side .banner-call { padding: 12px 14px; border-radius: 16px; }
+.week-side .banner-call-title { font-size: 14px; }
+.week-side .banner-call-actions { margin-top: 8px; }
 .studio-content { flex: 1; min-width: 0; overflow-wrap: break-word; word-break: normal; }
 .mentor-workshops { white-space: nowrap; }
 .mentor-sheet {
