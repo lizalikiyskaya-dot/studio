@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireCabinetAccess } from "@/lib/access";
+import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import type { SynopsisMode } from "@/generated/prisma/client";
+import { isChapterReview, type ChapterReviewValue } from "./chapterReview";
 
 async function attachAct(bookId: string, actId?: string | null) {
   if (actId) {
@@ -80,6 +81,14 @@ export async function updatePlanChapterNumber(
     where: { id: chapterId },
     data: { [field]: Math.max(0, Math.round(value)) },
   });
+}
+
+export async function updatePlanChapterReview(chapterId: string, status: ChapterReviewValue) {
+  if (!isChapterReview(status)) return;
+  const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id: chapterId } });
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
+  await requireMentor(book.studentId);
+  await prisma.planChapter.update({ where: { id: chapterId }, data: { reviewStatus: status } });
 }
 
 export async function updatePlanChapterColor(chapterId: string, color: string | null) {

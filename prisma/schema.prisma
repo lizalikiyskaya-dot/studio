@@ -32,6 +32,15 @@ enum TaskStatus {
   ACCEPTED
 }
 
+// Статус главы в трекере. Ставит наставник, ученик только видит.
+enum ChapterReviewStatus {
+  IN_PROGRESS
+  SUBMITTED
+  IN_REVIEW
+  NEEDS_REVISION
+  ACCEPTED
+}
+
 enum SynopsisMode {
   TEXT
   LINK
@@ -483,6 +492,7 @@ model PlanChapter {
   actBreakAfter    Boolean @default(false)
   actId            String?
   act              Act?    @relation(fields: [actId], references: [id], onDelete: SetNull)
+  reviewStatus     ChapterReviewStatus @default(IN_PROGRESS)
   blocks           StorylineBlock[]
 
   @@index([bookId])

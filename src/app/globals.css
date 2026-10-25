@@ -1728,11 +1728,31 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   font-weight: 650;
   letter-spacing: 0.02em;
 }
+.chapter-list { display: flex; flex-direction: column; gap: 10px; }
 .chapter-card {
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   border-radius: 24px;
   padding: 18px 20px 16px;
-  margin-top: 10px;
+  background: #F6F1EA;
+  transition: background-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+  animation: chapter-card-in 240ms ease both;
+}
+.chapter-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -22px rgba(43, 45, 92, 0.55);
+}
+.chapter-card.is-progress { background: #F6F1EA; }
+.chapter-card.is-almost { background: #F4DDBC; }
+.chapter-card.is-review { background: #E4E7F8; }
+.chapter-card.is-revision { background: #F6DDD8; }
+.chapter-card.is-accepted { background: #D9F3E6; }
+@keyframes chapter-card-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chapter-card { animation: none; transition: none; }
+  .chapter-card:hover { transform: none; }
 }
 .chapter-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .chapter-card-n { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
@@ -1753,8 +1773,8 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   resize: none;
   background: transparent;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-weight: 500;
-  font-size: 26px;
+  font-weight: 650;
+  font-size: 22px;
   letter-spacing: -0.02em;
   line-height: 1.15;
   color: var(--ink);
@@ -1870,17 +1890,37 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
 .chapter-card:hover .act-break,
 .chapter-card:focus-within .act-break,
 .chapter-card .act-break.is-on { opacity: 1; }
-.chapter-card.is-none { background: #F3F1EC; }
-.chapter-card.is-work { background: #E6ECFF; }
-.chapter-card.is-almost { background: #FFF1B8; }
-.chapter-card.is-done { background: #D5F3E7; }
 .chapter-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; color: var(--ink2); font-size: 13px; }
 .chapter-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .chapter-legend i { width: 10px; height: 10px; border-radius: 99px; display: inline-block; }
-.chapter-legend i.is-none { background: #E4E0D8; }
-.chapter-legend i.is-work { background: #C5D0FF; }
-.chapter-legend i.is-almost { background: #FFD43B; }
-.chapter-legend i.is-done { background: #7DCEA0; }
+.chapter-legend i.is-progress { background: #E6DDD2; }
+.chapter-legend i.is-almost { background: #E8A15A; }
+.chapter-legend i.is-review { background: #8E97D6; }
+.chapter-legend i.is-revision { background: #E09A90; }
+.chapter-legend i.is-accepted { background: #7DCEA0; }
+.chapter-card .chapter-note { margin-top: 6px; }
+.chapter-status.is-progress { background: rgba(255, 255, 255, 0.72); color: var(--ink2); }
+.chapter-status.is-almost { background: rgba(255, 255, 255, 0.72); color: #8A4B12; }
+.chapter-status.is-review { background: rgba(255, 255, 255, 0.72); color: var(--deep); }
+.chapter-status.is-revision { background: rgba(255, 255, 255, 0.72); color: #8B3A32; }
+.chapter-status.is-accepted { background: rgba(255, 255, 255, 0.72); color: #146C43; }
+.chapter-status-select {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  min-width: 132px;
+  padding-right: 26px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 35%, transparent);
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 16px) 55%, calc(100% - 10px) 55%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+.chapter-status-select:focus { outline: none; }
+.chapter-status-select:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
 
 .chapter-layout {
   display: grid;

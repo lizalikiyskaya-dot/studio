@@ -5,14 +5,13 @@ import { siteConfirm } from "@/components/SiteDialog";
 import { useState, useTransition, useRef, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import type { PlanChapter } from "@/generated/prisma/client";
-import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, toggleChapterActBreak, deletePlanChapter } from "./actions";
+import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, updatePlanChapterReview, toggleChapterActBreak, deletePlanChapter } from "./actions";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import { blurOnEnter } from "@/lib/blurOnEnter";
 import { useHeaderAction } from "@/components/headerAction";
-import { formatChars, parseChars, progressKind, progressPercent, type ProgressKind } from "@/features/acts/chapterText";
-import ChapterSide, { type ChapterCommentPreview, type ChapterDeadlineMark, type ChapterWeeklyCard } from "./ChapterSide";
-
-const SANS = "var(--font-sans), Onest, system-ui, sans-serif";
+import { formatChars, parseChars, progressPercent } from "@/features/acts/chapterText";
+import ChapterSide, { type ChapterWeeklyCard } from "./ChapterSide";
+import { CHAPTER_REVIEW, chapterReviewLabel, chapterTone, type ChapterReviewValue } from "./chapterReview";
 
 const PALETTE = ["#E0CBE7", "#E2E9EE", "#E2EADC", "#F0E1E4"];
 
@@ -88,19 +87,13 @@ function ColorPicker({
   );
 }
 
-const LEGEND: { kind: ProgressKind; label: string }[] = [
-  { kind: "none", label: "не начата" },
-  { kind: "work", label: "в работе" },
-  { kind: "almost", label: "почти" },
-  { kind: "done", label: "готова" },
-];
-
-const STATUS_LABEL: Record<ProgressKind, string> = {
-  none: "Не начата",
-  work: "Черновик",
-  almost: "Почти",
-  done: "Принята",
-};
+const TONE_LEGEND = [
+  { tone: "progress", label: "в процессе" },
+  { tone: "almost", label: "почти написана" },
+  { tone: "review", label: "сдана и на проверке" },
+  { tone: "revision", label: "на доработке" },
+  { tone: "accepted", label: "принята" },
+] as const;
 
 function noteIsLong(note: string) {
   const text = note.trim();
@@ -151,8 +144,7 @@ export default function PlanTable({
   initialChapters,
   initialActs,
   suggestions,
-  deadlines = [],
-  comment = null,
+  canReview = false,
   weekly = null,
   weeklyHref = "/dashboard/weekly",
 }: {
@@ -160,8 +152,7 @@ export default function PlanTable({
   initialChapters: PlanChapter[];
   initialActs: ActSlice[];
   suggestions: Record<string, Record<string, string>>;
-  deadlines?: ChapterDeadlineMark[];
-  comment?: ChapterCommentPreview;
+  canReview?: boolean;
   weekly?: ChapterWeeklyCard;
   weeklyHref?: string;
 }) {
@@ -182,6 +173,11 @@ export default function PlanTable({
     const next = Number.isFinite(value) ? value : 0;
     setChapters((prev) => prev.map((c) => (c.id === chapterId ? { ...c, [field]: next } : c)));
     startTransition(() => updatePlanChapterNumber(chapterId, field, next));
+  }
+
+  function handleReview(chapterId: string, status: ChapterReviewValue) {
+    setChapters((prev) => prev.map((c) => (c.id === chapterId ? { ...c, reviewStatus: status } : c)));
+    startTransition(() => updatePlanChapterReview(chapterId, status));
   }
 
   function handleRowColor(chapterId: string, color: string | null) {
@@ -242,17 +238,17 @@ export default function PlanTable({
         </div>
       </section>
 
-      <div className="chapter-legend" aria-label="Прогресс глав" style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center", marginTop: 14 }}>
-        {LEGEND.map((item) => (
-          <span key={item.kind} style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "#555", fontSize: 13, fontFamily: SANS }}>
-            <i style={{ width: 12, height: 12, borderRadius: 99, background: item.kind === "none" ? "#D9D3C7" : item.kind === "work" ? "#6553E8" : item.kind === "almost" ? "#FFD43B" : "#2FB083", display: "inline-block" }} />
+      <div className="chapter-legend" aria-label="Статусы глав">
+        {TONE_LEGEND.map((item) => (
+          <span key={item.tone}>
+            <i className={`is-${item.tone}`} />
             {item.label}
           </span>
         ))}
       </div>
 
-      <div className="chapter-layout">
-        <ChapterSide deadlines={deadlines} comment={comment} weekly={weekly} weeklyHref={weeklyHref} />
+      <div className={weekly ? "chapter-layout" : undefined}>
+        {weekly ? <ChapterSide weekly={weekly} weeklyHref={weeklyHref} /> : null}
         <div className="chapter-main">
           {chapters.length === 0 ? (
             <p className="chapter-empty">Глав пока нет.</p>
@@ -262,61 +258,83 @@ export default function PlanTable({
               return (
                 <section key={group.key}>
                   <div className="chapter-act">{group.label} · {stats.percent}%</div>
-                  <div className="chapter-head" aria-hidden="true">
-                    <span>Глава</span>
-                    <span>Статус</span>
-                    <span>Знаки</span>
-                    <span>Заметки</span>
-                    <span />
-                  </div>
-                  {group.items.map((chapter) => {
-                    const kind = progressKind(chapter.writtenChars, chapter.plannedChars);
+                  <div className="chapter-list">
+                  {group.items.map((chapter, index) => {
+                    const status = chapter.reviewStatus ?? "IN_PROGRESS";
+                    const tone = chapterTone(status, chapter.writtenChars, chapter.plannedChars);
                     const percent = progressPercent(chapter.writtenChars, chapter.plannedChars);
                     const chapterSuggestions = suggestions[chapter.id] ?? {};
                     return (
-                      <article key={chapter.id} className={`chapter-row is-${kind}`}>
-                        <div className="chapter-row-title">
-                          <span className="chapter-card-n">{numbers.get(chapter.id)}</span>
-                          <SuggestableField
-                            model="PlanChapter"
-                            recordId={chapter.id}
-                            field="title"
-                            value={chapter.title}
-                            suggestion={chapterSuggestions.title}
-                            placeholder="Название"
-                            className="chapter-row-name"
-                            ariaLabel="Название главы"
-                          />
+                      <article
+                        key={chapter.id}
+                        className={`chapter-card is-${tone}`}
+                        style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+                      >
+                        <div className="chapter-card-top">
+                          <span className="chapter-card-n">Глава {numbers.get(chapter.id)}</span>
+                          {canReview ? (
+                            <select
+                              className={`chapter-status chapter-status-select is-${tone}`}
+                              value={status}
+                              aria-label="Статус главы"
+                              onChange={(event) => {
+                                const next = event.target.value;
+                                if (next === "IN_PROGRESS" || next === "SUBMITTED" || next === "IN_REVIEW" || next === "NEEDS_REVISION" || next === "ACCEPTED") {
+                                  handleReview(chapter.id, next);
+                                }
+                              }}
+                            >
+                              {CHAPTER_REVIEW.map((item) => (
+                                <option key={item.value} value={item.value}>{item.label}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className={`chapter-status is-${tone}`}>{chapterReviewLabel(status)}</span>
+                          )}
                         </div>
-                        <div className={`chapter-status is-${kind}`}>{STATUS_LABEL[kind]}</div>
-                        <div className="chapter-row-chars">
-                          <input
-                            key={`${chapter.id}-w-${chapter.writtenChars}`}
-                            defaultValue={formatChars(chapter.writtenChars)}
-                            onBlur={(e) => handleNumber(chapter.id, "writtenChars", parseChars(e.target.value))}
-                            onKeyDown={blurOnEnter}
-                            inputMode="numeric"
-                            aria-label="Написано знаков"
-                            placeholder="0"
-                            className="chapter-num"
-                            size={Math.max(1, formatChars(chapter.writtenChars).length)}
-                          />
-                          <span aria-hidden="true">/</span>
-                          <input
-                            key={`${chapter.id}-p-${chapter.plannedChars}`}
-                            defaultValue={formatChars(chapter.plannedChars)}
-                            onBlur={(e) => handleNumber(chapter.id, "plannedChars", parseChars(e.target.value))}
-                            onKeyDown={blurOnEnter}
-                            inputMode="numeric"
-                            aria-label="План знаков"
-                            placeholder="0"
-                            className="chapter-num"
-                            size={Math.max(1, formatChars(chapter.plannedChars).length)}
-                          />
-                          <span className="chapter-pct">{chapter.plannedChars > 0 ? `${percent}%` : "—"}</span>
-                        </div>
+                        <SuggestableField
+                          model="PlanChapter"
+                          recordId={chapter.id}
+                          field="title"
+                          value={chapter.title}
+                          suggestion={chapterSuggestions.title}
+                          placeholder="Название"
+                          className="chapter-card-title"
+                          ariaLabel="Название главы"
+                        />
                         <ChapterNote chapter={chapter} suggestion={chapterSuggestions.note} />
-                        <div className="chapter-row-tools">
+                        <div className="chapter-card-foot">
+                          <div className="chapter-card-figures">
+                            <input
+                              key={`${chapter.id}-w-${chapter.writtenChars}`}
+                              defaultValue={formatChars(chapter.writtenChars)}
+                              onBlur={(e) => handleNumber(chapter.id, "writtenChars", parseChars(e.target.value))}
+                              onKeyDown={blurOnEnter}
+                              inputMode="numeric"
+                              aria-label="Написано знаков"
+                              placeholder="0"
+                              className="chapter-num"
+                              size={Math.max(1, formatChars(chapter.writtenChars).length)}
+                            />
+                            <span aria-hidden="true">/</span>
+                            <input
+                              key={`${chapter.id}-p-${chapter.plannedChars}`}
+                              defaultValue={formatChars(chapter.plannedChars)}
+                              onBlur={(e) => handleNumber(chapter.id, "plannedChars", parseChars(e.target.value))}
+                              onKeyDown={blurOnEnter}
+                              inputMode="numeric"
+                              aria-label="План знаков"
+                              placeholder="0"
+                              className="chapter-num"
+                              size={Math.max(1, formatChars(chapter.plannedChars).length)}
+                            />
+                            <span className="chapter-pct">{chapter.plannedChars > 0 ? `${percent}%` : "—"}</span>
+                          </div>
+                          <div className="chapter-mini-track" aria-hidden="true">
+                            <i style={{ width: `${Math.min(100, percent)}%` }} />
+                          </div>
+                        </div>
+                        <div className="chapter-card-tools">
                           <ColorPicker
                             current={chapter.color ?? null}
                             onChange={(color) => handleRowColor(chapter.id, color)}
@@ -341,6 +359,7 @@ export default function PlanTable({
                       </article>
                     );
                   })}
+                  </div>
                 </section>
               );
             })
