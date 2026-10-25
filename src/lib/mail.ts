@@ -38,8 +38,8 @@ export function appUrl(): string {
   return (process.env.APP_URL ?? "https://studio.lizalikiyskaya.ru").replace(/\/+$/, "");
 }
 
-let cached: Transporter | null = null;
-let opening: Promise<Transporter | null> | null = null;
+let cached: MailTransport | null = null;
+let opening: Promise<MailTransport | null> | null = null;
 
 /**
  * Куда стучаться в SMTP. Nodemailer сам выбирает случайный адрес из A и AAAA.
@@ -65,7 +65,7 @@ async function resolveIpv4Smtp(hostname: string): Promise<{ host: string; server
 
 async function transporter(): Promise<MailTransport | null> {
   if (transportOverride !== undefined) return transportOverride;
-  if (!mailConfigured()) return null;
+  if (!sourceOverride && !mailConfigured()) return null;
   if (cached) return cached;
   if (!opening) {
     opening = openTransport().finally(() => {
@@ -75,7 +75,23 @@ async function transporter(): Promise<MailTransport | null> {
   return opening;
 }
 
-async function openTransport(): Promise<Transporter | null> {
+function dropCachedTransport() {
+  const stale = cached as (MailTransport & { close?: () => void }) | null;
+  cached = null;
+  opening = null;
+  try {
+    stale?.close?.();
+  } catch {
+    // Мёртвый сокет не должен мешать новой попытке.
+  }
+}
+
+async function openTransport(): Promise<MailTransport | null> {
+  if (sourceOverride) {
+    const transport = await sourceOverride();
+    cached = transport;
+    return transport;
+  }
   const name = process.env.SMTP_HOST?.trim() || "";
   const port = Number(process.env.SMTP_PORT ?? 587);
   const picked = await resolveIpv4Smtp(name);
@@ -89,6 +105,17 @@ async function openTransport(): Promise<Transporter | null> {
   });
   cached = transport;
   return transport;
+}
+
+/** Обрыв и таймаут соединения. Отказ сервера из-за адреса получателя сюда не входит. */
+export function isRetryableMailError(error: unknown): boolean {
+  const message = (error instanceof Error ? error.message : String(error)).toLowerCase();
+  const code = String((error as { code?: string }).code ?? "").toLowerCase();
+  const responseCode = (error as { responseCode?: number }).responseCode;
+  if (typeof responseCode === "number" && responseCode >= 400 && responseCode < 500) return false;
+  return /timeout|etimedout|econnreset|econnrefused|econnection|esocket|ehostunreach|enetunreach|epipe|socket hang up|connection closed|greeting never received/.test(
+    `${code} ${message}`,
+  );
 }
 
 export type MailInput = {
@@ -113,9 +140,22 @@ type MailTransport = Pick<Transporter, "sendMail">;
 
 /** Только для тестов. null — SMTP нет. undefined — смотреть окружение. */
 let transportOverride: MailTransport | null | undefined;
+let sourceOverride: (() => Promise<MailTransport | null>) | null = null;
+let recordOverride: ((input: MailInput, status: "sent" | "failed", error: string | null) => Promise<void>) | null = null;
 
 export function setMailTransportForTests(transport: MailTransport | null | undefined) {
   transportOverride = transport;
+}
+
+export function setMailTransportSourceForTests(source: (() => Promise<MailTransport | null>) | null) {
+  sourceOverride = source;
+  dropCachedTransport();
+}
+
+export function setEmailLogForTests(
+  record: ((input: MailInput, status: "sent" | "failed", error: string | null) => Promise<void>) | null,
+) {
+  recordOverride = record;
 }
 
 function clip(value: string, max: number): string {
@@ -132,6 +172,10 @@ function errorText(error: unknown): string {
 
 /** Журнал не должен ронять отправку: если таблица ещё не создана, письмо всё равно пытаемся отправить. */
 async function recordEmailAttempt(input: MailInput, status: "sent" | "failed", error: string | null) {
+  if (recordOverride) {
+    await recordOverride(input, status, error);
+    return;
+  }
   try {
     await prisma.emailLog.create({
       data: {
@@ -154,8 +198,20 @@ async function recordEmailAttempt(input: MailInput, status: "sent" | "failed", e
  * нельзя ронять регистрацию или сохранение текста. Возвращает, ушло ли.
  * Каждая попытка пишется в EmailLog, и удачная, и нет.
  */
+async function dispatch(tx: MailTransport, input: MailInput, from: string, replyTo: string | undefined) {
+  await tx.sendMail({
+    from,
+    replyTo,
+    to: input.to,
+    subject: input.subject,
+    text: input.text ?? htmlToText(input.html),
+    html: input.html,
+    headers: input.listUnsubscribe ? { "List-Unsubscribe": `<${input.listUnsubscribe}>` } : undefined,
+  });
+}
+
 export async function sendMail(input: MailInput): Promise<boolean> {
-  const { to, subject, html, text } = input;
+  const { to, subject } = input;
   const tx = await transporter();
   if (!tx) {
     console.warn("[mail] SMTP не настроен, письмо не отправлено:", subject, "→", to);
@@ -167,22 +223,32 @@ export async function sendMail(input: MailInput): Promise<boolean> {
     ? { from: input.from, replyTo: input.replyTo }
     : envelopeFrom(stored, mailFrom());
   try {
-    await tx.sendMail({
-      from: envelope.from,
-      replyTo: envelope.replyTo,
-      to,
-      subject,
-      text: text ?? htmlToText(html),
-      html,
-      headers: input.listUnsubscribe ? { "List-Unsubscribe": `<${input.listUnsubscribe}>` } : undefined,
-    });
-    await recordEmailAttempt(input, "sent", null);
-    return true;
+    await dispatch(tx, input, envelope.from, envelope.replyTo);
   } catch (error) {
-    console.error("[mail] не удалось отправить письмо:", subject, "→", to, errorText(error));
-    await recordEmailAttempt(input, "failed", errorText(error));
-    return false;
+    const retry = transportOverride === undefined && isRetryableMailError(error);
+    if (!retry) {
+      console.error("[mail] не удалось отправить письмо:", subject, "→", to, errorText(error));
+      await recordEmailAttempt(input, "failed", errorText(error));
+      return false;
+    }
+    dropCachedTransport();
+    console.error("[mail] соединение оборвалось, повторяю один раз:", subject, "→", to, errorText(error));
+    const fresh = await transporter();
+    if (!fresh || fresh === tx) {
+      await recordEmailAttempt(input, "failed", errorText(error));
+      return false;
+    }
+    try {
+      await dispatch(fresh, input, envelope.from, envelope.replyTo);
+    } catch (retryError) {
+      if (isRetryableMailError(retryError)) dropCachedTransport();
+      console.error("[mail] не удалось отправить письмо:", subject, "→", to, errorText(retryError));
+      await recordEmailAttempt(input, "failed", errorText(retryError));
+      return false;
+    }
   }
+  await recordEmailAttempt(input, "sent", null);
+  return true;
 }
 
 function decodeEntities(value: string): string {
