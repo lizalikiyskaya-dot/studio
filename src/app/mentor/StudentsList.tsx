@@ -208,6 +208,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
         <p className="text-[14px] mb-4" style={{ color: "var(--muted)" }}>Никого не нашли. Список учеников на месте — измените запрос.</p>
       )}
 
+      <div className="mentor-students">
       <div className="sheet mentor-sheet">
         <div className="mentor-grid">
         <div className="mentor-row mentor-head" role="row">
@@ -218,7 +219,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
           <div className="mentor-h-pay">День оплаты</div>
           <div>В сети</div>
           <div className="mentor-h-ws">Мастерские</div>
-          <div>Кабинет</div>
+          <div className="mentor-h-cabinet">Кабинет</div>
           <div />
         </div>
         {visible.map((s) => {
@@ -244,7 +245,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                 bookUnlocked={s.bookWorkshopUnlocked}
                 storyUnlocked={s.storyWorkshopUnlocked}
               />
-              <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" size="sm" pill title="Открыть кабинет" className="!h-8 !px-3 !text-[12.5px]">
+              <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" size="sm" pill title="Открыть кабинет" className="mentor-open !h-8 !px-3 !text-[12.5px]">
                 Открыть кабинет
               </LinkButton>
               <DeleteButton onClick={() => handleDelete(s.id)} />
@@ -295,8 +296,8 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                 </div>
                 <PresenceIndicator lastSeenAt={s.lastSeenAt} />
               </div>
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" size="sm" pill title="Открыть кабинет">
+              <div className="mentor-card-actions">
+                <LinkButton href={`/student-view/${s.id}/tasks`} variant="neutral" size="sm" pill title="Открыть кабинет" className="mentor-open">
                   Открыть кабинет
                 </LinkButton>
                 <DeleteButton onClick={() => handleDelete(s.id)} />
@@ -304,6 +305,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
             </article>
           );
         })}
+      </div>
       </div>
     </div>
   );

@@ -140,6 +140,7 @@ export default async function MentorPage() {
         </div>
       </div>
 
+      <div className="mentor-home-wrap">
       <div className="mentor-home">
         <StudentsList initialStudents={studentsWithBeacons} />
         <aside className="mentor-side">
@@ -200,6 +201,7 @@ export default async function MentorPage() {
             )}
           </section>
         </aside>
+      </div>
       </div>
     </div>
   );
