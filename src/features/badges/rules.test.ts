@@ -24,8 +24,10 @@ test("в справочнике свои рисунки и нет двух од�
   assert.ok(BADGES.length <= 45);
   for (const badge of BADGES) {
     assert.equal(badge.image, `/badges/${badge.id}.png`);
+    assert.equal(badge.hint, badge.hintFormal);
     assert.equal(badge.hint.includes("сдала"), false);
-    assert.equal(badge.hintFormal.includes("сдала"), false);
+    assert.equal(/(^|[^А-Яа-яЁё])(ты|тебе|тебя|твой|твоя)([^А-Яа-яЁё]|$)/.test(badge.hint), false);
+    assert.equal(/^(Сдай|Набери|Дождись|Прими|Заверши|Держи|Отправь|Получи) /.test(badge.hint), false);
   }
 });
 
@@ -35,20 +37,16 @@ test("уровни значков совпадают со ступенями а�
   }
 });
 
-test("Виктории в подсказке «Вы» и множественное наклонение", () => {
+test("подсказка значка одна для всех: «Вы» и множественное наклонение", () => {
   const page = BADGES.find((badge) => badge.id === "first-page");
   const chapter = BADGES.find((badge) => badge.id === "first-chapter");
   const level = BADGES.find((badge) => badge.id === "level-25");
   assert.ok(page && chapter && level);
-  assert.match(hintFor(page, false), /^Сдай /);
-  assert.match(hintFor(page, true), /^Сдайте /);
-  assert.match(hintFor(chapter, false), /Дождись/);
-  assert.match(hintFor(chapter, true), /Дождитесь/);
-  assert.match(hintFor(level, false), /Набери 25/);
-  assert.match(hintFor(level, true), /Наберите 25/);
-  assert.match(galleryLead(false), /уже твой/);
-  assert.match(galleryLead(true), /уже Ваш/);
-  assert.equal(galleryLead(true).includes("твоя"), false);
+  assert.equal(hintFor(page), "Сдайте первое основное задание.");
+  assert.equal(hintFor(chapter), "Дождитесь статуса «принята» у первой главы.");
+  assert.equal(hintFor(level), "Наберите 25 звёзд в «заработано» — статус «Рассказчик».");
+  assert.equal(galleryLead(), "Цветной значок уже Ваш. Серый ещё можно получить: под ним написано, что для этого нужно.");
+  assert.equal(galleryLead().includes("твой"), false);
 });
 
 test("номер 1 не цепляет методички 10 и 19-1", () => {
@@ -95,10 +93,10 @@ test("журнал остаётся конкурсом, издательство
   assert.ok(contest && publisher);
   assert.equal(contest.section, "contest");
   assert.equal(publisher.section, "contest");
-  assert.equal(hintFor(contest, false), "Дождись статуса «принято» на конкурсе или в журнале.");
-  assert.equal(hintFor(contest, true), "Дождитесь статуса «принято» на конкурсе или в журнале.");
-  assert.equal(hintFor(publisher, false), "Дождись статуса «принято» в издательстве.");
-  assert.equal(hintFor(publisher, true), "Дождитесь статуса «принято» в издательстве.");
+  assert.equal(contest.title, "Публикация");
+  assert.equal(publisher.title, "Контракт");
+  assert.equal(hintFor(contest), "Получите публикацию в журнале или победу на конкурсе.");
+  assert.equal(hintFor(publisher), "Получите контракт с издательством.");
 
   const journal = emptyBadgeFacts();
   journal.contestAccepted = true;

@@ -18,7 +18,6 @@ export type BadgeView = {
 export type BadgeCabinet = {
   ready: boolean;
   studentName: string;
-  formal: boolean;
   lead: string;
   line: string;
   openCount: number;

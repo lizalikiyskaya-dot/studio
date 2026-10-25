@@ -38,7 +38,12 @@ test("справочник в одном файле, выдача прошлых
   assert.match(publisherSql, /'publisher-yes'/);
   assert.match(publisherSql, /type = 'PUBLISHER' AND status = 'ACCEPTED'/);
   assert.match(publisherSql, /ON CONFLICT \("studentId", "badgeId"\) DO NOTHING/);
-  assert.match(publisherSql, /на конкурсе или в журнале/);
+  assert.match(publisherSql, /Получите публикацию в журнале или победу на конкурсе/);
+  assert.match(publisherSql, /Получите контракт с издательством/);
+  assert.equal(publisherSql.includes("Получи "), false);
+  assert.match(publisherSql, /SET hint = "hintFormal"/);
+  assert.match(publisherSql, /title = 'Публикация'/);
+  assert.match(publisherSql, /title = 'Контракт'/);
   assert.equal(publisherSql.includes("DELETE"), false);
   assert.equal(backfillSql.includes("ten-thousand"), false);
   assert.equal(backfillSql.includes("second-draft"), false);

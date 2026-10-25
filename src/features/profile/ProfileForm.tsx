@@ -164,7 +164,7 @@ export default function ProfileForm({
             onClick={() => avatarInputRef.current?.click()}
             className="rounded-full flex-shrink-0 overflow-hidden"
             style={{ width: 64, height: 64, background: "var(--accent-soft)", position: "relative" }}
-            title="Нажми для загрузки фото"
+            title="Нажмите для загрузки фото"
           >
             {avatarUrl ? (
               <img src={avatarUrl} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -208,7 +208,7 @@ export default function ProfileForm({
       {/* Name */}
       <div className={sectionCls}>
         <div className="text-[14px] font-semibold mb-3" style={{ color: "var(--ink)" }}>Имя</div>
-        <label className={labelCls} style={labelStyle}>Как тебя зовут</label>
+        <label className={labelCls} style={labelStyle}>Как Вас зовут</label>
         <div className="flex gap-2">
           <input
             value={name}

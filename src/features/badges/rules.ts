@@ -140,15 +140,13 @@ export function badgeProgress(id: string, facts: BadgeFacts): { current: number;
   return { current: Math.max(0, Math.min(raw, total)), total };
 }
 
-export function hintFor(badge: { hint: string; hintFormal: string }, formal: boolean): string {
-  return formal ? badge.hintFormal : badge.hint;
+/** На сайте у всех учеников одна подсказка. Колонка hintFormal — вежливое «Вы». */
+export function hintFor(badge: { hint: string; hintFormal: string }): string {
+  return badge.hintFormal || badge.hint;
 }
 
-export function galleryLead(formal: boolean): string {
-  if (formal) {
-    return "Цветной значок уже Ваш. Серый ещё можно получить: под ним написано, что для этого нужно.";
-  }
-  return "Цветной значок уже твой. Серый ещё можно получить: под ним написано, что для этого нужно.";
+export function galleryLead(): string {
+  return "Цветной значок уже Ваш. Серый ещё можно получить: под ним написано, что для этого нужно.";
 }
 
 export function widgetLine(open: number): string {
@@ -176,7 +174,7 @@ export function guideBadgeCopy(title: string): { title: string; hint: string; hi
   const name = title.replace(/\s+/g, " ").trim().slice(0, 80) || "Новая методичка";
   return {
     title: name,
-    hint: `Прими задание по методичке «${name}».`,
+    hint: `Примите задание по методичке «${name}».`,
     hintFormal: `Примите задание по методичке «${name}».`,
   };
 }
