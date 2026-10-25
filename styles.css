@@ -33,7 +33,7 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; background-color: #e6ecff; }
 html, body { margin: 0; }
 body {
   background-color: #e6ecff;
@@ -154,8 +154,10 @@ h1, h2, h3 { text-wrap: balance; }
   color: var(--ink);
   text-decoration: none;
   white-space: nowrap;
+  transition: color .18s ease, opacity .18s ease;
 }
 .topnav nav a:hover { color: var(--link); }
+.topnav nav a:active { opacity: .72; }
 .nav-cta {
   flex-shrink: 0;
   font-size: 14px;
@@ -166,8 +168,10 @@ h1, h2, h3 { text-wrap: balance; }
   color: var(--ink);
   text-decoration: none;
   white-space: nowrap;
+  transition: background-color .18s ease, color .18s ease, transform .18s ease;
 }
 .nav-cta:hover { background: #fff; color: var(--ink); }
+.nav-cta:active { transform: scale(.98); }
 
 .btn-pill {
   display: inline-flex;
@@ -827,13 +831,13 @@ h1, h2, h3 { text-wrap: balance; }
   border-right: 2px solid var(--ink);
   border-bottom: 2px solid var(--ink);
   transform: rotate(45deg) translateY(-2px);
-  transition: transform .25s ease;
+  transition: transform .22s ease;
 }
 .faq details[open] summary::after { transform: rotate(225deg) translateY(-2px); }
 .faq-a {
   display: grid;
   grid-template-rows: 1fr;
-  transition: grid-template-rows .35s ease;
+  transition: grid-template-rows .28s ease;
 }
 .faq-a > p {
   min-height: 0;
@@ -945,6 +949,7 @@ textarea { resize: vertical; min-height: 96px; }
 .site-foot a { color: var(--link); }
 
 /* политика */
+.band, #policy { scroll-margin-top: 80px; }
 .legal { padding: clamp(28px, 5vw, 64px) 0 clamp(48px, 8vw, 96px); }
 .legal .back { display: inline-block; margin-bottom: 22px; font-weight: 600; text-decoration: none; }
 .legal h1 { margin-bottom: 8px; }
@@ -1111,8 +1116,8 @@ html.motion .steps.timeline { --draw: 0; }
 .step-note { font-size: 14.5px; color: var(--ink2); }
 html.motion .steps.timeline .step.reveal {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity .55s ease, transform .55s ease;
+  transform: translateY(12px);
+  transition: opacity .28s ease, transform .28s ease;
 }
 html.motion .steps.timeline .step.reveal.in {
   opacity: 1;
@@ -1383,8 +1388,8 @@ html.motion .steps.timeline .step.in .num {
 
 html.motion .reveal {
   opacity: 0;
-  transform: translateY(14px);
-  transition: opacity .5s ease, transform .5s ease;
+  transform: translateY(10px);
+  transition: opacity .28s ease, transform .28s ease, box-shadow .22s ease;
 }
 html.motion .reveal.in {
   opacity: 1;
@@ -1392,7 +1397,7 @@ html.motion .reveal.in {
 }
 @media (max-width: 760px) {
   .blob { animation: none; filter: blur(28px); opacity: .38; }
-  html.motion .reveal { transform: translateY(8px); transition-duration: .35s; }
+  html.motion .reveal { transform: translateY(8px); transition-duration: .24s; }
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -1405,10 +1410,60 @@ html.motion .reveal.in {
   transform: perspective(900px) rotateX(var(--ty, 0deg)) rotateY(var(--tx, 0deg));
   transition: transform .18s ease, box-shadow .25s ease;
 }
-html.motion .reveal[data-tilt] { transition: opacity .5s ease, transform .5s ease, box-shadow .25s ease; }
+html.motion .reveal[data-tilt] { transition: opacity .28s ease, transform .28s ease, box-shadow .22s ease; }
 html.motion .reveal[data-tilt].in { transform: perspective(900px) rotateX(var(--ty, 0deg)) rotateY(var(--tx, 0deg)); }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes veil {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .wordmark { view-transition-name: site-wordmark; }
+  ::view-transition-old(root) { animation: vt-out 200ms ease both; }
+  ::view-transition-new(root) { animation: vt-in 240ms ease both; }
+  ::view-transition-old(site-wordmark),
+  ::view-transition-new(site-wordmark) {
+    animation-duration: 180ms;
+    animation-timing-function: ease;
+  }
+
+  html:not(.from-nav) .hero-copy > * { animation: rise 220ms ease backwards; }
+  html:not(.from-nav) .hero-copy > :nth-child(2) { animation-delay: 30ms; }
+  html:not(.from-nav) .hero-copy > :nth-child(3) { animation-delay: 55ms; }
+  html:not(.from-nav) .hero-copy > :nth-child(4) { animation-delay: 80ms; }
+  html:not(.from-nav) .hero-copy > :nth-child(5) { animation-delay: 100ms; }
+  html:not(.from-nav) .hero-copy > :nth-child(6) { animation-delay: 120ms; }
+  html:not(.from-nav) .hero-copy > :nth-child(7) { animation-delay: 140ms; }
+  html:not(.from-nav) .stage { animation: rise 240ms ease 110ms backwards; }
+  html:not(.from-nav) .legal { animation: rise 240ms ease backwards; }
+
+  .form-dialog[open] { animation: rise 220ms ease backwards; }
+  .form-dialog[open]::backdrop { animation: veil 200ms ease backwards; }
+  .btn-pill:active { transform: translateY(0) scale(.985); }
+  .dialog-close,
+  .legal .back,
+  .site-foot a { transition: color .18s ease, background-color .18s ease, opacity .18s ease; }
+  .dialog-close:active { transform: scale(.98); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .blob, .blob-a, .blob-b, .who2, .eks { animation: none; }
-  .shot img, .faq-a, .faq summary::after, .topnav, .topnav .wrap { transition: none; }
+  .shot img, .faq-a, .faq summary::after, .topnav, .topnav .wrap,
+  .topnav nav a, .nav-cta, .dialog-close, .legal .back, .site-foot a { transition: none; }
+  .nav-cta:active, .btn-pill:active, .dialog-close:active { transform: none; }
+  .wordmark { view-transition-name: none; }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none; }
 }
