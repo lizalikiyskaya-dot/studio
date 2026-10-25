@@ -6,6 +6,7 @@ import { requireCabinetAccess } from "@/lib/access";
 import { isTaskStatus } from "./status";
 import type { TaskStatus } from "@/generated/prisma/client";
 import { awardStars } from "@/features/stars/award";
+import { creditStreakWeek } from "@/features/streak/credit";
 import { mainTaskAwardsStars } from "@/features/stars/rules";
 
 export async function createTask(studentId: string) {
@@ -72,6 +73,9 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
   if (task.status === status) return status;
   await prisma.task.update({ where: { id: taskId }, data: { status } });
   // 3 звёзды один раз: сдача на проверку или «принято». Повтор и «на доработке» не удваивают.
-  if (mainTaskAwardsStars(status)) await awardStars(task.studentId, "MAIN_TASK", task.id);
+  if (mainTaskAwardsStars(status)) {
+    await awardStars(task.studentId, "MAIN_TASK", task.id);
+    await creditStreakWeek(task.studentId);
+  }
   return status;
 }

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
 import { awardStars, starTotal } from "@/features/stars/award";
+import { creditStreakWeek } from "@/features/streak/credit";
 import { moscowToday, pickWeekly } from "./schedule";
 
 const MAX_TEXT = 20_000;
@@ -27,11 +28,16 @@ export async function submitWeeklyTask(
     return { error: "Сейчас это задание сдать нельзя." };
   }
 
+  const existing = await prisma.weeklySubmission.findUnique({
+    where: { studentId_weeklyTaskId: { studentId, weeklyTaskId } },
+    select: { id: true },
+  });
   await prisma.weeklySubmission.upsert({
     where: { studentId_weeklyTaskId: { studentId, weeklyTaskId } },
     create: { studentId, weeklyTaskId, text: trimmed },
     update: { text: trimmed },
   });
+  if (!existing) await creditStreakWeek(studentId);
 
   // 2 звёзды один раз на неделю. Повторная сдача обновляет текст и сюда не добавляет очки.
   // Письмо наставнику и субботняя рассылка отсюда не уходят.

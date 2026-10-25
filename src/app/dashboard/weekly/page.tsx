@@ -15,6 +15,7 @@ export default async function Page() {
       tasks={data.tasks}
       submissions={data.submissions}
       account={data.account}
+      streak={data.streak}
       today={data.today}
     />
   );

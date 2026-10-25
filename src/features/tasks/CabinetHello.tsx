@@ -1,5 +1,6 @@
 import Mark from "@/components/Mark";
 import StarsStatus, { type StarPlaque } from "@/features/stars/StarsStatus";
+import type { StreakPlaque } from "@/features/streak/weeks";
 import type { Task } from "@/generated/prisma/client";
 
 function ru(n: number, one: string, few: string, many: string) {
@@ -30,6 +31,7 @@ export default function CabinetHello({
   tasks,
   studentId,
   stars,
+  streak,
   playStars,
   basePath,
 }: {
@@ -37,6 +39,7 @@ export default function CabinetHello({
   tasks: Task[];
   studentId: string;
   stars: StarPlaque;
+  streak: StreakPlaque;
   playStars: boolean;
   basePath: string;
 }) {
@@ -75,7 +78,14 @@ export default function CabinetHello({
           Принято · {accepted}
         </span>
       </div>
-      <StarsStatus studentId={studentId} account={stars} play={playStars} href={`${basePath}/weekly`} />
+      <StarsStatus
+        studentId={studentId}
+        account={stars}
+        streak={streak}
+        play={playStars}
+        markVacation={!playStars}
+        href={`${basePath}/weekly`}
+      />
     </section>
   );
 }

@@ -7,6 +7,8 @@ import StarsHelp from "./StarsHelp";
 import { AUTHOR_RANKS, rankForStars, rankProgressLine, starsLabel } from "./rules";
 import { unseenStarBeats, type StarBeat } from "./reveal";
 import { readSeenStars, writeSeenStars } from "./seenStars";
+import StreakStrip from "@/features/streak/StreakStrip";
+import type { StreakPlaque } from "@/features/streak/weeks";
 
 const BEAT_MS = 1000;
 const REVEAL_AT = 0.5;
@@ -24,12 +26,16 @@ function prefersStill(): boolean {
 export default function StarsStatus({
   studentId,
   account,
+  streak,
   play,
+  markVacation,
   href,
 }: {
   studentId: string;
   account: StarPlaque;
+  streak: StreakPlaque;
   play: boolean;
+  markVacation: boolean;
   href?: string;
 }) {
   const { earned, balance, earns } = account;
@@ -181,6 +187,7 @@ export default function StarsStatus({
   const state = flight === "level" && revealing ? "reveal" : flight === "gain" || flight === "level" ? "fly" : "idle";
 
   return (
+    <>
     <div
       className="stars-row mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5"
       data-stars-state={state}
@@ -240,5 +247,7 @@ export default function StarsStatus({
         </span>
       ) : null}
     </div>
+    <StreakStrip studentId={studentId} streak={streak} play={play} markVacation={markVacation} />
+    </>
   );
 }

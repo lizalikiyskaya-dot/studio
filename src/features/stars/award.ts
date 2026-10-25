@@ -43,13 +43,18 @@ export async function starTotal(studentId: string): Promise<number> {
 }
 
 /** true, если звёзды начислены сейчас. Повтор того же источника возвращает false. */
-export async function awardStars(studentId: string, kind: StarKindName, sourceId: string): Promise<boolean> {
+export async function awardStars(
+  studentId: string,
+  kind: StarKindName,
+  sourceId: string,
+  points?: number,
+): Promise<boolean> {
   try {
     await prisma.starAward.create({
       data: {
         studentId,
         kind: kind as StarKind,
-        points: STAR_POINTS[kind],
+        points: points ?? STAR_POINTS[kind],
         sourceId,
       },
     });
