@@ -1,4 +1,4 @@
-# Автодеплой лендинга lizalikiyskaya.ru
+# Автодеплой лендинга lizandwriter.ru
 
 Пуш в ветку `site` выкладывает лендинг на тот же VPS, что и студию (`185.139.70.79`). Студия живёт в `/srv/studio/app` и этим деплоем не затрагивается: её workflow `.github/workflows/deploy.yml` запускается только с ветки `main`.
 
@@ -39,13 +39,13 @@ Workflow лендинга: `.github/workflows/deploy-site.yml`. На серве�
 
 ## 1. Узнать корень лендинга
 
-Команды ниже выполняет Михаил, пользователь с `sudo`. Пример в `DEPLOY.md` — `/var/www/likiya`. На сервере путь может быть другим. Берите тот, который указан в `root` у `server_name lizalikiyskaya.ru`.
+Команды ниже выполняет Михаил, пользователь с `sudo`. Пример в `DEPLOY.md` — `/var/www/likiya`. На сервере путь может быть другим. Берите тот, который указан в `root` у `server_name lizandwriter.ru`.
 
 ```bash
 sudo nginx -T | grep -n -E 'server_name|root '
 ```
 
-Найдите блок с `lizalikiyskaya.ru`. Строка `root` — это значение секрета `SITE_PATH`. Дальше в командах оно записано как `SITE_PATH`: подставьте его без слэша в конце.
+Найдите блок с `lizandwriter.ru`. Строка `root` — это значение секрета `SITE_PATH`. Дальше в командах оно записано как `SITE_PATH`: подставьте его без слэша в конце.
 
 Проверка, что это именно лендинг, а не студия:
 
@@ -188,13 +188,13 @@ sudo -u likiya test -w SITE_PATH && sudo -u likiya test -w /var/backups/likiya &
 
 | Имя | Если не задан |
 | --- | --- |
-| `SITE_URL` | проверка идёт на `https://lizalikiyskaya.ru` |
+| `SITE_URL` | проверка идёт на `https://lizandwriter.ru` |
 | `SITE_BACKUP_DIR` | `/var/backups/likiya`, а если он недоступен пользователю — каталог `likiya-backups` рядом с сайтом |
 | `SITE_WEB_GROUP` | пользователь процесса `php-fpm`, иначе `www-data` |
 
 `SITE_SSH_USER` можно не создавать, тогда вход пойдёт под `SSH_USER` (пользователь студии). Так делать не стоит: отдельный `likiya` не является владельцем `/srv/studio/app`.
 
-Секрет `HEALTHCHECK_URL` относится к студии (`https://studio.lizalikiyskaya.ru`). Для лендинга его не используйте и не подменяйте. Адрес лендинга — это `SITE_URL`, и его лучше не задавать вовсе.
+Секрет `HEALTHCHECK_URL` относится к студии (`https://studio.lizandwriter.ru`). Для лендинга его не используйте и не подменяйте. Адрес лендинга — это `SITE_URL`, и его лучше не задавать вовсе.
 
 Не создавайте секрет с паролем админки. Имени `LIZA_ADMIN_PASSWORD` среди секретов GitHub быть не должно.
 
@@ -212,7 +212,7 @@ sudo -u likiya test -w SITE_PATH && sudo -u likiya test -w /var/backups/likiya &
 В запуске одно задание **Deploy site**:
 
 - если секретов не хватает — зелёный пропуск и список имён;
-- иначе проверка скрипта, вход по SSH, бэкап, копирование, проверка `https://lizalikiyskaya.ru`.
+- иначе проверка скрипта, вход по SSH, бэкап, копирование, проверка `https://lizandwriter.ru`.
 
 Успех проверки — ответ `2xx` и на странице есть текст «Лиза Андреенко». Дополнительно в журнале будут коды `GET /save.php` (норма `401` или `405`) и `GET /send.php` (норма `405`). Другой код — жёлтое предупреждение, само задание из-за него не краснеет: файлы уже скопированы, смотрите nginx.
 
@@ -254,7 +254,7 @@ sudo chmod 664 SITE_PATH/assets/content.json SITE_PATH/assets/posts.json
 - **Форма заявки не уходит, в журнале предупреждение про send.php.** Сначала проверьте код, не меняя nginx:
 
 ```bash
-curl -sS -o /dev/null -w '%{http_code}\n' https://lizalikiyskaya.ru/send.php
+curl -sS -o /dev/null -w '%{http_code}\n' https://lizandwriter.ru/send.php
 ```
 
 `405` значит PHP уже отвечает, конфиг трогать не нужно. Другой код: в примере nginx из `DEPLOY.md` есть `location ~ \.php$ { deny all; }`. Он закрывает `send.php`, если для него нет отдельного `location`. Существующий конфиг целиком не заменяйте. В тот же `server`, где уже есть `location = /save.php`, добавьте блок без Basic-Auth и с тем же сокетом, что у `save.php`:
@@ -273,5 +273,5 @@ location = /send.php {
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-- **Проверка с GitHub не открывает сайт, а из браузера он открывается.** Файрвол режет адреса GitHub. Студийный деплой ходит на этот же сервер с тех же адресов; если студия после деплоя открывается, лендинг тоже должен открываться по `https://lizalikiyskaya.ru`.
+- **Проверка с GitHub не открывает сайт, а из браузера он открывается.** Файрвол режет адреса GitHub. Студийный деплой ходит на этот же сервер с тех же адресов; если студия после деплоя открывается, лендинг тоже должен открываться по `https://lizandwriter.ru`.
 - **Нужно вернуть файлы вручную.** Шаг 7. Скрипт сам откатывает каталог из свежего архива только если затёр `content.json`, `posts.json` или удалил `upload_*`.

@@ -11,7 +11,7 @@ header('X-Content-Type-Options: nosniff');
 
 const TO_EMAIL  = 'lizalikiyskaya@gmail.com';
 const FROM_MAIL = 'lizalikiyskaya@gmail.com';
-const FROM_NAME = 'Сайт lizalikiyskaya.ru';
+const FROM_NAME = 'Сайт lizandwriter.ru';
 const MAX_BODY  = 65536;
 const MAX_FIELD = 5000;
 const RATE_MAX  = 5;
@@ -141,7 +141,7 @@ foreach ($rows as $k => $v) {
         .  '<td style="border:1px solid #ececec">' . nl2br(htmlspecialchars($v, ENT_QUOTES, 'UTF-8')) . '</td>'
         .  '</tr>';
 }
-$html .= '</table><p style="color:#6a6a6a;font-size:12px">Отправлено с формы lizalikiyskaya.ru, '
+$html .= '</table><p style="color:#6a6a6a;font-size:12px">Отправлено с формы lizandwriter.ru, '
       .  date('d.m.Y H:i') . ' (время сервера). Кнопка «Ответить» пишет автору, если в заявке есть e-mail.</p>'
       .  '</body></html>';
 

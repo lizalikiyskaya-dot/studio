@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Выкладка лендинга lizalikiyskaya.ru. Запускается по SSH из
+# Выкладка лендинга lizandwriter.ru. Запускается по SSH из
 # .github/workflows/deploy-site.yml.
 #
 # Не читает и не пишет пароли. Не трогает /srv/studio (приложение студии)

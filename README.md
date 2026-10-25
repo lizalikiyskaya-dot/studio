@@ -68,11 +68,11 @@ Telegram или e-mail. Скрипт отсеивает ботов по honeypot
 ## Перед выкладкой
 Почта заявок уже настроена на сервере (`mail()` → msmtp). В коде получатель
 письма — `lizalikiyskaya@gmail.com`, публичный адрес на странице —
-`lizandwriter@gmail.com`. Мета-теги и политика указывают на `lizalikiyskaya.ru`.
+`lizandwriter@gmail.com`. Мета-теги и политика указывают на `lizandwriter.ru`.
 Пуш в `site` выкладывает сайт; этот PR сам в `site` не вливать, пока макет не принят.
 
 ## Деплой
-Сейчас сайт стоит на своём VPS (nginx + php-fpm), домен `lizalikiyskaya.ru`.
+Сейчас сайт стоит на своём VPS (nginx + php-fpm), домен `lizandwriter.ru`.
 Пуш в ветку `site` выкладывает его сам. Одноразовая настройка сервера и секретов:
 [docs/deploy-site.md](docs/deploy-site.md). Как устроены nginx, PHP и пароль админки:
 [DEPLOY.md](DEPLOY.md).

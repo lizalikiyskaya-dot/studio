@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /save.php
 
-Sitemap: https://lizalikiyskaya.ru/sitemap.xml
+Sitemap: https://lizandwriter.ru/sitemap.xml
