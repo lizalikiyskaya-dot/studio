@@ -995,7 +995,11 @@ textarea { resize: vertical; min-height: 96px; }
 
 @media (max-width: 760px) {
   .btn-pill { font-size: 15px; padding: 16px 22px; }
-  .feat.reverse .feat-copy { order: 0; }
+}
+/* Ниже двух колонок у .feat.reverse снимок стоит в разметке раньше текста.
+   order: 0 не меняет этот порядок, и подписи сбиваются со своими кадрами. */
+@media (max-width: 719px) {
+  .feat.reverse .feat-copy { order: -1; }
 }
 
 /* кому подойдёт */
