@@ -24,7 +24,15 @@ function Notice({ ok, text }: { ok: boolean; text: string }) {
   );
 }
 
-export default function QuotesEditor({ quotes: initial, todayId }: { quotes: QuoteRow[]; todayId: string | null }) {
+export default function QuotesEditor({
+  quotes: initial,
+  todayId,
+  tomorrowId = null,
+}: {
+  quotes: QuoteRow[];
+  todayId: string | null;
+  tomorrowId?: string | null;
+}) {
   const router = useRouter();
   const [quotes, setQuotes] = useState(initial);
   const [openId, setOpenId] = useState<string | null>(todayId);
@@ -141,12 +149,13 @@ export default function QuotesEditor({ quotes: initial, todayId }: { quotes: Quo
       </section>
 
       <p className="text-[14px]" style={{ color: "var(--ink2)" }}>
-        В списке {quotes.length}. День по Москве берёт одну строку по этому порядку.
+        В списке {quotes.length}. Сегодняшняя строка закреплена: правка списка не сдвигает день. Завтра берётся следующая.
       </p>
 
       {quotes.map((quote, index) => {
         const open = openId === quote.id;
         const today = quote.id === todayId;
+        const tomorrow = quote.id === tomorrowId && quote.id !== todayId;
         return (
           <article
             key={quote.id}
@@ -160,7 +169,12 @@ export default function QuotesEditor({ quotes: initial, todayId }: { quotes: Quo
               <span className="text-[16px] font-semibold">{quote.author || "Без автора"}</span>
               {today ? (
                 <span className="rounded-full px-2.5 py-0.5 text-[12px] font-medium" style={{ background: "var(--y)", color: "var(--ink)" }}>
-                  сегодня
+                  {todayId === tomorrowId ? "сегодня и завтра" : "сегодня"}
+                </span>
+              ) : null}
+              {tomorrow ? (
+                <span className="rounded-full px-2.5 py-0.5 text-[12px] font-medium" style={{ background: "var(--soft)", color: "var(--ink)" }}>
+                  завтра
                 </span>
               ) : null}
               <span className="ml-auto flex flex-wrap gap-2">
