@@ -35,7 +35,7 @@ function CardBody({
 
   return (
     <div>
-      <div className="flex gap-4 items-start mb-4">
+      <div className="mb-4 flex flex-wrap items-start gap-4">
         <ImageUploadBox
           value={photoUrl}
           shape="circle"
@@ -52,11 +52,11 @@ function CardBody({
           }}
         />
         <div className="flex-1">
-          <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
+          <label className="mb-1 block text-[12.5px]" style={{ color: "var(--muted)" }}>
             Герой / история
           </label>
           {readOnly ? (
-            <p className="heading text-[15px] font-semibold pb-1">{card.hero}</p>
+            <p className="heading text-[15px] font-semibold">{card.hero}</p>
           ) : (
             <SuggestableField
               model="StoryCircleCard"
@@ -66,8 +66,7 @@ function CardBody({
               suggestion={suggestions.hero}
               as="input"
               onSaved={onHeroSaved}
-              className="heading w-full outline-none bg-transparent text-[15px] font-semibold border-b pb-1"
-              style={{ borderColor: "var(--rule)" }}
+              className="fld heading w-full text-[15px] font-semibold"
             />
           )}
         </div>
@@ -82,14 +81,14 @@ function CardBody({
           onMouseEnter={() => setHoverStep(step.n)}
           onMouseLeave={() => setHoverStep(undefined)}
         >
-          <label className="block text-[12.5px] mb-1" style={{ color: "var(--faded)" }}>
-            <span className="heading font-semibold" style={{ color: "var(--link)" }}>
+          <label className="mb-1 block text-[12.5px] leading-snug" style={{ color: "var(--muted)" }}>
+            <span className="heading font-semibold" style={{ color: "var(--ink)" }}>
               {step.n}. {step.short}
             </span>{" "}
             — {step.label}
           </label>
           {readOnly ? (
-            <p className="text-[13.5px] leading-relaxed pb-1 border-b" style={{ borderColor: "var(--rule)" }}>
+            <p className="field-literary rounded-[14px] px-3.5 py-2.5 text-[15.5px] leading-relaxed" style={{ border: "1px solid var(--border)", minHeight: 72 }}>
               {data[step.key] || <span style={{ color: "var(--faded)" }}>—</span>}
             </p>
           ) : (
@@ -99,8 +98,8 @@ function CardBody({
               field={step.key}
               value={data[step.key] ?? ""}
               suggestion={suggestions[step.key]}
-              className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed pb-1 border-b"
-              style={{ borderColor: "var(--rule)" }}
+              className="fld field-literary w-full !h-auto text-[15.5px] leading-relaxed"
+              style={{ minHeight: 72 }}
             />
           )}
         </div>

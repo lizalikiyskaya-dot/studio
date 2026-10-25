@@ -68,10 +68,10 @@ export default function ImageUploadBox({
 
   const frameStyle: React.CSSProperties = {
     color: "var(--faded)",
-    border: preview ? "none" : "1px dashed var(--rule)",
+    border: "1px solid var(--border)",
     borderRadius: shape === "circle" ? "50%" : "inherit",
     overflow: "hidden",
-    backgroundColor: preview ? "#E8E1DC" : "#fff",
+    backgroundColor: preview ? "#E8E1DC" : "var(--soft)",
     backgroundImage: preview ? `url(${preview})` : undefined,
     backgroundSize: "cover",
     backgroundPosition: "center",

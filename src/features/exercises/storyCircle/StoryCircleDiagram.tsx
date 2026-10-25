@@ -13,13 +13,13 @@ const POINTS: { x: number; y: number; labelX: number; labelY: number; anchor: "s
 
 export default function StoryCircleDiagram({ activeStep }: { activeStep?: number }) {
   return (
-    <svg viewBox="-40 -25 420 390" className="w-full max-w-[420px] mx-auto block">
-      <circle cx={170} cy={170} r={125} fill="none" stroke="var(--rule)" strokeWidth={1.5} />
-      <line x1={45} y1={170} x2={295} y2={170} stroke="var(--rule)" strokeWidth={1} strokeDasharray="4 4" />
-      <text x={170} y={166} textAnchor="middle" className="font-mono-label" style={{ fontSize: 8, fill: "var(--faded)" }}>
+    <svg viewBox="-72 -36 484 412" className="mx-auto block w-full max-w-[420px]">
+      <circle cx={170} cy={170} r={125} fill="none" stroke="var(--border)" strokeWidth={1.5} />
+      <line x1={45} y1={170} x2={295} y2={170} stroke="var(--border)" strokeWidth={1} />
+      <text x={170} y={158} textAnchor="middle" style={{ fontSize: 11, fill: "var(--faded)" }}>
         известный мир
       </text>
-      <text x={170} y={180} textAnchor="middle" className="font-mono-label" style={{ fontSize: 8, fill: "var(--faded)" }}>
+      <text x={170} y={188} textAnchor="middle" style={{ fontSize: 11, fill: "var(--faded)" }}>
         неизвестный мир
       </text>
       {STORY_CIRCLE_STEPS.map((step, i) => {
@@ -31,8 +31,8 @@ export default function StoryCircleDiagram({ activeStep }: { activeStep?: number
               cx={p.x}
               cy={p.y}
               r={15}
-              fill={isActive ? "var(--link)" : "var(--bg-card)"}
-              stroke="var(--link)"
+              fill={isActive ? "var(--y)" : "#fff"}
+              stroke={isActive ? "var(--ink)" : "var(--border)"}
               strokeWidth={1.5}
             />
             <text
@@ -40,7 +40,7 @@ export default function StoryCircleDiagram({ activeStep }: { activeStep?: number
               y={p.y + 4}
               textAnchor="middle"
               className="heading"
-              style={{ fontSize: 13, fontWeight: 700, fill: isActive ? "#fff" : "var(--link)" }}
+              style={{ fontSize: 13, fontWeight: 700, fill: "var(--ink)" }}
             >
               {step.n}
             </text>
@@ -48,8 +48,7 @@ export default function StoryCircleDiagram({ activeStep }: { activeStep?: number
               x={p.labelX}
               y={p.labelY}
               textAnchor={p.anchor}
-              className="font-mono-label"
-              style={{ fontSize: 11, fill: "var(--ink-soft)" }}
+              style={{ fontSize: 12, fill: "var(--ink2)" }}
             >
               {step.short}
             </text>

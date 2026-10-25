@@ -47,7 +47,7 @@ function TableSection({
   return (
     <div>
       <div className="flex items-center gap-3 mb-3">
-          <label className="text-[13px]" style={{ color: "var(--faded)" }}>
+          <label className="text-[13px]" style={{ color: "var(--muted)" }}>
             Строк:
           </label>
           <input
@@ -56,10 +56,9 @@ function TableSection({
             defaultValue={grid.length}
             onBlur={(e) => handleResize(Number(e.target.value) || grid.length, grid[0]?.length || 2)}
             onKeyDown={blurOnEnter}
-            className="w-14 text-[13px] px-1.5 py-1 rounded-sm"
-            style={{ border: "1px solid var(--rule)" }}
+            className="fld !h-9 w-16 px-2 text-center text-[13px]"
           />
-          <label className="text-[13px]" style={{ color: "var(--faded)" }}>
+          <label className="text-[13px]" style={{ color: "var(--muted)" }}>
             Столбцов:
           </label>
           <input
@@ -68,8 +67,7 @@ function TableSection({
             defaultValue={grid[0]?.length ?? 2}
             onBlur={(e) => handleResize(grid.length, Number(e.target.value) || grid[0]?.length || 2)}
             onKeyDown={blurOnEnter}
-            className="w-14 text-[13px] px-1.5 py-1 rounded-sm"
-            style={{ border: "1px solid var(--rule)" }}
+            className="fld !h-9 w-16 px-2 text-center text-[13px]"
           />
       </div>
       <div className="overflow-x-auto">
@@ -78,7 +76,7 @@ function TableSection({
             {grid.map((row, ri) => (
               <tr key={ri}>
                 {row.map((cell, ci) => (
-                  <td key={ci} style={{ border: "1px solid var(--rule)" }}>
+                  <td key={ci} style={{ border: "1px solid var(--border)" }}>
                     <input
                       defaultValue={cell}
                       onBlur={(e) => handleCell(ri, ci, e.target.value)}
