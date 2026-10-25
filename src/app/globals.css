@@ -1889,14 +1889,14 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   align-items: start;
   margin-top: 6px;
 }
-@container chapters (min-width: 920px) {
-  .chapter-layout { grid-template-columns: minmax(0, 1fr) 268px; }
+@container chapters (min-width: 780px) {
+  .chapter-layout { grid-template-columns: 268px minmax(0, 1fr); }
 }
 .chapter-main { min-width: 0; }
 .chapter-head,
 .chapter-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) max-content max-content 2rem minmax(0, 1fr) max-content;
+  grid-template-columns: minmax(0, 1.35fr) max-content max-content minmax(0, 1fr) max-content;
   gap: 8px 12px;
   align-items: center;
 }
@@ -1954,7 +1954,6 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   color: var(--ink);
 }
 .chapter-row .chapter-pct { color: var(--muted); font-weight: 500; font-size: 12px; }
-.chapter-row-due { color: var(--muted); font-size: 13px; text-align: center; }
 .chapter-note { min-width: 0; }
 .chapter-row-note,
 .studio-content textarea.chapter-row-note {
@@ -2083,7 +2082,7 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
       "title status"
-      "chars due"
+      "chars chars"
       "note note"
       "tools tools";
     align-items: start;
@@ -2093,7 +2092,6 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .chapter-row-title { grid-area: title; }
   .chapter-status { grid-area: status; }
   .chapter-row-chars { grid-area: chars; }
-  .chapter-row-due { grid-area: due; justify-self: end; }
   .chapter-note { grid-area: note; }
   .chapter-row-tools { grid-area: tools; justify-content: flex-start; }
   .chapter-row .act-break { opacity: 1; }

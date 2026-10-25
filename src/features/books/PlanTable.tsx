@@ -252,6 +252,7 @@ export default function PlanTable({
       </div>
 
       <div className="chapter-layout">
+        <ChapterSide deadlines={deadlines} comment={comment} weekly={weekly} weeklyHref={weeklyHref} />
         <div className="chapter-main">
           {chapters.length === 0 ? (
             <p className="chapter-empty">Глав пока нет.</p>
@@ -265,7 +266,6 @@ export default function PlanTable({
                     <span>Глава</span>
                     <span>Статус</span>
                     <span>Знаки</span>
-                    <span>Дедлайн</span>
                     <span>Заметки</span>
                     <span />
                   </div>
@@ -315,7 +315,6 @@ export default function PlanTable({
                           />
                           <span className="chapter-pct">{chapter.plannedChars > 0 ? `${percent}%` : "—"}</span>
                         </div>
-                        <div className="chapter-row-due" title="Срок главы в карточке не хранится">—</div>
                         <ChapterNote chapter={chapter} suggestion={chapterSuggestions.note} />
                         <div className="chapter-row-tools">
                           <ColorPicker
@@ -347,7 +346,6 @@ export default function PlanTable({
             })
           )}
         </div>
-        <ChapterSide deadlines={deadlines} comment={comment} weekly={weekly} weeklyHref={weeklyHref} />
       </div>
     </div>
   );
