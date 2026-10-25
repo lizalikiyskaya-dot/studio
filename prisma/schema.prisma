@@ -122,6 +122,7 @@ enum StarKind {
   CONTEST
   PUBLISHER
   CHAPTER
+  STREAK
 }
 
 // Начисление растит «заработано» и «на счету». Трата уменьшает только «на счету».
@@ -221,6 +222,8 @@ model User {
   paymentReminderLogs PaymentReminderLog[]
   weeklySubmissions WeeklySubmission[]
   starAwards        StarAward[]
+  streakWeeks       StreakWeek[]
+  streakVacations   StreakVacation[]
   emailLogs           EmailLog[]
   mailDigests         MailDigest[]
 }
@@ -944,6 +947,29 @@ model StarAward {
 
   @@unique([studentId, kind, sourceId])
   @@index([studentId])
+}
+
+// Неделя, которая засчитана в серию. Повтор той же недели не создаёт вторую строку.
+// Снятие статуса задания или главы строку не удаляет.
+model StreakWeek {
+  id        String   @id @default(cuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  weekStart DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, weekStart])
+}
+
+// Неделя отдыха. Её отмечает наставник. Такая неделя не рвёт серию и не удлиняет её.
+model StreakVacation {
+  id        String   @id @default(cuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  weekStart DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, weekStart])
 }
 
 // Каждая попытка sendMail: и ушедшее письмо, и неудача.

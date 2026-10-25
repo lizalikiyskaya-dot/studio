@@ -1,6 +1,7 @@
 import PageHeader from "@/components/PageHeader";
 import ReadingText from "@/components/ReadingText";
 import StarsStatus, { type StarPlaque } from "@/features/stars/StarsStatus";
+import type { StreakPlaque } from "@/features/streak/weeks";
 import { formatWeeklyDate, pickWeekly, weekPhase } from "./schedule";
 import WeeklyForm from "./WeeklyForm";
 
@@ -31,6 +32,7 @@ export default function WeeklyView({
   tasks,
   submissions,
   account,
+  streak,
   today,
 }: {
   studentId: string;
@@ -39,6 +41,7 @@ export default function WeeklyView({
   tasks: TaskRow[];
   submissions: SubmissionRow[];
   account: StarPlaque;
+  streak: StreakPlaque;
   today: string;
 }) {
   const byTask = new Map(submissions.map((row) => [row.weeklyTaskId, row]));
@@ -60,7 +63,7 @@ export default function WeeklyView({
   return (
     <div className="weekly-page">
       <PageHeader title="Задание недели" />
-      <StarsStatus studentId={studentId} account={account} play={!isMentor} />
+      <StarsStatus studentId={studentId} account={account} streak={streak} play={!isMentor} markVacation={isMentor} />
 
       {!focus ? (
         <p className="mt-5 text-[15px]" style={{ color: "var(--ink2)" }}>
