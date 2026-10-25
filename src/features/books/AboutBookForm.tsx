@@ -2,6 +2,7 @@
 
 import { useState, useTransition, type Dispatch, type SetStateAction } from "react";
 import { ChevronDown } from "lucide-react";
+import Collapse from "@/components/Collapse";
 import type { Book, Comment } from "@/generated/prisma/client";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
@@ -60,7 +61,7 @@ function SynopsisBlock({
           className="grid h-8 w-8 place-items-center rounded-full"
           style={{ background: "var(--soft)" }}
         >
-          <ChevronDown size={16} style={{ transform: synopsisOpen ? "rotate(180deg)" : undefined, transition: "transform 180ms ease" }} />
+          <ChevronDown size={16} className={`chevron-turn${synopsisOpen ? " is-open" : ""}`} />
         </button>
         <span className="text-[14.5px] font-semibold">Синопсис</span>
         <div className="inline-flex rounded-full p-0.5" style={{ background: "var(--soft)" }} role="tablist" aria-label="Вид синопсиса">
@@ -99,7 +100,7 @@ function SynopsisBlock({
           </span>
         ) : null}
       </div>
-      {synopsisOpen && (
+      <Collapse open={synopsisOpen}>
         <div className="mt-3 max-w-[680px]">
           {synopsisMode === "TEXT" ? (
             <SuggestableField model="Book" recordId={book.id} field="synopsisText" value={book.synopsisText}
@@ -111,7 +112,7 @@ function SynopsisBlock({
               className="w-full border-b py-1.5 outline-none bg-transparent text-[14px]" style={{ borderColor: "var(--rule)" }} />
           )}
         </div>
-      )}
+      </Collapse>
     </div>
   );
 }

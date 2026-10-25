@@ -208,7 +208,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
         <p className="text-[14px] mb-4" style={{ color: "var(--muted)" }}>Никого не нашли. Список учеников на месте — измените запрос.</p>
       )}
 
-      <div className="mentor-students">
+      <div className="mentor-students" key={filter}>
       <div className="sheet mentor-sheet">
         <div className="mentor-grid">
         <div className="mentor-row mentor-head" role="row">
