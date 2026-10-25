@@ -679,6 +679,24 @@ textarea.reading,
   }
 }
 
+.guide-desc { margin-top: 2px; }
+.guide-desc-toggle {
+  min-height: 28px;
+  font-size: 13px;
+  color: var(--ink2);
+}
+textarea.fld.guide-desc-field {
+  min-height: 58px;
+  margin-top: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  border-radius: 12px;
+}
+@media (max-width: 760px) {
+  textarea.fld.guide-desc-field { font-size: 16px; }
+}
+
 .lnk { color: var(--vi); font-weight: 500; }
 .lnk:hover { text-decoration: underline; }
 
