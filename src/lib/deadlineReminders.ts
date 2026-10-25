@@ -9,7 +9,7 @@ export const DEADLINE_ZONE = "Europe/Moscow";
  * Отдельного поля в карточке ученика нет: правило сидит в этом списке.
  * Сравнение по первому слову имени, без учёта регистра.
  * Виктория: «Вы». Остальные: «ты».
- * Закрывающая фраза одна на всех: «работа уже сдана», без рода.
+ * «Работа уже сдана» одна на всех. Просьба написать отличается: «напишите» / «напиши».
  */
 export const FORMAL_ADDRESS_NAMES = ["Виктория"] as const;
 
@@ -33,6 +33,13 @@ export type DeadlineStudent = {
 
 export type DeadlineLetter = { subject: string; html: string; text: string };
 
+export type DeadlineDelivery = {
+  name: string;
+  email: string;
+  subject: string;
+  titles: string[];
+};
+
 export type DeadlineRunResult = {
   dueOn: string | null;
   planned: number;
@@ -41,6 +48,7 @@ export type DeadlineRunResult = {
   failed: number;
   dryRun: boolean;
   skipped: "disabled" | "not-morning" | null;
+  deliveries: DeadlineDelivery[];
 };
 
 export function deadlineDryRun(env: NodeJS.ProcessEnv = process.env): boolean {
@@ -109,10 +117,13 @@ export function buildDeadlineLetter(input: {
     : `${name}, напоминаю: завтра, ${when}, срок по заданию ${quotedTitle(input.tasks[0].title)}.`;
   const titles = many ? input.tasks.map((task) => quotedTitle(task.title)) : [];
   const closing = "Если работа уже сдана, это письмо можно не читать.";
+  const ask = usesFormalAddress(input.name)
+    ? `Если нужно больше времени на ${many ? "задания" : "задание"}, пожалуйста, напишите мне!)`
+    : `Если нужно больше времени на ${many ? "задания" : "задание"}, пожалуйста, напиши мне!)`;
   const home = input.baseUrl.replace(/\/+$/, "");
   const letter = renderEmail({
     title: subject,
-    paragraphs: [opening, ...titles, closing],
+    paragraphs: [opening, ...titles, closing, ask],
     action: many
       ? { label: "Открыть задания", url: `${home}/dashboard/tasks` }
       : { label: "Открыть задание", url: taskUrl(home, input.tasks[0].id) },
@@ -157,12 +168,37 @@ export function deadlinePreviewLetters(baseUrl = deadlinePreviewBaseUrl()): {
   };
 }
 
+export function deadlineSkipReason(student: DeadlineStudent, setting: BroadcastSetting): string | null {
+  if (student.status !== "APPROVED") return "Ученик ещё не одобрен.";
+  if (!student.emailNotifications) return "У ученика выключена почта.";
+  if (!student.email.includes("@")) return "У ученика нет почты.";
+  if (setting.audience === "chosen" && !parseStudentIds(setting.studentIds).includes(student.id)) return "Ученик не в списке этой рассылки.";
+  return null;
+}
+
 function eligibleStudent(student: DeadlineStudent, setting: BroadcastSetting): boolean {
-  if (student.status !== "APPROVED") return false;
-  if (!student.emailNotifications) return false;
-  if (!student.email.includes("@")) return false;
-  if (setting.audience === "chosen" && !parseStudentIds(setting.studentIds).includes(student.id)) return false;
-  return true;
+  return deadlineSkipReason(student, setting) == null;
+}
+
+/** Имя целиком, первое слово имени или почта. Несколько совпадений не выбирают никого. */
+export function matchDeadlineStudent(
+  students: DeadlineStudent[],
+  query: string,
+): { student: DeadlineStudent } | { error: string } {
+  const needle = query.trim();
+  if (!needle) return { error: "Укажите имя или почту ученика." };
+  const folded = needle.toLocaleLowerCase("ru-RU");
+  const same = (value: string) => value.trim().toLocaleLowerCase("ru-RU") === folded;
+  const found = needle.includes("@")
+    ? students.filter((student) => same(student.email))
+    : students.filter((student) => same(student.name));
+  const picked = found.length > 0 || needle.includes("@")
+    ? found
+    : students.filter((student) => same(student.name.trim().split(/\s+/)[0] ?? ""));
+  if (picked.length === 1) return { student: picked[0] };
+  if (picked.length === 0) return { error: `Ученик не найден: ${needle}` };
+  const list = picked.map((student) => `${student.name} <${student.email}>`).join("; ");
+  return { error: `Подходит несколько учеников: ${list}` };
 }
 
 function emptyResult(partial: Partial<DeadlineRunResult> & Pick<DeadlineRunResult, "dryRun" | "skipped">): DeadlineRunResult {
@@ -172,6 +208,7 @@ function emptyResult(partial: Partial<DeadlineRunResult> & Pick<DeadlineRunResul
     sent: 0,
     alreadySent: 0,
     failed: 0,
+    deliveries: [],
     ...partial,
   };
 }
@@ -182,6 +219,8 @@ export async function deliverDeadlineReminders(options: {
   students: DeadlineStudent[];
   tasks: DeadlineTask[];
   dryRun?: boolean;
+  /** Ручной прогон: не смотреть, включена ли рассылка и наступило ли 9:00. */
+  force?: boolean;
   baseUrl: string;
   alreadySent: (studentId: string, taskId: string, dueOn: string) => Promise<boolean>;
   send: (input: {
@@ -194,8 +233,8 @@ export async function deliverDeadlineReminders(options: {
   }) => Promise<boolean>;
 }): Promise<DeadlineRunResult> {
   const dryRun = options.dryRun === true;
-  if (!options.setting.enabled) return emptyResult({ dryRun, skipped: "disabled" });
-  if (!clockOpen(zonedClock(options.now, options.setting.timeZone), options.setting)) {
+  if (!options.force && !options.setting.enabled) return emptyResult({ dryRun, skipped: "disabled" });
+  if (!options.force && !clockOpen(zonedClock(options.now, options.setting.timeZone), options.setting)) {
     return emptyResult({ dryRun, skipped: "not-morning" });
   }
 
@@ -215,6 +254,7 @@ export async function deliverDeadlineReminders(options: {
   let sent = 0;
   let alreadySent = 0;
   let failed = 0;
+  const deliveries: DeadlineDelivery[] = [];
 
   for (const [studentId, tasks] of byStudent) {
     const student = people.get(studentId);
@@ -230,15 +270,22 @@ export async function deliverDeadlineReminders(options: {
     }
     if (pending.length === 0) continue;
     planned += 1;
+    const ready = pending.map((task) => ({ id: task.id, title: task.title, deadline: task.deadline as Date }));
+    const letter = buildDeadlineLetter({
+      name: student.name,
+      baseUrl: options.baseUrl,
+      tasks: ready,
+    });
+    deliveries.push({
+      name: student.name,
+      email: student.email,
+      subject: letter.subject,
+      titles: ready.map((task) => task.title.trim() || "Задание"),
+    });
     if (dryRun) {
       sent += 1;
       continue;
     }
-    const letter = buildDeadlineLetter({
-      name: student.name,
-      baseUrl: options.baseUrl,
-      tasks: pending.map((task) => ({ id: task.id, title: task.title, deadline: task.deadline as Date })),
-    });
     const markers = pending
       .map((task) => `<!-- ${deadlineMarker(task.id, calendarDay(task.deadline as Date, DEADLINE_ZONE))} -->`)
       .join("\n");
@@ -254,5 +301,5 @@ export async function deliverDeadlineReminders(options: {
     else failed += 1;
   }
 
-  return { dueOn, planned, sent, alreadySent, failed, dryRun, skipped: null };
+  return { dueOn, planned, sent, alreadySent, failed, dryRun, skipped: null, deliveries };
 }
