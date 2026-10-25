@@ -73,3 +73,34 @@ export async function awardStars(
   await syncAutoBadges(studentId);
   return true;
 }
+
+export type StarPurchase = {
+  id: string;
+  points: number;
+  note: string;
+  createdAt: string;
+};
+
+/** Покупки методичек: строки журнала с направлением «трата». */
+export async function starPurchases(studentId: string): Promise<StarPurchase[]> {
+  try {
+    const rows = await prisma.starAward.findMany({
+      where: { studentId, direction: "SPEND" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: 30,
+      select: { id: true, points: true, note: true, createdAt: true },
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      points: row.points,
+      note: row.note,
+      createdAt: row.createdAt.toISOString(),
+    }));
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error) {
+      const code = String((error as { code?: unknown }).code);
+      if (code === "P2021" || code === "P2022") return [];
+    }
+    throw error;
+  }
+}

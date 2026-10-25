@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { markedTitle } from "@/components/markedTitle";
 import { loadBadges } from "@/features/badges/load";
-import { starAccount } from "@/features/stars/award";
+import { starAccount, starPurchases } from "@/features/stars/award";
 import { loadStreak } from "@/features/streak/load";
 import TasksTable from "./TasksTable";
 import CabinetHello from "./CabinetHello";
@@ -15,7 +15,8 @@ export default async function TasksView({
   studentId: string;
   basePath: string;
 }) {
-  const [tasks, student, stars, streak, badges] = await Promise.all([
+  const mentorView = basePath !== "/dashboard";
+  const [tasks, student, stars, streak, badges, purchases] = await Promise.all([
     prisma.task.findMany({
       where: { studentId },
       orderBy: { order: "asc" },
@@ -24,6 +25,7 @@ export default async function TasksView({
     starAccount(studentId),
     loadStreak(studentId),
     loadBadges(studentId),
+    mentorView ? starPurchases(studentId) : Promise.resolve(null),
   ]);
 
   return (
@@ -38,6 +40,7 @@ export default async function TasksView({
         basePath={basePath}
         badgeWidget={badges.widget}
         badgeLine={badges.line}
+        purchases={purchases}
       />
       <TasksTable
         studentId={studentId}

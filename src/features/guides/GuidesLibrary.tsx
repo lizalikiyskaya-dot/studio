@@ -10,6 +10,9 @@ import DownloadButton from "@/components/DownloadButton";
 import { Badge } from "@/components/ui/Badge";
 import EmptyState from "@/components/EmptyState";
 import { useDragReorder } from "@/lib/useDragReorder";
+import GuidePriceField from "@/features/shop/GuidePriceField";
+import { setGuideStarPrice } from "@/features/shop/actions";
+import { listedPrice } from "@/features/shop/prices";
 import {
   createGuide,
   deleteGuide,
@@ -218,6 +221,21 @@ export default function GuidesLibrary({
                     </span>
                   )}
                 </div>
+
+                <GuidePriceField
+                  price={listedPrice(guide)}
+                  disabled={busy}
+                  onPick={(price) => {
+                    const previous = guide.starPrice;
+                    patch(guide.id, { starPrice: price });
+                    void setGuideStarPrice(guide.id, price).then(async (result) => {
+                      if (!result.ok) {
+                        patch(guide.id, { starPrice: previous });
+                        await siteAlert(result.error);
+                      }
+                    });
+                  }}
+                />
 
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
                   <Badge tone={opened ? "mint" : "neutral"}>{opened ? "открыта" : "скрыта"}</Badge>

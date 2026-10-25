@@ -17,6 +17,8 @@ export type LibraryGuide = {
   hasFile: boolean;
   isPdf: boolean;
   order: number;
+  /** 8, 12 или 18, если наставник уже сохранил цену. Иначе цена считается сама. */
+  starPrice: number | null;
   visibleCount: number;
   openedStudents: OpenedStudent[];
 };

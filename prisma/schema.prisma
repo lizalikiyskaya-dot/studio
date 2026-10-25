@@ -123,6 +123,8 @@ enum StarKind {
   PUBLISHER
   CHAPTER
   STREAK
+  // Покупка методички. Строка всегда с направлением SPEND.
+  GUIDE
 }
 
 // Начисление растит «заработано» и «на счету». Трата уменьшает только «на счету».
@@ -820,6 +822,8 @@ model Guide {
   order        Int      @default(0)
   // Старая галочка. Письмо теперь спрашивают при открытии, поле само ничего не шлёт.
   notifyOnOpen Boolean  @default(false)
+  // Цена в магазине: 8, 12 или 18. Пусто — цена считается по названию и размеру файла.
+  starPrice    Int?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   access       GuideAccess[]

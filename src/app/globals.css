@@ -3324,6 +3324,110 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   }
 }
 
+.shop-plaque {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 4px;
+}
+.shop-plaque .stars-badge { position: relative; }
+.stars-flight-out {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: var(--ink);
+  filter: drop-shadow(0 6px 8px rgba(32, 32, 32, 0.14));
+  animation: stars-fly-out 0.9s ease both;
+}
+@keyframes stars-fly-out {
+  0% { transform: translate(0, 0) scale(0.85); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(40px, -76px) scale(1.45); opacity: 0; }
+}
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.shop-card {
+  min-width: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px 16px 16px;
+}
+.shop-card.is-unlocking {
+  animation: shop-unlock 0.9s ease both;
+}
+@keyframes shop-unlock {
+  0% { box-shadow: none; }
+  40% { box-shadow: 0 0 0 5px rgba(255, 212, 59, 0.55); border-color: var(--y); }
+  100% { box-shadow: 0 0 0 4px rgba(255, 212, 59, 0.22); opacity: 0; transform: translateY(-6px); }
+}
+.shop-lock {
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: -2px;
+  color: var(--muted);
+}
+.shop-price {
+  flex: none;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--y);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 650;
+  display: inline-flex;
+  align-items: center;
+}
+.shop-blurb {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  margin-top: 8px;
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: var(--ink2);
+  white-space: pre-wrap;
+}
+.shop-buy {
+  margin-top: 12px;
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--y);
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 650;
+}
+.shop-buy:disabled {
+  background: var(--soft);
+  color: var(--ink2);
+  cursor: default;
+}
+.guide-price {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+@media (max-width: 760px) {
+  .shop-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stars-flight-out,
+  .shop-card.is-unlocking { animation: none; }
+}
+
 .streak-cells {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 32px));

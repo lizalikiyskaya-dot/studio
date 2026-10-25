@@ -8,6 +8,7 @@ export const SECTION_LABELS: Record<string, string> = {
   weekly: "Задание недели",
   "work-plan": "План работы",
   materials: "Материалы",
+  shop: "Магазин",
   drafts: "Рукописи",
   exercises: "Упражнения",
   submissions: "Трекер заявок",

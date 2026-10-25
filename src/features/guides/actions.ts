@@ -80,6 +80,7 @@ export async function createGuide(): Promise<ActionResult<{ guide: LibraryGuide 
         hasFile: false,
         isPdf: false,
         order: guide.order,
+        starPrice: null,
         visibleCount: 0,
         openedStudents: [],
       },

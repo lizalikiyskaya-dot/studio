@@ -21,6 +21,7 @@ import {
   PenLine,
   Quote,
   Send,
+  Store,
   X,
 } from "lucide-react";
 import CalendarWidget from "./CalendarWidget";
@@ -45,6 +46,7 @@ const TOP_ITEMS = [
   { path: "weekly", label: "Задание недели", icon: Sparkles },
   { path: "work-plan", label: "План работы", icon: CalendarDays },
   { path: "materials", label: "Материалы", icon: BookOpen },
+  { path: "shop", label: "Магазин", icon: Store },
   { path: "drafts", label: "Рукописи", icon: FileText },
   { path: "exercises", label: "Упражнения", icon: Pencil },
   { path: "submissions", label: "Трекер заявок", icon: Send },
