@@ -366,6 +366,15 @@ export default function NotesPanel({
   }, []);
 
   useEffect(() => {
+    const openFromHash = () => {
+      if (window.location.hash === "#notes") setOpen(true);
+    };
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+    return () => window.removeEventListener("hashchange", openFromHash);
+  }, []);
+
+  useEffect(() => {
     const query = window.matchMedia("(max-width: 980px)");
     const apply = () => setMobile(query.matches);
     apply();
