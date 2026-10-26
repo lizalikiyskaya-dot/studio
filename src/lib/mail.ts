@@ -2,7 +2,7 @@ import { resolve4 } from "node:dns/promises";
 import net from "node:net";
 import nodemailer, { type Transporter } from "nodemailer";
 import { prisma } from "@/lib/prisma";
-import { envelopeFrom, readStoredSender } from "@/lib/mailSender";
+import { envelopeFrom, parseAddress, readStoredSender } from "@/lib/mailSender";
 
 /**
  * Отправка почты через обычный SMTP (у Лизы — Gmail с паролем приложения).
@@ -12,22 +12,20 @@ import { envelopeFrom, readStoredSender } from "@/lib/mailSender";
  * ни одно действие пользователя из-за этого падать не должно.
  */
 
-/** Имя отправителя, пока ящик lizaandreenko не заведён. Адрес — SMTP_USER. */
-const DEFAULT_FROM_NAME = "Студия художественной прозы";
+/** Имя в поле «От». Адрес остаётся из окружения, ящик не подменяется. */
+export const MAIL_DISPLAY_NAME = "Лиза Андреенко";
 
 /**
  * Отправитель письма. Секретов здесь нет.
- *
- * MAIL_FROM целиком перекрывает имя и адрес (как было).
- * Иначе имя берётся из MAIL_FROM_NAME, адрес — из MAIL_FROM_ADDRESS,
- * а если их нет — прежние имя и SMTP_USER.
+ * Имя всегда «Лиза Андреенко». Адрес берётся из MAIL_FROM, иначе из
+ * MAIL_FROM_ADDRESS, иначе из SMTP_USER.
  */
 export function mailFrom(): string {
-  const explicit = process.env.MAIL_FROM?.trim();
-  if (explicit) return explicit;
-  const name = process.env.MAIL_FROM_NAME?.trim() || DEFAULT_FROM_NAME;
-  const address = process.env.MAIL_FROM_ADDRESS?.trim() || process.env.SMTP_USER?.trim() || "";
-  return address ? `${name} <${address}>` : name;
+  const explicit = process.env.MAIL_FROM?.trim() ?? "";
+  const parsed = explicit ? parseAddress(explicit) : { name: "", email: "" };
+  const fromExplicit = parsed.email || (parsed.name.includes("@") ? parsed.name : "");
+  const address = fromExplicit || process.env.MAIL_FROM_ADDRESS?.trim() || process.env.SMTP_USER?.trim() || "";
+  return address ? `${MAIL_DISPLAY_NAME} <${address}>` : MAIL_DISPLAY_NAME;
 }
 
 export function mailConfigured(): boolean {
@@ -309,13 +307,12 @@ export function escapeHtml(value: string): string {
 }
 
 /**
- * Единая обвязка письма в палитре «Солнечная».
- * Только таблицы и инлайн-стили: почтовые клиенты режут внешний CSS.
- * Onest и Literata указаны первыми в стеке — если шрифта нет у получателя,
- * письмо остаётся на Segoe UI / Helvetica / Georgia.
+ * Та же рамка, что была: жёлтая полоса, шапка «Андреенко», карточки, бежевая цитата.
+ * Шрифты только системные, без загрузки с Google. Скрытая строка предпросмотра —
+ * первое предложение письма, не название студии.
  */
-const FONT_UI = "Onest,'Segoe UI',Helvetica,Arial,sans-serif";
-const FONT_SERIF = "Literata,Georgia,'Times New Roman',serif";
+const FONT_UI = "'Segoe UI',Helvetica,Arial,sans-serif";
+const FONT_SERIF = "Georgia,'Times New Roman',serif";
 
 /** Ключевое слово заголовка письма — на жёлтом маркере, как на сайте. */
 function markedEmailTitle(title: string): string {
@@ -433,6 +430,25 @@ function blockHtml(block: EmailBlock): string {
   </table>`;
 }
 
+function openingPlain(blocks: EmailBlock[] | undefined, paragraphs: string[]): string {
+  if (blocks && blocks.length > 0) {
+    const block = blocks[0];
+    if (block.kind === "p") return block.text.trim();
+    if (block.kind === "quote") return block.text.trim();
+    if (block.kind === "card") return (block.body || block.title).trim();
+    return block.title.trim();
+  }
+  return htmlToPlain(paragraphs[0] ?? "").trim();
+}
+
+/** Первое предложение: его видит предпросмотр входящих, не шапку студии. */
+function previewSentence(value: string): string {
+  const plain = value.replace(/\s+/g, " ").trim();
+  if (!plain) return "";
+  const match = /^[\s\S]*?[.!?…](?=\s|$)/.exec(plain);
+  return (match ? match[0] : plain).trim();
+}
+
 function blockPlain(block: EmailBlock): string[] {
   if (block.kind === "p") return [block.text];
   if (block.kind === "section") {
@@ -459,12 +475,17 @@ export function renderEmail(options: {
   footnote?: string;
   /** Подпись в конце. Письмам ученику — «Лиза Андреенко». */
   signature?: string;
-  /** Адрес в подвале и в текстовой версии. Пусто: APP_URL или его запасной адрес. */
+  /** «Вы» у Виктории: «скопируйте». «ты»: «скопируй». Без флага строка остаётся на «Вы». */
+  formal?: boolean;
+  /** Вызовы по-прежнему передают адрес сайта. В подвале его нет: там одна строка с названием студии. */
   siteUrl?: string;
 }): RenderedEmail {
-  const { title, paragraphs = [], blocks, action, footnote, signature } = options;
-  const home = (options.siteUrl?.trim() || appUrl()).replace(/\/+$/, "");
+  const { title, paragraphs = [], blocks, action, footnote, signature, formal } = options;
+  const copyHint = formal === false
+    ? "Если кнопка не работает, скопируй ссылку:"
+    : "Если кнопка не работает, скопируйте ссылку:";
   const titleHtml = markedEmailTitle(title);
+  const preview = previewSentence(openingPlain(blocks, paragraphs));
   const body =
     blocks && blocks.length > 0
       ? blocks.map((block) => blockHtml(block)).join("")
@@ -478,13 +499,11 @@ export function renderEmail(options: {
     ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 0;">
          <tr>
            <td align="center" bgcolor="#FFD43B" style="border-radius:999px;background:#FFD43B;">
-             <a href="${action.url}" style="display:inline-block;padding:14px 26px;border-radius:999px;background:#FFD43B;color:#202020;text-decoration:none;font-family:${FONT_UI};font-size:15px;font-weight:600;line-height:1;">${escapeHtml(
-               action.label
-             )}</a>
+             <a href="${escapeHtml(action.url)}" style="display:inline-block;padding:14px 26px;border-radius:999px;background:#FFD43B;color:#202020;text-decoration:none;font-family:${FONT_UI};font-size:15px;font-weight:600;line-height:1;">${escapeHtml(action.label)}</a>
            </td>
          </tr>
        </table>
-       <p style="margin:12px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:#8A8A8A;">Если кнопка не работает, скопируйте ссылку:<br><a href="${action.url}" style="color:#4B3FC0;text-decoration:underline;">${action.url}</a></p>`
+       <p style="margin:12px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:#8A8A8A;">${copyHint}<br><a href="${escapeHtml(action.url)}" style="color:#4B3FC0;text-decoration:underline;">${escapeHtml(action.url)}</a></p>`
     : "";
   const sign = signature
     ? `<p style="margin:28px 0 0;font-family:${FONT_SERIF};font-size:18px;font-style:italic;line-height:1.3;color:#202020;">${escapeHtml(signature)}</p>`
@@ -508,17 +527,15 @@ export function renderEmail(options: {
   </table>
   <div style="margin:10px 0 0;font-family:${FONT_SERIF};font-size:16px;font-style:italic;line-height:1.3;color:#6553E8;">студия художественной прозы</div>`;
 
-  const host = escapeHtml(home.replace(/^https?:\/\//, ""));
   const html = `<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital@0;1&family=Onest:wght@400;600;700&display=swap">
   <title>${escapeHtml(title)}</title>
 </head>
 <body style="margin:0;padding:0;background:#F6F1E8;">
-  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(EMAIL_BRAND)}</div>
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(preview)}</div>
   <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#F6F1E8;">
     <tr>
       <td align="center" style="padding:28px 16px 36px;">
@@ -544,7 +561,7 @@ export function renderEmail(options: {
         <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="width:100%;max-width:600px;">
           <tr>
             <td align="center" style="padding:18px 8px 0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:#8A8A8A;">
-              ${escapeHtml(EMAIL_BRAND)}<br>${host}
+              ${escapeHtml(EMAIL_BRAND)}
             </td>
           </tr>
         </table>
@@ -556,11 +573,11 @@ export function renderEmail(options: {
 
   const contentLines =
     blocks && blocks.length > 0 ? blocks.flatMap((block) => blockPlain(block)) : paragraphs.map((paragraph) => htmlToPlain(paragraph));
-  const textLines = [EMAIL_BRAND, "", title, "", ...contentLines, ""];
-  if (action) textLines.push(`${action.label}: ${action.url}`, "");
-  if (signature) textLines.push(signature, "");
-  if (footnote) textLines.push(htmlToPlain(footnote), "");
-  textLines.push(home);
+  const textLines = [...contentLines];
+  if (action) textLines.push("", `${action.label}: ${action.url}`);
+  if (signature) textLines.push("", signature);
+  if (footnote) textLines.push("", htmlToPlain(footnote));
+  textLines.push("", EMAIL_BRAND);
 
   return { html, text: textLines.join("\n").replace(/\n{3,}/g, "\n\n").trim() };
 }
@@ -572,10 +589,8 @@ export function renderEmail(options: {
 export function withoutWebFonts(letter: RenderedEmail, preview: string): RenderedEmail {
   const html = letter.html
     .replace(/\n?\s*<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]*>/, "")
-    .replaceAll(FONT_UI, "'Segoe UI',Helvetica,Arial,sans-serif")
-    .replaceAll(FONT_SERIF, "Georgia,'Times New Roman',serif")
     .replace(
-      `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(EMAIL_BRAND)}</div>`,
+      /<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">[\s\S]*?<\/div>/,
       `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(preview)}</div>`,
     );
   return { html, text: letter.text };

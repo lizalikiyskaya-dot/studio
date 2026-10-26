@@ -1,4 +1,4 @@
-import { addressForm, greetingName } from "@/lib/addressForm";
+import { addressForm, greetingName, usesFormalAddress } from "@/lib/addressForm";
 import { mailGate } from "@/lib/activityDigest";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, mailFrom, renderEmail, sendMail, withoutWebFonts } from "@/lib/mail";
 import { optOutSecret, signOptOut } from "@/lib/mailOptOut";
@@ -65,6 +65,7 @@ export function newTaskLetter(input: {
         ? `<a href="${escapeHtml(unsubscribe)}" style="color:#4B3FC0;text-decoration:underline;">Отписаться от писем</a>`
         : undefined,
       signature: EMAIL_SIGNATURE,
+      formal: usesFormalAddress(input.name),
     }),
     greeting,
   );

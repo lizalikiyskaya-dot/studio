@@ -11,7 +11,8 @@ import {
   type BroadcastSetting,
   type DigestRow,
 } from "@/lib/mailBroadcasts";
-import { withAddress } from "@/lib/addressForm";
+import { greetingName, withAddress } from "@/lib/addressForm";
+import { optOutSecret, signOptOut } from "@/lib/mailOptOut";
 import { mentorDigestGroups, mentorWorkLetter, studentOnlineLetter, studentWorkLetter, type DigestPiece } from "@/lib/activityLetters";
 import { broadcastOpen, envelopeFor, readBroadcast, whoFor, type BroadcastRead } from "@/lib/mailBroadcastStore";
 import { applyLetterTemplate, type LetterKey } from "@/lib/letterTemplates";
@@ -114,6 +115,12 @@ export async function queueStudentOnline(studentId: string, now = new Date()): P
 
 type Person = { id: string; name: string; email: string; status: string; emailNotifications: boolean };
 
+function mailUnsubscribeUrl(studentId: string): string | undefined {
+  const secret = optOutSecret();
+  if (!secret) return undefined;
+  return `${appUrl()}/unsubscribe?token=${signOptOut(studentId, "mail", secret)}`;
+}
+
 export async function flushDigests(options: {
   now: Date;
   settings: (key: "mentor-edit" | "student-edit" | "student-online") => Promise<BroadcastSetting | null>;
@@ -130,6 +137,7 @@ export async function flushDigests(options: {
     recipientUserId: string;
     from?: string;
     replyTo?: string;
+    listUnsubscribe?: string;
   }) => Promise<boolean>;
   envelope: (sender: "env" | "profile") => Promise<{ from: string; replyTo?: string }>;
   dress?: (
@@ -165,7 +173,8 @@ export async function flushDigests(options: {
           skipped += 1;
           continue;
         }
-        const letter = mentorWorkLetter({ name: student.name, studentId, pieces });
+        const unsubscribeUrl = mailUnsubscribeUrl(student.id);
+        const letter = mentorWorkLetter({ name: student.name, studentId, pieces, unsubscribeUrl });
         to = student.email;
         recipientUserId = student.id;
         subject = "Наставник внёс правку";
@@ -203,10 +212,11 @@ export async function flushDigests(options: {
           ? linked || `${appUrl()}/dashboard/${path}`
           : `${appUrl()}/student-view/${studentId}/${path}`;
         const dressed = await options.dress(kind, { subject, html, text }, withAddress(student.name, {
-          имя: student.name,
+          имя: kind === "mentor-edit" ? greetingName(student.name) : student.name,
           правки: editsText(pieces),
           когда: group[0].detail || "",
           кабинет: cabinet,
+          отписка: kind === "mentor-edit" ? mailUnsubscribeUrl(student.id) ?? "" : "",
         }));
         subject = dressed.subject;
         html = dressed.html;
@@ -222,6 +232,7 @@ export async function flushDigests(options: {
         recipientUserId,
         from: envelope.from,
         replyTo: envelope.replyTo,
+        listUnsubscribe: kind === "mentor-edit" ? mailUnsubscribeUrl(studentId) : undefined,
       });
       if (!ok) {
         skipped += 1;

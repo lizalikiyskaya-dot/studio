@@ -1,6 +1,6 @@
 import { composeDraft } from "@/lib/letterCompose";
 import { applyLetterTemplate, weeklyVolume, weeklyWhen, type LetterDraft, type LetterKey } from "@/lib/letterTemplates";
-import { withAddress } from "@/lib/addressForm";
+import { greetingName, usesFormalAddress, withAddress } from "@/lib/addressForm";
 import { EMAIL_SIGNATURE, appUrl, renderEmail } from "@/lib/mail";
 import { dailyQuoteLetter, platformUpdateLetter, weeklyTaskLetter } from "@/lib/notify";
 
@@ -26,7 +26,13 @@ export type QuoteLetterInput = {
 const PLACEHOLDER = "{имя}";
 
 export function applyStudentName(value: string, name: string): string {
-  return value.replaceAll(PLACEHOLDER, name.trim() || "ученик");
+  const who = greetingName(name);
+  if (who) return value.replaceAll(PLACEHOLDER, who);
+  return value
+    .replaceAll(`${PLACEHOLDER}, `, "")
+    .replaceAll(`, ${PLACEHOLDER}`, "")
+    .replaceAll(PLACEHOLDER, "")
+    .replace(/(^|\n)([а-яa-zё])/gu, (_lead, edge: string, letter: string) => edge + letter.toLocaleUpperCase("ru-RU"));
 }
 
 function norm(value: string): string {
@@ -96,7 +102,6 @@ function composeVars(
 ): Record<string, string> {
   if (template === "weekly" && weekly) {
     return withAddress(name, {
-      имя: name,
       задание: weekly.title,
       текст: weekly.prompt,
       срок: weeklyWhen(weekly.publishedOn, weekly.nextPublishedOn),
@@ -104,9 +109,9 @@ function composeVars(
     });
   }
   if (template === "quote" && quote) {
-    return withAddress(name, { имя: name, цитата: quote.text, автор: quote.author, источник: quote.source ?? "" });
+    return withAddress(name, { цитата: quote.text, автор: quote.author, источник: quote.source ?? "" });
   }
-  return withAddress(name, { имя: name });
+  return withAddress(name, {});
 }
 
 export function renderMentorCompose(input: {
@@ -165,6 +170,7 @@ export function renderMentorCompose(input: {
     blocks: (parts.length ? parts : [""]).map((text) => ({ kind: "p" as const, text })),
     action,
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(name),
   });
   const type =
     input.template === "platform"

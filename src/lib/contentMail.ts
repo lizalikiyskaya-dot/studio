@@ -91,11 +91,12 @@ export async function deliverContentMail(options: {
       const letter = job.letter(student);
       const html = `${letter.html}\n<!-- ${sentMarker(job.kind, job.period)} -->`;
       const url = options.unsubscribeUrl(student.id, job.opt);
+      const text = url && !letter.text.includes(url) ? `${letter.text}\n${url}` : letter.text;
       const ok = await options.send({
         to: student.email,
         subject: letter.subject,
         html,
-        text: url ? `${letter.text}\n${url}` : letter.text,
+        text,
         type: job.kind,
         recipientUserId: student.id,
         listUnsubscribe: url ?? undefined,

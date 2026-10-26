@@ -1,7 +1,8 @@
 import type { BroadcastSetting } from "@/lib/mailBroadcasts";
 import { calendarDay, clockOpen, parseStudentIds, zonedClock } from "@/lib/mailBroadcasts";
-import { addressForm, FORMAL_ADDRESS_NAMES, usesFormalAddress } from "@/lib/addressForm";
+import { addressForm, FORMAL_ADDRESS_NAMES, usesFormalAddress, withGreeting } from "@/lib/addressForm";
 import { EMAIL_SIGNATURE, escapeHtml, renderEmail } from "@/lib/mail";
+import { optOutLinkLabel } from "@/lib/mailOptOut";
 
 export const DEADLINE_ZONE = "Europe/Moscow";
 
@@ -91,18 +92,24 @@ function quotedTitle(title: string): string {
   return `«${escapeHtml(title.trim() || "Задание")}»`;
 }
 
+function deadlineFoot(url: string | undefined): string {
+  const base = "Письмо приходит в 9:00 по Москве, если срок завтра. Отключить его может наставник.";
+  if (!url) return base;
+  return `${base}<br><a href="${escapeHtml(url)}" style="color:#4B3FC0;text-decoration:underline;">${escapeHtml(optOutLinkLabel("mail"))}</a>`;
+}
+
 export function buildDeadlineLetter(input: {
   name: string;
   tasks: { id: string; title: string; deadline: Date }[];
   baseUrl: string;
+  unsubscribeUrl?: string;
 }): DeadlineLetter {
   const many = input.tasks.length > 1;
-  const when = escapeHtml(formatDeadline(input.tasks[0].deadline));
-  const name = escapeHtml(input.name);
+  const when = formatDeadline(input.tasks[0].deadline);
   const subject = many ? "Завтра сроки по заданиям" : "Завтра срок по заданию";
   const opening = many
-    ? `${name}, напоминаю: завтра, ${when}, срок по заданиям:`
-    : `${name}, напоминаю: завтра, ${when}, срок по заданию ${quotedTitle(input.tasks[0].title)}.`;
+    ? escapeHtml(withGreeting(input.name, `напоминаю: завтра, ${when}, срок по заданиям:`))
+    : escapeHtml(withGreeting(input.name, `напоминаю: завтра, ${when}, срок по заданию «${input.tasks[0].title.trim() || "Задание"}».`));
   const titles = many ? input.tasks.map((task) => quotedTitle(task.title)) : [];
   const closing = "Если работа уже сдана, это письмо можно не читать.";
   const ask = `Если нужно больше времени на ${many ? "задания" : "задание"}, пожалуйста, ${addressForm(input.name).write} мне!`;
@@ -113,9 +120,10 @@ export function buildDeadlineLetter(input: {
     action: many
       ? { label: "Открыть задания", url: `${home}/dashboard/tasks` }
       : { label: "Открыть задание", url: taskUrl(home, input.tasks[0].id) },
-    footnote: "Письмо приходит в 9:00 по Москве, если срок завтра. Отключить его может наставник.",
+    footnote: deadlineFoot(input.unsubscribeUrl),
     signature: EMAIL_SIGNATURE,
     siteUrl: home,
+    formal: usesFormalAddress(input.name),
   });
   return { subject, html: letter.html, text: letter.text };
 }
@@ -216,7 +224,9 @@ export async function deliverDeadlineReminders(options: {
     text: string;
     type: "deadline";
     recipientUserId: string;
+    listUnsubscribe?: string;
   }) => Promise<boolean>;
+  unsubscribeUrl?: (studentId: string) => string | null;
 }): Promise<DeadlineRunResult> {
   const dryRun = options.dryRun === true;
   if (!options.force && !options.setting.enabled) return emptyResult({ dryRun, skipped: "disabled" });
@@ -257,10 +267,12 @@ export async function deliverDeadlineReminders(options: {
     if (pending.length === 0) continue;
     planned += 1;
     const ready = pending.map((task) => ({ id: task.id, title: task.title, deadline: task.deadline as Date }));
+    const unsubscribeUrl = options.unsubscribeUrl?.(student.id) ?? undefined;
     const letter = buildDeadlineLetter({
       name: student.name,
       baseUrl: options.baseUrl,
       tasks: ready,
+      unsubscribeUrl,
     });
     deliveries.push({
       name: student.name,
@@ -282,6 +294,7 @@ export async function deliverDeadlineReminders(options: {
       text: letter.text,
       type: "deadline",
       recipientUserId: student.id,
+      listUnsubscribe: unsubscribeUrl,
     });
     if (ok) sent += 1;
     else failed += 1;

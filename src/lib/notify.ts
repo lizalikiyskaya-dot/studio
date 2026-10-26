@@ -1,4 +1,4 @@
-import { addressForm, withAddress } from "@/lib/addressForm";
+import { addressForm, usesFormalAddress, withAddress, withGreeting } from "@/lib/addressForm";
 import { prisma } from "@/lib/prisma";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail, sendMail } from "@/lib/mail";
 import { optOutLinkLabel, type OptOutKind } from "@/lib/mailOptOut";
@@ -150,12 +150,13 @@ export function mentorEditLetter(section: string, name = "") {
   return renderEmail({
     title: "Наставник внёс изменения",
     paragraphs: [
-      "Я поработала с " + form.yourMIns + " кабинетом. В разделе «" + escapeHtml(section) + "» есть новые правки.",
+      `${escapeHtml(withGreeting(name, `я поработала с ${form.yourMIns} кабинетом.`))} В разделе «${escapeHtml(section)}» есть новые правки.`,
       "Разделы с изменениями отмечены маячками в боковом меню. Правки в тексте можно принять или отклонить.",
     ],
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
     footnote: "Письмо приходит не чаще одного раза в час.",
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(name),
   });
 }
 
@@ -169,7 +170,7 @@ export async function notifyRegistration(user: { id: string; name: string; email
     const letter = await dressLetter(
       "registration",
       { subject: "Заявка на рассмотрении", ...toStudent },
-      withAddress(user.name, { имя: user.name }),
+      withAddress(user.name, {}),
     );
     await sendMail({
       to: user.email,
@@ -217,11 +218,12 @@ export function registrationStudentLetter(name: string) {
   return renderEmail({
     title: "Заявка на рассмотрении",
     paragraphs: [
-      `${escapeHtml(name)}, я получила ${form.yourFAcc} заявку.`,
+      escapeHtml(withGreeting(name, `я получила ${form.yourFAcc} заявку.`)),
       "Посмотрю её и открою кабинет. Когда открою — напишу ещё раз.",
     ],
     action: { label: "Открыть платформу", url: `${appUrl()}/login` },
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(name),
   });
 }
 
@@ -235,7 +237,7 @@ export async function notifyApproved(userId: string) {
 
   const gate = await mailGate("approved", userId);
   if (!gate.ok) return;
-  const letter = await dressLetter("approved", { subject: "Доступ в личный кабинет открыт", ...approvedLetter(user.name) }, withAddress(user.name, { имя: user.name }));
+  const letter = await dressLetter("approved", { subject: "Доступ в личный кабинет открыт", ...approvedLetter(user.name) }, withAddress(user.name, {}));
   await sendMail({
     to: user.email,
     subject: letter.subject,
@@ -253,11 +255,12 @@ export function approvedLetter(name: string) {
   return renderEmail({
     title: "Доступ в личный кабинет открыт",
     paragraphs: [
-      `${escapeHtml(name)}, я открыла ${form.toYou} кабинет.`,
+      escapeHtml(withGreeting(name, `я открыла ${form.toYou} кабинет.`)),
       `${form.enter} той же почтой и паролем, ${form.registered}.`,
     ],
     action: { label: "Войти в кабинет", url: `${appUrl()}/login` },
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(name),
   });
 }
 
@@ -290,7 +293,7 @@ export async function notifyStudentGuideOpened(
   const letter = await dressLetter(
     "guide",
     { subject: `Новая методичка: ${title}`, ...designed },
-    withAddress(student.name, { имя: student.name, название: title, описание: guide.description.trim() }),
+    withAddress(student.name, { название: title, описание: guide.description.trim() }),
   );
   await sendMail({
     to: student.email,
@@ -306,7 +309,7 @@ export async function notifyStudentGuideOpened(
 
 export function guideOpenedLetter(guide: { name: string; title: string; description: string; guideId: string }) {
   const paragraphs = [
-    `${escapeHtml(guide.name)}, я открыла ${addressForm(guide.name).toYou} методичку «${escapeHtml(guide.title)}».`,
+    escapeHtml(withGreeting(guide.name, `я открыла ${addressForm(guide.name).toYou} методичку «${guide.title}».`)),
   ];
   const about = guide.description.trim();
   if (about) paragraphs.push(escapeHtml(about));
@@ -318,6 +321,7 @@ export function guideOpenedLetter(guide: { name: string; title: string; descript
     action: { label: "Открыть материалы", url: `${appUrl()}/dashboard/materials?tab=handouts` },
     footnote: "Письмо приходит, только если наставник выбрал отправить уведомление. Отключить такие письма можно в профиле.",
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(guide.name),
   });
 }
 
@@ -332,7 +336,7 @@ export async function sendPasswordResetEmail(
   const letter = await dressLetter(
     "password",
     { subject: "Восстановление пароля", ...passwordResetLetter(user.name, url) },
-    withAddress(user.name, { имя: user.name, ссылка: url }),
+    withAddress(user.name, { ссылка: url }),
   );
   await sendMail({
     to: user.email,
@@ -351,12 +355,13 @@ export function passwordResetLetter(name: string, url: string) {
   return renderEmail({
     title: "Восстановление пароля",
     paragraphs: [
-      `${escapeHtml(name)}, ${form.passwordAsk}`,
+      escapeHtml(withGreeting(name, form.passwordAsk)),
       "Ссылка действует один час и сработает только один раз.",
     ],
     action: { label: "Задать новый пароль", url },
     footnote: form.passwordFoot,
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(name),
   });
 }
 
@@ -387,12 +392,11 @@ function dayBefore(iso: string): string | null {
  * Только рисует письмо. Никуда не отправляет и расписание не трогает.
  */
 export function platformUpdateLetter(input: { name: string }) {
-  const name = input.name.trim() || "Здравствуйте";
-  const form = addressForm(name);
+  const form = addressForm(input.name);
   return renderEmail({
     title: "Отчёт об обновлениях",
     blocks: [
-      { kind: "p", text: `${name}, коротко о том, что изменилось в кабинете, и куда нажать.` },
+      { kind: "p", text: withGreeting(input.name, "коротко о том, что изменилось в кабинете, и куда нажать.") },
       {
         kind: "section",
         title: "Задания",
@@ -466,6 +470,7 @@ export function platformUpdateLetter(input: { name: string }) {
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
     footnote: "Это общее письмо об обновлениях. Отключить письма можно в профиле.",
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(input.name),
   });
 }
 
@@ -495,7 +500,7 @@ export function weeklyTaskLetter(input: {
   return renderEmail({
     title: "Задание недели",
     blocks: [
-      { kind: "p", text: `${input.name.trim() || "Здравствуйте"}, на этой неделе такое задание.` },
+      { kind: "p", text: withGreeting(input.name, "на этой неделе такое задание.") },
       {
         kind: "card",
         kicker: open ?? undefined,
@@ -505,6 +510,7 @@ export function weeklyTaskLetter(input: {
       },
     ],
     action: { label: "Открыть задание", url: `${appUrl()}/dashboard/weekly` },
+    formal: usesFormalAddress(input.name),
     footnote: unsubFoot(
       "Задание необязательное. С основными заданиями оно не связано.",
       input.unsubscribeUrl,
@@ -519,7 +525,7 @@ export function dailyQuoteLetter(input: { name: string; text: string; author: st
   return renderEmail({
     title: "Цитата дня",
     blocks: [
-      { kind: "p", text: `${input.name.trim() || "Здравствуйте"}, сегодня такая цитата.` },
+      { kind: "p", text: withGreeting(input.name, "сегодня такая цитата.") },
       {
         kind: "quote",
         text: input.text.trim(),
@@ -528,6 +534,7 @@ export function dailyQuoteLetter(input: { name: string; text: string; author: st
       },
     ],
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
+    formal: usesFormalAddress(input.name),
     footnote: unsubFoot("День считается по Москве.", input.unsubscribeUrl, "quote"),
     signature: EMAIL_SIGNATURE,
   });
