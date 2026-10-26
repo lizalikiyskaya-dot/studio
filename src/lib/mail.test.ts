@@ -117,6 +117,8 @@ test("письма ученику: бренд, подпись, текст и п�
   assert.match(weekly.text, /Опиши комнату/);
   assert.match(weekly.text, /Сдать до 30 октября 2026/);
   assert.match(weekly.text, /Открыть задание: .*\/dashboard\/weekly/);
+  assert.match(weekly.html, /Если кнопка не работает, скопируй ссылку:/);
+  assert.equal(weekly.html.includes("скопируйте"), false);
   assert.doesNotMatch(weekly.text, /—/);
 
   const quote = dailyQuoteLetter({
@@ -132,6 +134,7 @@ test("письма ученику: бренд, подпись, текст и п�
 
   const previews = designerLetterPreviews();
   assert.match(previews.weekly.text, /полстраницы/);
+  assert.match(previews.weekly.html, /Если кнопка не работает, скопируйте ссылку:/);
   assert.match(previews.quote.text, /Чехов/);
   assert.match(previews.platform.text, /Саша|Виктория/);
 });

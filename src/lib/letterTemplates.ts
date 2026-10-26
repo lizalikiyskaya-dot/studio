@@ -1,4 +1,4 @@
-import { addressForm, addressVars } from "@/lib/addressForm";
+import { addressForm, addressVars, usesFormalAddress } from "@/lib/addressForm";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail, type EmailBlock } from "@/lib/mail";
 import { optOutLinkLabel } from "@/lib/mailOptOut";
 import type { OptOutKind } from "@/lib/mailOptOut";
@@ -472,10 +472,12 @@ export function applyLetterTemplate(
   if (!stored || sameAsStandard(key, stored)) return designed;
   if (key === "password" && !vars.ссылка?.trim()) return designed;
   const subject = fillLetter(stored.subject, varsForFill(vars)).trim() || designed.subject;
+  const toMentor = key === "registration-mentor" || key === "student-edit" || key === "student-online";
   const letter = renderEmail({
     title: subject,
     blocks: blocksFromTemplate(key, stored.body, vars),
     ...chrome(key, vars),
+    formal: toMentor ? undefined : usesFormalAddress(vars.имя ?? ""),
   });
   return { subject, html: letter.html, text: letter.text };
 }

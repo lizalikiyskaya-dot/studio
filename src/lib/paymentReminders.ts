@@ -1,4 +1,4 @@
-import { addressForm, addressVars, withGreeting } from "@/lib/addressForm";
+import { addressForm, addressVars, usesFormalAddress, withGreeting } from "@/lib/addressForm";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail } from "@/lib/mail";
 import { optOutLinkLabel } from "@/lib/mailOptOut";
 
@@ -141,6 +141,7 @@ export function buildPaymentReminder(
     action: { label: "Открыть платформу", url: `${appUrl()}/login` },
     footnote: paymentFoot(unsubscribeUrl),
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(person.name),
   });
   return { subject, html: letter.html, text: letter.text };
 }

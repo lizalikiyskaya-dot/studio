@@ -1,4 +1,4 @@
-import { addressForm, withGreeting } from "@/lib/addressForm";
+import { addressForm, usesFormalAddress, withGreeting } from "@/lib/addressForm";
 import { appUrl, escapeHtml, renderEmail, type RenderedEmail } from "@/lib/mail";
 import { optOutLinkLabel } from "@/lib/mailOptOut";
 import { sectionLabel } from "@/lib/sections";
@@ -90,6 +90,7 @@ export function mentorWorkLetter(input: {
     action: { label: "Открыть кабинет", url: firstLink || hrefFor("student", input.studentId, pieces[0].section.split(":")[0] || "tasks") },
     footnote: digestFoot(input.unsubscribeUrl),
     signature: "Лиза Андреенко",
+    formal: usesFormalAddress(input.name),
   });
 }
 

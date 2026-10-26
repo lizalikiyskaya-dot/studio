@@ -1,4 +1,4 @@
-import { addressForm, withAddress, withGreeting } from "@/lib/addressForm";
+import { addressForm, usesFormalAddress, withAddress, withGreeting } from "@/lib/addressForm";
 import { prisma } from "@/lib/prisma";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail, sendMail } from "@/lib/mail";
 import { optOutLinkLabel, type OptOutKind } from "@/lib/mailOptOut";
@@ -156,6 +156,7 @@ export function mentorEditLetter(section: string, name = "") {
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
     footnote: "Письмо приходит не чаще одного раза в час.",
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(name),
   });
 }
 
@@ -222,6 +223,7 @@ export function registrationStudentLetter(name: string) {
     ],
     action: { label: "Открыть платформу", url: `${appUrl()}/login` },
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(name),
   });
 }
 
@@ -258,6 +260,7 @@ export function approvedLetter(name: string) {
     ],
     action: { label: "Войти в кабинет", url: `${appUrl()}/login` },
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(name),
   });
 }
 
@@ -318,6 +321,7 @@ export function guideOpenedLetter(guide: { name: string; title: string; descript
     action: { label: "Открыть материалы", url: `${appUrl()}/dashboard/materials?tab=handouts` },
     footnote: "Письмо приходит, только если наставник выбрал отправить уведомление. Отключить такие письма можно в профиле.",
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(guide.name),
   });
 }
 
@@ -357,6 +361,7 @@ export function passwordResetLetter(name: string, url: string) {
     action: { label: "Задать новый пароль", url },
     footnote: form.passwordFoot,
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(name),
   });
 }
 
@@ -465,6 +470,7 @@ export function platformUpdateLetter(input: { name: string }) {
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
     footnote: "Это общее письмо об обновлениях. Отключить письма можно в профиле.",
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(input.name),
   });
 }
 
@@ -504,6 +510,7 @@ export function weeklyTaskLetter(input: {
       },
     ],
     action: { label: "Открыть задание", url: `${appUrl()}/dashboard/weekly` },
+    formal: usesFormalAddress(input.name),
     footnote: unsubFoot(
       "Задание необязательное. С основными заданиями оно не связано.",
       input.unsubscribeUrl,
@@ -527,6 +534,7 @@ export function dailyQuoteLetter(input: { name: string; text: string; author: st
       },
     ],
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
+    formal: usesFormalAddress(input.name),
     footnote: unsubFoot("День считается по Москве.", input.unsubscribeUrl, "quote"),
     signature: EMAIL_SIGNATURE,
   });

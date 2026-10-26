@@ -48,6 +48,8 @@ test("письмо ученику: название, срок, ссылка в �
   assert.equal(letter.html.split("Отписаться от писем").length - 1, 1);
   assert.equal(letter.html.includes("fonts.googleapis"), false);
   assert.equal(letter.html.includes("Onest"), false);
+  assert.match(letter.html, /Если кнопка не работает, скопируй ссылку:/);
+  assert.equal(letter.html.includes("скопируйте"), false);
   assert.match(letter.html, /display:none[^>]*>Надя, у тебя новое задание\./);
   assert.match(letter.html, /Открыть задание/);
   const formal = newTaskLetter({
@@ -57,6 +59,7 @@ test("письмо ученику: название, срок, ссылка в �
     taskId: "task-2",
   });
   assert.match(formal.text, /Виктория, у Вас новое задание\./);
+  assert.match(formal.html, /Если кнопка не работает, скопируйте ссылку:/);
   assert.equal(formal.text.includes("Срок"), false);
   assert.equal(formal.html.includes("Отписаться"), false);
   assert.equal(newTaskDeadlineLine(null), null);

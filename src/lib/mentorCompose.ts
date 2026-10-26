@@ -1,6 +1,6 @@
 import { composeDraft } from "@/lib/letterCompose";
 import { applyLetterTemplate, weeklyVolume, weeklyWhen, type LetterDraft, type LetterKey } from "@/lib/letterTemplates";
-import { greetingName, withAddress } from "@/lib/addressForm";
+import { greetingName, usesFormalAddress, withAddress } from "@/lib/addressForm";
 import { EMAIL_SIGNATURE, appUrl, renderEmail } from "@/lib/mail";
 import { dailyQuoteLetter, platformUpdateLetter, weeklyTaskLetter } from "@/lib/notify";
 
@@ -170,6 +170,7 @@ export function renderMentorCompose(input: {
     blocks: (parts.length ? parts : [""]).map((text) => ({ kind: "p" as const, text })),
     action,
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(name),
   });
   const type =
     input.template === "platform"

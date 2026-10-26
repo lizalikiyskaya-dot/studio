@@ -123,6 +123,7 @@ export function buildDeadlineLetter(input: {
     footnote: deadlineFoot(input.unsubscribeUrl),
     signature: EMAIL_SIGNATURE,
     siteUrl: home,
+    formal: usesFormalAddress(input.name),
   });
   return { subject, html: letter.html, text: letter.text };
 }

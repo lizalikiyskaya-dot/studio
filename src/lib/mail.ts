@@ -475,10 +475,15 @@ export function renderEmail(options: {
   footnote?: string;
   /** Подпись в конце. Письмам ученику — «Лиза Андреенко». */
   signature?: string;
+  /** «Вы» у Виктории: «скопируйте». «ты»: «скопируй». Без флага строка остаётся на «Вы». */
+  formal?: boolean;
   /** Вызовы по-прежнему передают адрес сайта. В подвале его нет: там одна строка с названием студии. */
   siteUrl?: string;
 }): RenderedEmail {
-  const { title, paragraphs = [], blocks, action, footnote, signature } = options;
+  const { title, paragraphs = [], blocks, action, footnote, signature, formal } = options;
+  const copyHint = formal === false
+    ? "Если кнопка не работает, скопируй ссылку:"
+    : "Если кнопка не работает, скопируйте ссылку:";
   const titleHtml = markedEmailTitle(title);
   const preview = previewSentence(openingPlain(blocks, paragraphs));
   const body =
@@ -498,7 +503,7 @@ export function renderEmail(options: {
            </td>
          </tr>
        </table>
-       <p style="margin:12px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:#8A8A8A;">Если кнопка не работает, скопируйте ссылку:<br><a href="${escapeHtml(action.url)}" style="color:#4B3FC0;text-decoration:underline;">${escapeHtml(action.url)}</a></p>`
+       <p style="margin:12px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:#8A8A8A;">${copyHint}<br><a href="${escapeHtml(action.url)}" style="color:#4B3FC0;text-decoration:underline;">${escapeHtml(action.url)}</a></p>`
     : "";
   const sign = signature
     ? `<p style="margin:28px 0 0;font-family:${FONT_SERIF};font-size:18px;font-style:italic;line-height:1.3;color:#202020;">${escapeHtml(signature)}</p>`
