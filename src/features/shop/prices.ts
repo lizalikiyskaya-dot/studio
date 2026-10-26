@@ -1,41 +1,21 @@
 import { matchKeyMethodical } from "@/features/badges/rules";
 import { ruPlural } from "@/features/stars/rules";
 
-/** Три цены магазина. Других нет. */
+/** Явная цена наставника. Лестница по номеру этими тремя не ограничена. */
 export const STAR_PRICE_OPTIONS = [8, 12, 18] as const;
 export type StarPrice = (typeof STAR_PRICE_OPTIONS)[number];
 
 /**
- * Цены из согласованной таблицы. 7-1 с 7-2 и 19-1 с 19-2 в магазине
- * продаются парой за 18, если наставник не задал цену каждой отдельно.
+ * Лестница по номеру. Тихая неделя — 5 звёзд (задание недели 2 и основное 3).
+ * №1 стоит 8: примерно полторы таких недели, счёт в 21 звезду её покрывает.
+ * Каждый следующий номер — на одну звезду дороже. 7-1 и 7-2 делят цену номера 7,
+ * 19-1 и 19-2 — цену номера 19. В магазине такая пара по-прежнему одна карточка.
  */
-const CATALOG: Record<string, StarPrice> = {
-  "1": 8,
-  "2": 12,
-  "3": 12,
-  "4": 8,
-  "5": 12,
-  "6": 12,
-  "7-1": 18,
-  "7-2": 18,
-  "8": 12,
-  "9": 12,
-  "10": 8,
-  "11": 12,
-  "12": 12,
-  "13": 12,
-  "14": 8,
-  "15": 8,
-  "16": 18,
-  "17": 18,
-  "18": 12,
-  "19-1": 18,
-  "19-2": 18,
-};
+export const METHODICAL_PRICE_START = 8;
 
-const PAIRS: { sourceId: string; codes: [string, string]; price: StarPrice }[] = [
-  { sourceId: "pair:7", codes: ["7-1", "7-2"], price: 18 },
-  { sourceId: "pair:19", codes: ["19-1", "19-2"], price: 18 },
+const PAIRS: { sourceId: string; codes: [string, string] }[] = [
+  { sourceId: "pair:7", codes: ["7-1", "7-2"] },
+  { sourceId: "pair:19", codes: ["19-1", "19-2"] },
 ];
 
 const SHORT_FILE = 150_000;
@@ -55,7 +35,7 @@ export type ShopOffer = {
   guideIds: string[];
   titles: string[];
   description: string;
-  price: StarPrice;
+  price: number;
   bundled: boolean;
 };
 
@@ -67,11 +47,24 @@ export function guideCode(title: string): string | null {
   return matchKeyMethodical(title)?.code ?? null;
 }
 
-/** Цена одной методички: явная, иначе таблица, иначе размер файла. */
-export function listedPrice(guide: Pick<ShopGuide, "title" | "starPrice" | "fileBytes">): StarPrice {
+/** Старший номер: «7-1» и «7-2» — это 7, «19-2» — это 19. */
+export function methodicalNumber(code: string | null | undefined): number | null {
+  if (!code) return null;
+  const major = Number.parseInt(code, 10);
+  if (!Number.isInteger(major) || major < 1) return null;
+  return major;
+}
+
+/** №1 — 8 звёзд, дальше плюс одна звезда за каждый номер. */
+export function priceForMethodicalNumber(number: number): number {
+  return METHODICAL_PRICE_START + number - 1;
+}
+
+/** Цена одной методички: явная наставника, иначе номер, иначе размер файла. */
+export function listedPrice(guide: Pick<ShopGuide, "title" | "starPrice" | "fileBytes">): number {
   if (isStarPrice(guide.starPrice)) return guide.starPrice;
-  const code = guideCode(guide.title);
-  if (code && CATALOG[code]) return CATALOG[code];
+  const number = methodicalNumber(guideCode(guide.title));
+  if (number) return priceForMethodicalNumber(number);
   const bytes = guide.fileBytes ?? 0;
   if (bytes >= LONG_FILE) return 18;
   if (bytes > 0 && bytes < SHORT_FILE) return 8;
@@ -85,8 +78,8 @@ function sameIds(left: string[], right: string[]): boolean {
 }
 
 /**
- * В магазине только закрытые методички. Пара 7 и пара 19 — одна карточка за 18,
- * пока наставник не поставил свою цену хотя бы одной из них.
+ * В магазине только закрытые методички. Пара 7 и пара 19 — одна карточка
+ * по цене своего номера, пока наставник не поставил свою цену хотя бы одной из них.
  */
 export function shopOffers(guides: ShopGuide[]): ShopOffer[] {
   const closed = guides.filter((guide) => !guide.visible);
@@ -113,7 +106,7 @@ export function shopOffers(guides: ShopGuide[]): ShopOffer[] {
             .map((member) => member.description.trim())
             .filter(Boolean)
             .join("\n\n"),
-          price: pair.price,
+          price: priceForMethodicalNumber(methodicalNumber(pair.codes[0]) ?? 1),
           bundled: true,
         });
         continue;
@@ -136,7 +129,7 @@ export function shopOffers(guides: ShopGuide[]): ShopOffer[] {
 export type PurchasePlan =
   | {
       ok: true;
-      price: StarPrice;
+      price: number;
       guideIds: string[];
       sourceId: string;
       note: string;

@@ -7,14 +7,14 @@ export default function GuidePriceField({
   onPick,
   disabled,
 }: {
-  price: StarPrice;
+  price: number;
   onPick: (price: StarPrice) => void;
   disabled?: boolean;
 }) {
   return (
     <div className="guide-price" role="group" aria-label="Цена в магазине">
       <span className="text-[13px]" style={{ color: "var(--ink2)" }}>
-        Цена в магазине
+        Цена в магазине · {price}
       </span>
       {STAR_PRICE_OPTIONS.map((item) => {
         const on = item === price;

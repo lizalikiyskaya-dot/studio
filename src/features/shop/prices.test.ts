@@ -7,9 +7,11 @@ import { findDestructive } from "../../../scripts/sql-guard.mjs";
 import {
   confirmPurchase,
   listedPrice,
+  METHODICAL_PRICE_START,
   missingStarsLabel,
   openedLine,
   planPurchase,
+  priceForMethodicalNumber,
   shopIntro,
   shopOffers,
   type ShopGuide,
@@ -27,13 +29,18 @@ function guide(partial: Partial<ShopGuide> & Pick<ShopGuide, "id" | "title">): S
   };
 }
 
-test("таблица цен и размер файла", () => {
+test("цена растёт с номером, №1 остаётся 8", () => {
+  assert.equal(METHODICAL_PRICE_START, 8);
   assert.equal(listedPrice(guide({ id: "a", title: "1 Писательская практика" })), 8);
   assert.equal(listedPrice(guide({ id: "a", title: "Писательская практика" })), 8);
-  assert.equal(listedPrice(guide({ id: "a", title: "2 Луковица" })), 12);
-  assert.equal(listedPrice(guide({ id: "a", title: "16 Синопсис" })), 18);
-  assert.equal(listedPrice(guide({ id: "a", title: "7-1 Сценарные структуры" })), 18);
-  assert.equal(listedPrice(guide({ id: "a", title: "19-2 Библия мира" })), 18);
+  assert.equal(listedPrice(guide({ id: "a", title: "2 Луковица" })), 9);
+  assert.equal(listedPrice(guide({ id: "a", title: "10 Крючки" })), 17);
+  assert.equal(listedPrice(guide({ id: "a", title: "16 Синопсис" })), 23);
+  assert.equal(listedPrice(guide({ id: "a", title: "7-1 Сценарные структуры" })), 14);
+  assert.equal(listedPrice(guide({ id: "a", title: "7-2 Сценарные структуры" })), 14);
+  assert.equal(listedPrice(guide({ id: "a", title: "19-2 Библия мира" })), 26);
+  assert.equal(priceForMethodicalNumber(19), priceForMethodicalNumber(1) + 18);
+  assert.ok(listedPrice(guide({ id: "a", title: "4 Второстепенные" })) < listedPrice(guide({ id: "a", title: "5 Сеттинги" })));
   assert.equal(listedPrice(guide({ id: "a", title: "Новая методичка", fileBytes: 40_000 })), 8);
   assert.equal(listedPrice(guide({ id: "a", title: "Новая методичка", fileBytes: 400_000 })), 12);
   assert.equal(listedPrice(guide({ id: "a", title: "Новая методичка", fileBytes: 2_000_000 })), 18);
@@ -41,7 +48,7 @@ test("таблица цен и размер файла", () => {
   assert.equal(listedPrice(guide({ id: "a", title: "16 Синопсис", starPrice: 8 })), 8);
 });
 
-test("закрытые методички, пара за 18, открытая Лизой в магазин не входит", () => {
+test("закрытые методички, пара по цене номера, открытая Лизой в магазин не входит", () => {
   const guides = [
     guide({ id: "g1", title: "1 Писательская практика", visible: true }),
     guide({ id: "g7a", title: "7-1 Сценарные структуры" }),
@@ -54,9 +61,9 @@ test("закрытые методички, пара за 18, открытая Л
   assert.deepEqual(
     offers.map((offer) => [offer.id, offer.price, offer.guideIds]),
     [
-      ["pair:7", 18, ["g7a", "g7b"]],
-      ["g10", 8, ["g10"]],
-      ["g19b", 18, ["g19b"]],
+      ["pair:7", 14, ["g7a", "g7b"]],
+      ["g10", 17, ["g10"]],
+      ["g19b", 26, ["g19b"]],
     ],
   );
 });
@@ -70,7 +77,7 @@ test("своя цена наставника разбивает пару", () =>
     offers.map((offer) => [offer.id, offer.price]),
     [
       ["g7a", 8],
-      ["g7b", 18],
+      ["g7b", 14],
     ],
   );
 });
@@ -86,8 +93,8 @@ test("покупка уменьшает счёт и не трогает зара
   const single = planPurchase(guides, ["g2"], 21, earned);
   assert.equal(single.ok, true);
   if (!single.ok) return;
-  assert.equal(single.price, 12);
-  assert.equal(single.balanceAfter, 9);
+  assert.equal(single.price, 9);
+  assert.equal(single.balanceAfter, 12);
   assert.equal(single.earned, earned);
   assert.equal(single.note, "методичка «2 Луковица»");
   assert.equal(rankForStars(single.earned).current.title, before);
@@ -95,14 +102,14 @@ test("покупка уменьшает счёт и не трогает зара
   const pair = planPurchase(guides, ["g7b", "g7a"], 21, earned);
   assert.equal(pair.ok, true);
   if (!pair.ok) return;
-  assert.equal(pair.price, 18);
+  assert.equal(pair.price, 14);
   assert.equal(pair.sourceId, "pair:7");
-  assert.equal(pair.balanceAfter, 3);
+  assert.equal(pair.balanceAfter, 7);
   assert.equal(pair.earned, earned);
   assert.match(pair.note, /методички/);
 
   const poor = planPurchase(guides, ["g2"], 5, earned);
-  assert.deepEqual(poor, { ok: false, reason: "missing", missing: 7, price: 12 });
+  assert.deepEqual(poor, { ok: false, reason: "missing", missing: 4, price: 9 });
 
   const opened = planPurchase([{ ...guides[0], visible: true }], ["g2"], 21, earned);
   assert.deepEqual(opened, { ok: false, reason: "open" });
