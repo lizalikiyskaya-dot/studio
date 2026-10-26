@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export type OptOutKind = "weekly" | "quote";
+export type OptOutKind = "weekly" | "quote" | "mail";
 
 export function optOutSecret(env: NodeJS.ProcessEnv = process.env): string | null {
   const secret = env.JWT_SECRET?.trim();
@@ -25,7 +25,7 @@ export function readOptOut(token: string, secret: string): { userId: string; kin
   if (left.length !== right.length || !timingSafeEqual(left, right)) return null;
   try {
     const data = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as { u?: unknown; k?: unknown };
-    if ((data.k !== "weekly" && data.k !== "quote") || typeof data.u !== "string" || !data.u) return null;
+    if ((data.k !== "weekly" && data.k !== "quote" && data.k !== "mail") || typeof data.u !== "string" || !data.u) return null;
     return { userId: data.u, kind: data.k };
   } catch {
     return null;
@@ -33,9 +33,18 @@ export function readOptOut(token: string, secret: string): { userId: string; kin
 }
 
 export function optOutLabel(kind: OptOutKind): string {
-  return kind === "weekly" ? "заданий недели" : "цитат дня";
+  if (kind === "weekly") return "заданий недели";
+  if (kind === "quote") return "цитат дня";
+  return "писем";
 }
 
 export function optOutLinkLabel(kind: OptOutKind): string {
-  return kind === "weekly" ? "Отписаться от заданий недели" : "Отписаться от цитат дня";
+  if (kind === "weekly") return "Отписаться от заданий недели";
+  if (kind === "quote") return "Отписаться от цитат дня";
+  return "Отписаться от писем";
+}
+
+/** Тело POST из заголовка List-Unsubscribe-Post. */
+export function oneClickBodyOk(body: string): boolean {
+  return new URLSearchParams(body).get("List-Unsubscribe") === "One-Click";
 }

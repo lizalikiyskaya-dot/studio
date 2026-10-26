@@ -40,7 +40,7 @@ export default function SectionTracker({ studentId, basePath }: { studentId: str
       const el = e.target as HTMLElement | null;
       if (!el) return;
       // Ignore the sidebar and the floating notes panel — not section content.
-      if (el.closest("aside") || el.closest('[data-notes-ui="1"]')) return;
+      if (el.closest("aside") || el.closest('[data-notes-ui="1"]') || el.closest("[data-no-digest]")) return;
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => void markSectionActivity(studentId, sec), 1500);
     }
