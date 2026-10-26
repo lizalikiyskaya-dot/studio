@@ -30,7 +30,7 @@ function gap(prev: Text, next: Text) {
 }
 
 /** Видимый текст страницы без полей ввода. Между абзацами ставится перевод строки, как в выделении. */
-export function collectVisibleText(root: Element) {
+export function collectVisibleText(root: Element, scope: "page" | "writing" = "page") {
   const chunks: TextChunk[] = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
@@ -39,6 +39,11 @@ export function collectVisibleText(root: Element) {
       if (parent.closest("#note-mark-layer, [data-notes-ui], script, style, textarea, input, select, noscript")) {
         return NodeFilter.FILTER_REJECT;
       }
+      // Подпись сохранения и кнопки не входят в текст: иначе правка рядом с цитатой раздувает якорь.
+      if (parent.closest(".writing-toolbar, .writing-card-bar, .writing-mode-top, .writing-mode-hint")) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      if (scope === "page" && parent.closest(".writing-prose")) return NodeFilter.FILTER_REJECT;
       if (parent.closest("[aria-hidden='true'], [inert], .collapse-slot:not(.is-open)")) return NodeFilter.FILTER_REJECT;
       const review = parent.closest("[data-review-field]");
       if (parent.closest(".suggest-doc") && review?.querySelector("textarea, input")) return NodeFilter.FILTER_REJECT;
@@ -58,6 +63,36 @@ export function collectVisibleText(root: Element) {
     prev = node;
   }
   return { text, chunks };
+}
+
+function joinRoots(roots: Element[], scope: "page" | "writing") {
+  const chunks: TextChunk[] = [];
+  let text = "";
+  for (const root of roots) {
+    const part = collectVisibleText(root, scope);
+    if (!part.text) continue;
+    if (text) text += "\n";
+    const shift = text.length;
+    text += part.text;
+    for (const chunk of part.chunks) {
+      chunks.push({ node: chunk.node, start: chunk.start + shift, end: chunk.end + shift });
+    }
+  }
+  return { text, chunks };
+}
+
+/** Текст карточек. Поле «Режима письма» собирается отдельно и не прыгает по странице. */
+export function collectPageText() {
+  if (typeof document === "undefined") return { text: "", chunks: [] as TextChunk[] };
+  const studio = document.querySelector(".studio-content");
+  if (!studio) return { text: "", chunks: [] as TextChunk[] };
+  return joinRoots([studio], "page");
+}
+
+/** Только текст редактора: и в карточке, и в открытом окне письма. */
+export function collectWritingText() {
+  if (typeof document === "undefined") return { text: "", chunks: [] as TextChunk[] };
+  return joinRoots([...document.querySelectorAll(".writing-prose")], "writing");
 }
 
 export function offsetInCollected(collected: { chunks: TextChunk[] }, node: Node | null, offset: number) {
