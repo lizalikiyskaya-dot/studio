@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import type { CharacterSource, SettingSource } from "@/generated/prisma/client";
 import { isChapterReview, type ChapterReviewValue } from "@/features/books/chapterReview";
+import { creditStreakWeek } from "@/features/streak/credit";
+import { submittedStatusCounts } from "@/features/streak/weeks";
 
 export async function createStory(cycleId: string) {
   const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: cycleId } });
@@ -87,5 +89,7 @@ export async function updateStoryReview(storyId: string, status: ChapterReviewVa
   if (!isChapterReview(status)) return;
   const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
   await requireMentor(story.studentId);
+  if (story.reviewStatus === status) return;
   await prisma.story.update({ where: { id: storyId }, data: { reviewStatus: status } });
+  if (submittedStatusCounts(story.reviewStatus, status)) await creditStreakWeek(story.studentId);
 }

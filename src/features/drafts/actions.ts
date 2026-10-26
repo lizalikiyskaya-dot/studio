@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
 import { creditStreakWeek } from "@/features/streak/credit";
-import { studentManuscriptEditCounts } from "@/features/streak/weeks";
+import { linkAttachmentCounts } from "@/features/streak/weeks";
 
 export async function createDraft(studentId: string) {
   await requireCabinetAccess(studentId);
@@ -21,7 +21,7 @@ export async function updateDraftField(
   const previous = draft[field] ?? "";
   if (previous === value) return;
   await prisma.draft.update({ where: { id: draftId }, data: { [field]: value } });
-  if (studentManuscriptEditCounts(session, draft.studentId, true)) {
+  if (field === "link" && linkAttachmentCounts(session, draft.studentId, previous, value)) {
     await creditStreakWeek(draft.studentId);
   }
 }

@@ -5,7 +5,9 @@ import { siteConfirm } from "@/components/SiteDialog";
 import { useRef, useState, useTransition } from "react";
 import { ChevronDown } from "lucide-react";
 import Collapse from "@/components/Collapse";
-import type { PopArcCharacter, ArcType, Comment } from "@/generated/prisma/client";
+import type { PopArcCharacter, ArcType, Comment, TaskStatus } from "@/generated/prisma/client";
+import ExerciseStatusControl from "@/features/exercises/ExerciseStatusControl";
+import { setPopArcStatus } from "@/features/exercises/cardStatus";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import CardSaveButton from "@/components/CardSaveButton";
 import SuggestableField from "@/features/suggestions/SuggestableField";
@@ -152,6 +154,8 @@ export default function PopArcCard({
   initialComments,
   onDelete,
   startOpen = false,
+  trackStatus = false,
+  isMentorViewer = false,
 }: {
   character: PopArcCharacter;
   readOnly: boolean;
@@ -159,12 +163,15 @@ export default function PopArcCard({
   initialComments: Comment[];
   onDelete: () => void;
   startOpen?: boolean;
+  trackStatus?: boolean;
+  isMentorViewer?: boolean;
 }) {
   const [open, setOpen] = useState(startOpen);
   const [name, setName] = useState(character.name);
   const [photoUrl, setPhotoUrl] = useState(character.photoUrl);
   const [arcType, setArcType] = useState(character.arcType);
   const [data, setData] = useState((character.data as Record<string, string>) ?? {});
+  const [status, setStatus] = useState<TaskStatus>(character.status);
   const [, startTransition] = useTransition();
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -180,6 +187,13 @@ export default function PopArcCard({
   function handleSelectType(type: ArcType) {
     setArcType(type);
     startTransition(() => updatePopArcType(character.id, type));
+  }
+
+  function handleStatus(next: TaskStatus) {
+    setStatus(next);
+    startTransition(() => {
+      void setPopArcStatus(character.id, next);
+    });
   }
 
   return (
@@ -219,6 +233,9 @@ export default function PopArcCard({
             {ARC_TYPE_LABEL[arcType]}
           </span>
         )}
+        {trackStatus ? (
+          <ExerciseStatusControl status={status} isMentor={isMentorViewer} onChange={handleStatus} />
+        ) : null}
         <span className={`chevron-turn${open ? " is-open" : ""}`}>
           <ChevronDown size={15} />
         </span>

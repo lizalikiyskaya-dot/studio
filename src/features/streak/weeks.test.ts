@@ -1,15 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import fs from "node:fs";
 import {
   STREAK_HINT,
   evaluateStreak,
+  fileUploadCounts,
+  linkAttachmentCounts,
   moscowMonday,
   streakBonus,
   streakMilestones,
-  studentManuscriptEditCounts,
+  submittedStatusCounts,
   unseenRunWeeks,
   weeksLabel,
 } from "./weeks";
+import { findDestructive } from "../../../scripts/sql-guard.mjs";
 
 const sunday = new Date("2026-10-25T12:00:00.000Z");
 const mondayNight = new Date("2026-10-25T22:00:00.000Z");
@@ -68,22 +72,37 @@ test("бонус серии: 4, 8, 12 и каждые следующие 4", () 
   assert.equal(weeksLabel(5), "5 недель");
 });
 
-test("подсказка серии говорит про неделю и три действия ученика", () => {
-  assert.match(STREAK_HINT, /за неделю/);
-  assert.doesNotMatch(STREAK_HINT, /за день/);
-  assert.match(STREAK_HINT, /Вы выполнили задание недели/);
-  assert.match(STREAK_HINT, /основное задание/);
-  assert.match(STREAK_HINT, /поработали над рукописью/);
-  assert.match(STREAK_HINT, /понедельника по Москве/);
+test("подсказка серии говорит про неделю, ссылку и сдачу", () => {
+  assert.equal(
+    STREAK_HINT,
+    "Серия продолжается, если за неделю Вы выполнили задание недели, прикрепили ссылку или файл в заданиях или рукописях, или сдали что-то на проверку. Неделя считается с понедельника по Москве.",
+  );
 });
 
-test("рукопись засчитывает неделю только при правке самого ученика", () => {
+test("ссылка и файл засчитывают неделю, название и та же ссылка нет", () => {
   const student = { role: "STUDENT", userId: "s1" };
   const mentor = { role: "MENTOR", userId: "m1" };
-  assert.equal(studentManuscriptEditCounts(student, "s1", true), true);
-  assert.equal(studentManuscriptEditCounts(student, "s1", false), false);
-  assert.equal(studentManuscriptEditCounts(mentor, "s1", true), false);
-  assert.equal(studentManuscriptEditCounts(student, "other", true), false);
+  assert.equal(linkAttachmentCounts(student, "s1", "", "https://text.example"), true);
+  assert.equal(linkAttachmentCounts(student, "s1", "https://text.example", "https://text.example"), false);
+  assert.equal(linkAttachmentCounts(student, "s1", "https://a.example", "  "), false);
+  assert.equal(linkAttachmentCounts(mentor, "s1", "", "https://text.example"), false);
+  assert.equal(linkAttachmentCounts(student, "other", "", "https://text.example"), false);
+  assert.equal(fileUploadCounts(student, "s1"), true);
+  assert.equal(fileUploadCounts(mentor, "s1"), false);
+  assert.equal(submittedStatusCounts("IN_PROGRESS", "SUBMITTED"), true);
+  assert.equal(submittedStatusCounts("SUBMITTED", "SUBMITTED"), false);
+  assert.equal(submittedStatusCounts("IN_PROGRESS", "ACCEPTED"), false);
+  assert.equal(submittedStatusCounts(null, "SUBMITTED"), true);
+});
+
+test("статус упражнений только добавляет столбец", () => {
+  const sql = fs.readFileSync("docs/sql/2026-10-28-exercise-status.sql", "utf8");
+  assert.deepEqual(findDestructive(sql), []);
+  assert.match(sql, /ADD COLUMN IF NOT EXISTS "status"/);
+  assert.match(sql, /DEFAULT 'IN_PROGRESS'/);
+  assert.equal(sql.includes("PopArcCharacter"), true);
+  assert.equal(sql.includes("BeliefCard"), true);
+  assert.equal(sql.includes("StoryCircleCard"), true);
 });
 
 test("анимация только для ещё не виденного хвоста серии", () => {

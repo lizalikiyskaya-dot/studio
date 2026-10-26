@@ -51,9 +51,12 @@ function StatusChoices({
 export default function TaskStatusMenu({
   status,
   onChange,
+  locked = false,
 }: {
   status: TaskStatus;
   onChange: (status: TaskStatus) => void;
+  /** Чип без меню: ученик видит статус, но не выбирает его сам. */
+  locked?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [mobile, setMobile] = useState(false);
@@ -129,6 +132,20 @@ export default function TaskStatusMenu({
     status === "ACCEPTED"
       ? "text-[14px] font-medium whitespace-nowrap"
       : "text-[12px] px-2.5 py-1.5 rounded-full whitespace-nowrap";
+  const chip =
+    status === "ACCEPTED" ? <Mark>Принято</Mark> : TASK_STATUS_LABEL[status];
+
+  if (locked) {
+    return (
+      <span
+        className={chipClass}
+        style={status === "ACCEPTED" ? undefined : STATUS_STYLE[status]}
+        aria-label={`Статус: ${TASK_STATUS_LABEL[status]}`}
+      >
+        {chip}
+      </span>
+    );
+  }
 
   return (
     <>
@@ -145,7 +162,7 @@ export default function TaskStatusMenu({
         className={chipClass}
         style={status === "ACCEPTED" ? undefined : STATUS_STYLE[status]}
       >
-        {status === "ACCEPTED" ? <Mark>Принято</Mark> : TASK_STATUS_LABEL[status]}
+        {chip}
       </button>
       {open && mobile
         ? createPortal(

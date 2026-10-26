@@ -319,6 +319,7 @@ model PopArcCharacter {
   data      Json     @default("{}")
   arcType   ArcType?
   isExample Boolean  @default(false)
+  status    TaskStatus @default(IN_PROGRESS)
 
   @@index([studentId])
 }
@@ -333,6 +334,7 @@ model BeliefCard {
   endBelief    String  @default("")
   photoUrl     String?
   isExample    Boolean @default(false)
+  status       TaskStatus @default(IN_PROGRESS)
 
   @@index([studentId])
 }
@@ -346,6 +348,7 @@ model StoryCircleCard {
   data      Json    @default("{}")
   photoUrl  String?
   isExample Boolean @default(false)
+  status    TaskStatus @default(IN_PROGRESS)
 
   @@index([studentId])
 }

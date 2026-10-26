@@ -73,6 +73,7 @@ export default async function StoryCircleView({
               initialCards={own}
               suggestions={ownSuggestions}
               comments={allComments}
+              isMentorViewer={isMentorViewer}
             />
           ),
         },

@@ -20,19 +20,35 @@ export type StreakPlaque = {
 
 /**
  * Неделя — с понедельника по воскресенье, Москва.
- * Она идёт в серию, если ученик сдал задание недели, выполнил основное задание
- * («сдано на проверку» или «принято») или сам поработал над рукописью.
+ * Она идёт в серию, если за эту неделю случилось хотя бы одно:
+ * ученик сдал задание недели; ученик прикрепил новую ссылку или файл
+ * в задании или рукописи; что-то получило статус «сдано на проверку».
+ * Уже записанные недели не пересчитываются.
  */
 export const STREAK_HINT =
-  "Серия продолжается, если за неделю Вы выполнили задание недели, основное задание или поработали над рукописью. Неделя считается с понедельника по Москве.";
+  "Серия продолжается, если за неделю Вы выполнили задание недели, прикрепили ссылку или файл в заданиях или рукописях, или сдали что-то на проверку. Неделя считается с понедельника по Москве.";
 
-/** Рукопись засчитывает неделю только когда ученик сам меняет свою карточку. */
-export function studentManuscriptEditCounts(
+/** Ссылку засчитывает только ученик, и только если адрес новый и не пустой. */
+export function linkAttachmentCounts(
   actor: { role: string; userId: string },
   studentId: string,
-  changed: boolean,
+  previous: string | null | undefined,
+  next: string,
 ): boolean {
-  return changed && actor.role === "STUDENT" && actor.userId === studentId;
+  if (actor.role !== "STUDENT" || actor.userId !== studentId) return false;
+  const before = (previous ?? "").trim();
+  const after = next.trim();
+  return after.length > 0 && after !== before;
+}
+
+/** Файл в рукописи засчитывает загрузка самого ученика. */
+export function fileUploadCounts(actor: { role: string; userId: string }, studentId: string): boolean {
+  return actor.role === "STUDENT" && actor.userId === studentId;
+}
+
+/** Неделю даёт переход в «сдано на проверку», не «принято» и не повтор того же статуса. */
+export function submittedStatusCounts(previous: string | null | undefined, next: string): boolean {
+  return next === "SUBMITTED" && previous !== "SUBMITTED";
 }
 
 export function addDays(iso: string, days: number): string {
