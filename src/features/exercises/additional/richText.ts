@@ -7,8 +7,11 @@ export type Inline = {
 };
 
 export type Block =
-  | { kind: "p" | "h2" | "quote"; inlines: Inline[] }
-  | { kind: "ul" | "ol"; items: Inline[][] };
+  | { kind: "p"; inlines: Inline[] }
+  | { kind: "h2"; inlines: Inline[] }
+  | { kind: "quote"; inlines: Inline[] }
+  | { kind: "ul"; items: Inline[][] }
+  | { kind: "ol"; items: Inline[][] };
 
 const MARKER = /^(#{1,3} |> |- |\d+\. )/;
 

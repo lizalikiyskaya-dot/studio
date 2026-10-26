@@ -29,7 +29,7 @@ class MiniElement {
   get children() {
     return this.childNodes.filter((node) => node instanceof MiniElement);
   }
-  get textContent() {
+  get textContent(): string {
     return this.childNodes.map((node) => node.textContent ?? "").join("");
   }
   append(...nodes: Array<MiniElement | MiniText>) {
