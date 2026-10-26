@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { freshSnap, trackSources, type Placement } from "./anchorTrack";
+import { idAtBoxes, idAtOffset } from "./noteHit";
 import { caretRect, collectVisibleText, visibleFields, type TextChunk } from "./pageText";
 import { anchorOnPage, locateQuote, mapSpan, coverSegments } from "./quoteMatch";
 
@@ -30,16 +31,28 @@ function rangeFor(chunks: Chunk[], start: number, end: number) {
   return range;
 }
 
-function paintDom(chunks: Chunk[], placements: Placement[], flashId: string | null) {
+function paintHighlight(name: string, ranges: Range[], priority = 0) {
   const HighlightCtor = window.Highlight;
+  if (!ranges.length || typeof HighlightCtor !== "function") {
+    CSS.highlights?.delete(name);
+    return;
+  }
+  const highlight = new HighlightCtor(...ranges);
+  highlight.priority = priority;
+  CSS.highlights.set(name, highlight);
+}
+
+function paintDom(chunks: Chunk[], placements: Placement[], flashId: string | null, activeId: string | null) {
   const hits: { id: string; range: Range }[] = [];
-  if (!("highlights" in CSS) || typeof HighlightCtor !== "function") {
+  if (!("highlights" in CSS) || typeof window.Highlight !== "function") {
     CSS.highlights?.delete("note-anchor");
     CSS.highlights?.delete("note-flash");
+    CSS.highlights?.delete("note-active");
     return hits;
   }
   const ranges: Range[] = [];
   const flashes: Range[] = [];
+  const actives: Range[] = [];
   for (const place of placements) {
     if (place.key !== "dom") continue;
     const range = rangeFor(chunks, place.start, place.end);
@@ -47,15 +60,18 @@ function paintDom(chunks: Chunk[], placements: Placement[], flashId: string | nu
     ranges.push(range);
     hits.push({ id: place.id, range });
     if (place.id === flashId) flashes.push(range);
+    if (place.id === activeId) actives.push(range);
   }
-  CSS.highlights.set("note-anchor", new HighlightCtor(...ranges));
-  CSS.highlights.set("note-flash", new HighlightCtor(...flashes));
+  paintHighlight("note-anchor", ranges);
+  paintHighlight("note-flash", flashes, 1);
+  paintHighlight("note-active", actives, 2);
   return hits;
 }
 
 function fieldOverlay(
   field: HTMLInputElement | HTMLTextAreaElement,
   segments: { start: number; end: number; id: string; flash: boolean }[],
+  activeId: string | null,
 ) {
   if (!segments.length) return null;
   const style = getComputedStyle(field);
@@ -103,7 +119,8 @@ function fieldOverlay(
     if (segment.start > cursor) inner.append(value.slice(cursor, segment.start));
     const mark = document.createElement("mark");
     mark.dataset.noteId = segment.id;
-    if (segment.flash) mark.className = "is-flash";
+    if (segment.flash) mark.classList.add("is-flash");
+    if (activeId && segment.id === activeId) mark.classList.add("is-active");
     mark.textContent = value.slice(segment.start, segment.end);
     inner.append(mark);
     cursor = segment.end;
@@ -118,6 +135,7 @@ function paintFields(
   keys: WeakMap<Element, string>,
   placements: Placement[],
   flashId: string | null,
+  activeId: string | null,
 ) {
   let layer = document.getElementById(LAYER_ID);
   if (!layer) {
@@ -132,7 +150,7 @@ function paintFields(
       if (place.key !== key) return [];
       return [{ start: place.start, end: place.end, id: place.id, flash: place.id === flashId }];
     });
-    const overlay = fieldOverlay(field, coverSegments(hits));
+    const overlay = fieldOverlay(field, coverSegments(hits), activeId);
     if (overlay) layer.append(overlay);
   }
 }
@@ -178,24 +196,58 @@ function reveal(el: Element) {
 function clearMarks() {
   CSS.highlights?.delete("note-anchor");
   CSS.highlights?.delete("note-flash");
+  CSS.highlights?.delete("note-active");
   document.getElementById(LAYER_ID)?.replaceChildren();
 }
 
-export default function NoteMarks({ notes, flashId }: { notes: MarkNote[]; flashId: string | null }) {
+function indexInField(field: HTMLTextAreaElement, x: number, y: number) {
+  const rect = field.getBoundingClientRect();
+  if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return null;
+  let low = 0;
+  let high = field.value.length;
+  while (low < high) {
+    const mid = Math.floor((low + high) / 2);
+    const caret = caretRect(field, mid);
+    const below = caret.top > y + 2;
+    const after = caret.left > x + 1 && caret.top <= y + 2 && caret.bottom >= y - 2;
+    if (below || after) high = mid;
+    else low = mid + 1;
+  }
+  if (field.value.length === 0) return null;
+  const index = Math.max(0, Math.min(field.value.length - 1, low - 1));
+  const caret = caretRect(field, index);
+  if (y < caret.top - 6 || y > caret.bottom + 6) return null;
+  if (x < caret.left - 8 || x > caret.right + 14) return null;
+  return index;
+}
+
+export default function NoteMarks({
+  notes,
+  flashId,
+  activeId,
+}: {
+  notes: MarkNote[];
+  flashId: string | null;
+  activeId: string | null;
+}) {
   const pathname = usePathname();
   const flashRef = useRef(flashId);
+  const activeRef = useRef(activeId);
   flashRef.current = flashId;
+  activeRef.current = activeId;
   const scrolled = useRef<string | null>(null);
   const revealed = useRef<string | null>(null);
   const drift = useRef(freshSnap());
   const fieldKeys = useRef(new WeakMap<Element, string>());
   const keySeq = useRef(0);
   const domHits = useRef<{ id: string; range: Range }[]>([]);
+  const placedRef = useRef<Placement[]>([]);
+  const fieldsRef = useRef<{ key: string; field: HTMLTextAreaElement }[]>([]);
 
   useEffect(() => {
     const style = document.createElement("style");
     style.setAttribute("data-note-highlight", "");
-    style.textContent = "::highlight(note-anchor){background-color:rgba(255,212,59,0.55)}::highlight(note-flash){background-color:rgba(255,196,40,0.95)}";
+    style.textContent = "::highlight(note-anchor){background-color:rgba(255,212,59,0.55)}::highlight(note-flash){background-color:#ffd43b}::highlight(note-active){background-color:#ffd43b}";
     document.head.appendChild(style);
     return () => style.remove();
   }, []);
@@ -239,14 +291,19 @@ export default function NoteMarks({ notes, flashId }: { notes: MarkNote[]; flash
         { key: "dom", text: dom.text },
       ];
       const tracked = trackSources(drift.current, sources, open);
+      const active = activeRef.current;
+      placedRef.current = tracked.placements;
+      fieldsRef.current = fields.flatMap((field) =>
+        field instanceof HTMLTextAreaElement ? [{ key: keyFor(field), field }] : [],
+      );
       if (tracked.updates.length) {
         const detail = tracked.updates;
         window.setTimeout(() => {
           window.dispatchEvent(new CustomEvent("studio:notes-shift", { detail }));
         }, 0);
       }
-      domHits.current = paintDom(dom.chunks, tracked.placements, flash);
-      paintFields(fields, fieldKeys.current, tracked.placements, flash);
+      domHits.current = paintDom(dom.chunks, tracked.placements, flash, active);
+      paintFields(fields, fieldKeys.current, tracked.placements, flash, active);
 
       if (!flash || scrolled.current === flash) return;
       const target = pageNotes.find((note) => note.id === flash);
@@ -287,17 +344,49 @@ export default function NoteMarks({ notes, flashId }: { notes: MarkNote[]; flash
       timer = window.setTimeout(paint, 40);
     }
 
-    function onClick(event: MouseEvent) {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (target.closest("[data-notes-ui], [data-annotate-btn]")) return;
-      const mark = target.closest(`#${LAYER_ID} mark`);
-      let id = mark instanceof HTMLElement ? mark.dataset.noteId ?? "" : "";
-      if (!id) {
-        const selection = window.getSelection();
-        if (selection && !selection.isCollapsed) return;
-        id = noteAtPoint(event.clientX, event.clientY);
+    const press = { x: 0, y: 0, moved: false };
+
+    function noteIdAt(x: number, y: number) {
+      const hits: { id: string; boxes: { left: number; top: number; right: number; bottom: number }[] }[] = [];
+      for (const node of document.querySelectorAll(`#${LAYER_ID} mark`)) {
+        if (!(node instanceof HTMLElement) || !node.dataset.noteId) continue;
+        hits.push({ id: node.dataset.noteId, boxes: [...node.getClientRects()] });
       }
+      for (const hit of domHits.current) {
+        hits.push({ id: hit.id, boxes: [...hit.range.getClientRects()] });
+      }
+      const fromBox = idAtBoxes(hits, x, y);
+      if (fromBox) return fromBox;
+      for (const item of fieldsRef.current) {
+        const index = indexInField(item.field, x, y);
+        if (index == null) continue;
+        const id = idAtOffset(
+          placedRef.current.filter((place) => place.key === item.key),
+          index,
+        );
+        if (id) return id;
+      }
+      return "";
+    }
+
+    function onPointerDown(event: PointerEvent) {
+      if (event.button !== 0) return;
+      press.x = event.clientX;
+      press.y = event.clientY;
+      press.moved = false;
+    }
+
+    function onPointerMove(event: PointerEvent) {
+      if (event.buttons === 0) return;
+      if (Math.hypot(event.clientX - press.x, event.clientY - press.y) > 6) press.moved = true;
+    }
+
+    function onClick(event: MouseEvent) {
+      if (press.moved) return;
+      const raw = event.target;
+      const target = raw instanceof Element ? raw : raw instanceof Node ? raw.parentElement : null;
+      if (!target || target.closest("[data-notes-ui], [data-annotate-btn]")) return;
+      const id = noteIdAt(event.clientX, event.clientY);
       if (!id) return;
       event.preventDefault();
       event.stopPropagation();
@@ -322,6 +411,8 @@ export default function NoteMarks({ notes, flashId }: { notes: MarkNote[]; flash
     window.addEventListener("scroll", schedule, true);
     window.addEventListener("resize", schedule);
     root.addEventListener("input", schedule, true);
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("pointermove", onPointerMove, true);
     document.addEventListener("click", onClick, true);
     return () => {
       alive = false;
@@ -330,34 +421,15 @@ export default function NoteMarks({ notes, flashId }: { notes: MarkNote[]; flash
       window.removeEventListener("scroll", schedule, true);
       window.removeEventListener("resize", schedule);
       root.removeEventListener("input", schedule, true);
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("pointermove", onPointerMove, true);
       document.removeEventListener("click", onClick, true);
       domHits.current = [];
+      placedRef.current = [];
+      fieldsRef.current = [];
       clearMarks();
     };
-  }, [notes, pathname, flashId]);
-
-  function noteAtPoint(x: number, y: number) {
-    const pos = document.caretPositionFromPoint?.(x, y);
-    const range = pos?.offsetNode ? null : document.caretRangeFromPoint?.(x, y);
-    const node = pos?.offsetNode ?? range?.startContainer ?? null;
-    const offset = pos?.offsetNode ? pos.offset : range?.startOffset ?? 0;
-    if (!node) return "";
-    let best = "";
-    let bestSize = Infinity;
-    for (const hit of domHits.current) {
-      try {
-        if (!hit.range.isPointInRange(node, offset)) continue;
-      } catch {
-        continue;
-      }
-      const size = hit.range.toString().length;
-      if (size < bestSize) {
-        bestSize = size;
-        best = hit.id;
-      }
-    }
-    return best;
-  }
+  }, [notes, pathname, flashId, activeId]);
 
   return null;
 }
