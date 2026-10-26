@@ -83,7 +83,7 @@ function CardBody({
             field="startBelief"
             value={card.startBelief}
             suggestion={suggestions.startBelief}
-            className="fld field-literary w-full !h-auto text-[15.5px] leading-relaxed"
+            className="fld field-literary w-full text-[15.5px] leading-relaxed"
             style={{ minHeight: 72 }}
           />
         )}
@@ -103,7 +103,7 @@ function CardBody({
             field="endBelief"
             value={card.endBelief}
             suggestion={suggestions.endBelief}
-            className="fld field-literary w-full !h-auto text-[15.5px] leading-relaxed"
+            className="fld field-literary w-full text-[15.5px] leading-relaxed"
             style={{ minHeight: 72 }}
           />
         )}
