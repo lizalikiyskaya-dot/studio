@@ -124,7 +124,7 @@ function CardShell({
     });
   }
   return (
-    <div {...dropTarget} className="flex items-start gap-1.5">
+    <div {...dropTarget} id={`exercise-${card.id}`} className="flex items-start gap-1.5">
       {dragHandle && <DragHandle handlers={dragHandle} />}
       <div ref={rootRef} className="flex-1 min-w-0">
         <CollapsibleCharacterShell

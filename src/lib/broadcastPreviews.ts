@@ -3,6 +3,7 @@ import { deadlinePreviewLetters } from "@/lib/deadlineReminders";
 import { renderEmail } from "@/lib/mail";
 import { buildPaymentReminder, moscowParts } from "@/lib/paymentReminders";
 import { approvedLetter, dailyQuoteLetter, guideOpenedLetter, passwordResetLetter, registrationStudentLetter, weeklyTaskLetter } from "@/lib/notify";
+import { mentorSubmissionUrl, submissionLetter } from "@/lib/submissionMail";
 
 export type BroadcastPreview = {
   subject: string;
@@ -70,5 +71,14 @@ export function broadcastPreviewHtml(): Record<string, BroadcastPreview> {
     "mentor-edit": { subject: activity["mentor-edit"].subject, html: activity["mentor-edit"].letter.html },
     "student-edit": { subject: activity["student-edit"].subject, html: activity["student-edit"].letter.html },
     "student-online": { subject: activity["student-online"].subject, html: activity["student-online"].letter.html },
+    submitted: (() => {
+      const letter = submissionLetter({
+        name: "Надежда",
+        section: "Задания",
+        title: "Черновик первой главы",
+        url: mentorSubmissionUrl("sample", "tasks", "sample-task"),
+      });
+      return { subject: letter.subject, html: letter.html };
+    })(),
   };
 }

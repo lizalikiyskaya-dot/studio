@@ -8,6 +8,7 @@ import type { TaskStatus } from "@/generated/prisma/client";
 import { awardStars } from "@/features/stars/award";
 import { creditStreakWeek } from "@/features/streak/credit";
 import { linkAttachmentCounts, submittedStatusCounts } from "@/features/streak/weeks";
+import { mentorSubmissionUrl, notifyMentorOfSubmission } from "@/lib/submissionMail";
 import { mainTaskAwardsStars } from "@/features/stars/rules";
 
 export async function createTask(studentId: string) {
@@ -86,6 +87,15 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
   }
   if (submittedStatusCounts(task.status, status)) {
     await creditStreakWeek(task.studentId);
+    await notifyMentorOfSubmission({
+      actorRole: session.role,
+      previous: task.status,
+      next: status,
+      studentId: task.studentId,
+      section: "Задания",
+      title: task.title,
+      url: mentorSubmissionUrl(task.studentId, "tasks", task.id),
+    });
   }
   return status;
 }

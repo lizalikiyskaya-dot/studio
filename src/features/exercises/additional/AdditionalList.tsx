@@ -300,6 +300,7 @@ export default function AdditionalList({
         return (
         <Accordion
           key={section.id}
+          id={`exercise-${section.id}`}
           defaultOpen={section.id === freshId}
           title={canRename ? (
             <InlineTitle

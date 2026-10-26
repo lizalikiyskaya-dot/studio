@@ -4,13 +4,16 @@ import PopArcsView from "./popArcs/PopArcsView";
 import BeliefView from "./belief/BeliefView";
 import StoryCircleView from "./storyCircle/StoryCircleView";
 import AdditionalView from "./additional/AdditionalView";
+import { exerciseFocusIndex } from "@/lib/submissionMail";
 
 export default function ExercisesView({
   studentId,
   isMentorViewer,
+  focus,
 }: {
   studentId: string;
   isMentorViewer: boolean;
+  focus?: string;
 }) {
   return (
     <div>
@@ -19,6 +22,7 @@ export default function ExercisesView({
       />
       <div>
         <Subtabs
+          initial={exerciseFocusIndex(focus)}
           tabs={[
             {
               label: "Создание арки персонажа",
