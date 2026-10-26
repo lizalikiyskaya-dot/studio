@@ -36,6 +36,17 @@ export function usesFormalAddress(name: string): boolean {
   return FORMAL_ADDRESS_NAMES.some((item) => item.toLocaleLowerCase("ru-RU") === first);
 }
 
+/** «Надя, сегодня такая цитата.» Без имени: «Сегодня такая цитата.» */
+export function withGreeting(fullName: string, rest: string): string {
+  const who = greetingName(fullName);
+  const sentence = rest.trim();
+  if (!who) {
+    if (!sentence) return "";
+    return sentence.charAt(0).toLocaleUpperCase("ru-RU") + sentence.slice(1);
+  }
+  return `${who}, ${sentence}`;
+}
+
 export type AddressForm = {
   formal: boolean;
   /** тебе | Вам */
@@ -106,6 +117,7 @@ export function addressForm(name: string): AddressForm {
 export function addressVars(name: string): Record<string, string> {
   const form = addressForm(name);
   return {
+    имя: greetingName(name),
     кому: form.toYou,
     чью: form.yourFAcc,
     чей: form.yourM,

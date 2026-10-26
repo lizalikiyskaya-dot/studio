@@ -78,7 +78,6 @@ export async function runScheduledContentMail(now = new Date()) {
             unsubscribeUrl: url ?? undefined,
           });
           return applyLetterTemplate("weekly-task", stored, { subject: "Задание недели", ...rendered }, withAddress(student.name, {
-            имя: student.name,
             задание: current.title,
             текст: current.prompt,
             срок: weeklyWhen(current.publishedOn, picked.upcoming?.publishedOn ?? null),
@@ -106,7 +105,6 @@ export async function runScheduledContentMail(now = new Date()) {
             unsubscribeUrl: url ?? undefined,
           });
           return applyLetterTemplate("daily-quote", stored, { subject: "Цитата дня", ...rendered }, withAddress(student.name, {
-            имя: student.name,
             цитата: row.text,
             автор: row.author,
             источник: row.source ?? "",

@@ -39,11 +39,11 @@ test("SMTP берёт IPv4 и оставляет имя хоста для TLS", 
   assert.deepEqual(pickIpv4SmtpHost("142.250.185.109", ["1.2.3.4"]), { host: "142.250.185.109" });
 });
 
-test("отправитель по умолчанию прежний, новый адрес только из окружения", () => {
+test("отправитель — Лиза Андреенко, адрес только из окружения", () => {
   withEnv(
     { MAIL_FROM: undefined, MAIL_FROM_NAME: undefined, MAIL_FROM_ADDRESS: undefined, SMTP_USER: "lizalikiyskaya@gmail.com" },
     () => {
-      assert.equal(mailFrom(), "Студия художественной прозы <lizalikiyskaya@gmail.com>");
+      assert.equal(mailFrom(), "Лиза Андреенко <lizalikiyskaya@gmail.com>");
     },
   );
   withEnv(
@@ -52,7 +52,7 @@ test("отправитель по умолчанию прежний, новый 
       SMTP_USER: "lizalikiyskaya@gmail.com",
     },
     () => {
-      assert.equal(mailFrom(), "Андреенко · студия художественной прозы <lizaandreenko@example.com>");
+      assert.equal(mailFrom(), "Лиза Андреенко <lizaandreenko@example.com>");
     },
   );
 });
@@ -85,8 +85,14 @@ test("письма ученику: бренд, подпись, текст и п�
   const sample = renderEmail({ title: "Проверка", paragraphs: ["Текст письма."] });
   assert.equal(sample.html.includes(EMAIL_SIGNATURE), false);
   const update = platformUpdateLetter({ name: "Саша" });
-  assert.match(update.text, /Отчёт об обновлениях/);
+  assert.match(update.html, /Отчёт об обновлениях/);
+  assert.match(update.text, /^Саша, коротко/);
   assert.match(update.text, /Лиза Андреенко/);
+  assert.equal(update.html.includes("fonts.googleapis"), false);
+  assert.equal(update.html.includes("Onest"), false);
+  assert.match(update.html, /display:none[^>]*>Саша, коротко о том, что изменилось в кабинете, и куда нажать\./);
+  assert.doesNotMatch(update.html, /display:none[^>]*>Андреенко/);
+  assert.match(update.text, /\nАндреенко · студия художественной прозы$/);
   assert.match(update.text, /Еженедельное задание/);
   assert.match(update.text, /Цитата дня/);
   assert.match(update.text, /Задание недели/);

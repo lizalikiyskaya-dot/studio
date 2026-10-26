@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { appUrl, sendMail } from "@/lib/mail";
+import { optOutSecret, signOptOut } from "@/lib/mailOptOut";
 import { defaultBroadcast } from "@/lib/mailBroadcasts";
 import { envelopeFor, readBroadcast } from "@/lib/mailBroadcastStore";
 import {
@@ -43,9 +44,16 @@ async function listTasks(): Promise<DeadlineTask[]> {
   });
 }
 
+function deadlineUnsubscribeUrl(studentId: string): string | null {
+  const secret = optOutSecret();
+  if (!secret) return null;
+  return `${appUrl()}/unsubscribe?token=${signOptOut(studentId, "mail", secret)}`;
+}
+
 function reminderDeps(envelope: { from: string; replyTo?: string }) {
   return {
     baseUrl: appUrl(),
+    unsubscribeUrl: deadlineUnsubscribeUrl,
     alreadySent: async (studentId: string, taskId: string, dueOn: string) => {
       const row = await prisma.emailLog.findFirst({
         where: {
@@ -65,6 +73,7 @@ function reminderDeps(envelope: { from: string; replyTo?: string }) {
       text: string;
       type: "deadline";
       recipientUserId: string;
+      listUnsubscribe?: string;
     }) =>
       sendMail({
         ...input,

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { sendMail } from "@/lib/mail";
+import { appUrl, sendMail } from "@/lib/mail";
+import { optOutSecret, signOptOut } from "@/lib/mailOptOut";
 import { paymentLetterVars, runPaymentReminders, type ReminderPerson } from "@/lib/paymentReminders";
 import { clockOpen, parseStudentIds, zonedClock } from "@/lib/mailBroadcasts";
 import { envelopeFor, readBroadcast } from "@/lib/mailBroadcastStore";
@@ -61,6 +62,12 @@ async function listPeople(): Promise<ReminderPerson[]> {
   return rows;
 }
 
+function paymentUnsubscribeUrl(studentId: string): string | null {
+  const secret = optOutSecret();
+  if (!secret) return null;
+  return `${appUrl()}/unsubscribe?token=${signOptOut(studentId, "mail", secret)}`;
+}
+
 /** Один прогон. Письма уходят только в продакшене и только без dry-run. */
 export async function runScheduledPaymentReminders(now = new Date()) {
   const gate = await readBroadcast("payment");
@@ -102,9 +109,13 @@ export async function runScheduledPaymentReminders(now = new Date()) {
           where: { studentId, dueOn: dueDate(dueOn) },
         });
       },
+      unsubscribeUrl: paymentUnsubscribeUrl,
       dress: async (person, letter, parts) =>
-        applyLetterTemplate("payment", await readLetterTemplate("payment"), letter, paymentLetterVars(person, parts)),
-      send: async ({ to, subject, html, text, recipientUserId }) =>
+        applyLetterTemplate("payment", await readLetterTemplate("payment"), letter, {
+          ...paymentLetterVars(person, parts),
+          отписка: paymentUnsubscribeUrl(person.id) ?? "",
+        }),
+      send: async ({ to, subject, html, text, recipientUserId, listUnsubscribe }) =>
         sendMail({
           to,
           subject,
@@ -114,6 +125,7 @@ export async function runScheduledPaymentReminders(now = new Date()) {
           recipientUserId,
           from: envelope?.from,
           replyTo: envelope?.replyTo,
+          listUnsubscribe,
         }),
     })
   );

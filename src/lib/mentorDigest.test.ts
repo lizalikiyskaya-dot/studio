@@ -57,6 +57,17 @@ test("письмо называет места и ведёт по ссылке, 
   assert.match(letter.html, /setting#setting-9/);
   assert.equal(letter.html.includes("—"), false);
   assert.equal(letter.text.includes("—"), false);
+  const withLink = mentorWorkLetter({
+    name: "Надежда Yannie_E",
+    studentId: "s",
+    pieces: [{ section: "note:n1", detail: mentorDigestLine("Сцена", "https://studio.example/dashboard/tasks") }],
+    unsubscribeUrl: "https://studio.example/unsubscribe?token=mail",
+  });
+  assert.match(withLink.text, /Надя, я внесла правки в твой кабинет/);
+  assert.equal(withLink.text.includes("Yannie_E"), false);
+  assert.equal(withLink.text.includes("Надежда"), false);
+  assert.equal(withLink.html.split("Отписаться от писем").length - 1, 1);
+  assert.equal(withLink.html.includes("в профиле"), false);
   assert.equal(isMentorTextModel("GrapesSetting"), true);
   assert.equal(isMentorTextModel("Character"), false);
   assert.equal(mentorTextLineTitle("Book", "Роман", "grapesGeography"), "Сеттинг: Роман");
