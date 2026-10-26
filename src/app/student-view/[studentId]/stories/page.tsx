@@ -16,5 +16,5 @@ export default async function Page({
   const student = await prisma.user.findUnique({ where: { id: studentId } });
   if (!student || student.role !== "STUDENT") notFound();
 
-  return <StandaloneStoriesView studentId={studentId} />;
+  return <StandaloneStoriesView studentId={studentId} canReview />;
 }

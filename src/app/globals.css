@@ -2241,6 +2241,123 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
 .chapter-card.is-review { background: #E4E7F8; }
 .chapter-card.is-revision { background: #F6DDD8; }
 .chapter-card.is-accepted { background: #D9F3E6; }
+.story-card.chapter-card { padding: 0; }
+.story-card.chapter-card:hover { transform: none; box-shadow: none; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .story-card.chapter-card:not(.is-open):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px -18px rgba(43, 45, 92, 0.4);
+  }
+}
+.story-list { margin-top: 14px; }
+.story-card-hit {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "chev title status"
+    "chev meta chars";
+  column-gap: 12px;
+  row-gap: 4px;
+  align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.story-card-chev { grid-area: chev; color: var(--ink); }
+.story-card-title {
+  grid-area: title;
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.story-card-status { grid-area: status; justify-self: end; }
+.story-card-meta {
+  grid-area: meta;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink2);
+  font-size: 13px;
+}
+.story-card-chars {
+  grid-area: chars;
+  justify-self: end;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.story-card .collapse-inner { opacity: 0; transition: opacity 220ms ease; }
+.story-card .collapse-slot.is-open .collapse-inner { opacity: 1; }
+.story-open {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  padding: 0 16px 16px;
+}
+.story-status { order: -1; }
+.story-detail { min-width: 0; }
+.story-status {
+  background: var(--deep);
+  color: #fff;
+  border-radius: 24px;
+  padding: 16px 16px 14px;
+}
+.story-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 18px;
+  align-items: flex-end;
+}
+.story-status-row label,
+.story-status-row > div { min-width: 0; }
+.story-status-row span,
+.story-status .chapter-week-kicker { color: rgba(255, 255, 255, 0.72); }
+.story-status-num,
+.story-status .chapter-num {
+  display: block;
+  width: 100%;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.story-status .chapter-track { margin: 14px 0; }
+.story-status .chapter-status { margin-top: 2px; }
+.story-person.chapter-card { padding: 0; animation: none; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .story-person.chapter-card:hover { transform: translateY(-3px); }
+}
+@media (min-width: 900px) {
+  .story-open { grid-template-columns: minmax(0, 1fr) 260px; align-items: start; }
+  .story-status { order: 0; position: sticky; top: 12px; }
+}
+@media (max-width: 720px) {
+  .story-card-hit {
+    grid-template-columns: 22px minmax(0, 1fr);
+    grid-template-areas:
+      "chev title"
+      "chev status"
+      "chev meta"
+      "chev chars";
+  }
+  .story-card-status,
+  .story-card-chars { justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-card .collapse-inner { transition: none; }
+  .story-card.chapter-card:hover { transform: none; }
+}
 @keyframes chapter-card-in {
   from { opacity: 0; }
   to { opacity: 1; }

@@ -1,8 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireCabinetAccess } from "@/lib/access";
+import { requireCabinetAccess, requireMentor } from "@/lib/access";
 import type { CharacterSource, SettingSource } from "@/generated/prisma/client";
+import { isChapterReview, type ChapterReviewValue } from "@/features/books/chapterReview";
 
 export async function createStory(cycleId: string) {
   const cycle = await prisma.cycle.findUniqueOrThrow({ where: { id: cycleId } });
@@ -66,4 +67,25 @@ export async function setStorySettingSource(storyId: string, source: SettingSour
   const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
   await requireCabinetAccess(story.studentId);
   await prisma.story.update({ where: { id: storyId }, data: { settingSource: source } });
+}
+
+export async function updateStoryChars(
+  storyId: string,
+  field: "writtenChars" | "plannedChars",
+  value: number,
+) {
+  if (field !== "writtenChars" && field !== "plannedChars") throw new Error("Недопустимое поле");
+  const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
+  await requireCabinetAccess(story.studentId);
+  await prisma.story.update({
+    where: { id: storyId },
+    data: { [field]: Math.max(0, Math.round(Number.isFinite(value) ? value : 0)) },
+  });
+}
+
+export async function updateStoryReview(storyId: string, status: ChapterReviewValue) {
+  if (!isChapterReview(status)) return;
+  const story = await prisma.story.findUniqueOrThrow({ where: { id: storyId } });
+  await requireMentor(story.studentId);
+  await prisma.story.update({ where: { id: storyId }, data: { reviewStatus: status } });
 }
