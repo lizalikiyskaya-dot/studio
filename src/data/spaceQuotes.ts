@@ -1,8 +1,9 @@
 /**
  * Очередь цитаты дня. Один и тот же автор не встаёт ближе чем через minGap строк,
  * и на стыке конца списка с началом тоже. Порядок внутри автора сохраняется.
- * При равном расстоянии берётся более ранняя свободная строка: результат один и тот же
- * для одного и того же списка.
+ * Авторы с большим числом строк встают первыми, равным шагом: с самого большого шага
+ * и с самой ранней свободной позиции. Если этот шаг занят, перебор возвращается
+ * к предыдущему автору. Для одного и того же списка результат один и тот же.
  */
 export function spaceQuotesByAuthor<T extends { author: string }>(items: readonly T[], minGap = 7): T[] {
   const count = items.length;
@@ -25,37 +26,57 @@ export function spaceQuotesByAuthor<T extends { author: string }>(items: readonl
     return seen.indexOf(left) - seen.indexOf(right);
   });
 
+  const distance = (from: number, to: number) => {
+    const delta = Math.abs(from - to);
+    return Math.min(delta, count - delta);
+  };
+
   const place = (gap: number): T[] | null => {
+    const occupied = Array(count).fill(false);
     const slots: Array<T | undefined> = Array(count);
-    const who: Array<string | undefined> = Array(count);
-    const distance = (from: number, to: number) => {
-      const delta = Math.abs(from - to);
-      return Math.min(delta, count - delta);
+    let nodes = 0;
+
+    const search = (authorIndex: number): boolean => {
+      if (authorIndex === authors.length) return true;
+      if (nodes > 5_000_000) return false;
+      const quotes = groups.get(authors[authorIndex])!;
+      const need = quotes.length;
+      for (let step = Math.floor(count / need); step >= gap; step--) {
+        for (let start = 0; start < count; start++) {
+          nodes += 1;
+          if (nodes > 5_000_000) return false;
+          const positions: number[] = [];
+          let fits = true;
+          for (let k = 0; k < need; k++) {
+            const pos = (start + k * step) % count;
+            if (occupied[pos] || positions.includes(pos)) {
+              fits = false;
+              break;
+            }
+            for (const prev of positions) {
+              if (distance(pos, prev) < gap) {
+                fits = false;
+                break;
+              }
+            }
+            if (!fits) break;
+            positions.push(pos);
+          }
+          if (!fits) continue;
+          for (const pos of positions) occupied[pos] = true;
+          if (search(authorIndex + 1)) {
+            positions.forEach((pos, index) => {
+              slots[pos] = quotes[index];
+            });
+            return true;
+          }
+          for (const pos of positions) occupied[pos] = false;
+        }
+      }
+      return false;
     };
 
-    for (const author of authors) {
-      for (const quote of groups.get(author)!) {
-        let best = -1;
-        let bestScore = -1;
-        for (let index = 0; index < count; index++) {
-          if (slots[index]) continue;
-          let nearest = count;
-          for (let other = 0; other < count; other++) {
-            if (who[other] === author) nearest = Math.min(nearest, distance(index, other));
-          }
-          if (nearest < gap) continue;
-          if (nearest > bestScore) {
-            bestScore = nearest;
-            best = index;
-          }
-        }
-        if (best < 0) return null;
-        slots[best] = quote;
-        who[best] = author;
-      }
-    }
-
-    if (slots.some((slot) => !slot)) return null;
+    if (!search(0) || slots.some((slot) => !slot)) return null;
     return slots as T[];
   };
 

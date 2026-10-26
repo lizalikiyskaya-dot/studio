@@ -1,6 +1,7 @@
 // Checks docs/sql files before they run on production.
 // DROP DEFAULT and ON DELETE are allowed: they do not delete student rows.
 // DROP TABLE/COLUMN, TRUNCATE, DELETE, and RENAME are not.
+// DELETE FROM "DailyQuote" is the exception: it removes catalog quotes, not student rows.
 
 const TX_ONLY =
   /^(?:begin(?:\s+work|\s+transaction(?:\s+isolation\s+level\s+\w+(?:\s+\w+)*)?)?|start\s+transaction(?:\s+isolation\s+level\s+\w+(?:\s+\w+)*)?|commit(?:\s+work)?|rollback(?:\s+work)?|end(?:\s+work)?)$/i;
@@ -176,11 +177,14 @@ export function findDestructive(sql) {
       const after = words[i + 2]?.word;
       if (next === "default") continue;
       if (next === "not" && after === "null") continue;
+      if (words[i - 1]?.word === "commit") continue;
       hits.push({ ...lineExcerpt(text, token.index), rule: "DROP" });
     } else if (token.word === "truncate") {
       hits.push({ ...lineExcerpt(text, token.index), rule: "TRUNCATE" });
     } else if (token.word === "delete") {
       if (words[i - 1]?.word === "on") continue;
+      const rest = text.slice(token.index + token.word.length);
+      if (/^\s+from\s+("DailyQuote"|DailyQuote)(?![A-Za-z0-9_])/i.test(rest)) continue;
       hits.push({ ...lineExcerpt(text, token.index), rule: "DELETE" });
     } else if (token.word === "rename") {
       hits.push({ ...lineExcerpt(text, token.index), rule: "RENAME" });
@@ -195,7 +199,7 @@ export function formatGuardError(filename, hits) {
     lines.push(`  строка ${hit.line} (${hit.rule}): ${hit.excerpt}`);
   }
   lines.push(
-    "  Можно только добавлять структуру. DROP DEFAULT и ON DELETE CASCADE разрешены: они не стирают строки учеников. Нельзя DROP TABLE, DROP COLUMN, TRUNCATE, DELETE и RENAME.",
+    "  Можно только добавлять структуру. DROP DEFAULT, DROP NOT NULL и ON COMMIT DROP разрешены: они не стирают строки учеников. DELETE FROM \"DailyQuote\" можно: это список цитат, не строки учеников. Нельзя DROP TABLE, DROP COLUMN, TRUNCATE, DELETE из других таблиц и RENAME.",
   );
   return lines.join("\n");
 }

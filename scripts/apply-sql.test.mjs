@@ -165,8 +165,13 @@ test("destructive commands are rejected and safe lookalikes are not", () => {
     ["-- DROP TABLE \"User\"\nALTER TABLE \"Act\" ADD COLUMN IF NOT EXISTS \"status\" TEXT;", null],
     ["ALTER TABLE \"Guide\" ALTER COLUMN \"updatedAt\" DROP DEFAULT;", null],
     ["ALTER TABLE \"Guide\" ALTER COLUMN \"note\" DROP NOT NULL;", null],
+    ["CREATE TEMP TABLE \"quote_pref\" (id text) ON COMMIT DROP;", null],
     ["ALTER TABLE \"GuideAccess\" ADD CONSTRAINT \"c\" FOREIGN KEY (\"studentId\") REFERENCES \"User\"(\"id\") ON DELETE CASCADE;", null],
     ["DO $$\nBEGIN\n  DELETE FROM \"User\";\nEND $$;", "DELETE"],
+    ["DELETE FROM \"DailyQuote\" WHERE \"id\" IN ('quote-083');", null],
+    ["DO $$\nBEGIN\n  DELETE FROM \"DailyQuote\" WHERE \"id\" = 'quote-083';\nEND $$;", null],
+    ["DELETE FROM \"DailyQuoteExtra\";", "DELETE"],
+    ["DELETE FROM \"User\" WHERE \"id\" IN (SELECT \"id\" FROM \"DailyQuote\");", "DELETE"],
   ];
   for (const [sql, rule] of cases) {
     const hits = findDestructive(sql);
