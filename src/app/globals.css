@@ -1266,9 +1266,14 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   background: rgba(255, 212, 59, 0.55);
   color: transparent;
   border-radius: 2px;
+  pointer-events: auto;
+  cursor: pointer;
 }
 .note-field-overlay mark.is-flash {
   background: rgba(255, 196, 40, 0.95);
+}
+.note-card.is-current {
+  box-shadow: 0 0 0 2px var(--y);
 }
 .avatar {
   border-radius: 999px;
@@ -3658,7 +3663,8 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .guide-card,
   .sheet tbody > tr,
   .notes-layer,
-  .notes-panel {
+  .notes-panel,
+  .note-card.is-current {
     animation: none;
     transition: none;
   }
