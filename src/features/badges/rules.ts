@@ -104,6 +104,7 @@ export function autoBadgeIds(facts: BadgeFacts): string[] {
   want("ten-tasks", facts.submittedTasks >= 10);
   want("book-done", facts.bookComplete);
   for (const id of methodicalBadgeIdsForTitles(facts.acceptedTaskTitles)) want(id, true);
+  // Журнал идёт как конкурс. Заявка в издательство даёт «В издательстве», не этот значок.
   want("first-entry", facts.contestSent);
   want("first-no", facts.contestRejected);
   want("contest-yes", facts.contestAccepted);
