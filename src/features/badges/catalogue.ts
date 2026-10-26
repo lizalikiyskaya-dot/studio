@@ -27,11 +27,11 @@ export type BadgeDef = {
 
 export const BADGE_SECTIONS: { id: BadgeSection; label: string }[] = [
   { id: "start", label: "Старт" },
+  { id: "level", label: "Уровни" },
+  { id: "streak", label: "Серии" },
   { id: "practice", label: "Практика" },
   { id: "methodical", label: "Методички" },
   { id: "contest", label: "Конкурсы и публикации" },
-  { id: "streak", label: "Серии" },
-  { id: "level", label: "Уровни" },
 ];
 
 export const GENERIC_METHODICAL_IMAGE = "/badges/methodical-new.png";
@@ -42,7 +42,7 @@ function same(text: string): Pick<BadgeDef, "hint" | "hintFormal"> {
 }
 
 function methodicalHint(name: string): Pick<BadgeDef, "hint" | "hintFormal"> {
-  return same(`Примите задание по методичке «${name}».`);
+  return same(`Выполните задание по методичке «${name}» и получите отметку «принято».`);
 }
 
 function levelHint(title: string, stars: number): Pick<BadgeDef, "hint" | "hintFormal"> {
@@ -123,7 +123,7 @@ export const BADGES: BadgeDef[] = [
     sortOrder: 41,
     auto: false,
     image: "/badges/ten-thousand.png",
-    ...same("Текст от 10 000 знаков. Значок ставит Лиза."),
+    ...same("Напишите текст от 10 000 знаков."),
   },
   {
     id: "second-draft",
@@ -132,7 +132,7 @@ export const BADGES: BadgeDef[] = [
     sortOrder: 42,
     auto: false,
     image: "/badges/second-draft.png",
-    ...same("Текст переписан после разбора. Значок ставит Лиза."),
+    ...same("Перепишите текст после разбора."),
   },
   {
     id: "book-done",
@@ -203,7 +203,7 @@ export const BADGES: BadgeDef[] = [
     id: "spark",
     title: "Огонёк",
     section: "streak",
-    sortOrder: 230,
+    sortOrder: 30,
     auto: true,
     image: "/badges/spark.png",
     progress: { kind: "streak", total: 4 },
@@ -213,7 +213,7 @@ export const BADGES: BadgeDef[] = [
     id: "candle",
     title: "Свеча",
     section: "streak",
-    sortOrder: 231,
+    sortOrder: 31,
     auto: true,
     image: "/badges/candle.png",
     progress: { kind: "streak", total: 8 },
@@ -223,7 +223,7 @@ export const BADGES: BadgeDef[] = [
     id: "lighthouse",
     title: "Маяк",
     section: "streak",
-    sortOrder: 232,
+    sortOrder: 32,
     auto: true,
     image: "/badges/lighthouse.png",
     progress: { kind: "streak", total: 12 },
@@ -233,7 +233,7 @@ export const BADGES: BadgeDef[] = [
     id: "back-in-line",
     title: "Снова в строю",
     section: "streak",
-    sortOrder: 233,
+    sortOrder: 33,
     auto: true,
     image: "/badges/back-in-line.png",
     ...same("Сдайте задание или главу после перерыва от трёх недель."),
@@ -242,7 +242,7 @@ export const BADGES: BadgeDef[] = [
     id: "level-5",
     title: "Сочинитель",
     section: "level",
-    sortOrder: 260,
+    sortOrder: 20,
     auto: true,
     image: "/badges/level-5.png",
     progress: { kind: "stars", total: 5 },
@@ -252,7 +252,7 @@ export const BADGES: BadgeDef[] = [
     id: "level-25",
     title: "Рассказчик",
     section: "level",
-    sortOrder: 261,
+    sortOrder: 21,
     auto: true,
     image: "/badges/level-25.png",
     progress: { kind: "stars", total: 25 },
@@ -262,7 +262,7 @@ export const BADGES: BadgeDef[] = [
     id: "level-70",
     title: "Романист",
     section: "level",
-    sortOrder: 262,
+    sortOrder: 22,
     auto: true,
     image: "/badges/level-70.png",
     progress: { kind: "stars", total: 70 },
@@ -272,7 +272,7 @@ export const BADGES: BadgeDef[] = [
     id: "level-100",
     title: "Достоевский",
     section: "level",
-    sortOrder: 263,
+    sortOrder: 23,
     auto: true,
     image: "/badges/level-100.png",
     progress: { kind: "stars", total: 100 },
@@ -282,7 +282,7 @@ export const BADGES: BadgeDef[] = [
     id: "level-150",
     title: "Живой классик",
     section: "level",
-    sortOrder: 264,
+    sortOrder: 24,
     auto: true,
     image: "/badges/level-150.png",
     progress: { kind: "stars", total: 150 },

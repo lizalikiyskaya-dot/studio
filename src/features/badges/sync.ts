@@ -121,7 +121,7 @@ export async function ensureGuideBadge(guideId: string, title: string): Promise<
         hintFormal: copy.hintFormal,
         section: "methodical",
         image: GENERIC_METHODICAL_IMAGE,
-        sortOrder: 800,
+        sortOrder: 190,
         guideId,
       },
       update: {

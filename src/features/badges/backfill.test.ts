@@ -8,12 +8,26 @@ const schemaSql = fs.readFileSync("docs/sql/2026-10-26-5-badges.sql", "utf8");
 const backfillSql = fs.readFileSync("docs/sql/2026-10-26-6-badge-backfill.sql", "utf8");
 const publisherSql = fs.readFileSync("docs/sql/2026-10-26-7-publisher-accepted.sql", "utf8");
 const firstEntrySql = fs.readFileSync("docs/sql/2026-10-26-8-first-entry-hint.sql", "utf8");
+const hintSql = fs.readFileSync("docs/sql/2026-10-27-badge-hints.sql", "utf8");
 
 test("файлы значков только добавляют и идут после серии", () => {
   assert.equal(findDestructive(schemaSql).length, 0);
   assert.equal(findDestructive(backfillSql).length, 0);
   assert.equal(findDestructive(publisherSql).length, 0);
   assert.equal(findDestructive(firstEntrySql).length, 0);
+  assert.equal(findDestructive(hintSql).length, 0);
+  assert.deepEqual(
+    sortSqlNames([
+      "2026-10-26-9-daily-quote-order.sql",
+      "2026-10-27-badge-hints.sql",
+      "2026-10-26-5-badges.sql",
+    ]),
+    [
+      "2026-10-26-5-badges.sql",
+      "2026-10-26-9-daily-quote-order.sql",
+      "2026-10-27-badge-hints.sql",
+    ],
+  );
   const names = sortSqlNames([
     "2026-10-26-7-publisher-accepted.sql",
     "2026-10-26-4-streak-backfill.sql",
@@ -51,6 +65,18 @@ test("справочник в одном файле, выдача прошлых
   assert.match(firstEntrySql, /Отправьте первую заявку в журнал или на конкурс/);
   assert.equal(firstEntrySql.includes("DELETE"), false);
   assert.equal(firstEntrySql.includes("BadgeAward"), false);
+  assert.equal(hintSql.includes("DELETE"), false);
+  assert.equal(hintSql.includes("BadgeAward"), false);
+  assert.match(hintSql, /IS DISTINCT FROM/);
+  for (const badge of BADGES.filter((item) => item.id.startsWith("methodical-") || item.id === "ten-thousand" || item.id === "second-draft")) {
+    assert.match(hintSql, new RegExp(badge.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.ok(hintSql.includes(badge.hint), badge.id);
+  }
+  for (const badge of BADGES.filter((item) => item.section === "level" || item.section === "streak")) {
+    assert.match(hintSql, new RegExp(`'${badge.id}', ${badge.sortOrder}`));
+  }
+  assert.match(hintSql, /id LIKE 'guide-%'/);
+  assert.match(hintSql, /"sortOrder" = 190/);
   assert.equal(backfillSql.includes("ten-thousand"), false);
   assert.equal(backfillSql.includes("second-draft"), false);
   for (const id of ["first-chapter", "spark", "candle", "lighthouse", "level-5", "level-150", "book-done"]) {
