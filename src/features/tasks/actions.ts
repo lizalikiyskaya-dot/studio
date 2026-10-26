@@ -75,7 +75,9 @@ export async function reorderTasks(studentId: string, ids: string[]) {
 export async function setTaskStatus(taskId: string, status: TaskStatus) {
   if (!isTaskStatus(status)) return null;
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
-  await requireCabinetAccess(task.studentId);
+  const session = await requireCabinetAccess(task.studentId);
+  // Ученик только сдаёт на проверку. Остальные статусы ставит наставник.
+  if (session.role !== "MENTOR" && status !== "SUBMITTED") return task.status;
   if (task.status === status) return status;
   await prisma.task.update({ where: { id: taskId }, data: { status } });
   // 3 звёзды один раз: сдача на проверку или «принято». Повтор и «на доработке» не удваивают.

@@ -19,6 +19,8 @@ import {
 } from "./actions";
 import { moveBy, moveWithin, taskRowNumber } from "./order";
 import TaskStatusMenu from "./TaskStatusMenu";
+import SubmitForReviewButton from "@/features/submit/SubmitForReviewButton";
+import { submitReviewControl } from "@/features/submit/submitStar";
 import { TASK_FILTERS } from "./status";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import DateField from "@/components/DateField";
@@ -116,10 +118,12 @@ function toDateInputValue(date: Date | string | null): string {
 export default function TasksTable({
   studentId,
   initialTasks,
+  isMentor,
   banners,
 }: {
   studentId: string;
   initialTasks: Task[];
+  isMentor: boolean;
   banners?: React.ReactNode;
 }) {
   const [tasks, setTasks] = useState(initialTasks);
@@ -128,6 +132,7 @@ export default function TasksTable({
     tasksRef.current = tasks;
   }, [tasks]);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
+  const [lingering, setLingering] = useState<Set<string>>(() => new Set());
   const dragIdRef = useRef<string | null>(null);
   const [, startTransition] = useTransition();
   const searchParams = useSearchParams();
@@ -166,6 +171,18 @@ export default function TasksTable({
 
   function handleStatus(taskId: string, status: TaskStatus) {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status } : t)));
+    // На вкладке «В процессе» карточка остаётся, пока кнопка уже «Сдано на проверку» и звёздочка летит.
+    if (status === "SUBMITTED" && activeTab === "progress") {
+      setLingering((prev) => new Set(prev).add(taskId));
+      window.setTimeout(() => {
+        setLingering((prev) => {
+          if (!prev.has(taskId)) return prev;
+          const next = new Set(prev);
+          next.delete(taskId);
+          return next;
+        });
+      }, 800);
+    }
     startTransition(async () => {
       await setTaskStatus(taskId, status);
       router.refresh();
@@ -182,7 +199,9 @@ export default function TasksTable({
 
   function visibleOf(list: Task[]) {
     const tab = TABS.find((item) => item.id === activeTab) ?? TABS[0];
-    return list.filter((task) => tab.status == null || task.status === tab.status);
+    return list.filter(
+      (task) => tab.status == null || task.status === tab.status || (tab.id === "progress" && lingering.has(task.id)),
+    );
   }
 
   function persist(next: Task[]) {
@@ -213,10 +232,7 @@ export default function TasksTable({
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   }
 
-  const visible = tasks.filter((task) => {
-    const tab = TABS.find((item) => item.id === activeTab) ?? TABS[0];
-    return tab.status == null || task.status === tab.status;
-  });
+  const visible = visibleOf(tasks);
 
   return (
     <div>
@@ -333,7 +349,19 @@ export default function TasksTable({
                 </div>
               </div>
               <div className="task-card-tools">
-                <TaskStatusMenu status={task.status} onChange={(status) => handleStatus(task.id, status)} />
+                {isMentor ? (
+                  <TaskStatusMenu status={task.status} onChange={(status) => handleStatus(task.id, status)} />
+                ) : (
+                  <span className="inline-flex flex-wrap items-center justify-end gap-2">
+                    <TaskStatusMenu status={task.status} onChange={(status) => handleStatus(task.id, status)} locked />
+                    {submitReviewControl(task.status) === "hidden" ? null : (
+                      <SubmitForReviewButton
+                        submitted={submitReviewControl(task.status) === "submitted"}
+                        onSubmit={() => handleStatus(task.id, "SUBMITTED")}
+                      />
+                    )}
+                  </span>
+                )}
                 <button type="button" onClick={() => handleDelete(task.id)} style={{ color: "var(--muted)" }} title="Удалить задание" aria-label="Удалить задание">
                   <Trash2 size={15} />
                 </button>

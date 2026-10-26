@@ -495,7 +495,7 @@ textarea.reading,
 .task-card-deadline { grid-area: deadline; }
 .task-card-work { grid-area: work; }
 .task-card-feedback { grid-area: feedback; }
-.task-card-tools { grid-area: tools; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.task-card-tools { grid-area: tools; display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
 .task-card-note { grid-area: note; min-width: 0; }
 .task-note-fold { min-width: 0; }
 .task-note,
@@ -3703,6 +3703,20 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .stars-pill.is-level-up {
     animation: none;
   }
+}
+
+.submit-star {
+  position: fixed;
+  z-index: 80;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 6px 8px rgba(32, 32, 32, 0.14));
+}
+@media (prefers-reduced-motion: reduce) {
+  .submit-star { display: none; }
 }
 
 .shop-plaque {

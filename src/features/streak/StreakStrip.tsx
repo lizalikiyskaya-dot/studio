@@ -128,6 +128,7 @@ export default function StreakStrip({
   return (
     <div
       className="streak-strip mt-3"
+      data-streak-counter=""
       data-streak-state={arriving ? "arrive" : "idle"}
       onClick={busy ? skip : undefined}
     >

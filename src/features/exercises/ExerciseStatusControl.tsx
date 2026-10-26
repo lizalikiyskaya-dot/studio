@@ -1,7 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
 import TaskStatusMenu from "@/features/tasks/TaskStatusMenu";
+import SubmitForReviewButton from "@/features/submit/SubmitForReviewButton";
+import { submitReviewControl } from "@/features/submit/submitStar";
 import type { TaskStatus } from "@/generated/prisma/client";
 
 /** Чип статуса как у заданий. Ученик сдаёт кнопкой, наставник выбирает статус в меню. */
@@ -14,15 +15,13 @@ export default function ExerciseStatusControl({
   isMentor: boolean;
   onChange: (status: TaskStatus) => void;
 }) {
-  const canSubmit = !isMentor && status !== "SUBMITTED" && status !== "ACCEPTED";
+  const submit = !isMentor ? submitReviewControl(status) : "hidden";
   return (
     <div className="flex flex-wrap items-center gap-2" onClick={(event) => event.stopPropagation()}>
       <TaskStatusMenu status={status} onChange={onChange} locked={!isMentor} />
-      {canSubmit ? (
-        <Button type="button" size="sm" onClick={() => onChange("SUBMITTED")}>
-          Сдать на проверку
-        </Button>
-      ) : null}
+      {submit === "hidden" ? null : (
+        <SubmitForReviewButton submitted={submit === "submitted"} onSubmit={() => onChange("SUBMITTED")} />
+      )}
     </div>
   );
 }

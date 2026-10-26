@@ -212,6 +212,7 @@ export default function StarsStatus({
       >
         <span
           className="stars-badge grid h-7 w-7 shrink-0 place-items-center rounded-full"
+          data-star-counter=""
           style={{ background: "var(--y)", color: "var(--ink)" }}
           aria-hidden="true"
         >
