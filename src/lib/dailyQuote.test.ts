@@ -3,7 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { findDestructive } from "../../scripts/sql-guard.mjs";
-import { DAILY_QUOTES } from "@/data/dailyQuotes";
+import { DAILY_QUOTES, DAILY_QUOTE_CATALOG } from "@/data/dailyQuotes";
+import { spaceQuotesByAuthor } from "@/data/spaceQuotes";
 import { quoteForDate, reanchorAfterEdit, shiftDateKey, shownIndex, type QuoteCursor } from "./dailyQuote";
 
 test("в списке больше шестидесяти разных цитат с автором и источником", () => {
@@ -26,14 +27,24 @@ test("в списке больше шестидесяти разных цита�
 });
 
 test("сид цитат совпадает со списком и не стирает правки", () => {
-  const sql = fs.readFileSync(path.join(process.cwd(), "docs/sql/2026-10-20-daily-quotes.sql"), "utf8");
-  assert.equal(findDestructive(sql).length, 0);
-  assert.equal(sql.includes("ON CONFLICT (\"id\") DO NOTHING"), true);
-  const ids = sql.match(/quote-\d{3}/g) ?? [];
-  assert.equal(ids.length, DAILY_QUOTES.length);
-  assert.equal(sql.includes(DAILY_QUOTES[0].text), true);
-  assert.equal(sql.includes("«Смерть после полудня», 1932"), true);
-  assert.equal(sql.includes("«Как писать книги»"), true);
+  const oldSql = fs.readFileSync(path.join(process.cwd(), "docs/sql/2026-10-20-daily-quotes.sql"), "utf8");
+  const orderSql = fs.readFileSync(path.join(process.cwd(), "docs/sql/2026-10-26-9-daily-quote-order.sql"), "utf8");
+  assert.equal(findDestructive(oldSql).length, 0);
+  assert.equal(findDestructive(orderSql).length, 0);
+  assert.equal(oldSql.includes("ON CONFLICT (\"id\") DO NOTHING"), true);
+  assert.equal(orderSql.includes("ON CONFLICT (\"id\") DO NOTHING"), true);
+  const oldIds = oldSql.match(/quote-\d{3}/g) ?? [];
+  assert.equal(oldIds.length, 63);
+  assert.equal(oldSql.includes(DAILY_QUOTE_CATALOG[0].text), true);
+  assert.equal(oldSql.includes("«Смерть после полудня», 1932"), true);
+  assert.equal(oldSql.includes("«Как писать книги»"), true);
+  for (const quote of DAILY_QUOTE_CATALOG) {
+    assert.equal(oldSql.includes(quote.text) || orderSql.includes(quote.text), true, quote.author);
+  }
+  for (const [index, quote] of DAILY_QUOTES.entries()) {
+    const id = `quote-${String(DAILY_QUOTE_CATALOG.indexOf(quote) + 1).padStart(3, "0")}`;
+    assert.equal(orderSql.includes(`'${id}', ${index + 1}`), true, id);
+  }
 });
 
 test("в один московский день цитата одна и та же", () => {
@@ -49,8 +60,43 @@ test("очередь начинается с первой цитаты 20 окт
   const ids = DAILY_QUOTES.map((_, index) => String(index));
   assert.equal(shownIndex(ids, null, "2026-10-20"), 0);
   assert.equal(shownIndex(ids, null, "2026-10-22"), 2);
-  assert.equal(quoteForDate(new Date("2026-10-22T12:00:00+03:00")).text, "Краткость — сестра таланта.");
-  assert.equal(quoteForDate(new Date("2026-10-22T12:00:00+03:00")).author, "Антон Чехов");
+  const day = quoteForDate(new Date("2026-10-22T12:00:00+03:00"));
+  assert.equal(day.text, DAILY_QUOTES[2].text);
+  assert.equal(day.author, DAILY_QUOTES[2].author);
+  assert.notEqual(DAILY_QUOTES[0].author, DAILY_QUOTES[1].author);
+  assert.ok(DAILY_QUOTES.some((quote) => quote.text === "Краткость — сестра таланта." && quote.author === "Антон Чехов"));
+});
+
+test("соседние дни не делят автора, кабинет и письмо берут одну строку", () => {
+  const mail = fs.readFileSync(path.join(process.cwd(), "src/lib/contentMailRun.ts"), "utf8");
+  const cabinet = fs.readFileSync(path.join(process.cwd(), "src/app/dashboard/layout.tsx"), "utf8");
+  const loader = fs.readFileSync(path.join(process.cwd(), "src/lib/loadDailyQuote.ts"), "utf8");
+  assert.match(mail, /loadDailyQuote/);
+  assert.match(cabinet, /loadDailyQuote/);
+  assert.match(loader, /shownIndex/);
+
+  const spaced = spaceQuotesByAuthor(DAILY_QUOTE_CATALOG);
+  assert.deepEqual(spaced, DAILY_QUOTES);
+
+  const ids = DAILY_QUOTES.map((_, index) => String(index));
+  let previous = "";
+  for (let day = 0; day < 365; day++) {
+    const key = shiftDateKey("2026-10-26", day);
+    const morning = quoteForDate(new Date(`${key}T08:00:00+03:00`));
+    const evening = quoteForDate(new Date(`${key}T21:00:00+03:00`));
+    assert.equal(morning.text, evening.text);
+    assert.equal(morning.author, evening.author);
+    assert.equal(morning.text, DAILY_QUOTES[shownIndex(ids, null, key)].text);
+    if (previous) assert.notEqual(morning.author, previous, key);
+    previous = morning.author;
+  }
+
+  const count = DAILY_QUOTES.length;
+  for (let index = 0; index < count; index++) {
+    for (let gap = 1; gap < 7; gap++) {
+      assert.notEqual(DAILY_QUOTES[index].author, DAILY_QUOTES[(index + gap) % count].author);
+    }
+  }
 });
 
 test("следующий день берёт следующую строку и замыкает список", () => {

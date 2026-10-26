@@ -1,10 +1,15 @@
+import { ADDED_DAILY_QUOTES } from "./dailyQuoteAdditions";
+import { spaceQuotesByAuthor } from "./spaceQuotes";
+
 /**
  * Цитата дня: писатели о ремесле — письмо, черновик, слово, стиль, сюжет.
  * Строки из писем, эссе и книг о мастерстве, не из романов и стихов.
  * Если формулировку нельзя было сверить, строки в списке нет.
  * Поле source — произведение, письмо или эссе: его видно на карточке рядом с автором.
  * Поле translator — для сверки перевода. На карточку оно не выводится.
- * Правьте список свободно: очередь идёт по порядку строк и не прыгает из-за даты эпохи.
+ * DAILY_QUOTE_CATALOG хранит строки в порядке появления: по нему же стоят id в базе.
+ * DAILY_QUOTES — та же очередь, но авторы разведены: один и тот же не ближе чем через семь строк,
+ * включая стык последней строки с первой. Кабинет и письмо идут по этому порядку.
  */
 export type DailyQuote = {
   text: string;
@@ -13,7 +18,7 @@ export type DailyQuote = {
   translator?: string;
 };
 
-export const DAILY_QUOTES: DailyQuote[] = [
+const QUOTE_SOURCES: DailyQuote[] = [
   {
     text: "Точность и краткость — вот первые достоинства прозы. Она требует мыслей и мыслей — без них блестящие выражения ни к чему не служат.",
     author: "Александр Пушкин",
@@ -343,3 +348,8 @@ export const DAILY_QUOTES: DailyQuote[] = [
     source: "«Время, занятое жизнью», издание «Манн, Иванов и Фербер»",
   },
 ];
+
+/** Порядок id: старые строки, затем добавленные. Очередь дня — DAILY_QUOTES. */
+export const DAILY_QUOTE_CATALOG: DailyQuote[] = [...QUOTE_SOURCES, ...ADDED_DAILY_QUOTES];
+
+export const DAILY_QUOTES: DailyQuote[] = spaceQuotesByAuthor(DAILY_QUOTE_CATALOG);
