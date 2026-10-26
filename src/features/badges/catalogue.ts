@@ -161,7 +161,7 @@ export const BADGES: BadgeDef[] = [
     sortOrder: 200,
     auto: true,
     image: "/badges/first-entry.png",
-    ...same("Отправьте первую заявку на конкурс."),
+    ...same("Отправьте первую заявку в журнал или на конкурс."),
   },
   {
     id: "first-no",

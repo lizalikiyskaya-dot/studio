@@ -47,7 +47,8 @@ export async function loadBadgeFacts(studentId: string): Promise<BadgeFacts> {
   facts.bookComplete = stars.some(
     (row) => row.sourceId === BOOK_COMPLETE_SOURCE_ID || row.note === BOOK_COMPLETE_NOTE,
   );
-  facts.contestSent = submissions.some((row) => row.type === "CONTEST" && row.status === "SENT");
+  // Ушедшая заявка: любой статус, кроме «не отправлено». Издательство считается отдельно.
+  facts.contestSent = submissions.some((row) => row.type === "CONTEST" && row.status !== "NOT_SENT");
   facts.contestRejected = submissions.some((row) => row.type === "CONTEST" && row.status === "REJECTED");
   facts.contestAccepted = submissions.some((row) => row.type === "CONTEST" && row.status === "ACCEPTED");
   facts.publisherSent = submissions.some((row) => row.type === "PUBLISHER" && row.status !== "NOT_SENT");

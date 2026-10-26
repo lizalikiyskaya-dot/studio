@@ -95,6 +95,9 @@ test("журнал остаётся конкурсом, издательство
   assert.equal(publisher.section, "contest");
   assert.equal(contest.title, "Публикация");
   assert.equal(publisher.title, "Контракт");
+  const entry = BADGES.find((badge) => badge.id === "first-entry");
+  assert.ok(entry);
+  assert.equal(hintFor(entry), "Отправьте первую заявку в журнал или на конкурс.");
   assert.equal(hintFor(contest), "Получите публикацию в журнале или победу на конкурсе.");
   assert.equal(hintFor(publisher), "Получите контракт с издательством.");
 
@@ -104,10 +107,18 @@ test("журнал остаётся конкурсом, издательство
   assert.ok(journalIds.includes("contest-yes"));
   assert.equal(journalIds.includes("publisher-yes"), false);
 
+  const journalSent = emptyBadgeFacts();
+  journalSent.contestSent = true;
+  const journalSentIds = autoBadgeIds(journalSent);
+  assert.ok(journalSentIds.includes("first-entry"));
+  assert.equal(journalSentIds.includes("publisher"), false);
+
   const sent = emptyBadgeFacts();
   sent.publisherSent = true;
-  assert.ok(autoBadgeIds(sent).includes("publisher"));
-  assert.equal(autoBadgeIds(sent).includes("publisher-yes"), false);
+  const sentIds = autoBadgeIds(sent);
+  assert.ok(sentIds.includes("publisher"));
+  assert.equal(sentIds.includes("first-entry"), false);
+  assert.equal(sentIds.includes("publisher-yes"), false);
 
   const accepted = emptyBadgeFacts();
   accepted.publisherSent = true;
