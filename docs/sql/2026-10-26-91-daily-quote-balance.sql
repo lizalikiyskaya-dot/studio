@@ -1,359 +1,204 @@
 -- Очередь цитаты дня: меньше Льосы и Найпола, авторы не ближе семи дней.
--- Удаляются только перечисленные строки "DailyQuote". Текст остальных не переписывается.
--- Уже снятые строки пропускаются. sortOrder считается заново по тем строкам, которые есть.
+-- Одиннадцать строк остаются в таблице и выходят из очереди: столбец active.
+-- sortOrder записан заранее. Поиск по авторам здесь не выполняется.
 -- Якорь 26 октября 2026 меняется с quote-004 на Найпола. Позже записанный якорь не трогается.
 -- Повторный запуск безопасен. Письма не отправляются.
 
-DO $balance$
+ALTER TABLE "DailyQuote" ADD COLUMN IF NOT EXISTS "active" BOOLEAN NOT NULL DEFAULT true;
+
+UPDATE "DailyQuote" SET "active" = false
+WHERE "id" IN (
+  'quote-083',
+  'quote-086',
+  'quote-088',
+  'quote-090',
+  'quote-091',
+  'quote-092',
+  'quote-095',
+  'quote-097',
+  'quote-100',
+  'quote-121',
+  'quote-122'
+);
+
+UPDATE "DailyQuote" SET "sortOrder" = 1 WHERE "id" = 'quote-093';
+UPDATE "DailyQuote" SET "sortOrder" = 2 WHERE "id" = 'quote-109';
+UPDATE "DailyQuote" SET "sortOrder" = 3 WHERE "id" = 'quote-119';
+UPDATE "DailyQuote" SET "sortOrder" = 4 WHERE "id" = 'quote-120';
+UPDATE "DailyQuote" SET "sortOrder" = 5 WHERE "id" = 'quote-071';
+UPDATE "DailyQuote" SET "sortOrder" = 6 WHERE "id" = 'quote-105';
+UPDATE "DailyQuote" SET "sortOrder" = 7 WHERE "id" = 'quote-064';
+UPDATE "DailyQuote" SET "sortOrder" = 8 WHERE "id" = 'quote-112';
+UPDATE "DailyQuote" SET "sortOrder" = 9 WHERE "id" = 'quote-003';
+UPDATE "DailyQuote" SET "sortOrder" = 10 WHERE "id" = 'quote-027';
+UPDATE "DailyQuote" SET "sortOrder" = 11 WHERE "id" = 'quote-052';
+UPDATE "DailyQuote" SET "sortOrder" = 12 WHERE "id" = 'quote-044';
+UPDATE "DailyQuote" SET "sortOrder" = 13 WHERE "id" = 'quote-062';
+UPDATE "DailyQuote" SET "sortOrder" = 14 WHERE "id" = 'quote-073';
+UPDATE "DailyQuote" SET "sortOrder" = 15 WHERE "id" = 'quote-076';
+UPDATE "DailyQuote" SET "sortOrder" = 16 WHERE "id" = 'quote-019';
+UPDATE "DailyQuote" SET "sortOrder" = 17 WHERE "id" = 'quote-107';
+UPDATE "DailyQuote" SET "sortOrder" = 18 WHERE "id" = 'quote-004';
+UPDATE "DailyQuote" SET "sortOrder" = 19 WHERE "id" = 'quote-113';
+UPDATE "DailyQuote" SET "sortOrder" = 20 WHERE "id" = 'quote-056';
+UPDATE "DailyQuote" SET "sortOrder" = 21 WHERE "id" = 'quote-106';
+UPDATE "DailyQuote" SET "sortOrder" = 22 WHERE "id" = 'quote-028';
+UPDATE "DailyQuote" SET "sortOrder" = 23 WHERE "id" = 'quote-081';
+UPDATE "DailyQuote" SET "sortOrder" = 24 WHERE "id" = 'quote-070';
+UPDATE "DailyQuote" SET "sortOrder" = 25 WHERE "id" = 'quote-048';
+UPDATE "DailyQuote" SET "sortOrder" = 26 WHERE "id" = 'quote-045';
+UPDATE "DailyQuote" SET "sortOrder" = 27 WHERE "id" = 'quote-005';
+UPDATE "DailyQuote" SET "sortOrder" = 28 WHERE "id" = 'quote-108';
+UPDATE "DailyQuote" SET "sortOrder" = 29 WHERE "id" = 'quote-077';
+UPDATE "DailyQuote" SET "sortOrder" = 30 WHERE "id" = 'quote-053';
+UPDATE "DailyQuote" SET "sortOrder" = 31 WHERE "id" = 'quote-001';
+UPDATE "DailyQuote" SET "sortOrder" = 32 WHERE "id" = 'quote-020';
+UPDATE "DailyQuote" SET "sortOrder" = 33 WHERE "id" = 'quote-114';
+UPDATE "DailyQuote" SET "sortOrder" = 34 WHERE "id" = 'quote-029';
+UPDATE "DailyQuote" SET "sortOrder" = 35 WHERE "id" = 'quote-018';
+UPDATE "DailyQuote" SET "sortOrder" = 36 WHERE "id" = 'quote-006';
+UPDATE "DailyQuote" SET "sortOrder" = 37 WHERE "id" = 'quote-082';
+UPDATE "DailyQuote" SET "sortOrder" = 38 WHERE "id" = 'quote-057';
+UPDATE "DailyQuote" SET "sortOrder" = 39 WHERE "id" = 'quote-110';
+UPDATE "DailyQuote" SET "sortOrder" = 40 WHERE "id" = 'quote-074';
+UPDATE "DailyQuote" SET "sortOrder" = 41 WHERE "id" = 'quote-038';
+UPDATE "DailyQuote" SET "sortOrder" = 42 WHERE "id" = 'quote-065';
+UPDATE "DailyQuote" SET "sortOrder" = 43 WHERE "id" = 'quote-078';
+UPDATE "DailyQuote" SET "sortOrder" = 44 WHERE "id" = 'quote-094';
+UPDATE "DailyQuote" SET "sortOrder" = 45 WHERE "id" = 'quote-007';
+UPDATE "DailyQuote" SET "sortOrder" = 46 WHERE "id" = 'quote-030';
+UPDATE "DailyQuote" SET "sortOrder" = 47 WHERE "id" = 'quote-115';
+UPDATE "DailyQuote" SET "sortOrder" = 48 WHERE "id" = 'quote-021';
+UPDATE "DailyQuote" SET "sortOrder" = 49 WHERE "id" = 'quote-036';
+UPDATE "DailyQuote" SET "sortOrder" = 50 WHERE "id" = 'quote-111';
+UPDATE "DailyQuote" SET "sortOrder" = 51 WHERE "id" = 'quote-084';
+UPDATE "DailyQuote" SET "sortOrder" = 52 WHERE "id" = 'quote-096';
+UPDATE "DailyQuote" SET "sortOrder" = 53 WHERE "id" = 'quote-015';
+UPDATE "DailyQuote" SET "sortOrder" = 54 WHERE "id" = 'quote-008';
+UPDATE "DailyQuote" SET "sortOrder" = 55 WHERE "id" = 'quote-039';
+UPDATE "DailyQuote" SET "sortOrder" = 56 WHERE "id" = 'quote-058';
+UPDATE "DailyQuote" SET "sortOrder" = 57 WHERE "id" = 'quote-079';
+UPDATE "DailyQuote" SET "sortOrder" = 58 WHERE "id" = 'quote-031';
+UPDATE "DailyQuote" SET "sortOrder" = 59 WHERE "id" = 'quote-102';
+UPDATE "DailyQuote" SET "sortOrder" = 60 WHERE "id" = 'quote-098';
+UPDATE "DailyQuote" SET "sortOrder" = 61 WHERE "id" = 'quote-116';
+UPDATE "DailyQuote" SET "sortOrder" = 62 WHERE "id" = 'quote-063';
+UPDATE "DailyQuote" SET "sortOrder" = 63 WHERE "id" = 'quote-009';
+UPDATE "DailyQuote" SET "sortOrder" = 64 WHERE "id" = 'quote-022';
+UPDATE "DailyQuote" SET "sortOrder" = 65 WHERE "id" = 'quote-085';
+UPDATE "DailyQuote" SET "sortOrder" = 66 WHERE "id" = 'quote-075';
+UPDATE "DailyQuote" SET "sortOrder" = 67 WHERE "id" = 'quote-049';
+UPDATE "DailyQuote" SET "sortOrder" = 68 WHERE "id" = 'quote-099';
+UPDATE "DailyQuote" SET "sortOrder" = 69 WHERE "id" = 'quote-040';
+UPDATE "DailyQuote" SET "sortOrder" = 70 WHERE "id" = 'quote-032';
+UPDATE "DailyQuote" SET "sortOrder" = 71 WHERE "id" = 'quote-080';
+UPDATE "DailyQuote" SET "sortOrder" = 72 WHERE "id" = 'quote-010';
+UPDATE "DailyQuote" SET "sortOrder" = 73 WHERE "id" = 'quote-066';
+UPDATE "DailyQuote" SET "sortOrder" = 74 WHERE "id" = 'quote-059';
+UPDATE "DailyQuote" SET "sortOrder" = 75 WHERE "id" = 'quote-117';
+UPDATE "DailyQuote" SET "sortOrder" = 76 WHERE "id" = 'quote-101';
+UPDATE "DailyQuote" SET "sortOrder" = 77 WHERE "id" = 'quote-068';
+UPDATE "DailyQuote" SET "sortOrder" = 78 WHERE "id" = 'quote-016';
+UPDATE "DailyQuote" SET "sortOrder" = 79 WHERE "id" = 'quote-087';
+UPDATE "DailyQuote" SET "sortOrder" = 80 WHERE "id" = 'quote-023';
+UPDATE "DailyQuote" SET "sortOrder" = 81 WHERE "id" = 'quote-011';
+UPDATE "DailyQuote" SET "sortOrder" = 82 WHERE "id" = 'quote-033';
+UPDATE "DailyQuote" SET "sortOrder" = 83 WHERE "id" = 'quote-041';
+UPDATE "DailyQuote" SET "sortOrder" = 84 WHERE "id" = 'quote-103';
+UPDATE "DailyQuote" SET "sortOrder" = 85 WHERE "id" = 'quote-124';
+UPDATE "DailyQuote" SET "sortOrder" = 86 WHERE "id" = 'quote-050';
+UPDATE "DailyQuote" SET "sortOrder" = 87 WHERE "id" = 'quote-002';
+UPDATE "DailyQuote" SET "sortOrder" = 88 WHERE "id" = 'quote-047';
+UPDATE "DailyQuote" SET "sortOrder" = 89 WHERE "id" = 'quote-118';
+UPDATE "DailyQuote" SET "sortOrder" = 90 WHERE "id" = 'quote-012';
+UPDATE "DailyQuote" SET "sortOrder" = 91 WHERE "id" = 'quote-026';
+UPDATE "DailyQuote" SET "sortOrder" = 92 WHERE "id" = 'quote-060';
+UPDATE "DailyQuote" SET "sortOrder" = 93 WHERE "id" = 'quote-089';
+UPDATE "DailyQuote" SET "sortOrder" = 94 WHERE "id" = 'quote-034';
+UPDATE "DailyQuote" SET "sortOrder" = 95 WHERE "id" = 'quote-046';
+UPDATE "DailyQuote" SET "sortOrder" = 96 WHERE "id" = 'quote-024';
+UPDATE "DailyQuote" SET "sortOrder" = 97 WHERE "id" = 'quote-042';
+UPDATE "DailyQuote" SET "sortOrder" = 98 WHERE "id" = 'quote-054';
+UPDATE "DailyQuote" SET "sortOrder" = 99 WHERE "id" = 'quote-013';
+UPDATE "DailyQuote" SET "sortOrder" = 100 WHERE "id" = 'quote-055';
+UPDATE "DailyQuote" SET "sortOrder" = 101 WHERE "id" = 'quote-072';
+UPDATE "DailyQuote" SET "sortOrder" = 102 WHERE "id" = 'quote-037';
+UPDATE "DailyQuote" SET "sortOrder" = 103 WHERE "id" = 'quote-123';
+UPDATE "DailyQuote" SET "sortOrder" = 104 WHERE "id" = 'quote-067';
+UPDATE "DailyQuote" SET "sortOrder" = 105 WHERE "id" = 'quote-051';
+UPDATE "DailyQuote" SET "sortOrder" = 106 WHERE "id" = 'quote-035';
+UPDATE "DailyQuote" SET "sortOrder" = 107 WHERE "id" = 'quote-069';
+UPDATE "DailyQuote" SET "sortOrder" = 108 WHERE "id" = 'quote-014';
+UPDATE "DailyQuote" SET "sortOrder" = 109 WHERE "id" = 'quote-104';
+UPDATE "DailyQuote" SET "sortOrder" = 110 WHERE "id" = 'quote-061';
+UPDATE "DailyQuote" SET "sortOrder" = 111 WHERE "id" = 'quote-043';
+UPDATE "DailyQuote" SET "sortOrder" = 112 WHERE "id" = 'quote-025';
+UPDATE "DailyQuote" SET "sortOrder" = 113 WHERE "id" = 'quote-017';
+
+UPDATE "DailyQuote" SET "sortOrder" = 10001 WHERE "id" = 'quote-083';
+UPDATE "DailyQuote" SET "sortOrder" = 10002 WHERE "id" = 'quote-086';
+UPDATE "DailyQuote" SET "sortOrder" = 10003 WHERE "id" = 'quote-088';
+UPDATE "DailyQuote" SET "sortOrder" = 10004 WHERE "id" = 'quote-090';
+UPDATE "DailyQuote" SET "sortOrder" = 10005 WHERE "id" = 'quote-091';
+UPDATE "DailyQuote" SET "sortOrder" = 10006 WHERE "id" = 'quote-092';
+UPDATE "DailyQuote" SET "sortOrder" = 10007 WHERE "id" = 'quote-095';
+UPDATE "DailyQuote" SET "sortOrder" = 10008 WHERE "id" = 'quote-097';
+UPDATE "DailyQuote" SET "sortOrder" = 10009 WHERE "id" = 'quote-100';
+UPDATE "DailyQuote" SET "sortOrder" = 10010 WHERE "id" = 'quote-121';
+UPDATE "DailyQuote" SET "sortOrder" = 10011 WHERE "id" = 'quote-122';
+
+INSERT INTO "MailBroadcast" (
+  "key", "enabled", "timeZone", "weekdays", "minute", "windowMinutes",
+  "oncePerDay", "audience", "studentIds", "sender", "updatedAt"
+)
+SELECT
+  'quote-seq', false, 'Europe/Moscow', '', 0, 0,
+  false, 'all', '{"date":"2026-10-26","quoteId":"quote-093"}', 'profile', CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM "MailBroadcast" WHERE "key" = 'quote-seq');
+
+UPDATE "MailBroadcast"
+SET "studentIds" = '{"date":"2026-10-26","quoteId":"quote-093"}',
+    "enabled" = false,
+    "updatedAt" = CURRENT_TIMESTAMP
+WHERE "key" = 'quote-seq'
+  AND "studentIds" LIKE '%"date":"2026-10-26"%'
+  AND "studentIds" LIKE '%"quoteId":"quote-004"%';
+
+DO $check$
 DECLARE
+  authors text[];
   n integer;
-  gap integer;
-  placed boolean;
   i integer;
-  q integer;
-  best integer;
-  best_score integer;
-  nearest integer;
-  other integer;
-  dist integer;
-  achieved integer;
-  author_name text;
-  ids text[];
-  placed_ids text[];
-  today_id text;
-  pin_json text;
+  d integer;
 BEGIN
-  DELETE FROM "DailyQuote"
-  WHERE "id" IN (
-    'quote-083',
-    'quote-086',
-    'quote-088',
-    'quote-090',
-    'quote-091',
-    'quote-092',
-    'quote-095',
-    'quote-097',
-    'quote-100',
-    'quote-121',
-    'quote-122'
-  );
-
-  CREATE TEMP TABLE quote_pref (
-    id text PRIMARY KEY,
-    ord integer NOT NULL
-  ) ON COMMIT DROP;
-
-  INSERT INTO quote_pref (id, ord) VALUES
-    ('quote-001', 1),
-    ('quote-002', 2),
-    ('quote-003', 3),
-    ('quote-004', 4),
-    ('quote-005', 5),
-    ('quote-006', 6),
-    ('quote-007', 7),
-    ('quote-008', 8),
-    ('quote-009', 9),
-    ('quote-010', 10),
-    ('quote-011', 11),
-    ('quote-012', 12),
-    ('quote-013', 13),
-    ('quote-014', 14),
-    ('quote-015', 15),
-    ('quote-016', 16),
-    ('quote-017', 17),
-    ('quote-018', 18),
-    ('quote-019', 19),
-    ('quote-020', 20),
-    ('quote-021', 21),
-    ('quote-022', 22),
-    ('quote-023', 23),
-    ('quote-024', 24),
-    ('quote-025', 25),
-    ('quote-026', 26),
-    ('quote-027', 27),
-    ('quote-028', 28),
-    ('quote-029', 29),
-    ('quote-030', 30),
-    ('quote-031', 31),
-    ('quote-032', 32),
-    ('quote-033', 33),
-    ('quote-034', 34),
-    ('quote-035', 35),
-    ('quote-036', 36),
-    ('quote-037', 37),
-    ('quote-038', 38),
-    ('quote-039', 39),
-    ('quote-040', 40),
-    ('quote-041', 41),
-    ('quote-042', 42),
-    ('quote-043', 43),
-    ('quote-044', 44),
-    ('quote-045', 45),
-    ('quote-046', 46),
-    ('quote-047', 47),
-    ('quote-048', 48),
-    ('quote-049', 49),
-    ('quote-050', 50),
-    ('quote-051', 51),
-    ('quote-052', 52),
-    ('quote-053', 53),
-    ('quote-054', 54),
-    ('quote-055', 55),
-    ('quote-056', 56),
-    ('quote-057', 57),
-    ('quote-058', 58),
-    ('quote-059', 59),
-    ('quote-060', 60),
-    ('quote-061', 61),
-    ('quote-062', 62),
-    ('quote-063', 63),
-    ('quote-064', 64),
-    ('quote-065', 65),
-    ('quote-066', 66),
-    ('quote-067', 67),
-    ('quote-068', 68),
-    ('quote-069', 69),
-    ('quote-070', 70),
-    ('quote-071', 71),
-    ('quote-072', 72),
-    ('quote-073', 73),
-    ('quote-074', 74),
-    ('quote-075', 75),
-    ('quote-076', 76),
-    ('quote-077', 77),
-    ('quote-078', 78),
-    ('quote-079', 79),
-    ('quote-080', 80),
-    ('quote-081', 81),
-    ('quote-082', 82),
-    ('quote-084', 83),
-    ('quote-085', 84),
-    ('quote-087', 85),
-    ('quote-089', 86),
-    ('quote-093', 87),
-    ('quote-094', 88),
-    ('quote-096', 89),
-    ('quote-098', 90),
-    ('quote-099', 91),
-    ('quote-101', 92),
-    ('quote-102', 93),
-    ('quote-103', 94),
-    ('quote-104', 95),
-    ('quote-105', 96),
-    ('quote-106', 97),
-    ('quote-107', 98),
-    ('quote-108', 99),
-    ('quote-109', 100),
-    ('quote-110', 101),
-    ('quote-111', 102),
-    ('quote-112', 103),
-    ('quote-113', 104),
-    ('quote-114', 105),
-    ('quote-115', 106),
-    ('quote-116', 107),
-    ('quote-117', 108),
-    ('quote-118', 109),
-    ('quote-119', 110),
-    ('quote-120', 111),
-    ('quote-123', 112),
-    ('quote-124', 113);
-
-  CREATE TEMP TABLE quote_src (
-    ord integer PRIMARY KEY,
-    id text NOT NULL,
-    author text NOT NULL
-  ) ON COMMIT DROP;
-
-  INSERT INTO quote_src (ord, id, author)
-  SELECT row_number() OVER (ORDER BY src.pref), src.id, src.author
-  FROM (
-    SELECT d.id, d.author, p.ord AS pref
-    FROM quote_pref p
-    JOIN "DailyQuote" d ON d.id = p.id
-    UNION ALL
-    SELECT d.id, d.author, 1000000 + row_number() OVER (ORDER BY d."sortOrder", d.id)
-    FROM "DailyQuote" d
-    WHERE NOT EXISTS (SELECT 1 FROM quote_pref p WHERE p.id = d.id)
-  ) src;
-
-  SELECT COALESCE(array_agg(id ORDER BY ord), ARRAY[]::text[])
-    INTO ids
-  FROM quote_src;
-
-  n := COALESCE(array_length(ids, 1), 0);
-  IF n < 2 THEN
-    RAISE EXCEPTION 'в списке цитат слишком мало строк';
+  IF NOT EXISTS (
+    SELECT 1 FROM "DailyQuote" WHERE "id" = 'quote-093' AND "active" IS TRUE
+  ) THEN
+    RAISE EXCEPTION 'в очереди нет цитаты Найпола quote-093';
   END IF;
 
-  CREATE TEMP TABLE quote_author (
-    author text PRIMARY KEY,
-    cnt integer NOT NULL,
-    seen integer NOT NULL
-  ) ON COMMIT DROP;
-
-  INSERT INTO quote_author (author, cnt, seen)
-  SELECT author, COUNT(*)::integer, MIN(ord)
-  FROM quote_src
-  GROUP BY author;
-
-  EXECUTE $fn$
-  CREATE OR REPLACE FUNCTION pg_temp.quote_search(author_index integer, occupied boolean[], gap integer, total integer)
-  RETURNS text[]
-  LANGUAGE plpgsql AS $body$
-  DECLARE
-    author_name text;
-    need integer;
-    step integer;
-    start_at integer;
-    k integer;
-    pos integer;
-    positions integer[];
-    quote_ids text[];
-    next_occupied boolean[];
-    placed text[];
-    fits boolean;
-    dist integer;
-    prev integer;
-    author_total integer;
-  BEGIN
-    SELECT COUNT(*)::integer INTO author_total FROM quote_author;
-    IF author_index > author_total THEN
-      RETURN array_fill(''::text, ARRAY[total]);
-    END IF;
-
-    SELECT qa.author INTO author_name
-    FROM quote_author qa
-    ORDER BY qa.cnt DESC, qa.seen ASC
-    OFFSET author_index - 1
-    LIMIT 1;
-
-    SELECT COALESCE(array_agg(qs.id ORDER BY qs.ord), ARRAY[]::text[])
-      INTO quote_ids
-    FROM quote_src qs
-    WHERE qs.author = author_name;
-
-    need := COALESCE(array_length(quote_ids, 1), 0);
-    IF need < 1 OR floor(total::numeric / need) < gap THEN
-      RETURN NULL;
-    END IF;
-
-    FOR step IN REVERSE floor(total::numeric / need)::integer .. gap LOOP
-      FOR start_at IN 0 .. total - 1 LOOP
-        positions := ARRAY[]::integer[];
-        fits := true;
-        FOR k IN 0 .. need - 1 LOOP
-          pos := (start_at + k * step) % total;
-          IF occupied[pos + 1] OR pos = ANY(positions) THEN
-            fits := false;
-            EXIT;
-          END IF;
-          FOREACH prev IN ARRAY positions LOOP
-            dist := abs(pos - prev);
-            IF total - dist < dist THEN
-              dist := total - dist;
-            END IF;
-            IF dist < gap THEN
-              fits := false;
-              EXIT;
-            END IF;
-          END LOOP;
-          IF NOT fits THEN
-            EXIT;
-          END IF;
-          positions := array_append(positions, pos);
-        END LOOP;
-        IF NOT fits OR COALESCE(array_length(positions, 1), 0) <> need THEN
-          CONTINUE;
-        END IF;
-        next_occupied := occupied;
-        FOREACH prev IN ARRAY positions LOOP
-          next_occupied[prev + 1] := true;
-        END LOOP;
-        placed := pg_temp.quote_search(author_index + 1, next_occupied, gap, total);
-        IF placed IS NOT NULL THEN
-          FOR k IN 1 .. need LOOP
-            placed[positions[k] + 1] := quote_ids[k];
-          END LOOP;
-          RETURN placed;
-        END IF;
-      END LOOP;
-    END LOOP;
-    RETURN NULL;
-  END
-  $body$
-  $fn$;
-
-  placed_ids := pg_temp.quote_search(1, array_fill(false, ARRAY[n]), 7, n);
-  IF placed_ids IS NULL THEN
-    RAISE EXCEPTION 'не удалось развести авторов на 7 дней';
+  IF NOT EXISTS (
+    SELECT 1 FROM "DailyQuote" WHERE "id" = 'quote-004' AND "active" IS TRUE
+  ) THEN
+    RAISE EXCEPTION 'в очереди нет цитаты quote-004';
   END IF;
 
-  CREATE TEMP TABLE quote_slot (
-    ord integer PRIMARY KEY,
-    id text NOT NULL,
-    author text NOT NULL
-  ) ON COMMIT DROP;
-
-  INSERT INTO quote_slot (ord, id, author)
-  SELECT series.i, placed_ids[series.i], src.author
-  FROM generate_series(1, n) AS series(i)
-  JOIN quote_src AS src ON src.id = placed_ids[series.i];
-
-  IF (SELECT COUNT(*) FROM quote_slot) <> n THEN
-    RAISE EXCEPTION 'пустая позиция в очереди';
+  SELECT ARRAY(
+    SELECT author
+    FROM "DailyQuote"
+    WHERE "active" IS TRUE
+    ORDER BY "sortOrder", "id"
+  ) INTO authors;
+  n := COALESCE(array_length(authors, 1), 0);
+  IF n = 0 THEN
+    RAISE EXCEPTION 'в очереди нет цитат';
   END IF;
-
-  achieved := n;
   FOR i IN 1..n LOOP
-    FOR other IN 1..n LOOP
-      IF i <> other AND (SELECT author FROM quote_slot WHERE ord = other) = (SELECT author FROM quote_slot WHERE ord = i) THEN
-        dist := abs(i - other);
-        IF n - dist < dist THEN
-          dist := n - dist;
-        END IF;
-        IF dist < achieved THEN
-          achieved := dist;
-        END IF;
+    FOR d IN 1..LEAST(6, n - 1) LOOP
+      IF authors[i] = authors[1 + ((i - 1 + d) % n)] THEN
+        RAISE EXCEPTION 'автор «%» повторяется через % дн.', authors[i], d;
       END IF;
     END LOOP;
   END LOOP;
-
-  IF achieved < 7 THEN
-    RAISE EXCEPTION 'один автор ближе чем через 7 дней: %', achieved;
-  END IF;
-
-  UPDATE "DailyQuote" AS quote
-  SET "sortOrder" = slot.ord
-  FROM quote_slot AS slot
-  WHERE quote.id = slot.id;
-
-  SELECT d.id INTO today_id
-  FROM "DailyQuote" d
-  WHERE d.id = 'quote-093' OR d.author = 'В. С. Найпол'
-  ORDER BY CASE WHEN d.id = 'quote-093' THEN 0 ELSE 1 END, d.id
-  LIMIT 1;
-
-  IF today_id IS NULL THEN
-    RAISE EXCEPTION 'в списке нет цитаты Найпола';
-  END IF;
-
-  pin_json := '{"date":"2026-10-26","quoteId":"' || today_id || '"}';
-
-  INSERT INTO "MailBroadcast" (
-    "key", "enabled", "timeZone", "weekdays", "minute", "windowMinutes",
-    "oncePerDay", "audience", "studentIds", "sender", "updatedAt"
-  )
-  SELECT
-    'quote-seq', false, 'Europe/Moscow', '', 0, 0,
-    false, 'all', pin_json, 'profile', CURRENT_TIMESTAMP
-  WHERE NOT EXISTS (SELECT 1 FROM "MailBroadcast" WHERE "key" = 'quote-seq');
-
-  UPDATE "MailBroadcast"
-  SET "studentIds" = pin_json,
-      "enabled" = false,
-      "updatedAt" = CURRENT_TIMESTAMP
-  WHERE "key" = 'quote-seq'
-    AND "studentIds" LIKE '%"date":"2026-10-26"%'
-    AND "studentIds" LIKE '%"quoteId":"quote-004"%';
 END
-$balance$;
+$check$;

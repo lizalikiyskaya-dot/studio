@@ -16,18 +16,19 @@ export default async function MentorQuotesPage() {
     source: string;
     translator: string;
     sortOrder: number;
+    active: boolean;
   }[] = [];
   let ready = true;
   try {
     quotes = await prisma.dailyQuote.findMany({
       orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
-      select: { id: true, text: true, author: true, source: true, translator: true, sortOrder: true },
+      select: { id: true, text: true, author: true, source: true, translator: true, sortOrder: true, active: true },
     });
   } catch (error) {
     if (!missing(error)) throw error;
     ready = false;
   }
-  const pinned = await pinDailyQuote(quotes);
+  const pinned = await pinDailyQuote(quotes.filter((quote) => quote.active));
   const todayId = pinned.today?.id ?? null;
   const tomorrowId = pinned.tomorrow?.id ?? null;
 
@@ -35,7 +36,7 @@ export default async function MentorQuotesPage() {
     <div>
       <PageHeader
         title="Цитаты дня"
-        description="Список над календарём в кабинете. Каждый день берётся следующая цитата по этому порядку. Письма отсюда не уходят."
+        description="Список над календарём в кабинете. Каждый день берётся следующая цитата по этому порядку. Строка вне очереди остаётся здесь, её можно вернуть. Письма отсюда не уходят."
       />
       {ready ? (
         <QuotesEditor quotes={quotes} todayId={todayId} tomorrowId={tomorrowId} />

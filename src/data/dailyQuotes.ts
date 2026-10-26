@@ -1,6 +1,6 @@
 import { ADDED_DAILY_QUOTES } from "./dailyQuoteAdditions";
 import { RETIRED_DAILY_QUOTE_TEXTS, TODAY_NAIPAUL_TEXT } from "./dailyQuoteCuts";
-import { spaceQuotesByAuthor } from "./spaceQuotes";
+import { orderDailyQuotes } from "./scheduleDailyQuotes";
 
 /**
  * Цитата дня: писатели о ремесле — письмо, черновик, слово, стиль, сюжет.
@@ -10,8 +10,9 @@ import { spaceQuotesByAuthor } from "./spaceQuotes";
  * Поле translator — для сверки перевода. На карточку оно не выводится.
  * DAILY_QUOTE_CATALOG хранит строки в порядке появления: по нему же стоят id в базе.
  * Снятые с очереди строки в каталоге остаются, чтобы id не сдвинулись.
- * DAILY_QUOTES — очередь без этих строк: один автор не ближе чем через семь строк,
- * включая стык последней строки с первой. Кабинет и письмо идут по этому порядку.
+ * DAILY_QUOTES — очередь без этих строк. Первые восемь — цитаты, которые точно есть
+ * в живой базе. Дальше один автор не ближе чем через семь строк, включая стык
+ * последней строки с первой. Кабинет и письмо идут по этому порядку.
  */
 export type DailyQuote = {
   text: string;
@@ -373,4 +374,4 @@ const todayNaipaul = DAILY_QUOTE_CATALOG.find((quote) => quote.text === TODAY_NA
 if (!todayNaipaul) throw new Error("нет цитаты Найпола на сегодня");
 export const TODAY_NAIPAUL_ID = dailyQuoteId(todayNaipaul);
 
-export const DAILY_QUOTES: DailyQuote[] = spaceQuotesByAuthor(OPEN_DAILY_QUOTES);
+export const DAILY_QUOTES: DailyQuote[] = orderDailyQuotes(OPEN_DAILY_QUOTES, dailyQuoteId);

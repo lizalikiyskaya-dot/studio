@@ -32,6 +32,7 @@ export async function pinDailyQuote<T extends { id: string }>(
 export async function loadDailyQuote(date = new Date()): Promise<DailyQuote | null> {
   try {
     const rows = await prisma.dailyQuote.findMany({
+      where: { active: true },
       orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
       select: { id: true, text: true, author: true, source: true, translator: true },
     });
