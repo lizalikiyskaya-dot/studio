@@ -118,6 +118,163 @@ textarea.reading,
 textarea.reading,
 .reading-field { display: block; width: 100%; white-space: pre-wrap; }
 
+/* «Дополнительно»: карточка по ширине чтения, как остальные упражнения. */
+.additional-board { max-width: 760px; }
+
+.writing-editor { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.writing-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.writing-toolbar-extra { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.writing-tool-gap { width: 8px; }
+.writing-tool {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+.writing-tool.is-on { background: var(--soft); }
+.writing-mode-open {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.writing-mode-save {
+  color: var(--muted);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.writing-prose {
+  min-height: 160px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 17px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  outline: none;
+}
+.writing-prose:focus { border-color: #c9c4f5; box-shadow: 0 0 0 4px rgba(101, 83, 232, 0.12); }
+.writing-prose.is-empty:before {
+  content: attr(data-placeholder);
+  color: var(--faded);
+  pointer-events: none;
+}
+.writing-prose p,
+.writing-prose h2,
+.writing-prose blockquote { margin: 0 0 0.75em; }
+.writing-prose h2 {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+.writing-prose blockquote {
+  margin-left: 0;
+  padding-left: 14px;
+  border-left: 2px solid var(--border);
+  color: var(--ink2);
+}
+.writing-prose ul,
+.writing-prose ol { margin: 0 0 0.75em; padding-left: 1.25em; }
+.writing-prose :last-child { margin-bottom: 0; }
+
+.writing-mode {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 20px;
+}
+.writing-mode-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(248, 244, 241, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  cursor: pointer;
+}
+.writing-mode-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  height: min(860px, calc(100dvh - 56px));
+  padding: 18px 22px 16px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 24px 60px -28px rgba(43, 45, 92, 0.45);
+  overflow: hidden;
+}
+.writing-mode-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.writing-mode-title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--ink);
+}
+.writing-mode-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.writing-mode-body .writing-editor,
+.writing-editor-focus { flex: 1; min-height: 0; height: 100%; }
+.writing-editor-focus .writing-prose {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 0;
+  box-shadow: none;
+  padding: 8px 2px 12px;
+  font-size: 20px;
+}
+.writing-editor-focus .writing-prose:focus { box-shadow: none; }
+.writing-mode-hint {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+@media (max-width: 700px) {
+  .writing-mode { padding: 0; align-items: stretch; }
+  .writing-mode-sheet {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    min-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
 .book-section-strip { display: none; }
 
 .suggest-doc { white-space: pre-wrap; line-height: 1.45; }

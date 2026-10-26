@@ -383,6 +383,8 @@ model FreeSection {
   type      FreeSectionType @default(TEXT)
   title     String          @default("")
   content   String          @default("")
+  // plain — текст как ввели, без разметки. markdown — после панели оформления.
+  contentFormat String      @default("plain")
   tableData Json?
   status    TaskStatus      @default(IN_PROGRESS)
   // Карточку завёл сам ученик — ему можно её переименовать и удалить.

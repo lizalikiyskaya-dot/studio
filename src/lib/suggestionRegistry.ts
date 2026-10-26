@@ -161,6 +161,11 @@ export const SUGGESTION_REGISTRY: Record<SuggestableModel, RegistryEntry> = {
       return typeof value === "string" ? value : "";
     },
     apply: async (id, field, value) => {
+      if (field === "contentFormat") {
+        if (value !== "plain" && value !== "markdown") return;
+        await prisma.freeSection.update({ where: { id }, data: { contentFormat: value } });
+        return;
+      }
       await prisma.freeSection.update({ where: { id }, data: { [field]: value } });
     },
   },

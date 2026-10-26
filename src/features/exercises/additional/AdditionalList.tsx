@@ -3,21 +3,27 @@
 import { siteConfirm } from "@/components/SiteDialog";
 
 import { useRef, useState, useTransition } from "react";
+import { usePathname } from "next/navigation";
 import type { FreeSection, Comment, TaskStatus } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
 import CardSaveButton from "@/components/CardSaveButton";
 import SuggestableField from "@/features/suggestions/SuggestableField";
+import { useCanSuggest } from "@/features/suggestions/SuggestionContext";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import { blurOnEnter } from "@/lib/blurOnEnter";
 import InlineTitle from "@/components/InlineTitle";
 import {
   createAdditionalSection,
+  saveSectionBody,
   updateSectionTitle,
   updateTableCell,
   resizeTable,
   deleteAdditionalSection,
   setSectionStatus,
 } from "./actions";
+import WritingEditor from "./WritingEditor";
+import WritingMode from "./WritingMode";
+import type { ContentFormat } from "./richText";
 import { Button } from "@/components/ui/Button";
 import TaskStatusMenu from "@/features/tasks/TaskStatusMenu";
 
@@ -95,6 +101,107 @@ function TableSection({
   );
 }
 
+function saveLabel(status: "saved" | "saving" | "suggested" | "error") {
+  if (status === "saving") return "Сохраняем…";
+  if (status === "suggested") return "Предложение записано";
+  if (status === "error") return "Не удалось сохранить";
+  return "Сохранено";
+}
+
+function TextCard({
+  section,
+  suggestions,
+}: {
+  section: FreeSection;
+  suggestions: Record<string, string>;
+}) {
+  const pathname = usePathname();
+  const suggesting = useCanSuggest() && pathname.startsWith("/student-view");
+  const storedFormat: ContentFormat = section.contentFormat === "markdown" ? "markdown" : "plain";
+  const startingFormat: ContentFormat =
+    suggesting && suggestions.contentFormat === "markdown" ? "markdown" : storedFormat;
+  const startingContent = suggesting && suggestions.content ? suggestions.content : section.content;
+  const [content, setContent] = useState(startingContent);
+  const [format, setFormat] = useState<ContentFormat>(startingFormat);
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<"saved" | "saving" | "suggested" | "error">("saved");
+  const latest = useRef({ content: startingContent, format: startingFormat });
+  const ticket = useRef(0);
+  const timer = useRef<number | null>(null);
+
+  async function flush() {
+    if (timer.current) window.clearTimeout(timer.current);
+    const mine = ++ticket.current;
+    const snap = latest.current;
+    try {
+      const result = await saveSectionBody(section.id, snap.content, snap.format);
+      if (mine !== ticket.current) return;
+      if (latest.current.content !== snap.content || latest.current.format !== snap.format) {
+        await flush();
+        return;
+      }
+      setStatus(result.suggested ? "suggested" : "saved");
+    } catch {
+      if (mine === ticket.current) setStatus("error");
+    }
+  }
+
+  function onChange(next: string, nextFormat: ContentFormat) {
+    latest.current = { content: next, format: nextFormat };
+    setContent(next);
+    setFormat(nextFormat);
+    setStatus("saving");
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => {
+      void flush();
+    }, 650);
+  }
+
+  if (suggestions.content && !suggesting) {
+    return (
+      <SuggestableField
+        model="FreeSection"
+        recordId={section.id}
+        field="content"
+        value={section.content}
+        suggestion={suggestions.content}
+        placeholder="Напишите здесь"
+        className="reading outline-none bg-transparent"
+        style={{ width: "100%" }}
+        resizable
+      />
+    );
+  }
+
+  const editor = (
+    <WritingEditor
+      key={open ? "focus" : "card"}
+      value={content}
+      format={format}
+      variant={open ? "focus" : "card"}
+      onChange={onChange}
+      toolbarExtra={
+        open ? null : (
+          <>
+            <span className="writing-mode-save">{saveLabel(status)}</span>
+            <button type="button" className="writing-mode-open" onClick={() => { void flush(); setOpen(true); }}>
+              Режим письма
+            </button>
+          </>
+        )
+      }
+    />
+  );
+
+  return open ? (
+    <WritingMode title={section.title} saveLabel={saveLabel(status)} onClose={() => { void flush(); setOpen(false); }}>
+      {editor}
+    </WritingMode>
+  ) : (
+    editor
+  );
+}
+
 function SectionBody({
   section,
   isMentorViewer,
@@ -115,17 +222,7 @@ function SectionBody({
   return (
     <div ref={rootRef}>
       {section.type === "TEXT" ? (
-        <SuggestableField
-          model="FreeSection"
-          recordId={section.id}
-          field="content"
-          value={section.content}
-          suggestion={suggestions[section.id]?.content}
-          placeholder="Ответ..."
-          className="reading outline-none bg-transparent"
-          style={{ width: "100%" }}
-          resizable
-        />
+        <TextCard section={section} suggestions={suggestions[section.id] ?? {}} />
       ) : (
         <TableSection section={section} onResize={() => {}} />
       )}
@@ -188,7 +285,7 @@ export default function AdditionalList({
   }
 
   return (
-    <div>
+    <div className="additional-board">
       <div className="flex gap-2.5 mb-4">
         <Button onClick={() => handleAdd("TEXT")} variant="secondary" size="sm" pill>
           + текст
