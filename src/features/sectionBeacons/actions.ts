@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
-import { notifyMentorOfStudentEdit, notifyStudentOfMentorEdit } from "@/lib/notify";
+import { notifyMentorOfStudentEdit } from "@/lib/notify";
 
 // Lightweight access check (mentor, or the student themselves). Unlike
 // requireCabinetAccess it does NOT stamp lastActivityAt — viewing a section
@@ -48,8 +48,8 @@ export async function markSectionActivity(studentId: string, section: string) {
   const byMentor = session.role === "MENTOR";
   after(async () => {
     try {
-      if (byMentor) await notifyStudentOfMentorEdit(studentId, section);
-      else await notifyMentorOfStudentEdit(studentId, section);
+      // Пачка «Наставник внёс правку» собирается из статусов, заметок, правок и ссылки на отзыв.
+      if (!byMentor) await notifyMentorOfStudentEdit(studentId, section);
     } catch (error) {
       console.error("[notify] уведомление об изменениях не ушло:", error);
     }

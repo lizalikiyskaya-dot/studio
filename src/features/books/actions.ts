@@ -9,6 +9,8 @@ import { chapterAwardsStars } from "@/features/stars/rules";
 import { creditStreakWeek } from "@/features/streak/credit";
 import { submittedStatusCounts } from "@/features/streak/weeks";
 import { isChapterReview, type ChapterReviewValue } from "./chapterReview";
+import { appUrl } from "@/lib/mail";
+import { queueMentorDigest, reviewGroup } from "@/lib/mentorDigest";
 
 async function attachAct(bookId: string, actId?: string | null) {
   if (actId) {
@@ -96,6 +98,16 @@ export async function updatePlanChapterReview(chapterId: string, status: Chapter
   await prisma.planChapter.update({ where: { id: chapterId }, data: { reviewStatus: status } });
   if (chapterAwardsStars(status)) await awardStars(book.studentId, "CHAPTER", chapter.id);
   if (submittedStatusCounts(chapter.reviewStatus, status)) await creditStreakWeek(book.studentId);
+  const review = reviewGroup(status);
+  if (review) {
+    await queueMentorDigest({
+      studentId: book.studentId,
+      group: review,
+      sourceId: `chapter:${chapter.id}`,
+      title: chapter.title,
+      url: `${appUrl()}/dashboard/plan#chapter-${chapter.id}`,
+    });
+  }
 }
 
 export async function updatePlanChapterColor(chapterId: string, color: string | null) {

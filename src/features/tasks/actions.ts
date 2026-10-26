@@ -9,6 +9,7 @@ import { awardStars } from "@/features/stars/award";
 import { creditStreakWeek } from "@/features/streak/credit";
 import { linkAttachmentCounts, submittedStatusCounts } from "@/features/streak/weeks";
 import { mentorSubmissionUrl, notifyMentorOfSubmission } from "@/lib/submissionMail";
+import { queueMentorDigest, reviewGroup, studentTaskUrl } from "@/lib/mentorDigest";
 import { mainTaskAwardsStars } from "@/features/stars/rules";
 
 export async function createTask(studentId: string) {
@@ -38,6 +39,15 @@ export async function updateTaskLink(
   const previous = task[field] ?? "";
   if (previous === value) return;
   await prisma.task.update({ where: { id: taskId }, data: { [field]: value } });
+  if (field === "feedbackLink" && session.role === "MENTOR" && value.trim() && value.trim() !== previous.trim()) {
+    await queueMentorDigest({
+      studentId: task.studentId,
+      group: "feedback",
+      sourceId: `task:${task.id}`,
+      title: task.title,
+      url: studentTaskUrl(task.id, "all"),
+    });
+  }
   if (field === "workLink" && linkAttachmentCounts(session, task.studentId, previous, value)) {
     await creditStreakWeek(task.studentId);
   }
@@ -84,6 +94,16 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
   // 3 звёзды один раз: сдача на проверку или «принято». Повтор и «на доработке» не удваивают.
   if (mainTaskAwardsStars(status)) {
     await awardStars(task.studentId, "MAIN_TASK", task.id);
+  }
+  const review = session.role === "MENTOR" ? reviewGroup(status) : null;
+  if (review) {
+    await queueMentorDigest({
+      studentId: task.studentId,
+      group: review,
+      sourceId: `task:${task.id}`,
+      title: task.title,
+      url: studentTaskUrl(task.id, review === "accepted" ? "accepted" : "revision"),
+    });
   }
   if (submittedStatusCounts(task.status, status)) {
     await creditStreakWeek(task.studentId);

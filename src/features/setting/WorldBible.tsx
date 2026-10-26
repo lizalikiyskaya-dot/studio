@@ -116,6 +116,18 @@ export default function WorldBible({
   const nudged = useRef(false);
 
   const table = tables.find((item) => item.id === tableId) ?? tables[0];
+
+  useEffect(() => {
+    const match = /^#setting-(.+)$/.exec(window.location.hash);
+    if (!match || !tables.some((item) => item.id === match[1])) return;
+    // Адрес из письма известен только в браузере, после загрузки страницы.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTableId(match[1]);
+    const frame = requestAnimationFrame(() => {
+      document.getElementById(`setting-${match[1]}`)?.scrollIntoView({ block: "start" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [tables]);
   const grapes = table?.values ?? emptyGrapes();
   const visibleEntries = allowTables
     ? entries.filter((entry) => entryOnSetting(entry.settingKey, table?.id ?? "primary"))
@@ -327,7 +339,7 @@ export default function WorldBible({
       <div className="bible-layout">
         <div className="bible-main">
           {allowTables && table ? (
-            <label className="bible-setting-pick">
+            <label id={table ? `setting-${table.id}` : undefined} className="bible-setting-pick">
               <span>Сеттинг</span>
               <select
                 aria-label="Сеттинг"

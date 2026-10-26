@@ -5,11 +5,49 @@ import { requireAuthenticated, requireCabinetAccess } from "@/lib/access";
 import { SUGGESTION_REGISTRY, type SuggestableModel } from "@/lib/suggestionRegistry";
 import { resolveHunk } from "@/lib/suggestionHunks";
 import { MODEL_SECTION, queueCabinetChange } from "@/lib/activityDigest";
+import { isMentorTextModel, mentorTextLineTitle, queueMentorDigest, textModelUrl } from "@/lib/mentorDigest";
 
-async function noteChange(studentId: string, byMentor: boolean, model: string, detail: string) {
+async function mentorRecordName(model: string, recordId: string): Promise<string> {
+  switch (model) {
+    case "PopArcCharacter":
+      return (await prisma.popArcCharacter.findUnique({ where: { id: recordId }, select: { name: true } }))?.name ?? "";
+    case "BeliefCard":
+      return (await prisma.beliefCard.findUnique({ where: { id: recordId }, select: { hero: true } }))?.hero ?? "";
+    case "StoryCircleCard":
+      return (await prisma.storyCircleCard.findUnique({ where: { id: recordId }, select: { hero: true } }))?.hero ?? "";
+    case "FreeSection":
+      return (await prisma.freeSection.findUnique({ where: { id: recordId }, select: { title: true } }))?.title ?? "";
+    case "PlanChapter":
+      return (await prisma.planChapter.findUnique({ where: { id: recordId }, select: { title: true } }))?.title ?? "";
+    case "Book":
+      return (await prisma.book.findUnique({ where: { id: recordId }, select: { title: true } }))?.title ?? "";
+    case "Cycle":
+      return (await prisma.cycle.findUnique({ where: { id: recordId }, select: { title: true } }))?.title ?? "";
+    case "Act":
+      return (await prisma.act.findUnique({ where: { id: recordId }, select: { title: true } }))?.title ?? "";
+    case "GrapesSetting":
+      return (await prisma.grapesSetting.findUnique({ where: { id: recordId }, select: { title: true } }))?.title ?? "";
+    default:
+      return "";
+  }
+}
+
+async function noteChange(studentId: string, byMentor: boolean, model: string, detail: string, recordId = "", field = "") {
+  if (byMentor) {
+    if (!isMentorTextModel(model) || !recordId) return;
+    const name = await mentorRecordName(model, recordId);
+    await queueMentorDigest({
+      studentId,
+      group: "text",
+      sourceId: `${model}:${recordId}`,
+      title: mentorTextLineTitle(model, name, field),
+      url: textModelUrl(model, recordId, field),
+    });
+    return;
+  }
   await queueCabinetChange({
     studentId,
-    byMentor,
+    byMentor: false,
     section: MODEL_SECTION[model] ?? "tasks",
     detail,
   });
@@ -33,7 +71,7 @@ export async function saveFieldOrSuggest(
   if (session.role === "STUDENT") {
     await entry.apply(recordId, field, value);
     await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
-    await noteChange(studentId, false, model, "Правка");
+    await noteChange(studentId, false, model, "Правка", recordId);
     return { suggested: false };
   }
 
@@ -41,7 +79,7 @@ export async function saveFieldOrSuggest(
   if (!student.reviewModeEnabled) {
     await entry.apply(recordId, field, value);
     await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
-    await noteChange(studentId, true, model, "Правка");
+    await noteChange(studentId, true, model, "Правка", recordId, field);
     return { suggested: false };
   }
 
@@ -49,7 +87,7 @@ export async function saveFieldOrSuggest(
   if (!currentValue.trim() || value === currentValue) {
     if (value !== currentValue) {
       await entry.apply(recordId, field, value);
-      await noteChange(studentId, true, model, "Правка");
+      await noteChange(studentId, true, model, "Правка", recordId, field);
     }
     await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
     return { suggested: false };
@@ -60,7 +98,7 @@ export async function saveFieldOrSuggest(
     update: { value },
     create: { model, recordId, field, value },
   });
-  await noteChange(studentId, true, model, "Предложение");
+  await noteChange(studentId, true, model, "Предложение", recordId, field);
   return { suggested: true };
 }
 
@@ -77,7 +115,7 @@ export async function acceptFieldSuggestion(model: SuggestableModel, recordId: s
   await entry.apply(recordId, field, suggestion.value);
   await prisma.fieldSuggestion.delete({ where: { id: suggestion.id } });
   if (model === "FreeSection" && field === "content") await finishSectionFormat(recordId, true);
-  await noteChange(studentId, session.role === "MENTOR", model, "Правка");
+  await noteChange(studentId, session.role === "MENTOR", model, "Правка", recordId, field);
 }
 
 export async function resolveSuggestionHunk(
@@ -107,7 +145,7 @@ export async function resolveSuggestionHunk(
   } else if (next.suggestion !== suggestion.value) {
     await prisma.fieldSuggestion.update({ where: { id: suggestion.id }, data: { value: next.suggestion } });
   }
-  if (next.value !== currentValue) await noteChange(studentId, session.role === "MENTOR", model, "Правка");
+  if (next.value !== currentValue) await noteChange(studentId, session.role === "MENTOR", model, "Правка", recordId, field);
   return next;
 }
 
