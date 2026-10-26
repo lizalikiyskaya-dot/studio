@@ -7,6 +7,7 @@ import { isTaskStatus } from "./status";
 import type { TaskStatus } from "@/generated/prisma/client";
 import { awardStars } from "@/features/stars/award";
 import { creditStreakWeek } from "@/features/streak/credit";
+import { linkAttachmentCounts, submittedStatusCounts } from "@/features/streak/weeks";
 import { mainTaskAwardsStars } from "@/features/stars/rules";
 
 export async function createTask(studentId: string) {
@@ -32,8 +33,13 @@ export async function updateTaskLink(
   value: string
 ) {
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
-  await requireCabinetAccess(task.studentId);
+  const session = await requireCabinetAccess(task.studentId);
+  const previous = task[field] ?? "";
+  if (previous === value) return;
   await prisma.task.update({ where: { id: taskId }, data: { [field]: value } });
+  if (field === "workLink" && linkAttachmentCounts(session, task.studentId, previous, value)) {
+    await creditStreakWeek(task.studentId);
+  }
 }
 
 export async function updateTaskDeadline(taskId: string, deadline: string | null) {
@@ -75,6 +81,8 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
   // 3 звёзды один раз: сдача на проверку или «принято». Повтор и «на доработке» не удваивают.
   if (mainTaskAwardsStars(status)) {
     await awardStars(task.studentId, "MAIN_TASK", task.id);
+  }
+  if (submittedStatusCounts(task.status, status)) {
     await creditStreakWeek(task.studentId);
   }
   return status;

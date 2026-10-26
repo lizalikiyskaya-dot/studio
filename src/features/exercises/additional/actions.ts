@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, AccessDeniedError } from "@/lib/access";
 import type { FreeSection, FreeSectionType, TaskStatus } from "@/generated/prisma/client";
 import { isTaskStatus } from "@/features/tasks/status";
+import { creditStreakWeek } from "@/features/streak/credit";
+import { submittedStatusCounts } from "@/features/streak/weeks";
 import { queueCabinetChange } from "@/lib/activityDigest";
 import type { ContentFormat } from "./richText";
 
@@ -142,8 +144,10 @@ export async function deleteAdditionalSection(sectionId: string) {
 export async function setSectionStatus(sectionId: string, status: TaskStatus) {
   if (!isTaskStatus(status)) return null;
   const section = await prisma.freeSection.findUniqueOrThrow({ where: { id: sectionId } });
-  await requireCabinetAccess(section.studentId);
+  const session = await requireCabinetAccess(section.studentId);
+  if (session.role !== "MENTOR" && status !== "SUBMITTED") return section.status;
   if (section.status === status) return status;
   await prisma.freeSection.update({ where: { id: sectionId }, data: { status } });
+  if (submittedStatusCounts(section.status, status)) await creditStreakWeek(section.studentId);
   return status;
 }

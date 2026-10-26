@@ -7,7 +7,7 @@ import type { SynopsisMode } from "@/generated/prisma/client";
 import { awardStars } from "@/features/stars/award";
 import { chapterAwardsStars } from "@/features/stars/rules";
 import { creditStreakWeek } from "@/features/streak/credit";
-import { chapterCountsForStreak } from "@/features/streak/weeks";
+import { submittedStatusCounts } from "@/features/streak/weeks";
 import { isChapterReview, type ChapterReviewValue } from "./chapterReview";
 
 async function attachAct(bookId: string, actId?: string | null) {
@@ -92,9 +92,10 @@ export async function updatePlanChapterReview(chapterId: string, status: Chapter
   const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id: chapterId } });
   const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
   await requireMentor(book.studentId);
+  if (chapter.reviewStatus === status) return;
   await prisma.planChapter.update({ where: { id: chapterId }, data: { reviewStatus: status } });
   if (chapterAwardsStars(status)) await awardStars(book.studentId, "CHAPTER", chapter.id);
-  if (chapter.reviewStatus !== status && chapterCountsForStreak(status)) await creditStreakWeek(book.studentId);
+  if (submittedStatusCounts(chapter.reviewStatus, status)) await creditStreakWeek(book.studentId);
 }
 
 export async function updatePlanChapterColor(chapterId: string, color: string | null) {
