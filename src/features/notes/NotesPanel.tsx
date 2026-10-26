@@ -453,11 +453,17 @@ export default function NotesPanel({
 
   useEffect(() => {
     if (!open || !currentId) return;
-    const list = listRef.current;
-    const card = list?.querySelector(`[data-note-id="${currentId}"]`);
-    if (!list || !(card instanceof HTMLElement)) return;
-    const top = card.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
-    list.scrollTo({ top: Math.max(0, top - list.clientHeight / 2 + card.clientHeight / 2) });
+    let frame = 0;
+    const scroll = () => {
+      const list = listRef.current;
+      const card = list?.querySelector(`[data-note-id="${CSS.escape(currentId)}"]`);
+      if (!list || !(card instanceof HTMLElement)) return;
+      const top = card.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
+      list.scrollTo({ top: Math.max(0, top - list.clientHeight / 2 + card.clientHeight / 2) });
+    };
+    scroll();
+    frame = window.requestAnimationFrame(scroll);
+    return () => window.cancelAnimationFrame(frame);
   }, [open, currentId, tab, notes]);
 
   useEffect(() => {
@@ -616,7 +622,7 @@ export default function NotesPanel({
       <SelectionAnnotator onAnnotate={handleAnnotate} />
 
       {/* FAB */}
-      <NoteMarks notes={notes} flashId={flashId} />
+      <NoteMarks notes={notes} flashId={flashId} activeId={open ? currentId : null} />
 
       <button
         onClick={() => setOpen(true)}

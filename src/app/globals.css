@@ -1269,11 +1269,13 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   pointer-events: auto;
   cursor: pointer;
 }
-.note-field-overlay mark.is-flash {
-  background: rgba(255, 196, 40, 0.95);
+.note-field-overlay mark.is-flash,
+.note-field-overlay mark.is-active {
+  background: var(--y);
+  box-shadow: inset 0 -2px 0 #202020;
 }
 .note-card.is-current {
-  box-shadow: 0 0 0 2px var(--y);
+  box-shadow: inset 3px 0 0 var(--y), 0 0 0 2px var(--y);
 }
 .avatar {
   border-radius: 999px;
