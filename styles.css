@@ -177,8 +177,8 @@ h1, h2, h3 { text-wrap: balance; }
   white-space: nowrap;
   transition: background-color .18s ease, color .18s ease, transform .18s ease;
 }
-.nav-cta:hover { background: #fff; color: var(--ink); }
-.nav-cta:active { transform: scale(.98); }
+.nav-cta:hover { background: #fff; color: var(--ink); transform: translateY(-2px); }
+.nav-cta:active { transform: translateY(1px) scale(.97); }
 
 .btn-pill {
   display: inline-flex;
@@ -208,7 +208,7 @@ h1, h2, h3 { text-wrap: balance; }
   background-position: -30% 0;
   color: var(--ink);
   -webkit-text-fill-color: currentColor;
-  transform: translateY(-1px);
+  transform: translateY(-4px) scale(1.04);
 }
 .btn-pill:active,
 .btn-pill:focus-visible {
@@ -854,7 +854,7 @@ h1, h2, h3 { text-wrap: balance; }
 .faq-a {
   display: grid;
   grid-template-rows: 1fr;
-  transition: grid-template-rows .28s ease;
+  transition: grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .faq-a > p {
   min-height: 0;
@@ -1137,8 +1137,8 @@ html.motion .steps.timeline { --draw: 0; }
 .step-note { font-size: 14.5px; color: var(--ink2); }
 html.motion .steps.timeline .step.reveal {
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity .28s ease, transform .28s ease;
+  transform: translateY(14px);
+  transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1), transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 html.motion .steps.timeline .step.reveal.in {
   opacity: 1;
@@ -1409,8 +1409,8 @@ html.motion .steps.timeline .step.in .num {
 
 html.motion .reveal {
   opacity: 0;
-  transform: translateY(10px);
-  transition: opacity .28s ease, transform .28s ease, box-shadow .22s ease;
+  transform: translateY(14px);
+  transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1), transform 320ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow .22s ease;
 }
 html.motion .reveal.in {
   opacity: 1;
@@ -1418,29 +1418,38 @@ html.motion .reveal.in {
 }
 @media (max-width: 760px) {
   .blob { animation: none; filter: blur(28px); opacity: .38; }
-  html.motion .reveal { transform: translateY(8px); transition-duration: .24s; }
+  html.motion .reveal { transform: translateY(14px); transition-duration: 320ms; }
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .shot:hover img { transform: scale(1.045); }
+  .shot:hover img { transform: scale(1.06); }
   .quote:hover, .way:hover, .fit:hover, .compare-card:hover, .price-card:hover, .shot:hover {
-    box-shadow: 0 24px 48px -22px rgba(101, 83, 232, .5);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 22px 40px -12px rgba(101, 83, 232, .55);
+  }
+  .quote[data-tilt]:hover,
+  .way[data-tilt]:hover,
+  .fit[data-tilt]:hover,
+  .compare-card[data-tilt]:hover,
+  .price-card[data-tilt]:hover,
+  .shot[data-tilt]:hover {
+    transform: perspective(900px) rotateX(var(--ty, 0deg)) rotateY(var(--tx, 0deg)) translateY(-8px) scale(1.02);
   }
 }
 [data-tilt] {
   transform: perspective(900px) rotateX(var(--ty, 0deg)) rotateY(var(--tx, 0deg));
   transition: transform .18s ease, box-shadow .25s ease;
 }
-html.motion .reveal[data-tilt] { transition: opacity .28s ease, transform .28s ease, box-shadow .22s ease; }
+html.motion .reveal[data-tilt] { transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1), transform 320ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow .22s ease; }
 html.motion .reveal[data-tilt].in { transform: perspective(900px) rotateX(var(--ty, 0deg)) rotateY(var(--tx, 0deg)); }
 
 @keyframes rise {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
 }
 @keyframes vt-out { to { opacity: 0; } }
 @keyframes vt-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
 }
 @keyframes veil {
@@ -1451,27 +1460,27 @@ html.motion .reveal[data-tilt].in { transform: perspective(900px) rotateX(var(--
 @media (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
   .wordmark { view-transition-name: site-wordmark; }
-  ::view-transition-old(root) { animation: vt-out 200ms ease both; }
-  ::view-transition-new(root) { animation: vt-in 240ms ease both; }
+  ::view-transition-old(root) { animation: vt-out 180ms ease both; }
+  ::view-transition-new(root) { animation: vt-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both; }
   ::view-transition-old(site-wordmark),
   ::view-transition-new(site-wordmark) {
-    animation-duration: 180ms;
-    animation-timing-function: ease;
+    animation-duration: 220ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  html:not(.from-nav) .hero-copy > * { animation: rise 220ms ease backwards; }
-  html:not(.from-nav) .hero-copy > :nth-child(2) { animation-delay: 30ms; }
-  html:not(.from-nav) .hero-copy > :nth-child(3) { animation-delay: 55ms; }
-  html:not(.from-nav) .hero-copy > :nth-child(4) { animation-delay: 80ms; }
-  html:not(.from-nav) .hero-copy > :nth-child(5) { animation-delay: 100ms; }
-  html:not(.from-nav) .hero-copy > :nth-child(6) { animation-delay: 120ms; }
-  html:not(.from-nav) .hero-copy > :nth-child(7) { animation-delay: 140ms; }
-  html:not(.from-nav) .stage { animation: rise 240ms ease 110ms backwards; }
-  html:not(.from-nav) .legal { animation: rise 240ms ease backwards; }
+  html:not(.from-nav) .hero-copy > * { animation: rise 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  html:not(.from-nav) .hero-copy > :nth-child(2) { animation-delay: 50ms; }
+  html:not(.from-nav) .hero-copy > :nth-child(3) { animation-delay: 100ms; }
+  html:not(.from-nav) .hero-copy > :nth-child(4) { animation-delay: 150ms; }
+  html:not(.from-nav) .hero-copy > :nth-child(5) { animation-delay: 200ms; }
+  html:not(.from-nav) .hero-copy > :nth-child(6) { animation-delay: 250ms; }
+  html:not(.from-nav) .hero-copy > :nth-child(7) { animation-delay: 300ms; }
+  html:not(.from-nav) .stage { animation: rise 320ms cubic-bezier(0.22, 1, 0.36, 1) 80ms backwards; }
+  html:not(.from-nav) .legal { animation: rise 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 
-  .form-dialog[open] { animation: rise 220ms ease backwards; }
-  .form-dialog[open]::backdrop { animation: veil 200ms ease backwards; }
-  .btn-pill:active { transform: translateY(0) scale(.985); }
+  .form-dialog[open] { animation: rise 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  .form-dialog[open]::backdrop { animation: veil 220ms ease backwards; }
+  .btn-pill:active { transform: translateY(1px) scale(.97); }
   .dialog-close,
   .legal .back,
   .site-foot a { transition: color .18s ease, background-color .18s ease, opacity .18s ease; }
@@ -1482,7 +1491,8 @@ html.motion .reveal[data-tilt].in { transform: perspective(900px) rotateX(var(--
   .blob, .blob-a, .blob-b, .who2, .eks { animation: none; }
   .shot img, .faq-a, .faq summary::after, .topnav, .topnav .wrap,
   .topnav nav a, .nav-cta, .dialog-close, .legal .back, .site-foot a { transition: none; }
-  .nav-cta:active, .btn-pill:active, .dialog-close:active { transform: none; }
+  .nav-cta:hover, .nav-cta:active, .btn-pill:hover, .btn-pill:active, .dialog-close:active,
+  .quote:hover, .way:hover, .fit:hover, .compare-card:hover, .price-card:hover, .shot:hover { transform: none; }
   .wordmark { view-transition-name: none; }
   ::view-transition-group(*),
   ::view-transition-old(*),
