@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { usesFormalAddress } from "@/lib/addressForm";
 import { badgeProgress, badgesStillOpen, galleryLead, hintFor, widgetBadges, widgetLine } from "./rules";
 import { loadBadgeFacts } from "./sync";
 import type { BadgeCabinet, BadgeView } from "./view";
@@ -24,12 +23,10 @@ function missingSchema(error: unknown): boolean {
 export async function loadBadges(studentId: string): Promise<BadgeCabinet> {
   const student = await prisma.user.findUnique({ where: { id: studentId }, select: { name: true } });
   const name = student?.name ?? "";
-  const formal = usesFormalAddress(name);
   const empty: BadgeCabinet = {
     ready: false,
     studentName: name,
-    formal,
-    lead: galleryLead(formal),
+    lead: galleryLead(),
     line: "",
     openCount: 0,
     badges: [],
@@ -51,7 +48,7 @@ export async function loadBadges(studentId: string): Promise<BadgeCabinet> {
       return {
         id: row.id,
         title: row.title,
-        hint: hintFor(row, formal),
+        hint: hintFor(row),
         image: row.image,
         section: row.section,
         sortOrder: row.sortOrder,
@@ -68,8 +65,7 @@ export async function loadBadges(studentId: string): Promise<BadgeCabinet> {
     return {
       ready: true,
       studentName: name,
-      formal,
-      lead: galleryLead(formal),
+      lead: galleryLead(),
       line: widgetLine(openCount),
       openCount,
       badges,

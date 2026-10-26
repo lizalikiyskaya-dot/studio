@@ -81,7 +81,7 @@ export function computeResult(rawX: number, rawY: number): PointResult {
     return {
       verdict: "Смешанный сеттинг: все четыре типа",
       mixes: w.map((m, i) => ({ key: m.key, pct: pcts[i] })),
-      meaning: "Редкий случай: мир держит баланс всех четырёх типов сразу. Решите, какая грань у вас ведущая.",
+      meaning: "Редкий случай: мир держит баланс всех четырёх типов сразу. Решите, какая грань у Вас ведущая.",
     };
   }
 

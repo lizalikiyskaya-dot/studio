@@ -105,7 +105,7 @@ export default function SettingTypeMap({
       <div className={AXIS} style={AXIS_STYLE}>интуиция · softworldbuilding</div>
 
       <div className="rounded-[12px] p-4 mt-4" style={{ background: "#fff", border: "1px solid var(--line)" }}>
-        <div className="text-[11px] tracking-[1.4px] uppercase mb-1.5" style={{ color: "var(--muted)" }}>ваш сеттинг</div>
+        <div className="text-[11px] tracking-[1.4px] uppercase mb-1.5" style={{ color: "var(--muted)" }}>Ваш сеттинг</div>
         <div className="text-[18px] font-semibold mb-2.5" style={{ color: "var(--ink)" }}>
           {result ? result.verdict : "— тип пока не выбран"}
         </div>

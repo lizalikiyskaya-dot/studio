@@ -24,8 +24,10 @@ test("в справочнике свои рисунки и нет двух од�
   assert.ok(BADGES.length <= 45);
   for (const badge of BADGES) {
     assert.equal(badge.image, `/badges/${badge.id}.png`);
+    assert.equal(badge.hint, badge.hintFormal);
     assert.equal(badge.hint.includes("сдала"), false);
-    assert.equal(badge.hintFormal.includes("сдала"), false);
+    assert.equal(/(^|[^А-Яа-яЁё])(ты|тебе|тебя|твой|твоя)([^А-Яа-яЁё]|$)/.test(badge.hint), false);
+    assert.equal(/^(Сдай|Набери|Дождись|Прими|Заверши|Держи|Отправь|Получи) /.test(badge.hint), false);
   }
 });
 
@@ -35,20 +37,16 @@ test("уровни значков совпадают со ступенями а�
   }
 });
 
-test("Виктории в подсказке «Вы» и множественное наклонение", () => {
+test("подсказка значка одна для всех: «Вы» и множественное наклонение", () => {
   const page = BADGES.find((badge) => badge.id === "first-page");
   const chapter = BADGES.find((badge) => badge.id === "first-chapter");
   const level = BADGES.find((badge) => badge.id === "level-25");
   assert.ok(page && chapter && level);
-  assert.match(hintFor(page, false), /^Сдай /);
-  assert.match(hintFor(page, true), /^Сдайте /);
-  assert.match(hintFor(chapter, false), /Дождись/);
-  assert.match(hintFor(chapter, true), /Дождитесь/);
-  assert.match(hintFor(level, false), /Набери 25/);
-  assert.match(hintFor(level, true), /Наберите 25/);
-  assert.match(galleryLead(false), /уже твой/);
-  assert.match(galleryLead(true), /уже Ваш/);
-  assert.equal(galleryLead(true).includes("твоя"), false);
+  assert.equal(hintFor(page), "Сдайте первое основное задание.");
+  assert.equal(hintFor(chapter), "Дождитесь статуса «принята» у первой главы.");
+  assert.equal(hintFor(level), "Наберите 25 звёзд в «заработано» — статус «Рассказчик».");
+  assert.equal(galleryLead(), "Цветной значок уже Ваш. Серый ещё можно получить: под ним написано, что для этого нужно.");
+  assert.equal(galleryLead().includes("твой"), false);
 });
 
 test("номер 1 не цепляет методички 10 и 19-1", () => {
@@ -83,10 +81,39 @@ test("автоматические значки: глава, серия, уро�
   for (const id of ["first-page", "first-week", "first-chapter", "spark", "candle", "first-entry", "level-5"]) {
     assert.ok(ids.includes(id), id);
   }
-  for (const id of ["ten-tasks", "lighthouse", "level-25", "level-70", "ten-thousand", "second-draft", "book-done", "back-in-line"]) {
+  for (const id of ["ten-tasks", "lighthouse", "level-25", "level-70", "ten-thousand", "second-draft", "book-done", "back-in-line", "publisher-yes"]) {
     assert.equal(ids.includes(id), false, id);
   }
   assert.deepEqual(missingAutoBadgeIds(ids, ["first-page", "spark"]), ids.filter((id) => id !== "first-page" && id !== "spark"));
+});
+
+test("журнал остаётся конкурсом, издательство принято отдельно", () => {
+  const contest = BADGES.find((badge) => badge.id === "contest-yes");
+  const publisher = BADGES.find((badge) => badge.id === "publisher-yes");
+  assert.ok(contest && publisher);
+  assert.equal(contest.section, "contest");
+  assert.equal(publisher.section, "contest");
+  assert.equal(contest.title, "Публикация");
+  assert.equal(publisher.title, "Контракт");
+  assert.equal(hintFor(contest), "Получите публикацию в журнале или победу на конкурсе.");
+  assert.equal(hintFor(publisher), "Получите контракт с издательством.");
+
+  const journal = emptyBadgeFacts();
+  journal.contestAccepted = true;
+  const journalIds = autoBadgeIds(journal);
+  assert.ok(journalIds.includes("contest-yes"));
+  assert.equal(journalIds.includes("publisher-yes"), false);
+
+  const sent = emptyBadgeFacts();
+  sent.publisherSent = true;
+  assert.ok(autoBadgeIds(sent).includes("publisher"));
+  assert.equal(autoBadgeIds(sent).includes("publisher-yes"), false);
+
+  const accepted = emptyBadgeFacts();
+  accepted.publisherSent = true;
+  accepted.publisherAccepted = true;
+  assert.ok(autoBadgeIds(accepted).includes("publisher"));
+  assert.ok(autoBadgeIds(accepted).includes("publisher-yes"));
 });
 
 test("виджет берёт три последних и считает, сколько ещё можно получить", () => {
