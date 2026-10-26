@@ -7,7 +7,7 @@ import { useSheetSwipe } from "@/components/useSheetSwipe";
 import { useRouter } from "next/navigation";
 import { Pencil, X, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, CornerDownRight, Quote } from "lucide-react";
 import type { Note, Comment } from "@/generated/prisma/client";
-import { createNote, updateNote, deleteNote, resolveNote, reopenNote, pollNotes } from "./actions";
+import { createNote, updateNote, deleteNote, resolveNote, reopenNote, pollNotes, moveNoteAnchors } from "./actions";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import SelectionAnnotator, { type Anchor } from "./SelectionAnnotator";
 import NoteMarks from "./NoteMarks";
@@ -22,6 +22,7 @@ import {
   unreadIds,
   type ViewerRole,
 } from "./noteSignals";
+import { cabinetSection, urlForViewer } from "./quoteMatch";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -72,6 +73,7 @@ function NoteCard({
   onResolve,
   onReopen,
   onJump,
+  current,
 }: {
   note: Note;
   comments: Comment[];
@@ -80,6 +82,7 @@ function NoteCard({
   onResolve: (id: string) => void;
   onReopen: (id: string) => void;
   onJump: (note: Note) => void;
+  current: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [collapsed, setCollapsed] = useState(note.resolved);
@@ -90,7 +93,8 @@ function NoteCard({
 
   return (
     <div
-      className="rounded-[14px] mb-3 overflow-hidden"
+      data-note-id={note.id}
+      className={`note-card rounded-[14px] mb-3 overflow-hidden${current ? " is-current" : ""}`}
       onClick={(event) => {
         if (!note.anchorUrl) return;
         const target = event.target as HTMLElement;
@@ -98,7 +102,7 @@ function NoteCard({
         onJump(note);
       }}
       style={{
-        background: note.resolved ? "var(--bg-surface-2)" : "#fff",
+        background: current ? "color-mix(in srgb, var(--y) 46%, #fff)" : note.resolved ? "var(--bg-surface-2)" : "#fff",
         border: "1px solid var(--border)",
         opacity: note.resolved ? 0.75 : 1,
       }}
@@ -353,6 +357,11 @@ export default function NotesPanel({
   const [comments, setComments] = useState(initialComments);
   const [pendingAnchor, setPendingAnchor] = useState<Anchor | null>(null);
   const [flashId, setFlashId] = useState<string | null>(null);
+  const [currentId, setCurrentId] = useState<string | null>(null);
+  const pendingShifts = useRef(new Map<string, { quote: string; offset: number }>());
+  const shiftTimer = useRef<number | null>(null);
+  const notesRef = useRef(notes);
+  notesRef.current = notes;
   const [seen, setSeen] = useState<Set<string>>(new Set());
   const [seenReady, setSeenReady] = useState(false);
   const known = useRef<Set<string> | null>(null);
@@ -395,9 +404,61 @@ export default function NotesPanel({
 
   useEffect(() => {
     if (!flashId) return;
-    const timer = window.setTimeout(() => setFlashId(null), 2200);
+    const timer = window.setTimeout(() => setFlashId(null), 3200);
     return () => window.clearTimeout(timer);
   }, [flashId]);
+
+  useEffect(() => {
+    function onFocus(event: Event) {
+      const id = (event as CustomEvent<string>).detail;
+      if (typeof id !== "string") return;
+      if (!notesRef.current.some((note) => note.id === id && !note.resolved)) return;
+      setTab("open");
+      setCurrentId(id);
+      setOpen(true);
+    }
+    function onShift(event: Event) {
+      const rows = (event as CustomEvent<{ id: string; quote: string; offset: number }[]>).detail;
+      if (!Array.isArray(rows)) return;
+      let changed = false;
+      for (const row of rows) {
+        if (!row || typeof row.id !== "string" || typeof row.quote !== "string") continue;
+        if (!Number.isInteger(row.offset) || row.offset < 0) continue;
+        pendingShifts.current.set(row.id, { quote: row.quote, offset: row.offset });
+        changed = true;
+      }
+      if (!changed) return;
+      setNotes((prev) => prev.map((note) => {
+        const next = pendingShifts.current.get(note.id);
+        if (!next || (note.anchorQuote === next.quote && note.anchorOffset === next.offset)) return note;
+        return { ...note, anchorQuote: next.quote, anchorOffset: next.offset };
+      }));
+      if (shiftTimer.current) window.clearTimeout(shiftTimer.current);
+      shiftTimer.current = window.setTimeout(() => {
+        const batch = [...pendingShifts.current.entries()].map(([id, value]) => ({
+          id,
+          quote: value.quote,
+          offset: value.offset,
+        }));
+        if (batch.length) startTransition(() => moveNoteAnchors(studentId, batch));
+      }, 500);
+    }
+    window.addEventListener("studio:focus-note", onFocus);
+    window.addEventListener("studio:notes-shift", onShift);
+    return () => {
+      window.removeEventListener("studio:focus-note", onFocus);
+      window.removeEventListener("studio:notes-shift", onShift);
+    };
+  }, [studentId]);
+
+  useEffect(() => {
+    if (!open || !currentId) return;
+    const list = listRef.current;
+    const card = list?.querySelector(`[data-note-id="${currentId}"]`);
+    if (!list || !(card instanceof HTMLElement)) return;
+    const top = card.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
+    list.scrollTo({ top: Math.max(0, top - list.clientHeight / 2 + card.clientHeight / 2) });
+  }, [open, currentId, tab, notes]);
 
   useEffect(() => {
     let timer = 0;
@@ -415,14 +476,32 @@ export default function NotesPanel({
         setNotes((prev) => {
           const ids = new Set(data.notes.map((note) => note.id));
           const extra = prev.filter((note) => !ids.has(note.id));
+          const merged = data.notes.map((note) => {
+            const pending = pendingShifts.current.get(note.id);
+            if (pending && (note.anchorQuote !== pending.quote || note.anchorOffset !== pending.offset)) {
+              return { ...note, anchorQuote: pending.quote, anchorOffset: pending.offset };
+            }
+            return note;
+          });
           const same = extra.length === 0
             && prev.length === data.notes.length
             && prev.every((note, index) => {
               const next = data.notes[index];
-              return next && note.id === next.id && note.text === next.text && note.resolved === next.resolved && note.anchorQuote === next.anchorQuote;
+              const pending = pendingShifts.current.get(note.id);
+              const quote = pending?.quote ?? note.anchorQuote;
+              const offset = pending?.offset ?? note.anchorOffset;
+              if (pending && next.anchorQuote === pending.quote && next.anchorOffset === pending.offset) {
+                pendingShifts.current.delete(note.id);
+              }
+              return next
+                && note.id === next.id
+                && note.text === next.text
+                && note.resolved === next.resolved
+                && quote === next.anchorQuote
+                && offset === next.anchorOffset;
             });
           if (same) return prev;
-          return [...data.notes, ...extra];
+          return [...merged, ...extra];
         });
         setComments((prev) => {
           const prevIds = Object.values(prev).flat().map((comment) => `${comment.id}:${comment.text}`).join("|");
@@ -479,9 +558,12 @@ export default function NotesPanel({
   function handleJump(note: Note) {
     if (!note.anchorUrl) return;
     setFlashId(note.id);
+    setCurrentId(note.id);
     setOpen(false);
     const here = window.location.pathname + window.location.search;
-    if (here !== note.anchorUrl) router.push(note.anchorUrl);
+    if (cabinetSection(here) === cabinetSection(note.anchorUrl) && !note.anchorUrl.includes("?")) return;
+    const dest = urlForViewer(note.anchorUrl, window.location.pathname);
+    if (dest !== here) router.push(dest);
   }
 
   function handleAdd(text: string) {
@@ -651,6 +733,7 @@ export default function NotesPanel({
                 onResolve={handleResolve}
                 onReopen={handleReopen}
                 onJump={handleJump}
+                current={note.id === currentId}
               />
             ))}
           </div>
