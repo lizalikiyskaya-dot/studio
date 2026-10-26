@@ -404,7 +404,7 @@ export default function ActsGrid({
               field="content"
               value={act.content}
               suggestion={actSuggestions.content}
-              placeholder="Общее описание акта — если не хочешь расписывать по главам и сюжетным линиям"
+              placeholder="Общее описание акта — если не хотите расписывать по главам и сюжетным линиям"
               className="w-full outline-none bg-transparent text-[13.5px] leading-relaxed mb-3"
             />
 

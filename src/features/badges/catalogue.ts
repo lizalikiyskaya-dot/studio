@@ -36,23 +36,17 @@ export const BADGE_SECTIONS: { id: BadgeSection; label: string }[] = [
 
 export const GENERIC_METHODICAL_IMAGE = "/badges/methodical-new.png";
 
-function both(informal: string, formal: string): Pick<BadgeDef, "hint" | "hintFormal"> {
-  return { hint: informal, hintFormal: formal };
-}
-
+/** Одна подсказка для всех учеников: вежливое «Вы». Обе колонки хранят один текст. */
 function same(text: string): Pick<BadgeDef, "hint" | "hintFormal"> {
   return { hint: text, hintFormal: text };
 }
 
 function methodicalHint(name: string): Pick<BadgeDef, "hint" | "hintFormal"> {
-  return both(`Прими задание по методичке «${name}».`, `Примите задание по методичке «${name}».`);
+  return same(`Примите задание по методичке «${name}».`);
 }
 
 function levelHint(title: string, stars: number): Pick<BadgeDef, "hint" | "hintFormal"> {
-  return both(
-    `Набери ${stars} звёзд в «заработано» — статус «${title}».`,
-    `Наберите ${stars} звёзд в «заработано» — статус «${title}».`,
-  );
+  return same(`Наберите ${stars} звёзд в «заработано» — статус «${title}».`);
 }
 
 const METHODICAL_ROWS: {
@@ -92,7 +86,7 @@ export const BADGES: BadgeDef[] = [
     sortOrder: 10,
     auto: true,
     image: "/badges/first-page.png",
-    ...both("Сдай первое основное задание.", "Сдайте первое основное задание."),
+    ...same("Сдайте первое основное задание."),
   },
   {
     id: "first-week",
@@ -101,7 +95,7 @@ export const BADGES: BadgeDef[] = [
     sortOrder: 11,
     auto: true,
     image: "/badges/first-week.png",
-    ...both("Сдай первое задание недели.", "Сдайте первое задание недели."),
+    ...same("Сдайте первое задание недели."),
   },
   {
     id: "first-chapter",
@@ -110,10 +104,7 @@ export const BADGES: BadgeDef[] = [
     sortOrder: 12,
     auto: true,
     image: "/badges/first-chapter.png",
-    ...both(
-      "Дождись статуса «принята» у первой главы.",
-      "Дождитесь статуса «принята» у первой главы.",
-    ),
+    ...same("Дождитесь статуса «принята» у первой главы."),
   },
   {
     id: "ten-tasks",
@@ -123,7 +114,7 @@ export const BADGES: BadgeDef[] = [
     auto: true,
     image: "/badges/ten-tasks.png",
     progress: { kind: "tasks", total: 10 },
-    ...both("Сдай 10 основных заданий.", "Сдайте 10 основных заданий."),
+    ...same("Сдайте 10 основных заданий."),
   },
   {
     id: "ten-thousand",
@@ -150,10 +141,7 @@ export const BADGES: BadgeDef[] = [
     sortOrder: 43,
     auto: true,
     image: "/badges/book-done.png",
-    ...both(
-      "Заверши книгу: в журнале звёзд есть «завершение книги».",
-      "Завершите книгу: в журнале звёзд есть «завершение книги».",
-    ),
+    ...same("Завершите книгу: в журнале звёзд есть «завершение книги»."),
   },
   ...METHODICAL_ROWS.map((row, index) => ({
     id: `methodical-${row.code}`,
@@ -173,7 +161,7 @@ export const BADGES: BadgeDef[] = [
     sortOrder: 200,
     auto: true,
     image: "/badges/first-entry.png",
-    ...both("Отправь первую заявку на конкурс.", "Отправьте первую заявку на конкурс."),
+    ...same("Отправьте первую заявку на конкурс."),
   },
   {
     id: "first-no",
@@ -182,22 +170,16 @@ export const BADGES: BadgeDef[] = [
     sortOrder: 201,
     auto: true,
     image: "/badges/first-no.png",
-    ...both(
-      "Получи первый отказ с конкурса. Отказ — часть пути.",
-      "Получите первый отказ с конкурса. Отказ — часть пути.",
-    ),
+    ...same("Получите первый отказ с конкурса. Отказ — часть пути."),
   },
   {
     id: "contest-yes",
-    title: "Принято",
+    title: "Публикация",
     section: "contest",
     sortOrder: 202,
     auto: true,
     image: "/badges/contest-yes.png",
-    ...both(
-      "Дождись статуса «принято» на конкурсе.",
-      "Дождитесь статуса «принято» на конкурсе.",
-    ),
+    ...same("Получите публикацию в журнале или победу на конкурсе."),
   },
   {
     id: "publisher",
@@ -206,7 +188,16 @@ export const BADGES: BadgeDef[] = [
     sortOrder: 203,
     auto: true,
     image: "/badges/publisher.png",
-    ...both("Отправь первую заявку в издательство.", "Отправьте первую заявку в издательство."),
+    ...same("Отправьте первую заявку в издательство."),
+  },
+  {
+    id: "publisher-yes",
+    title: "Контракт",
+    section: "contest",
+    sortOrder: 204,
+    auto: true,
+    image: "/badges/publisher-yes.png",
+    ...same("Получите контракт с издательством."),
   },
   {
     id: "spark",
@@ -216,7 +207,7 @@ export const BADGES: BadgeDef[] = [
     auto: true,
     image: "/badges/spark.png",
     progress: { kind: "streak", total: 4 },
-    ...both("Держи серию 4 недели подряд.", "Держите серию 4 недели подряд."),
+    ...same("Держите серию 4 недели подряд."),
   },
   {
     id: "candle",
@@ -226,7 +217,7 @@ export const BADGES: BadgeDef[] = [
     auto: true,
     image: "/badges/candle.png",
     progress: { kind: "streak", total: 8 },
-    ...both("Держи серию 8 недель подряд.", "Держите серию 8 недель подряд."),
+    ...same("Держите серию 8 недель подряд."),
   },
   {
     id: "lighthouse",
@@ -236,7 +227,7 @@ export const BADGES: BadgeDef[] = [
     auto: true,
     image: "/badges/lighthouse.png",
     progress: { kind: "streak", total: 12 },
-    ...both("Держи серию 12 недель подряд.", "Держите серию 12 недель подряд."),
+    ...same("Держите серию 12 недель подряд."),
   },
   {
     id: "back-in-line",
@@ -245,10 +236,7 @@ export const BADGES: BadgeDef[] = [
     sortOrder: 233,
     auto: true,
     image: "/badges/back-in-line.png",
-    ...both(
-      "Сдай задание или главу после перерыва от трёх недель.",
-      "Сдайте задание или главу после перерыва от трёх недель.",
-    ),
+    ...same("Сдайте задание или главу после перерыва от трёх недель."),
   },
   {
     id: "level-5",

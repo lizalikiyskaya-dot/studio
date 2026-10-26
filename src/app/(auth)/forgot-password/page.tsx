@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
   return (
     <form onSubmit={handleSubmit}>
       <h1 className="auth-title">{markedTitle("Восстановление пароля")}</h1>
-      <p className="auth-sub">Укажите почту, с которой вы регистрировались — пришлём ссылку для смены пароля.</p>
+      <p className="auth-sub">Укажите почту, с которой Вы регистрировались — пришлём ссылку для смены пароля.</p>
 
       <label className="fld-label">
         Почта

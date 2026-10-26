@@ -180,7 +180,7 @@ export default function FantasySection({
                 patchEntry(openEntry.id, { photoUrl: null });
                 startTransition(() => { void deletePhoto("world-entry-photo", openEntry.id, "photoUrl"); });
               }}
-              placeholder="нажмите, чтобы добавить изображение"
+              placeholder="Нажмите, чтобы добавить изображение"
               className="w-full h-[200px] rounded-[14px] mb-5 mt-3.5"
             />
 
