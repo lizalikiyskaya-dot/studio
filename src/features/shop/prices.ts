@@ -192,7 +192,7 @@ export function missingStarsLabel(missing: number): string {
 }
 
 export function shopIntro(): string {
-  return "Выберите методичку и откройте её за звёзды со счёта. Уровень от этого не меняется. Если методичка есть в плане, Лиза открывает её сама.";
+  return "Выберите методичку и откройте ее досрочно за звезды.";
 }
 
 export function openedLine(titles: string[]): string {

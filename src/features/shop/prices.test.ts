@@ -120,8 +120,7 @@ test("тексты магазина на «Вы»", () => {
   assert.equal(missingStarsLabel(1), "Не хватает 1 звезды");
   assert.equal(missingStarsLabel(3), "Не хватает 3 звёзд");
   assert.equal(missingStarsLabel(7), "Не хватает 7 звёзд");
-  assert.match(shopIntro(), /Выберите методичку и откройте её/);
-  assert.doesNotMatch(shopIntro(), /открой её|Выбери /);
+  assert.equal(shopIntro(), "Выберите методичку и откройте ее досрочно за звезды.");
   assert.match(openedLine(["Луковица"]), /^Вы открыли методичку «Луковица»/);
   assert.match(openedLine(["7-1", "7-2"]), /^Вы открыли методички/);
 });
