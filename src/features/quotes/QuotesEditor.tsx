@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { siteConfirm } from "@/components/SiteDialog";
 import { Button } from "@/components/ui/Button";
-import { createQuote, deleteQuote, moveQuote, updateQuote, type QuoteRow } from "./actions";
+import { createQuote, deleteQuote, moveQuote, setQuoteActive, updateQuote, type QuoteRow } from "./actions";
 
 const EMPTY = { text: "", author: "", source: "", translator: "" };
 
@@ -84,6 +84,19 @@ export default function QuotesEditor({
         return;
       }
       refresh(quotes.filter((row) => row.id !== quote.id));
+    });
+  }
+
+  function restore(id: string) {
+    setRowNote(null);
+    startTransition(async () => {
+      const result = await setQuoteActive(id, true);
+      if ("error" in result) {
+        setRowNote({ id, ok: false, text: result.error });
+        return;
+      }
+      setRowNote({ id, ok: true, text: "Цитата снова в очереди." });
+      refresh(quotes.map((quote) => (quote.id === id ? { ...quote, active: true } : quote)));
     });
   }
 
@@ -177,7 +190,17 @@ export default function QuotesEditor({
                   завтра
                 </span>
               ) : null}
+              {quote.active === false ? (
+                <span className="rounded-full px-2.5 py-0.5 text-[12px] font-medium" style={{ background: "var(--soft)", color: "var(--ink)" }}>
+                  вне очереди
+                </span>
+              ) : null}
               <span className="ml-auto flex flex-wrap gap-2">
+                {quote.active === false ? (
+                  <Button type="button" variant="secondary" size="sm" pill disabled={pending} onClick={() => restore(quote.id)}>
+                    Вернуть в очередь
+                  </Button>
+                ) : null}
                 <Button type="button" variant="secondary" size="sm" pill disabled={pending || index === 0} onClick={() => move(quote.id, "up")}>
                   Выше
                 </Button>

@@ -1,5 +1,6 @@
 import { ADDED_DAILY_QUOTES } from "./dailyQuoteAdditions";
-import { spaceQuotesByAuthor } from "./spaceQuotes";
+import { RETIRED_DAILY_QUOTE_TEXTS, TODAY_NAIPAUL_TEXT } from "./dailyQuoteCuts";
+import { orderDailyQuotes } from "./scheduleDailyQuotes";
 
 /**
  * Цитата дня: писатели о ремесле — письмо, черновик, слово, стиль, сюжет.
@@ -8,8 +9,10 @@ import { spaceQuotesByAuthor } from "./spaceQuotes";
  * Поле source — произведение, письмо или эссе: его видно на карточке рядом с автором.
  * Поле translator — для сверки перевода. На карточку оно не выводится.
  * DAILY_QUOTE_CATALOG хранит строки в порядке появления: по нему же стоят id в базе.
- * DAILY_QUOTES — та же очередь, но авторы разведены: один и тот же не ближе чем через семь строк,
- * включая стык последней строки с первой. Кабинет и письмо идут по этому порядку.
+ * Снятые с очереди строки в каталоге остаются, чтобы id не сдвинулись.
+ * DAILY_QUOTES — очередь без этих строк. Первые восемь — цитаты, которые точно есть
+ * в живой базе. Дальше один автор не ближе чем через семь строк, включая стык
+ * последней строки с первой. Кабинет и письмо идут по этому порядку.
  */
 export type DailyQuote = {
   text: string;
@@ -349,7 +352,26 @@ const QUOTE_SOURCES: DailyQuote[] = [
   },
 ];
 
-/** Порядок id: старые строки, затем добавленные. Очередь дня — DAILY_QUOTES. */
+/** Порядок id: старые строки, затем добавленные. Снятые строки тоже здесь. */
 export const DAILY_QUOTE_CATALOG: DailyQuote[] = [...QUOTE_SOURCES, ...ADDED_DAILY_QUOTES];
 
-export const DAILY_QUOTES: DailyQuote[] = spaceQuotesByAuthor(DAILY_QUOTE_CATALOG);
+const retiredTexts = new Set<string>(RETIRED_DAILY_QUOTE_TEXTS);
+
+export function dailyQuoteId(quote: DailyQuote): string {
+  const index = DAILY_QUOTE_CATALOG.indexOf(quote);
+  if (index < 0) throw new Error("цитаты нет в каталоге");
+  return `quote-${String(index + 1).padStart(3, "0")}`;
+}
+
+/** Очередь до разведения авторов: каталог без снятых строк. */
+export const OPEN_DAILY_QUOTES: DailyQuote[] = DAILY_QUOTE_CATALOG.filter((quote) => !retiredTexts.has(quote.text));
+
+export const RETIRED_DAILY_QUOTE_IDS: string[] = DAILY_QUOTE_CATALOG.filter((quote) => retiredTexts.has(quote.text)).map(
+  (quote) => dailyQuoteId(quote),
+);
+
+const todayNaipaul = DAILY_QUOTE_CATALOG.find((quote) => quote.text === TODAY_NAIPAUL_TEXT);
+if (!todayNaipaul) throw new Error("нет цитаты Найпола на сегодня");
+export const TODAY_NAIPAUL_ID = dailyQuoteId(todayNaipaul);
+
+export const DAILY_QUOTES: DailyQuote[] = orderDailyQuotes(OPEN_DAILY_QUOTES, dailyQuoteId);

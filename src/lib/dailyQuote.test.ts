@@ -2,8 +2,17 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
-import { findDestructive } from "../../scripts/sql-guard.mjs";
-import { DAILY_QUOTES, DAILY_QUOTE_CATALOG } from "@/data/dailyQuotes";
+import { findDestructive, statementsToRun } from "../../scripts/sql-guard.mjs";
+import {
+  DAILY_QUOTES,
+  DAILY_QUOTE_CATALOG,
+  OPEN_DAILY_QUOTES,
+  RETIRED_DAILY_QUOTE_IDS,
+  TODAY_NAIPAUL_ID,
+  dailyQuoteId,
+} from "@/data/dailyQuotes";
+import { RETIRED_DAILY_QUOTE_TEXTS } from "@/data/dailyQuoteCuts";
+import { DAILY_QUOTE_WEEK_IDS, orderDailyQuotes } from "@/data/scheduleDailyQuotes";
 import { spaceQuotesByAuthor } from "@/data/spaceQuotes";
 import { quoteForDate, reanchorAfterEdit, shiftDateKey, shownIndex, type QuoteCursor } from "./dailyQuote";
 
@@ -41,10 +50,40 @@ test("сид цитат совпадает со списком и не стир�
   for (const quote of DAILY_QUOTE_CATALOG) {
     assert.equal(oldSql.includes(quote.text) || orderSql.includes(quote.text), true, quote.author);
   }
-  for (const [index, quote] of DAILY_QUOTES.entries()) {
-    const id = `quote-${String(DAILY_QUOTE_CATALOG.indexOf(quote) + 1).padStart(3, "0")}`;
-    assert.equal(orderSql.includes(`'${id}', ${index + 1}`), true, id);
-  }
+  const balanceSql = fs.readFileSync(path.join(process.cwd(), "docs/sql/2026-10-26-91-daily-quote-balance.sql"), "utf8");
+  assert.equal(findDestructive(balanceSql).length, 0);
+  assert.equal(/\bDELETE\b/i.test(balanceSql), false);
+  assert.equal(/\bDROP\b/i.test(balanceSql), false);
+  assert.match(balanceSql, /ADD COLUMN IF NOT EXISTS "active" BOOLEAN NOT NULL DEFAULT true/);
+  const inactiveSql = balanceSql.slice(
+    balanceSql.indexOf('SET "active" = false'),
+    balanceSql.indexOf('SET "sortOrder" = 1'),
+  );
+  assert.equal(inactiveSql.includes("quote-004"), false);
+  assert.equal(inactiveSql.includes(TODAY_NAIPAUL_ID), false);
+  for (const id of RETIRED_DAILY_QUOTE_IDS) assert.equal(inactiveSql.includes(`'${id}'`), true, id);
+  DAILY_QUOTES.forEach((quote, index) => {
+    const id = dailyQuoteId(quote);
+    assert.equal(
+      balanceSql.includes(`UPDATE "DailyQuote" SET "sortOrder" = ${index + 1} WHERE "id" = '${id}';`),
+      true,
+      id,
+    );
+  });
+  RETIRED_DAILY_QUOTE_IDS.forEach((id, index) => {
+    assert.equal(
+      balanceSql.includes(`UPDATE "DailyQuote" SET "sortOrder" = ${10001 + index} WHERE "id" = '${id}';`),
+      true,
+      id,
+    );
+  });
+  const statements = statementsToRun(balanceSql);
+  assert.equal(statements.some((statement) => statement.startsWith("DO $check$")), true);
+  assert.match(balanceSql, /"key" = 'quote-seq'/);
+  assert.match(balanceSql, /2026-10-26/);
+  assert.match(balanceSql, /"quoteId":"quote-004"/);
+  assert.match(balanceSql, new RegExp(TODAY_NAIPAUL_ID));
+  assert.match(balanceSql, /автор «%» повторяется через % дн\./);
 });
 
 test("в один московский день цитата одна и та же", () => {
@@ -75,8 +114,7 @@ test("соседние дни не делят автора, кабинет и п
   assert.match(cabinet, /loadDailyQuote/);
   assert.match(loader, /shownIndex/);
 
-  const spaced = spaceQuotesByAuthor(DAILY_QUOTE_CATALOG);
-  assert.deepEqual(spaced, DAILY_QUOTES);
+  assert.deepEqual(orderDailyQuotes(OPEN_DAILY_QUOTES, dailyQuoteId), DAILY_QUOTES);
 
   const ids = DAILY_QUOTES.map((_, index) => String(index));
   let previous = "";
@@ -96,6 +134,78 @@ test("соседние дни не делят автора, кабинет и п
     for (let gap = 1; gap < 7; gap++) {
       assert.notEqual(DAILY_QUOTES[index].author, DAILY_QUOTES[(index + gap) % count].author);
     }
+  }
+});
+
+function authorGapHolds(quotes: readonly { author: string }[]) {
+  const count = quotes.length;
+  for (let index = 0; index < count; index++) {
+    for (let gap = 1; gap < 7; gap++) {
+      assert.notEqual(quotes[index].author, quotes[(index + gap) % count].author);
+    }
+  }
+}
+
+test("Льоса и Найпол не доминируют, сегодня Найпол, Чехов quote-004 остаётся", () => {
+  assert.equal(RETIRED_DAILY_QUOTE_IDS.length, RETIRED_DAILY_QUOTE_TEXTS.length);
+  assert.equal(new Set(RETIRED_DAILY_QUOTE_TEXTS).size, RETIRED_DAILY_QUOTE_TEXTS.length);
+  const retiredAuthors = RETIRED_DAILY_QUOTE_IDS.map((id) => DAILY_QUOTE_CATALOG[Number(id.slice(6)) - 1]);
+  assert.equal(retiredAuthors.filter((quote) => quote.author === "Марио Варгас Льоса").length, 7);
+  assert.equal(retiredAuthors.filter((quote) => quote.author === "В. С. Найпол").length, 4);
+  assert.equal(DAILY_QUOTES.filter((quote) => quote.author === "Марио Варгас Льоса").length, 6);
+  assert.equal(DAILY_QUOTES.filter((quote) => quote.author === "В. С. Найпол").length, 6);
+  assert.equal(OPEN_DAILY_QUOTES.length, 113);
+  assert.equal(DAILY_QUOTES.length, 113);
+  assert.deepEqual(
+    DAILY_QUOTES.slice(0, DAILY_QUOTE_WEEK_IDS.length).map((quote) => dailyQuoteId(quote)),
+    [...DAILY_QUOTE_WEEK_IDS],
+  );
+  for (const id of DAILY_QUOTE_WEEK_IDS) assert.ok(Number(id.slice(6)) >= 64, id);
+  assert.equal(RETIRED_DAILY_QUOTE_IDS.includes("quote-004"), false);
+  assert.equal(RETIRED_DAILY_QUOTE_IDS.includes(TODAY_NAIPAUL_ID), false);
+  const loader = fs.readFileSync(path.join(process.cwd(), "src/lib/loadDailyQuote.ts"), "utf8");
+  const mentor = fs.readFileSync(path.join(process.cwd(), "src/app/mentor/quotes/page.tsx"), "utf8");
+  assert.match(loader, /where: \{ active: true \}/);
+  assert.match(mentor, /quotes\.filter\(\(quote\) => quote\.active\)/);
+  assert.equal(/findMany\(\{[^}]*where:\s*\{\s*active/.test(mentor), false);
+
+  const chekhov = DAILY_QUOTES.find((quote) => dailyQuoteId(quote) === "quote-004");
+  assert.equal(chekhov?.author, "Антон Чехов");
+  assert.equal(chekhov?.text, "Не зализывай, не шлифуй, а будь неуклюж и дерзок.");
+  const todayQuote = DAILY_QUOTE_CATALOG[Number(TODAY_NAIPAUL_ID.slice(6)) - 1];
+  assert.equal(todayQuote.author, "В. С. Найпол");
+
+  authorGapHolds(DAILY_QUOTES);
+  const ids = DAILY_QUOTES.map((quote) => dailyQuoteId(quote));
+  const pin: QuoteCursor = { date: "2026-10-26", quoteId: TODAY_NAIPAUL_ID };
+  let previous = "";
+  for (let day = 0; day < 365; day++) {
+    const key = shiftDateKey("2026-10-26", day);
+    const quote = DAILY_QUOTES[shownIndex(ids, pin, key)];
+    if (day === 0) assert.equal(quote.author, "В. С. Найпол");
+    if (day === 0) assert.equal(dailyQuoteId(quote), TODAY_NAIPAUL_ID);
+    if (previous) assert.notEqual(quote.author, previous, key);
+    previous = quote.author;
+  }
+  assert.notEqual(DAILY_QUOTES[shownIndex(ids, pin, "2026-10-26")].text, chekhov?.text);
+
+  const oldIds = OPEN_DAILY_QUOTES.map((quote) => dailyQuoteId(quote)).filter((id) => Number(id.slice(6)) <= 63);
+  assert.equal(oldIds.length, 63);
+  const missingSets = [
+    ["quote-001", "quote-002", "quote-003", "quote-005", "quote-006"],
+    ["quote-010", "quote-011", "quote-012", "quote-013", "quote-014"],
+    ["quote-059", "quote-060", "quote-061", "quote-062", "quote-063"],
+  ];
+  for (const missing of missingSets) {
+    const gone = new Set(missing);
+    assert.equal(gone.has("quote-004"), false);
+    const live = spaceQuotesByAuthor(OPEN_DAILY_QUOTES.filter((quote) => !gone.has(dailyQuoteId(quote))));
+    assert.equal(live.length, 108);
+    authorGapHolds(live);
+    const liveIds = live.map((quote) => dailyQuoteId(quote));
+    const shown = live[shownIndex(liveIds, pin, "2026-10-26")];
+    assert.equal(shown.author, "В. С. Найпол");
+    assert.equal(live.some((quote) => dailyQuoteId(quote) === "quote-004"), true);
   }
 });
 

@@ -16,6 +16,7 @@ export type QuoteRow = {
   source: string;
   translator: string;
   sortOrder: number;
+  active: boolean;
 };
 
 type Ok = { ok: true };
@@ -66,6 +67,7 @@ function unavailable(error: unknown): Fail | null {
 
 async function quoteIds(): Promise<string[]> {
   const rows = await prisma.dailyQuote.findMany({
+    where: { active: true },
     orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
     select: { id: true },
   });
@@ -114,6 +116,25 @@ export async function updateQuote(
   if ("error" in fields) return fields;
   try {
     await prisma.dailyQuote.update({ where: { id }, data: fields });
+  } catch (error) {
+    const missing = unavailable(error);
+    if (missing) return missing;
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return { error: "Этой цитаты уже нет в списке." };
+    }
+    throw error;
+  }
+  touch();
+  return { ok: true };
+}
+
+export async function setQuoteActive(id: string, active: boolean): Promise<Ok | Fail> {
+  const denied = await mentor();
+  if (denied) return denied;
+  try {
+    const before = await quoteIds();
+    await prisma.dailyQuote.update({ where: { id }, data: { active } });
+    await keepToday(before);
   } catch (error) {
     const missing = unavailable(error);
     if (missing) return missing;

@@ -938,6 +938,8 @@ model DailyQuote {
   source     String
   translator String   @default("")
   sortOrder  Int
+  // false — строка остаётся в списке наставника, но из очереди дня выпадает.
+  active     Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
