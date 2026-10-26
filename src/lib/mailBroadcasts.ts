@@ -8,6 +8,7 @@ export const BROADCAST_KEYS = [
   "weekly-task",
   "daily-quote",
   "deadline",
+  "note-reminder",
   "guide",
   "registration",
   "registration-mentor",
@@ -50,6 +51,7 @@ export const BROADCAST_META: BroadcastMeta[] = [
   { key: "weekly-task", title: "Задание недели", mode: "clock", who: "students" },
   { key: "daily-quote", title: "Цитата дня", mode: "clock", who: "students" },
   { key: "deadline", title: "Напоминание о сроке", mode: "clock", who: "students" },
+  { key: "note-reminder", title: "Открытые заметки", mode: "clock", who: "students" },
   { key: "guide", title: "Методичка", mode: "event", who: "students" },
   { key: "registration", title: "Заявка ученику", mode: "event", who: "person" },
   { key: "registration-mentor", title: "Заявка наставнику", mode: "event", who: "mentor" },
@@ -103,6 +105,8 @@ export function defaultBroadcast(key: BroadcastKey): BroadcastSetting {
       return { ...base, enabled: false, hour: 9, minute: 0, windowMinutes: 60 };
     case "deadline":
       return { ...base, enabled: true, hour: 9, minute: 0, windowMinutes: 60, sender: "env" };
+    case "note-reminder":
+      return { ...base, enabled: false, hour: 9, minute: 0, windowMinutes: 60, sender: "env" };
     case "guide":
     case "registration":
     case "registration-mentor":
@@ -258,7 +262,7 @@ export function scheduleLabel(setting: BroadcastSetting, mode: BroadcastMode): s
 }
 
 function keepsClock(key: BroadcastKey): boolean {
-  return key === "payment" || key === "weekly-task" || key === "daily-quote" || key === "deadline";
+  return key === "payment" || key === "weekly-task" || key === "daily-quote" || key === "deadline" || key === "note-reminder";
 }
 
 export function normalizeBroadcast(input: BroadcastSetting): { value: BroadcastSetting; error?: string } {

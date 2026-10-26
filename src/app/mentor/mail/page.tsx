@@ -13,6 +13,7 @@ import { readLetterEditor } from "@/lib/letterTemplateStore";
 import { readBroadcastList } from "@/lib/mailBroadcastStore";
 import { readCustomMailings } from "@/lib/customMailStore";
 import { broadcastPreviewHtml } from "@/lib/broadcastPreviews";
+import { loadNoteReminderPreview } from "@/lib/noteReminderRun";
 import MailTabs, { parseMailTab } from "./MailTabs";
 
 const SEOUL = "Asia/Seoul";
@@ -96,6 +97,7 @@ export default async function MentorMailPage({
   const broadcasts = await readBroadcastList();
   const customMail = await readCustomMailings();
   const letters = await readLetterEditor();
+  const noteReminders = await loadNoteReminderPreview().catch(() => []);
 
   return (
     <div>
@@ -111,6 +113,12 @@ export default async function MentorMailPage({
             initial={broadcasts.rows}
             students={recipients.map((item) => ({ id: item.id, name: item.name }))}
             previews={broadcastPreviewHtml()}
+            noteReminders={noteReminders.map((item) => ({
+              id: item.student.id,
+              name: item.student.name,
+              subject: item.letter.subject,
+              text: item.letter.text,
+            }))}
           />
           <CustomMailings
             ready={customMail.ready}
