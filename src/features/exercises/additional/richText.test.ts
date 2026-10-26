@@ -3,11 +3,15 @@ import fs from "node:fs";
 import test from "node:test";
 import { findDestructive, sortSqlNames } from "../../../../scripts/sql-guard.mjs";
 import {
+  applyTextSize,
   loadBlocks,
   markdownToBlocks,
   plainToBlocks,
   readBlocks,
   saveBlocks,
+  toggleJustify,
+  toggleList,
+  toggleUnderline,
   writeBlocks,
   type ContentFormat,
 } from "./richText";
@@ -21,10 +25,19 @@ class MiniText {
 class MiniElement {
   nodeType = 1;
   nodeName: string;
+  className = "";
   parentNode: MiniElement | null = null;
   childNodes: Array<MiniElement | MiniText> = [];
+  attrs: Record<string, string> = {};
+  style: { textAlign: string; textDecoration: string } = { textAlign: "", textDecoration: "" };
   constructor(tag: string) {
     this.nodeName = tag.toUpperCase();
+  }
+  setAttribute(name: string, value: string) {
+    this.attrs[name] = value;
+  }
+  getAttribute(name: string) {
+    return this.attrs[name] ?? null;
   }
   get children() {
     return this.childNodes.filter((node) => node instanceof MiniElement);
@@ -144,6 +157,76 @@ test("перенос внутри абзаца остаётся переносо
   const root = document.createElement("div");
   root.append(paragraph);
   assert.deepEqual(saveBlocks(readBlocks(root)), { content: "a\nb", format: "plain" });
+});
+
+test("список, подчёркивание, размер и ширина живут в тексте и рисуются обратно", () => {
+  const source = [
+    "::: Герой <u>вышел</u> на крыльцо.",
+    "<small>тихо</small> и <huge>громко</huge>",
+    "- чай",
+    "- <u>письмо</u>",
+    "::: 1. первый шаг",
+    "::: 2. <big>второй</big> шаг",
+  ].join("\n");
+  const saved = throughEditor(source, "markdown");
+  assert.equal(saved.format, "markdown");
+  assert.equal(saved.content, source);
+  const root = document.createElement("div");
+  writeBlocks(root, loadBlocks(saved.content, saved.format));
+  const list = root.childNodes[2] as unknown as MiniElement;
+  assert.equal(list.nodeName, "UL");
+  assert.equal(list.children.length, 2);
+  const justified = root.childNodes[0] as unknown as MiniElement;
+  assert.equal(justified.getAttribute("data-align"), "justify");
+  assert.equal(justified.style.textAlign, "justify");
+  const again = saveBlocks(readBlocks(root));
+  assert.equal(again.content, source);
+});
+
+test("кнопки списка, ширины, размера и подчёркивания меняют блоки", () => {
+  const prose = plainToBlocks("чай\nписьмо\nдом");
+  const listed = toggleList(prose, 0, 1, "ul");
+  assert.equal(listed[0]?.kind, "ul");
+  assert.equal(listed[1]?.kind, "p");
+  const numbered = toggleList(listed, 0, 0, "ol");
+  assert.equal(numbered[0]?.kind, "ol");
+  const back = toggleList(numbered, 0, 0, "ol");
+  assert.equal(back[0]?.kind, "p");
+  assert.equal(back[1]?.kind, "p");
+
+  const wide = toggleJustify(prose, 1, 1);
+  assert.equal(wide[1]?.align, "justify");
+  assert.equal(toggleJustify(wide, 1, 1)[1]?.align, undefined);
+
+  const sized = applyTextSize(prose, { block: 0, offset: 0 }, { block: 0, offset: 3 }, "l");
+  assert.equal(sized[0]?.kind === "p" && sized[0].inlines[0]?.size, "l");
+  const normal = applyTextSize(sized, { block: 0, offset: 0 }, { block: 0, offset: 3 }, null);
+  assert.equal(normal[0]?.kind === "p" && normal[0].inlines.some((part) => part.size), false);
+
+  const marked = toggleUnderline(prose, { block: 2, offset: 0 }, { block: 2, offset: 3 });
+  const markedLine = marked[2];
+  assert.equal(markedLine?.kind === "p" && markedLine.inlines[0]?.underline, true);
+  const plain = saveBlocks(marked);
+  assert.match(plain.content, /<u>дом<\/u>/);
+  const cleared = toggleUnderline(marked, { block: 2, offset: 0 }, { block: 2, offset: 3 })[2];
+  assert.equal(cleared?.kind === "p" && cleared.inlines.some((part) => part.underline), false);
+
+  const list = toggleList(plainToBlocks("Герой вышел\nФонарь"), 0, 1, "ul");
+  const word = toggleUnderline(list, { block: 0, offset: 0 }, { block: 0, offset: 5 });
+  const items = word[0]?.kind === "ul" ? word[0].items : [];
+  assert.equal(items[0]?.[0]?.text, "Герой");
+  assert.equal(items[0]?.[0]?.underline, true);
+  assert.equal(items[1]?.some((part) => part.underline), false);
+  const grown = applyTextSize(list, { block: 0, offset: 0 }, { block: 0, offset: 0 }, "l");
+  const grownItems = grown[0]?.kind === "ul" ? grown[0].items : [];
+  assert.equal(grownItems[0]?.[0]?.size, "l");
+  assert.equal(grownItems[1]?.some((part) => part.size), false);
+});
+
+test("в редакторе у списков есть маркеры", () => {
+  const css = fs.readFileSync("src/app/globals.css", "utf8");
+  assert.match(css, /\.writing-prose ul \{[^}]*list-style: disc/);
+  assert.match(css, /\.writing-prose ol \{[^}]*list-style: decimal/);
 });
 
 test("формат текста добавляется столбцом и ничего не удаляет", () => {

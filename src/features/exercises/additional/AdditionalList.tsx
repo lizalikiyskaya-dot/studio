@@ -111,9 +111,13 @@ function saveLabel(status: "saved" | "saving" | "suggested" | "error") {
 function TextCard({
   section,
   suggestions,
+  writing,
+  onWriting,
 }: {
   section: FreeSection;
   suggestions: Record<string, string>;
+  writing: boolean;
+  onWriting: (open: boolean) => void;
 }) {
   const pathname = usePathname();
   const suggesting = useCanSuggest() && pathname.startsWith("/student-view");
@@ -123,7 +127,6 @@ function TextCard({
   const startingContent = suggesting && suggestions.content ? suggestions.content : section.content;
   const [content, setContent] = useState(startingContent);
   const [format, setFormat] = useState<ContentFormat>(startingFormat);
-  const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<"saved" | "saving" | "suggested" | "error">("saved");
   const latest = useRef({ content: startingContent, format: startingFormat });
   const ticket = useRef(0);
@@ -158,48 +161,55 @@ function TextCard({
     }, 650);
   }
 
-  if (suggestions.content && !suggesting) {
-    return (
-      <SuggestableField
-        model="FreeSection"
-        recordId={section.id}
-        field="content"
-        value={section.content}
-        suggestion={suggestions.content}
-        placeholder="Напишите здесь"
-        className="reading outline-none bg-transparent"
-        style={{ width: "100%" }}
-        resizable
-      />
-    );
-  }
-
   const editor = (
     <WritingEditor
-      key={open ? "focus" : "card"}
+      key={writing ? "focus" : "card"}
       value={content}
       format={format}
-      variant={open ? "focus" : "card"}
+      variant={writing ? "focus" : "card"}
       onChange={onChange}
-      toolbarExtra={
-        open ? null : (
-          <>
-            <span className="writing-mode-save">{saveLabel(status)}</span>
-            <button type="button" className="writing-mode-open" onClick={() => { void flush(); setOpen(true); }}>
-              Режим письма
-            </button>
-          </>
-        )
-      }
     />
   );
 
-  return open ? (
-    <WritingMode title={section.title} saveLabel={saveLabel(status)} onClose={() => { void flush(); setOpen(false); }}>
+  const openWriting = (
+    <button type="button" className="writing-mode-open" onClick={() => { void flush(); onWriting(true); }}>
+      Режим письма
+    </button>
+  );
+
+  if (suggestions.content && !suggesting && !writing) {
+    return (
+      <div className="writing-card">
+        <div className="writing-card-bar">
+          {openWriting}
+        </div>
+        <SuggestableField
+          model="FreeSection"
+          recordId={section.id}
+          field="content"
+          value={section.content}
+          suggestion={suggestions.content}
+          placeholder="Напишите здесь"
+          className="reading outline-none bg-transparent"
+          style={{ width: "100%" }}
+          resizable
+        />
+      </div>
+    );
+  }
+
+  return writing ? (
+    <WritingMode title={section.title} saveLabel={saveLabel(status)} onClose={() => { void flush(); onWriting(false); }}>
       {editor}
     </WritingMode>
   ) : (
-    editor
+    <div className="writing-card">
+      <div className="writing-card-bar">
+        <span className="writing-mode-save">{saveLabel(status)}</span>
+        {openWriting}
+      </div>
+      {editor}
+    </div>
   );
 }
 
@@ -209,12 +219,16 @@ function SectionBody({
   suggestions,
   comments,
   onDelete,
+  writing,
+  onWriting,
 }: {
   section: FreeSection;
   isMentorViewer: boolean;
   suggestions: Record<string, Record<string, string>>;
   comments: Record<string, Comment[]>;
   onDelete: (id: string) => void;
+  writing: boolean;
+  onWriting: (open: boolean) => void;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   // Свою карточку ученик переименовывает и удаляет сам, карточки наставника — нет.
@@ -223,7 +237,12 @@ function SectionBody({
   return (
     <div ref={rootRef}>
       {section.type === "TEXT" ? (
-        <TextCard section={section} suggestions={suggestions[section.id] ?? {}} />
+        <TextCard
+          section={section}
+          suggestions={suggestions[section.id] ?? {}}
+          writing={writing}
+          onWriting={onWriting}
+        />
       ) : (
         <TableSection section={section} onResize={() => {}} />
       )}
@@ -257,6 +276,7 @@ export default function AdditionalList({
 }) {
   const [sections, setSections] = useState(initialSections);
   const [freshId, setFreshId] = useState<string | null>(null);
+  const [writingId, setWritingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   function handleAdd(type: "TEXT" | "TABLE") {
@@ -300,7 +320,8 @@ export default function AdditionalList({
         return (
         <Accordion
           key={section.id}
-          defaultOpen={section.id === freshId}
+          defaultOpen={section.id === freshId || section.id === writingId}
+          wrapHeader
           title={canRename ? (
             <InlineTitle
               value={section.title}
@@ -311,11 +332,25 @@ export default function AdditionalList({
             />
           ) : (section.title || "Без названия")}
           headerExtra={
-            <ExerciseStatusControl
-              status={section.status}
-              isMentor={isMentorViewer}
-              onChange={(status) => handleStatus(section.id, status)}
-            />
+            <>
+              {section.type === "TEXT" && (
+                <button
+                  type="button"
+                  className="writing-mode-open"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setWritingId(section.id);
+                  }}
+                >
+                  Режим письма
+                </button>
+              )}
+              <ExerciseStatusControl
+                status={section.status}
+                isMentor={isMentorViewer}
+                onChange={(status) => handleStatus(section.id, status)}
+              />
+            </>
           }
         >
           <SectionBody
@@ -324,6 +359,8 @@ export default function AdditionalList({
             suggestions={suggestions}
             comments={comments}
             onDelete={handleDelete}
+            writing={writingId === section.id}
+            onWriting={(open) => setWritingId(open ? section.id : null)}
           />
         </Accordion>
         );

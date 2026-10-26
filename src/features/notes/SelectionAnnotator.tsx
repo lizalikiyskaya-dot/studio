@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pencil } from "lucide-react";
 import { anchorQuote } from "./quoteMatch";
-import { caretRect, collectVisibleText, offsetInCollected } from "./pageText";
+import { caretRect, collectPageText, collectWritingText, offsetInCollected } from "./pageText";
 
 export type Anchor = { quote: string; label: string; url: string; offset: number };
 
@@ -83,8 +83,8 @@ function readSelection(): Found | null {
   const text = sel.toString();
   if (text.trim().length < 2) return null;
   const rect = sel.getRangeAt(0).getBoundingClientRect();
-  const root = document.querySelector(".studio-content");
-  const collected = root ? collectVisibleText(root) : null;
+  const host = hostOf(sel.anchorNode);
+  const collected = host?.closest(".writing-prose") ? collectWritingText() : collectPageText();
   const from = collected ? offsetInCollected(collected, sel.anchorNode, sel.anchorOffset) : null;
   const to = collected ? offsetInCollected(collected, sel.focusNode, sel.focusOffset) : null;
   if (collected && from != null && to != null && from !== to) {

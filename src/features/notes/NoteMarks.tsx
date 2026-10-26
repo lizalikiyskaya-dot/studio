@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { freshSnap, trackSources, type Placement } from "./anchorTrack";
 import { idAtBoxes, idAtOffset } from "./noteHit";
-import { caretRect, collectVisibleText, visibleFields, type TextChunk } from "./pageText";
+import { caretRect, collectPageText, collectWritingText, visibleFields, type TextChunk } from "./pageText";
 import { anchorOnPage, locateQuote, mapSpan, coverSegments } from "./quoteMatch";
 
 export type MarkNote = {
@@ -42,7 +42,12 @@ function paintHighlight(name: string, ranges: Range[], priority = 0) {
   CSS.highlights.set(name, highlight);
 }
 
-function paintDom(chunks: Chunk[], placements: Placement[], flashId: string | null, activeId: string | null) {
+function paintDom(
+  groups: { key: string; chunks: Chunk[] }[],
+  placements: Placement[],
+  flashId: string | null,
+  activeId: string | null,
+) {
   const hits: { id: string; range: Range }[] = [];
   if (!("highlights" in CSS) || typeof window.Highlight !== "function") {
     CSS.highlights?.delete("note-anchor");
@@ -53,14 +58,16 @@ function paintDom(chunks: Chunk[], placements: Placement[], flashId: string | nu
   const ranges: Range[] = [];
   const flashes: Range[] = [];
   const actives: Range[] = [];
-  for (const place of placements) {
-    if (place.key !== "dom") continue;
-    const range = rangeFor(chunks, place.start, place.end);
-    if (!range) continue;
-    ranges.push(range);
-    hits.push({ id: place.id, range });
-    if (place.id === flashId) flashes.push(range);
-    if (place.id === activeId) actives.push(range);
+  for (const group of groups) {
+    for (const place of placements) {
+      if (place.key !== group.key) continue;
+      const range = rangeFor(group.chunks, place.start, place.end);
+      if (!range) continue;
+      ranges.push(range);
+      hits.push({ id: place.id, range });
+      if (place.id === flashId) flashes.push(range);
+      if (place.id === activeId) actives.push(range);
+    }
   }
   paintHighlight("note-anchor", ranges);
   paintHighlight("note-flash", flashes, 1);
@@ -285,10 +292,12 @@ export default function NoteMarks({
       const pageNotes = notes.filter((note) => anchorOnPage(note.anchorUrl, pathname));
       const open = pageNotes.filter((note) => !note.resolved);
       const fields = visibleFields(root!);
-      const dom = collectVisibleText(root!);
+      const dom = collectPageText();
+      const writing = collectWritingText();
       const sources = [
         ...fields.map((field) => ({ key: keyFor(field), text: field.value })),
         { key: "dom", text: dom.text },
+        { key: "writing", text: writing.text },
       ];
       const tracked = trackSources(drift.current, sources, open);
       const active = activeRef.current;
@@ -302,17 +311,26 @@ export default function NoteMarks({
           window.dispatchEvent(new CustomEvent("studio:notes-shift", { detail }));
         }, 0);
       }
-      domHits.current = paintDom(dom.chunks, tracked.placements, flash, active);
+      domHits.current = paintDom(
+        [
+          { key: "dom", chunks: dom.chunks },
+          { key: "writing", chunks: writing.chunks },
+        ],
+        tracked.placements,
+        flash,
+        active,
+      );
       paintFields(fields, fieldKeys.current, tracked.placements, flash, active);
 
       if (!flash || scrolled.current === flash) return;
       const target = pageNotes.find((note) => note.id === flash);
       if (!target) return;
       const place = tracked.placements.find((item) => item.id === flash) ?? placedFallback(sources, target);
+      const chunks = place?.key === "writing" ? writing.chunks : dom.chunks;
       const host = !place
         ? null
-        : place.key === "dom"
-          ? rangeFor(dom.chunks, place.start, place.end)?.startContainer.parentElement ?? null
+        : place.key === "dom" || place.key === "writing"
+          ? rangeFor(chunks, place.start, place.end)?.startContainer.parentElement ?? null
           : fields.find((field) => keyFor(field) === place.key) ?? null;
       const targetHost = host ?? hiddenField(root!, target);
       if (!targetHost) return;
@@ -327,11 +345,13 @@ export default function NoteMarks({
         return;
       }
       if (!place || !host) return;
-      if (place.key === "dom") {
-        const range = rangeFor(dom.chunks, place.start, place.end);
+      if (place.key === "dom" || place.key === "writing") {
+        const range = rangeFor(chunks, place.start, place.end);
         const rect = range?.getBoundingClientRect();
         if (!rect || (rect.width === 0 && rect.height === 0)) return;
-        window.scrollTo({ top: Math.max(0, window.scrollY + rect.top - window.innerHeight / 3) });
+        const insideWriting = host?.closest(".writing-mode");
+        if (insideWriting) host.scrollIntoView({ block: "center", behavior: "auto" });
+        else window.scrollTo({ top: Math.max(0, window.scrollY + rect.top - window.innerHeight / 3) });
       } else if (host instanceof HTMLInputElement || host instanceof HTMLTextAreaElement) {
         const rect = caretRect(host, place.start);
         window.scrollTo({ top: Math.max(0, window.scrollY + rect.top - window.innerHeight / 3) });
@@ -394,6 +414,13 @@ export default function NoteMarks({
     }
 
     paint();
+    const observeOpts = {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["style", "class", "hidden", "open"],
+    };
     const observer = new MutationObserver((records) => {
       const inside = records.every((record) => {
         const el = record.target instanceof Element ? record.target : record.target.parentElement;
@@ -401,16 +428,21 @@ export default function NoteMarks({
       });
       if (!inside) schedule();
     });
-    observer.observe(root, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-      attributes: true,
-      attributeFilter: ["style", "class", "hidden", "open"],
+    function observeRoots() {
+      observer.disconnect();
+      const studio = document.querySelector(".studio-content");
+      if (studio) observer.observe(studio, observeOpts);
+      for (const extra of document.querySelectorAll(".writing-mode")) observer.observe(extra, observeOpts);
+    }
+    observeRoots();
+    const portalWatch = new MutationObserver(() => {
+      observeRoots();
+      schedule();
     });
+    portalWatch.observe(document.body, { childList: true });
     window.addEventListener("scroll", schedule, true);
     window.addEventListener("resize", schedule);
-    root.addEventListener("input", schedule, true);
+    document.addEventListener("input", schedule, true);
     document.addEventListener("pointerdown", onPointerDown, true);
     document.addEventListener("pointermove", onPointerMove, true);
     document.addEventListener("click", onClick, true);
@@ -418,9 +450,10 @@ export default function NoteMarks({
       alive = false;
       window.clearTimeout(timer);
       observer.disconnect();
+      portalWatch.disconnect();
       window.removeEventListener("scroll", schedule, true);
       window.removeEventListener("resize", schedule);
-      root.removeEventListener("input", schedule, true);
+      document.removeEventListener("input", schedule, true);
       document.removeEventListener("pointerdown", onPointerDown, true);
       document.removeEventListener("pointermove", onPointerMove, true);
       document.removeEventListener("click", onClick, true);
