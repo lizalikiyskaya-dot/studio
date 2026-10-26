@@ -4,7 +4,13 @@ import PageHeader from "@/components/PageHeader";
 import { HeaderButton } from "@/components/headerAction";
 import { Plus } from "lucide-react";
 
-export default async function StandaloneStoriesView({ studentId }: { studentId: string }) {
+export default async function StandaloneStoriesView({
+  studentId,
+  canReview = false,
+}: {
+  studentId: string;
+  canReview?: boolean;
+}) {
   const stories = await prisma.story.findMany({
     where: { studentId, cycleId: null },
     orderBy: { order: "asc" },
@@ -30,6 +36,7 @@ export default async function StandaloneStoriesView({ studentId }: { studentId: 
         storyCharacters={storyCharacters}
         storyWorldEntries={storyWorldEntries}
         headerAdd
+        canReview={canReview}
       />
     </div>
   );

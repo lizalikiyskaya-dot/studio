@@ -66,6 +66,8 @@ export default function StoryDetail({
   storyWorldEntries,
   cycleSetting,
   onDelete,
+  embedded = false,
+  onTitle,
 }: {
   story: Story;
   cycleCharacters: CycleCharacter[];
@@ -74,15 +76,20 @@ export default function StoryDetail({
   storyWorldEntries: StoryWorldEntry[];
   cycleSetting?: CycleSettingSnap;
   onDelete: () => void;
+  embedded?: boolean;
+  onTitle?: (title: string) => void;
 }) {
   const [, startTransition] = useTransition();
 
   return (
-    <div className="rounded-[24px] p-5 max-w-[880px]" style={{ border: "1px solid var(--border)", background: "#fff" }}>
+    <div className={embedded ? "story-detail" : "rounded-[24px] p-5 max-w-[880px]"} style={embedded ? undefined : { border: "1px solid var(--border)", background: "#fff" }}>
       <div className="flex items-center justify-between mb-5 gap-3">
         <input
           defaultValue={story.title}
-          onBlur={(e) => startTransition(() => updateStoryTitle(story.id, e.target.value))}
+          onBlur={(e) => {
+            onTitle?.(e.target.value);
+            startTransition(() => updateStoryTitle(story.id, e.target.value));
+          }}
           className="text-[18px] font-semibold outline-none bg-transparent flex-1"
         />
         <Button onClick={onDelete} variant="secondary" size="sm" pill className="whitespace-nowrap">

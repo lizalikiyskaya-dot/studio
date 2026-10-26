@@ -761,6 +761,11 @@ model Story {
   fantasyNotes       String   @default("")
   fantasyGeneral     String   @default("")
 
+  // Как у главы в трекере: знаки и статус проверки. Статус меняет наставник.
+  writtenChars Int @default(0)
+  plannedChars Int @default(0)
+  reviewStatus ChapterReviewStatus @default(IN_PROGRESS)
+
   characters   StoryCharacter[]
   worldEntries StoryWorldEntry[]
 

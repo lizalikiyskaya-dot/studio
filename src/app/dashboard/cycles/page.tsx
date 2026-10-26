@@ -15,5 +15,5 @@ export default async function Page({
   if (!user.storyWorkshopUnlocked) redirect("/dashboard/tasks");
 
   const { cycle } = await searchParams;
-  return <CyclesView studentId={session.userId} requestedCycleId={cycle} />;
+  return <CyclesView studentId={session.userId} requestedCycleId={cycle} canReview={false} />;
 }

@@ -8,13 +8,17 @@ import StoriesList from "@/features/stories/StoriesList";
 import CycleCharactersView from "@/features/storyCharacters/CycleCharactersView";
 import CycleSettingView from "@/features/storySetting/CycleSettingView";
 import PageHeader from "@/components/PageHeader";
+import { formatChars } from "@/features/acts/chapterText";
+import { storyCount, storyPercent } from "@/features/stories/storyProgress";
 
 export default async function CyclesView({
   studentId,
   requestedCycleId,
+  canReview = false,
 }: {
   studentId: string;
   requestedCycleId?: string;
+  canReview?: boolean;
 }) {
   const { cycles, activeCycle } = await resolveActiveCycle(studentId, requestedCycleId);
 
@@ -39,12 +43,36 @@ export default async function CyclesView({
     prisma.storyWorldEntry.findMany({ where: { storyId: { in: storyIds } }, orderBy: { order: "asc" } }),
   ]);
 
+  const written = stories.reduce((sum, story) => sum + storyCount(story.writtenChars), 0);
+  const planned = stories.reduce((sum, story) => sum + storyCount(story.plannedChars), 0);
+  const percent = storyPercent(written, planned);
+
   return (
-    <div>
+    <div className="chapter-feed">
       <PageHeader
         title="Мастерская рассказов"
         actions={<CycleSwitcher studentId={studentId} cycles={cycles} activeCycleId={activeCycle.id} inline />}
       />
+
+      <section className="chapter-plaque" aria-label="Сводка по циклу">
+        <div className="chapter-plaque-row">
+          <div>
+            <div className="chapter-plaque-num">{stories.length}</div>
+            <div className="chapter-plaque-lbl">рассказов в цикле</div>
+          </div>
+          <div>
+            <div className="chapter-plaque-num">{formatChars(written)}</div>
+            <div className="chapter-plaque-lbl">написано знаков</div>
+          </div>
+          <div className="chapter-plaque-grow">
+            <div className="chapter-plaque-num">{percent}%</div>
+            <div className="chapter-plaque-lbl">готово</div>
+          </div>
+        </div>
+        <div className="chapter-track" aria-hidden="true">
+          <i style={{ width: `${Math.min(100, percent)}%` }} />
+        </div>
+      </section>
 
       <Subtabs
         tabs={[
@@ -60,6 +88,8 @@ export default async function CyclesView({
                 cycleWorldEntries={cycleWorldEntries}
                 storyCharacters={storyCharacters}
                 storyWorldEntries={storyWorldEntries}
+                canReview={canReview}
+                showSummary={false}
                 cycleSetting={{
                   grapesGeography: activeCycle.grapesGeography,
                   grapesReligion: activeCycle.grapesReligion,

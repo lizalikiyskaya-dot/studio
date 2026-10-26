@@ -19,5 +19,5 @@ export default async function Page({
   if (!student || student.role !== "STUDENT") notFound();
 
   const { cycle } = await searchParams;
-  return <CyclesView studentId={studentId} requestedCycleId={cycle} />;
+  return <CyclesView studentId={studentId} requestedCycleId={cycle} canReview />;
 }

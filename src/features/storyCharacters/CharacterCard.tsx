@@ -77,8 +77,8 @@ export default function CharacterCard({
 
   return (
     <div
-      className="hover-lift rounded-[18px] mb-4 max-w-[760px]"
-      style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "var(--soft)" }}
+      className="hover-lift chapter-card story-person mb-4 max-w-[760px]"
+      style={{ background: open ? "#fff" : character.arcType ? ARC_TYPE_COLOR[character.arcType].bg : "#F6F1EA" }}
     >
       <div onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 px-4 py-3.5 cursor-pointer">
         <div
