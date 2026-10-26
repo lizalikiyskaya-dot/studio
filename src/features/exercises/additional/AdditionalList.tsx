@@ -147,6 +147,7 @@ function TextCard({
   }
 
   function onChange(next: string, nextFormat: ContentFormat) {
+    if (next === latest.current.content && nextFormat === latest.current.format) return;
     latest.current = { content: next, format: nextFormat };
     setContent(next);
     setFormat(nextFormat);

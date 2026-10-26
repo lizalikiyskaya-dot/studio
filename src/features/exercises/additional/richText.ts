@@ -243,6 +243,18 @@ export function readBlocks(root: ParentNode): Block[] {
   return blocks;
 }
 
+const PLACEHOLDER_HOST = new Set(["P", "DIV", "H1", "H2", "H3", "BLOCKQUOTE", "LI"]);
+
+/** <br> в конце абзаца держит каретку. Пустой абзац состоит из одного такого <br>. Это не перенос. */
+function placeholderBreak(parent: Node, br: Node): boolean {
+  if (!(parent instanceof Element) || !PLACEHOLDER_HOST.has(parent.nodeName)) return false;
+  const significant = [...parent.childNodes].filter((child) => {
+    if (child.nodeType === 3) return !!child.textContent;
+    return child instanceof Element;
+  });
+  return significant.length > 0 && significant[significant.length - 1] === br;
+}
+
 function readInlines(node: Node, marksIn: { bold?: boolean; italic?: boolean } = {}): Inline[] {
   const out: Inline[] = [];
   for (const child of node.childNodes) {
@@ -253,7 +265,7 @@ function readInlines(node: Node, marksIn: { bold?: boolean; italic?: boolean } =
     if (!(child instanceof Element)) continue;
     const name = child.nodeName;
     if (name === "BR") {
-      out.push({ text: "\n", ...marksIn });
+      if (!placeholderBreak(node, child)) out.push({ text: "\n", ...marksIn });
       continue;
     }
     const next = { ...marksIn };

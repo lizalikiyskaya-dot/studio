@@ -37,6 +37,7 @@ export default function WritingEditor({
   const ref = useRef<HTMLDivElement>(null);
   const history = useRef<string[]>([savedKey(value, format)]);
   const index = useRef(0);
+  const committed = useRef(savedKey(value, format));
   const [active, setActive] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -57,8 +58,11 @@ export default function WritingEditor({
       history.current.push(key);
       index.current = history.current.length - 1;
     }
-    onChange(saved.content, saved.format);
     rememberActive();
+    // Фокус дописывает <br> в конец строки. Если текст тот же, сохранять нечего.
+    if (key === committed.current) return;
+    committed.current = key;
+    onChange(saved.content, saved.format);
   }
 
   function restore(key: string) {
@@ -67,6 +71,8 @@ export default function WritingEditor({
     const nl = key.indexOf("\n");
     const nextFormat = key.slice(0, nl) === "markdown" ? "markdown" : "plain";
     writeBlocks(el, loadBlocks(key.slice(nl + 1), nextFormat));
+    if (key === committed.current) return;
+    committed.current = key;
     onChange(key.slice(nl + 1), nextFormat);
   }
 
