@@ -111,10 +111,10 @@ export async function notifyMentorOfStudentEdit(studentId: string, section: stri
 }
 
 /**
- * Наставник поправил кабинет ученика → письмо ученику.
- * По умолчанию выключено: писем слишком много. Маячки в кабинете от этого
- * не зависят — их пишет markSectionActivity до вызова. Включить обратно:
- * STUDENT_EDIT_EMAILS=on.
+ * Старый вход от набора в поле. Пачку «Наставник внёс правку» теперь
+ * собирают явные действия: статус, заметка, правка текста и ссылка на отзыв.
+ * Набор сам по себе сюда больше не попадает. Если таблицы рассылок ещё нет,
+ * письмо уходит только при STUDENT_EDIT_EMAILS=on.
  */
 export async function notifyStudentOfMentorEdit(studentId: string, section: string) {
   const gate = await queueCabinetChange({

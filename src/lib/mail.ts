@@ -344,12 +344,27 @@ function textToHtml(value: string): string {
   return escapeHtml(value).replace(/\n/g, "<br>");
 }
 
+function linkedItem(item: string): { label: string; url: string } | null {
+  const cut = item.indexOf("\t");
+  if (cut <= 0) return null;
+  const label = item.slice(0, cut).trim();
+  const url = item.slice(cut + 1).trim();
+  if (!label || !/^https?:\/\//.test(url)) return null;
+  return { label, url };
+}
+
+function itemHtml(item: string): string {
+  const link = linkedItem(item);
+  if (!link) return textToHtml(item);
+  return `<a href="${escapeHtml(link.url)}" style="color:#4B3FC0;text-decoration:underline;">${escapeHtml(link.label)}</a>`;
+}
+
 function bulletTable(items: string[]): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%">${items
     .map(
       (item) => `<tr>
         <td valign="top" width="16" style="width:16px;padding:0 0 8px;font-family:${FONT_UI};font-size:16px;line-height:1.45;color:#202020;">•</td>
-        <td valign="top" style="padding:0 0 8px;font-family:${FONT_UI};font-size:15px;line-height:1.45;color:#202020;">${textToHtml(item)}</td>
+        <td valign="top" style="padding:0 0 8px;font-family:${FONT_UI};font-size:15px;line-height:1.45;color:#202020;">${itemHtml(item)}</td>
       </tr>`
     )
     .join("")}</table>`;
@@ -421,7 +436,14 @@ function blockHtml(block: EmailBlock): string {
 function blockPlain(block: EmailBlock): string[] {
   if (block.kind === "p") return [block.text];
   if (block.kind === "section") {
-    return [block.title, ...block.items.map((item) => `• ${item}`), ...(block.hint ? [block.hint] : [])];
+    return [
+      block.title,
+      ...block.items.map((item) => {
+        const link = linkedItem(item);
+        return link ? `• ${link.label}: ${link.url}` : `• ${item}`;
+      }),
+      ...(block.hint ? [block.hint] : []),
+    ];
   }
   if (block.kind === "card") {
     return [block.kicker, block.title, block.body, ...(block.meta ?? [])].filter((line): line is string => Boolean(line));

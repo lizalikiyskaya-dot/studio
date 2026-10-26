@@ -8,6 +8,7 @@ import { creditStreakWeek } from "@/features/streak/credit";
 import { submittedStatusCounts } from "@/features/streak/weeks";
 import { mentorSubmissionUrl, notifyMentorOfSubmission } from "@/lib/submissionMail";
 import { queueCabinetChange } from "@/lib/activityDigest";
+import { queueMentorDigest, reviewGroup, studentExerciseUrl } from "@/lib/mentorDigest";
 import type { ContentFormat } from "./richText";
 
 export async function createAdditionalSection(
@@ -85,12 +86,22 @@ export async function saveSectionBody(sectionId: string, content: string, format
         where: { id: sectionId },
         data: { content, contentFormat: safeFormat },
       });
-      await queueCabinetChange({
-        studentId: section.studentId,
-        byMentor: session.role === "MENTOR",
-        section: "exercises",
-        detail: "Правка",
-      });
+      if (session.role === "MENTOR") {
+        await queueMentorDigest({
+          studentId: section.studentId,
+          group: "text",
+          sourceId: `FreeSection:${section.id}`,
+          title: section.title.trim() ? `Дополнительно: ${section.title.trim()}` : "Дополнительно",
+          url: studentExerciseUrl("extra", section.id),
+        });
+      } else {
+        await queueCabinetChange({
+          studentId: section.studentId,
+          byMentor: false,
+          section: "exercises",
+          detail: "Правка",
+        });
+      }
     }
     await prisma.fieldSuggestion.deleteMany({
       where: { model: "FreeSection", recordId: sectionId, field: { in: ["content", "contentFormat"] } },
@@ -108,11 +119,12 @@ export async function saveSectionBody(sectionId: string, content: string, format
     update: { value: safeFormat },
     create: { model: "FreeSection", recordId: sectionId, field: "contentFormat", value: safeFormat },
   });
-  await queueCabinetChange({
+  await queueMentorDigest({
     studentId: section.studentId,
-    byMentor: true,
-    section: "exercises",
-    detail: "Предложение",
+    group: "text",
+    sourceId: `FreeSection:${section.id}`,
+    title: section.title.trim() ? `Дополнительно: ${section.title.trim()}` : "Дополнительно",
+    url: studentExerciseUrl("extra", section.id),
   });
   return { suggested: true as const };
 }
@@ -149,6 +161,16 @@ export async function setSectionStatus(sectionId: string, status: TaskStatus) {
   if (session.role !== "MENTOR" && status !== "SUBMITTED") return section.status;
   if (section.status === status) return status;
   await prisma.freeSection.update({ where: { id: sectionId }, data: { status } });
+  const review = session.role === "MENTOR" ? reviewGroup(status) : null;
+  if (review) {
+    await queueMentorDigest({
+      studentId: section.studentId,
+      group: review,
+      sourceId: `extra:${section.id}`,
+      title: section.title,
+      url: studentExerciseUrl("extra", section.id),
+    });
+  }
   if (submittedStatusCounts(section.status, status)) {
     await creditStreakWeek(section.studentId);
     await notifyMentorOfSubmission({

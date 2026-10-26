@@ -172,7 +172,7 @@ export default function StoriesList({
           const statusLabel = storyStatusLabel(story.reviewStatus);
           const plannedCount = storyCount(story.plannedChars);
           return (
-            <article key={story.id} className={`chapter-card story-card is-${tone}${open ? " is-open" : ""}`}>
+            <article key={story.id} id={`story-${story.id}`} className={`chapter-card story-card is-${tone}${open ? " is-open" : ""}`}>
               <button
                 type="button"
                 className="story-card-hit"

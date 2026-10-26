@@ -7,6 +7,7 @@ import type { TaskStatus } from "@/generated/prisma/client";
 import { creditStreakWeek } from "@/features/streak/credit";
 import { submittedStatusCounts } from "@/features/streak/weeks";
 import { mentorSubmissionUrl, notifyMentorOfSubmission, type ExerciseFocus } from "@/lib/submissionMail";
+import { queueMentorDigest, reviewGroup, studentExerciseUrl } from "@/lib/mentorDigest";
 
 async function saveCardStatus(
   studentId: string,
@@ -20,6 +21,16 @@ async function saveCardStatus(
   if (session.role !== "MENTOR" && next !== "SUBMITTED") return previous;
   if (previous === next) return previous;
   await save();
+  const review = session.role === "MENTOR" && !isExample ? reviewGroup(next) : null;
+  if (review) {
+    await queueMentorDigest({
+      studentId,
+      group: review,
+      sourceId: `${place.focus}:${place.id}`,
+      title: place.title,
+      url: studentExerciseUrl(place.focus, place.id),
+    });
+  }
   if (!isExample && submittedStatusCounts(previous, next)) {
     await creditStreakWeek(studentId);
     await notifyMentorOfSubmission({

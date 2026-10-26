@@ -71,6 +71,13 @@ test("визит: новый заход после паузы и одни сут
 test("письма о правках в той же оболочке и без тире", () => {
   const samples = activityLetterSamples();
   assert.match(samples["mentor-edit"].letter.html, /Наставник внёс правку/);
+  assert.match(samples["mentor-edit"].letter.html, /Принято/);
+  assert.match(samples["mentor-edit"].letter.html, /На доработке/);
+  assert.match(samples["mentor-edit"].letter.html, /Заметки/);
+  assert.match(samples["mentor-edit"].letter.html, /Правки/);
+  assert.match(samples["mentor-edit"].letter.html, /Отзыв/);
+  assert.match(samples["mentor-edit"].letter.text, /в Ваш кабинет/);
+  assert.match(samples["mentor-edit"].letter.html, /#task-1/);
   assert.match(samples["mentor-edit"].letter.html, /Лиза Андреенко/);
   assert.match(samples["mentor-edit"].letter.html, /Андреенко/);
   assert.equal(samples["mentor-edit"].letter.html.includes("—"), false);
