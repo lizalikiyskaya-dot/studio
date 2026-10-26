@@ -27,7 +27,7 @@
         var parent = el.parentElement;
         var i = order.get(parent) || 0;
         order.set(parent, i + 1);
-        if (wide) el.style.transitionDelay = Math.min(i, 4) * 40 + 'ms';
+        el.style.transitionDelay = Math.min(i, 5) * 50 + 'ms';
         var rect = el.getBoundingClientRect();
         var view = window.innerHeight || document.documentElement.clientHeight;
         if (rect.top < view * 0.92 && rect.bottom > 0) el.classList.add('in');
@@ -68,6 +68,7 @@
         summary.addEventListener('click', function (e) {
           e.preventDefault();
           if (d.open) {
+            box.style.opacity = '0';
             box.style.gridTemplateRows = '0fr';
             var closed = false;
             var finish = function () {
@@ -75,18 +76,23 @@
               closed = true;
               d.open = false;
               box.style.gridTemplateRows = '';
+              box.style.opacity = '';
             };
             box.addEventListener('transitionend', function onEnd(ev) {
               if (ev.propertyName !== 'grid-template-rows') return;
               box.removeEventListener('transitionend', onEnd);
               finish();
             });
-            setTimeout(finish, 420);
+            setTimeout(finish, 480);
           } else {
             d.open = true;
             box.style.gridTemplateRows = '0fr';
+            box.style.opacity = '0';
             requestAnimationFrame(function () {
-              requestAnimationFrame(function () { box.style.gridTemplateRows = '1fr'; });
+              requestAnimationFrame(function () {
+                box.style.gridTemplateRows = '1fr';
+                box.style.opacity = '1';
+              });
             });
           }
         });
@@ -113,7 +119,7 @@
           var r = btn.getBoundingClientRect();
           var x = (e.clientX - r.left) / r.width - 0.5;
           var y = (e.clientY - r.top) / r.height - 0.5;
-          btn.style.transform = 'translate(' + (x * 8).toFixed(1) + 'px,' + (y * 6 - 1).toFixed(1) + 'px)';
+          btn.style.transform = 'translate(' + (x * 6).toFixed(1) + 'px,' + (y * 4 - 4).toFixed(1) + 'px) scale(1.04)';
         });
         btn.addEventListener('pointerleave', function () { btn.style.transform = ''; });
       });
