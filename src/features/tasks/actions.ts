@@ -35,6 +35,8 @@ export async function updateTaskLink(
 ) {
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
   const session = await requireCabinetAccess(task.studentId);
+  // Ссылку на отзыв ставит наставник. Ученик только открывает её.
+  if (field === "feedbackLink" && session.role !== "MENTOR") return;
   const previous = task[field] ?? "";
   if (previous === value) return;
   await prisma.task.update({ where: { id: taskId }, data: { [field]: value } });
