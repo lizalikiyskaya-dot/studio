@@ -78,7 +78,7 @@ function FieldColumn({
           suggestion={suggestion}
           placeholder={placeholder}
           onSaved={onSaved}
-          className="fld field-literary w-full !h-auto text-[15.5px] leading-relaxed"
+          className="fld field-literary w-full text-[15.5px] leading-relaxed"
           style={{ minHeight: 72 }}
         />
       )}
@@ -116,7 +116,7 @@ function FieldBlock({
           {label}
         </label>
       )}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FieldColumn
           caption="тезис"
           captionColor="var(--link)"

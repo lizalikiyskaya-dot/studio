@@ -88,6 +88,7 @@ input, textarea, select, [contenteditable="true"] {
 .field-literary,
 .serif {
   font-family: var(--font-serif), Georgia, serif;
+  overflow-wrap: anywhere;
 }
 
 .reading,
@@ -98,6 +99,7 @@ textarea.reading,
   font-size: 17px;
   line-height: 1.65;
   color: var(--ink);
+  overflow-wrap: anywhere;
 }
 .reading p,
 .reading li { white-space: pre-wrap; }

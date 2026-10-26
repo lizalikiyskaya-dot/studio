@@ -5,6 +5,7 @@ import { siteConfirm } from "@/components/SiteDialog";
 import { useRef, useState, useTransition } from "react";
 import type { FreeSection, Comment, TaskStatus } from "@/generated/prisma/client";
 import Accordion from "@/components/Accordion";
+import AutoGrowTextarea from "@/components/AutoGrowTextarea";
 import CardSaveButton from "@/components/CardSaveButton";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import CommentsBlock from "@/features/comments/CommentsBlock";
@@ -76,13 +77,12 @@ function TableSection({
             {grid.map((row, ri) => (
               <tr key={ri}>
                 {row.map((cell, ci) => (
-                  <td key={ci} style={{ border: "1px solid var(--border)" }}>
-                    <input
+                  <td key={ci} style={{ border: "1px solid var(--border)", verticalAlign: "top" }}>
+                    <AutoGrowTextarea
                       defaultValue={cell}
-                      onBlur={(e) => handleCell(ri, ci, e.target.value)}
-                      onKeyDown={blurOnEnter}
+                      onBlur={(value) => handleCell(ri, ci, value)}
                       className="outline-none bg-transparent text-[13px] px-2.5 py-2"
-                      style={{ width: 140 }}
+                      style={{ width: 160, minHeight: 36, overflowWrap: "anywhere" }}
                     />
                   </td>
                 ))}

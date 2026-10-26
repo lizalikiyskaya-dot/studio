@@ -7,9 +7,10 @@ import CardSaveButton from "@/components/CardSaveButton";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import CommentsBlock from "@/features/comments/CommentsBlock";
 import SuggestableField from "@/features/suggestions/SuggestableField";
+import { CardTitle } from "@/components/InlineTitle";
 import StoryCircleDiagram from "./StoryCircleDiagram";
 import { STORY_CIRCLE_STEPS } from "./steps";
-import { createStoryCircleCard, deleteStoryCircleCard, reorderStoryCircleCards } from "./actions";
+import { createStoryCircleCard, deleteStoryCircleCard, reorderStoryCircleCards, updateStoryCircleHero } from "./actions";
 import DragHandle from "@/components/DragHandle";
 import { useDragReorder, type DropTargetHandlers, type DragHandleHandlers } from "@/lib/useDragReorder";
 import { uploadFile, deletePhoto } from "@/lib/uploadFile";
@@ -19,14 +20,12 @@ function CardBody({
   card,
   readOnly,
   suggestions,
-  onHeroSaved,
   photoUrl,
   onPhotoChange,
 }: {
   card: StoryCircleCard;
   readOnly: boolean;
   suggestions: Record<string, string>;
-  onHeroSaved: (value: string) => void;
   photoUrl: string | null;
   onPhotoChange: (url: string | null) => void;
 }) {
@@ -51,25 +50,6 @@ function CardBody({
             void deletePhoto("storycircle-photo", card.id, "photoUrl");
           }}
         />
-        <div className="flex-1">
-          <label className="mb-1 block text-[12.5px]" style={{ color: "var(--muted)" }}>
-            Герой / история
-          </label>
-          {readOnly ? (
-            <p className="heading text-[15px] font-semibold">{card.hero}</p>
-          ) : (
-            <SuggestableField
-              model="StoryCircleCard"
-              recordId={card.id}
-              field="hero"
-              value={card.hero}
-              suggestion={suggestions.hero}
-              as="input"
-              onSaved={onHeroSaved}
-              className="fld heading w-full text-[15px] font-semibold"
-            />
-          )}
-        </div>
       </div>
       <div className="mb-5">
         <StoryCircleDiagram activeStep={hoverStep} />
@@ -98,7 +78,7 @@ function CardBody({
               field={step.key}
               value={data[step.key] ?? ""}
               suggestion={suggestions[step.key]}
-              className="fld field-literary w-full !h-auto text-[15.5px] leading-relaxed"
+              className="fld field-literary w-full text-[15.5px] leading-relaxed"
               style={{ minHeight: 72 }}
             />
           )}
@@ -133,12 +113,28 @@ function CardShell({
     <div {...dropTarget} className="flex items-start gap-1.5">
       {dragHandle && <DragHandle handlers={dragHandle} />}
       <div ref={rootRef} className="flex-1 min-w-0">
-        <CollapsibleCharacterShell name={card.hero} photoUrl={photoUrl}>
+        <CollapsibleCharacterShell
+          name={card.hero}
+          photoUrl={photoUrl}
+          title={
+            readOnly ? undefined : (
+              <CardTitle
+                value={card.hero}
+                placeholder="Герой"
+                model="StoryCircleCard"
+                recordId={card.id}
+                field="hero"
+                suggestion={suggestions.hero}
+                onSave={onHeroSaved}
+                className="min-w-0 flex-1 text-[14.5px]"
+              />
+            )
+          }
+        >
           <CardBody
             card={card}
             readOnly={readOnly}
             suggestions={suggestions}
-            onHeroSaved={onHeroSaved}
             photoUrl={photoUrl}
             onPhotoChange={setPhotoUrl}
           />
@@ -188,6 +184,7 @@ export function StoryCircleExamplesList({
 
   function handleHeroSaved(id: string, hero: string) {
     setCards((prev) => prev.map((c) => (c.id === id ? { ...c, hero } : c)));
+    startTransition(() => updateStoryCircleHero(id, hero));
   }
 
   return (
@@ -245,6 +242,7 @@ export function StoryCircleOwnList({
 
   function handleHeroSaved(id: string, hero: string) {
     setCards((prev) => prev.map((c) => (c.id === id ? { ...c, hero } : c)));
+    startTransition(() => updateStoryCircleHero(id, hero));
   }
 
   return (
