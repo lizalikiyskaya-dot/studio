@@ -2277,7 +2277,36 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   line-height: 1.2;
   color: var(--ink);
 }
-.story-card-status { grid-area: status; justify-self: end; }
+.story-card.chapter-card.is-progress { background: #E2E9EE; }
+.story-card.chapter-card.is-almost { background: #F4DDBC; }
+.story-card.chapter-card.is-review { background: #E0CBE7; }
+.story-card.chapter-card.is-revision { background: #F0E1E4; }
+.story-card.chapter-card.is-accepted { background: #D9F3E6; }
+.story-legend i.is-progress { background: #6E90B0; }
+.story-legend i.is-almost { background: #E8A15A; }
+.story-legend i.is-review { background: #9A74B5; }
+.story-legend i.is-revision { background: #C98996; }
+.story-legend i.is-accepted { background: #5EBE8A; }
+.story-card .story-card-status {
+  grid-area: status;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: #3F6080;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.story-card .story-card-status.is-progress { background: #fff; color: #3F6080; }
+.story-card .story-card-status.is-almost { background: #fff; color: #8A4B12; }
+.story-card .story-card-status.is-review { background: #fff; color: #4B3FC0; }
+.story-card .story-card-status.is-revision { background: #fff; color: #8B3A32; }
+.story-card .story-card-status.is-accepted { background: #fff; color: #146C43; }
 .story-card-meta {
   grid-area: meta;
   min-width: 0;

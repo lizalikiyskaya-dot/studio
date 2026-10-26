@@ -8,7 +8,8 @@ import StoriesList from "@/features/stories/StoriesList";
 import CycleCharactersView from "@/features/storyCharacters/CycleCharactersView";
 import CycleSettingView from "@/features/storySetting/CycleSettingView";
 import PageHeader from "@/components/PageHeader";
-import { formatChars, progressPercent } from "@/features/acts/chapterText";
+import { formatChars } from "@/features/acts/chapterText";
+import { storyCount, storyPercent } from "@/features/stories/storyProgress";
 
 export default async function CyclesView({
   studentId,
@@ -42,9 +43,9 @@ export default async function CyclesView({
     prisma.storyWorldEntry.findMany({ where: { storyId: { in: storyIds } }, orderBy: { order: "asc" } }),
   ]);
 
-  const written = stories.reduce((sum, story) => sum + story.writtenChars, 0);
-  const planned = stories.reduce((sum, story) => sum + story.plannedChars, 0);
-  const percent = progressPercent(written, planned);
+  const written = stories.reduce((sum, story) => sum + storyCount(story.writtenChars), 0);
+  const planned = stories.reduce((sum, story) => sum + storyCount(story.plannedChars), 0);
+  const percent = storyPercent(written, planned);
 
   return (
     <div className="chapter-feed">

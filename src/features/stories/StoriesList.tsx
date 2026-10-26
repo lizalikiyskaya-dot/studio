@@ -12,8 +12,9 @@ import EmptyState from "@/components/EmptyState";
 import { useHeaderAction } from "@/components/headerAction";
 import Collapse from "@/components/Collapse";
 import { blurOnEnter } from "@/lib/blurOnEnter";
-import { formatChars, parseChars, progressPercent } from "@/features/acts/chapterText";
-import { CHAPTER_REVIEW, chapterTone, type ChapterReviewValue } from "@/features/books/chapterReview";
+import { formatChars, parseChars } from "@/features/acts/chapterText";
+import { CHAPTER_REVIEW } from "@/features/books/chapterReview";
+import { STORY_STATUS, storyCardTone, storyCount, storyPercent, storyReviewValue, storyStatusLabel } from "./storyProgress";
 
 type CycleSettingSnap = {
   grapesGeography: string;
@@ -32,14 +33,6 @@ type CycleSettingSnap = {
   settingMagnet?: number | null;
   fantasyGeneral?: string;
   fantasyNotes?: string;
-};
-
-const STORY_STATUS: Record<ChapterReviewValue, string> = {
-  IN_PROGRESS: "в процессе",
-  SUBMITTED: "сдано",
-  IN_REVIEW: "на проверке",
-  NEEDS_REVISION: "на доработке",
-  ACCEPTED: "принято",
 };
 
 const TONE_LEGEND = [
@@ -132,9 +125,9 @@ export default function StoriesList({
   }
 
   const rows = stories.map(view);
-  const written = rows.reduce((sum, story) => sum + story.writtenChars, 0);
-  const planned = rows.reduce((sum, story) => sum + story.plannedChars, 0);
-  const percent = progressPercent(written, planned);
+  const written = rows.reduce((sum, story) => sum + storyCount(story.writtenChars), 0);
+  const planned = rows.reduce((sum, story) => sum + storyCount(story.plannedChars), 0);
+  const percent = storyPercent(written, planned);
 
   return (
     <div className="chapter-feed">
@@ -159,7 +152,7 @@ export default function StoriesList({
               <i style={{ width: `${Math.min(100, percent)}%` }} />
             </div>
           </section>
-          <div className="chapter-legend" aria-label="Статусы рассказов">
+          <div className="chapter-legend story-legend" aria-label="Статусы рассказов">
             {TONE_LEGEND.map((item) => (
               <span key={item.tone}>
                 <i className={`is-${item.tone}`} />
@@ -173,9 +166,11 @@ export default function StoriesList({
       <div className="chapter-list story-list">
         {rows.map((story) => {
           const open = story.id === openId;
-          const tone = chapterTone(story.reviewStatus, story.writtenChars, story.plannedChars);
+          const tone = storyCardTone(story.reviewStatus, story.writtenChars, story.plannedChars);
           const meta = storyMeta(story);
-          const storyPercent = progressPercent(story.writtenChars, story.plannedChars);
+          const ready = storyPercent(story.writtenChars, story.plannedChars);
+          const statusLabel = storyStatusLabel(story.reviewStatus);
+          const plannedCount = storyCount(story.plannedChars);
           return (
             <article key={story.id} className={`chapter-card story-card is-${tone}${open ? " is-open" : ""}`}>
               <button
@@ -188,11 +183,11 @@ export default function StoriesList({
                   <ChevronDown size={18} />
                 </span>
                 <span className="story-card-title">{story.title.trim() || "Без названия"}</span>
-                <span className={`chapter-status story-card-status is-${tone}`}>{STORY_STATUS[story.reviewStatus]}</span>
+                <span className={`chapter-status story-card-status is-${tone}`}>{statusLabel}</span>
                 <span className="story-card-meta">{meta || "Без жанра"}</span>
                 <span className="story-card-chars">
-                  {formatChars(story.writtenChars)}
-                  {story.plannedChars > 0 ? ` / ${formatChars(story.plannedChars)}` : ""} знаков
+                  {formatChars(storyCount(story.writtenChars))}
+                  {plannedCount > 0 ? ` / ${formatChars(plannedCount)}` : ""} знаков
                 </span>
               </button>
               <Collapse open={open}>
@@ -244,17 +239,17 @@ export default function StoriesList({
                         <span>в плане</span>
                       </label>
                       <div>
-                        <div className="story-status-num">{story.plannedChars > 0 ? `${storyPercent}%` : "—"}</div>
+                        <div className="story-status-num">{plannedCount > 0 ? `${ready}%` : "—"}</div>
                         <span>готово</span>
                       </div>
                     </div>
                     <div className="chapter-track" aria-hidden="true">
-                      <i style={{ width: `${Math.min(100, storyPercent)}%` }} />
+                      <i style={{ width: `${Math.min(100, ready)}%` }} />
                     </div>
                     {canReview ? (
                       <select
                         className={`chapter-status chapter-status-select is-${tone} story-status-select`}
-                        value={story.reviewStatus}
+                        value={storyReviewValue(story.reviewStatus)}
                         aria-label="Статус проверки"
                         onChange={(event) => {
                           const next = event.target.value;
@@ -269,7 +264,7 @@ export default function StoriesList({
                         ))}
                       </select>
                     ) : (
-                      <span className={`chapter-status is-${tone}`}>{STORY_STATUS[story.reviewStatus]}</span>
+                      <span className={`chapter-status is-${tone}`}>{statusLabel}</span>
                     )}
                   </aside>
                 </div>
