@@ -25,24 +25,27 @@ import { TASK_FILTERS } from "./status";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import DateField from "@/components/DateField";
 
-function LinkCell({ value, onSave }: { value: string | null; onSave: (value: string) => void }) {
+function linkLabel(value: string, limit = 40) {
+  let display: string;
+  try {
+    const u = new URL(value);
+    display = u.hostname.replace(/^www\./, "") + (u.pathname !== "/" ? u.pathname : "");
+  } catch {
+    display = value;
+  }
+  return display.length > limit ? display.slice(0, limit - 2) + "…" : display;
+}
+
+function LinkCell({ value, onSave, limit = 40 }: { value: string | null; onSave: (value: string) => void; limit?: number }) {
   async function promptEdit() {
     const url = await sitePrompt("Ссылка", value ?? "");
     if (url !== null) onSave(url);
   }
   if (value) {
-    let display: string;
-    try {
-      const u = new URL(value);
-      display = u.hostname.replace(/^www\./, "") + (u.pathname !== "/" ? u.pathname : "");
-      if (display.length > 40) display = display.slice(0, 38) + "…";
-    } catch {
-      display = value.length > 40 ? value.slice(0, 38) + "…" : value;
-    }
     return (
       <div className="flex items-center gap-1.5 min-w-0">
         <a href={value} target="_blank" rel="noopener noreferrer" title={value} className="lnk text-[12.5px] truncate">
-          {display}
+          {linkLabel(value, limit)}
         </a>
         <button onClick={promptEdit} title="Изменить ссылку" style={{ color: "var(--faded)", flexShrink: 0 }}>
           <Pencil size={11} />
@@ -54,6 +57,16 @@ function LinkCell({ value, onSave }: { value: string | null; onSave: (value: str
     <button onClick={promptEdit} className="lnk text-[12px]">
       + ссылка
     </button>
+  );
+}
+
+/** Ученик открывает отзыв наставника и не меняет ссылку. */
+function FeedbackReadOnly({ value }: { value: string | null }) {
+  if (!value) return <span className="task-feedback-empty">пока нет</span>;
+  return (
+    <a href={value} target="_blank" rel="noopener noreferrer" title={value} className="lnk min-w-0 text-[12.5px] truncate">
+      {linkLabel(value, 72)}
+    </a>
   );
 }
 
@@ -282,7 +295,6 @@ export default function TasksTable({
           <span>Задание</span>
           <span>Дедлайн</span>
           <span>Работа</span>
-          <span>Отзыв</span>
           <span>Статус</span>
         </div>
         {visible.length === 0 ? (
@@ -327,12 +339,14 @@ export default function TasksTable({
                   </button>
                 </span>
                 <span className="task-card-n">{taskRowNumber(index)}</span>
-                <EditableWithLinks
-                  defaultValue={task.title}
-                  onSave={(v) => handleTitleBlur(task.id, v)}
-                  placeholder="Описание задания"
-                  className="task-title"
-                />
+                <div data-no-digest="">
+                  <EditableWithLinks
+                    defaultValue={task.title}
+                    onSave={(v) => handleTitleBlur(task.id, v)}
+                    placeholder="Описание задания"
+                    className="task-title"
+                  />
+                </div>
               </div>
               <div className="task-card-meta">
                 <div className="task-card-deadline">
@@ -343,9 +357,6 @@ export default function TasksTable({
                 </div>
                 <div className="task-card-work">
                   <LinkCell value={task.workLink} onSave={(v) => handleLink(task.id, "workLink", v)} />
-                </div>
-                <div className="task-card-feedback">
-                  <LinkCell value={task.feedbackLink} onSave={(v) => handleLink(task.id, "feedbackLink", v)} />
                 </div>
               </div>
               <div className="task-card-tools">
@@ -365,6 +376,18 @@ export default function TasksTable({
                 <button type="button" onClick={() => handleDelete(task.id)} style={{ color: "var(--muted)" }} title="Удалить задание" aria-label="Удалить задание">
                   <Trash2 size={15} />
                 </button>
+              </div>
+              <div className="task-card-feedback">
+                <span className="task-feedback-label">Отзыв</span>
+                {isMentor ? (
+                  <LinkCell
+                    value={task.feedbackLink}
+                    limit={72}
+                    onSave={(v) => handleLink(task.id, "feedbackLink", v)}
+                  />
+                ) : (
+                  <FeedbackReadOnly value={task.feedbackLink} />
+                )}
               </div>
               <div className="task-card-note">
                 <TaskNote

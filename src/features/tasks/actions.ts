@@ -10,13 +10,14 @@ import { creditStreakWeek } from "@/features/streak/credit";
 import { linkAttachmentCounts, submittedStatusCounts } from "@/features/streak/weeks";
 import { mentorSubmissionUrl, notifyMentorOfSubmission } from "@/lib/submissionMail";
 import { queueMentorDigest, reviewGroup, studentTaskUrl } from "@/lib/mentorDigest";
+import { notifyStudentOfNewTask, shouldSendNewTaskMail } from "@/lib/newTaskMail";
 import { mainTaskAwardsStars } from "@/features/stars/rules";
 
 export async function createTask(studentId: string) {
   await requireCabinetAccess(studentId);
   const count = await prisma.task.count({ where: { studentId } });
   const task = await prisma.task.create({
-    data: { studentId, order: count },
+    data: { studentId, order: count, assignedMailSent: false },
   });
   revalidatePath("/dashboard/tasks");
   revalidatePath(`/student-view/${studentId}/tasks`);
@@ -25,7 +26,24 @@ export async function createTask(studentId: string) {
 
 export async function updateTaskTitle(taskId: string, title: string) {
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
-  await requireCabinetAccess(task.studentId);
+  const session = await requireCabinetAccess(task.studentId);
+  const next = title.trim();
+  const send = shouldSendNewTaskMail(session.role, task.title, next, task.assignedMailSent);
+  if (!task.assignedMailSent && next) {
+    const claimed = await prisma.task.updateMany({
+      where: { id: taskId, assignedMailSent: false },
+      data: { title, assignedMailSent: true },
+    });
+    if (claimed.count === 1 && send) {
+      await notifyStudentOfNewTask({
+        studentId: task.studentId,
+        taskId: task.id,
+        title: next,
+        deadline: task.deadline,
+      });
+    }
+    return;
+  }
   await prisma.task.update({ where: { id: taskId }, data: { title } });
 }
 
@@ -36,6 +54,8 @@ export async function updateTaskLink(
 ) {
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
   const session = await requireCabinetAccess(task.studentId);
+  // Ссылку на отзыв ставит наставник. Ученик только открывает её.
+  if (field === "feedbackLink" && session.role !== "MENTOR") return;
   const previous = task[field] ?? "";
   if (previous === value) return;
   await prisma.task.update({ where: { id: taskId }, data: { [field]: value } });

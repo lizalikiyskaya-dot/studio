@@ -198,6 +198,29 @@ async function recordEmailAttempt(input: MailInput, status: "sent" | "failed", e
  * нельзя ронять регистрацию или сохранение текста. Возвращает, ушло ли.
  * Каждая попытка пишется в EmailLog, и удачная, и нет.
  */
+/**
+ * Заголовки одноразовой отписки. Ссылка в шапке ведёт на POST-адрес,
+ * в письме остаётся обычная страница с тем же токеном.
+ */
+export function listUnsubscribeHeaders(link: string): Record<string, string> {
+  let href = link.trim();
+  try {
+    const url = new URL(href);
+    const token = url.searchParams.get("token");
+    if (token) {
+      const oneClick = new URL("/api/unsubscribe", url.origin);
+      oneClick.searchParams.set("token", token);
+      href = oneClick.toString();
+    }
+  } catch {
+    // кривая ссылка остаётся как есть: лучше заголовок, чем тихий пропуск
+  }
+  return {
+    "List-Unsubscribe": `<${href}>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  };
+}
+
 async function dispatch(tx: MailTransport, input: MailInput, from: string, replyTo: string | undefined) {
   await tx.sendMail({
     from,
@@ -206,7 +229,7 @@ async function dispatch(tx: MailTransport, input: MailInput, from: string, reply
     subject: input.subject,
     text: input.text ?? htmlToText(input.html),
     html: input.html,
-    headers: input.listUnsubscribe ? { "List-Unsubscribe": `<${input.listUnsubscribe}>` } : undefined,
+    headers: input.listUnsubscribe ? listUnsubscribeHeaders(input.listUnsubscribe) : undefined,
   });
 }
 
