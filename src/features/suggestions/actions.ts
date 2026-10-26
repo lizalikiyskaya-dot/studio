@@ -76,6 +76,7 @@ export async function acceptFieldSuggestion(model: SuggestableModel, recordId: s
 
   await entry.apply(recordId, field, suggestion.value);
   await prisma.fieldSuggestion.delete({ where: { id: suggestion.id } });
+  if (model === "FreeSection" && field === "content") await finishSectionFormat(recordId, true);
   await noteChange(studentId, session.role === "MENTOR", model, "Правка");
 }
 
@@ -100,6 +101,9 @@ export async function resolveSuggestionHunk(
   if (next.value !== currentValue) await entry.apply(recordId, field, next.value);
   if (next.suggestion == null) {
     await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
+    if (model === "FreeSection" && field === "content") {
+      await finishSectionFormat(recordId, next.value === suggestion.value);
+    }
   } else if (next.suggestion !== suggestion.value) {
     await prisma.fieldSuggestion.update({ where: { id: suggestion.id }, data: { value: next.suggestion } });
   }
@@ -114,6 +118,17 @@ export async function rejectFieldSuggestion(model: SuggestableModel, recordId: s
   await requireCabinetAccess(studentId);
 
   await prisma.fieldSuggestion.deleteMany({ where: { model, recordId, field } });
+  if (model === "FreeSection" && field === "content") await finishSectionFormat(recordId, false);
+}
+
+async function finishSectionFormat(recordId: string, apply: boolean) {
+  const pending = await prisma.fieldSuggestion.findUnique({
+    where: { model_recordId_field: { model: "FreeSection", recordId, field: "contentFormat" } },
+  });
+  if (apply && pending && (pending.value === "plain" || pending.value === "markdown")) {
+    await prisma.freeSection.update({ where: { id: recordId }, data: { contentFormat: pending.value } });
+  }
+  if (pending) await prisma.fieldSuggestion.delete({ where: { id: pending.id } });
 }
 
 export async function getSuggestionsForRecords(model: SuggestableModel, recordIds: string[]) {

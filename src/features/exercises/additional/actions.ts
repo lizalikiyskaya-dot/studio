@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess, AccessDeniedError } from "@/lib/access";
 import type { FreeSection, FreeSectionType, TaskStatus } from "@/generated/prisma/client";
 import { isTaskStatus } from "@/features/tasks/status";
+import { queueCabinetChange } from "@/lib/activityDigest";
+import type { ContentFormat } from "./richText";
 
 export async function createAdditionalSection(
   studentId: string,
@@ -52,6 +54,64 @@ export async function updateSectionContent(sectionId: string, content: string) {
   const section = await prisma.freeSection.findUniqueOrThrow({ where: { id: sectionId } });
   await requireCabinetAccess(section.studentId);
   await prisma.freeSection.update({ where: { id: sectionId }, data: { content } });
+}
+
+function asFormat(format: string): ContentFormat {
+  return format === "markdown" ? "markdown" : "plain";
+}
+
+/** Пишет текст и его формат. В режиме правок наставника это предложение, не замена. */
+export async function saveSectionBody(sectionId: string, content: string, format: ContentFormat) {
+  if (content.length > 200_000) throw new Error("Текст слишком длинный. Сократите его.");
+  const safeFormat = asFormat(format);
+  const section = await prisma.freeSection.findUniqueOrThrow({ where: { id: sectionId } });
+  const session = await requireCabinetAccess(section.studentId);
+  const student = await prisma.user.findUniqueOrThrow({
+    where: { id: section.studentId },
+    select: { reviewModeEnabled: true },
+  });
+  const suggest =
+    session.role === "MENTOR" &&
+    student.reviewModeEnabled &&
+    section.content.trim().length > 0 &&
+    content !== section.content;
+
+  if (!suggest) {
+    if (content !== section.content || safeFormat !== section.contentFormat) {
+      await prisma.freeSection.update({
+        where: { id: sectionId },
+        data: { content, contentFormat: safeFormat },
+      });
+      await queueCabinetChange({
+        studentId: section.studentId,
+        byMentor: session.role === "MENTOR",
+        section: "exercises",
+        detail: "Правка",
+      });
+    }
+    await prisma.fieldSuggestion.deleteMany({
+      where: { model: "FreeSection", recordId: sectionId, field: { in: ["content", "contentFormat"] } },
+    });
+    return { suggested: false as const };
+  }
+
+  await prisma.fieldSuggestion.upsert({
+    where: { model_recordId_field: { model: "FreeSection", recordId: sectionId, field: "content" } },
+    update: { value: content },
+    create: { model: "FreeSection", recordId: sectionId, field: "content", value: content },
+  });
+  await prisma.fieldSuggestion.upsert({
+    where: { model_recordId_field: { model: "FreeSection", recordId: sectionId, field: "contentFormat" } },
+    update: { value: safeFormat },
+    create: { model: "FreeSection", recordId: sectionId, field: "contentFormat", value: safeFormat },
+  });
+  await queueCabinetChange({
+    studentId: section.studentId,
+    byMentor: true,
+    section: "exercises",
+    detail: "Предложение",
+  });
+  return { suggested: true as const };
 }
 
 export async function updateTableCell(sectionId: string, row: number, col: number, value: string) {
