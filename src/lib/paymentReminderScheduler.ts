@@ -7,6 +7,8 @@ import { envelopeFor, readBroadcast } from "@/lib/mailBroadcastStore";
 import { runScheduledContentMail } from "@/lib/contentMailRun";
 import { deadlineReminderLogLine } from "@/lib/deadlineReminders";
 import { runScheduledDeadlineReminders } from "@/lib/deadlineReminderRun";
+import { noteReminderLogLine } from "@/lib/noteReminders";
+import { runScheduledNoteReminders } from "@/lib/noteReminderRun";
 import { applyLetterTemplate } from "@/lib/letterTemplates";
 import { readLetterTemplate } from "@/lib/letterTemplateStore";
 
@@ -165,6 +167,14 @@ export function startPaymentReminderScheduler() {
       })
       .catch((error) => {
         console.error("[deadline-reminder] прогон не удался:", error);
+      });
+    runScheduledNoteReminders()
+      .then((result) => {
+        if (!result || result.planned === 0) return;
+        console.log(noteReminderLogLine(result));
+      })
+      .catch((error) => {
+        console.error("[note-reminder] прогон не удался:", error);
       });
   };
 

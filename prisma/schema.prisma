@@ -228,6 +228,7 @@ model User {
   guideAccess       GuideAccess[]
   guideProgress     GuideProgress[]
   paymentReminderLogs PaymentReminderLog[]
+  noteReminderSends NoteReminderSend[]
   weeklySubmissions WeeklySubmission[]
   starAwards        StarAward[]
   streakWeeks       StreakWeek[]
@@ -266,6 +267,7 @@ model Note {
   resolvedBy   String    @default("")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  reminderSends NoteReminderSend[]
 
   @@index([studentId])
 }
@@ -908,6 +910,20 @@ model PaymentReminderLog {
 
   @@unique([studentId, dueOn])
   @@index([dueOn])
+}
+
+// Письмо про открытые заметки наставника. Одна строка на заметку и отправку.
+// Та же заметка снова попадает в письмо не раньше чем через неделю.
+model NoteReminderSend {
+  id        String   @id @default(cuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  noteId    String
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  sentAt    DateTime @default(now())
+
+  @@index([noteId, sentAt])
+  @@index([studentId, sentAt])
 }
 
 // Календарь «Задание недели». Строки общие для всех учеников, сид в docs/sql.

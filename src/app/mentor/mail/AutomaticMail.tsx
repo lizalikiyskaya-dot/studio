@@ -16,16 +16,25 @@ import type { BroadcastPreview } from "@/lib/broadcastPreviews";
 
 type Student = { id: string; name: string };
 
+export type NoteReminderPreview = {
+  id: string;
+  name: string;
+  subject: string;
+  text: string;
+};
+
 export default function AutomaticMail({
   ready,
   initial,
   students,
   previews,
+  noteReminders,
 }: {
   ready: boolean;
   initial: BroadcastSetting[];
   students: Student[];
   previews: Record<string, BroadcastPreview>;
+  noteReminders: NoteReminderPreview[];
 }) {
   const [rows, setRows] = useState(initial);
   const [message, setMessage] = useState<string | null>(null);
@@ -76,6 +85,9 @@ export default function AutomaticMail({
                   ) : null}
                 </details>
               ) : null}
+              {row.key === "note-reminder" ? (
+                <NoteReminderList enabled={row.enabled} items={noteReminders} />
+              ) : null}
               <Button className="mt-3" type="button" onClick={() => save(row)} disabled={busy === row.key || !ready}>
                 {busy === row.key ? "Сохраняю..." : "Сохранить"}
               </Button>
@@ -88,6 +100,34 @@ export default function AutomaticMail({
       </p>
       {message ? <p className="mt-2 text-[14px]">{message}</p> : null}
     </section>
+  );
+}
+
+function NoteReminderList({ enabled, items }: { enabled: boolean; items: NoteReminderPreview[] }) {
+  return (
+    <div className="mt-4" data-note-reminder-preview>
+      <p className="text-[14px] font-semibold">Кому ушло бы сейчас</p>
+      <p className="mt-1 text-[13px]" style={{ color: "var(--muted)" }}>
+        {enabled
+          ? "Рассылка включена. Утром в 9:00 по Москве уходит одно письмо на ученика."
+          : "Рассылка выключена. Пока она выключена, письма не уходят."}
+        {" "}
+        В списке те, у кого заметка наставника открыта больше 14 дней и по ней не писали последние 7 дней.
+      </p>
+      {items.length === 0 ? (
+        <p className="mt-2 text-[14px]">Сейчас никому.</p>
+      ) : (
+        <ul className="mt-3 space-y-3">
+          {items.map((item) => (
+            <li key={item.id} className="rounded-[14px] px-4 py-3" style={{ background: "#fff", border: "1px solid var(--border)" }}>
+              <p className="text-[14px] font-semibold">{item.name}</p>
+              <p className="mt-1 text-[13px]" style={{ color: "var(--muted)" }}>Тема: {item.subject}</p>
+              <pre className="mt-2 whitespace-pre-wrap text-[14.5px] leading-relaxed" style={{ fontFamily: "inherit" }}>{item.text}</pre>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
