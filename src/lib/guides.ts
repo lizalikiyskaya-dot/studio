@@ -76,7 +76,7 @@ export function sortOpenedStudents(students: OpenedStudent[]): OpenedStudent[] {
   return [...students].sort((a, b) => a.name.localeCompare(b.name, "ru"));
 }
 
-async function guideByteSizes(ids: string[]): Promise<Map<string, number | null>> {
+export async function guideByteSizes(ids: string[]): Promise<Map<string, number | null>> {
   const sizes = new Map<string, number | null>();
   if (ids.length === 0) return sizes;
   try {
@@ -106,6 +106,7 @@ function toLibraryGuide(
     fileName: string | null;
     fileMime: string | null;
     order: number;
+    starPrice?: number | null;
     access: { student: OpenedStudent }[];
   },
   fileBytes: number | null
@@ -121,6 +122,7 @@ function toLibraryGuide(
     hasFile: Boolean(guide.fileName),
     isPdf: guide.fileMime === "application/pdf",
     order: guide.order,
+    starPrice: guide.starPrice ?? null,
     visibleCount: openedStudents.length,
     openedStudents,
   };
@@ -129,17 +131,24 @@ function toLibraryGuide(
 export async function loadLibrary(): Promise<{ ready: true; guides: LibraryGuide[]; studentCount: number } | { ready: false }> {
   if (!(await guidesSchemaReady())) return { ready: false };
   try {
+    const accessSelect = {
+      where: { visible: true },
+      select: { student: { select: { id: true, name: true } } },
+    } as const;
     const [guides, studentCount] = await Promise.all([
-      prisma.guide.findMany({
-        orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-        select: {
-          ...guideListSelect,
-          access: {
-            where: { visible: true },
-            select: { student: { select: { id: true, name: true } } },
-          },
-        },
-      }),
+      prisma.guide
+        .findMany({
+          orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+          select: { ...guideListSelect, starPrice: true, access: accessSelect },
+        })
+        .catch(async (error: unknown) => {
+          if (!isMissingSchemaError(error)) throw error;
+          const rows = await prisma.guide.findMany({
+            orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+            select: { ...guideListSelect, access: accessSelect },
+          });
+          return rows.map((row) => ({ ...row, starPrice: null as number | null }));
+        }),
       prisma.user.count({ where: GUIDE_AUDIENCE }),
     ]);
     const sizes = await guideByteSizes(guides.map((guide) => guide.id));
