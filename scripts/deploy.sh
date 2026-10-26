@@ -269,6 +269,12 @@ main() {
     log "Каталога prisma/migrations нет, prisma migrate deploy пропущен"
   fi
 
+  # docs/sql before `npm run build`. The running process serves `.next` from
+  # disk. apply-sql.sh exits non-zero on failure (`set -e`), so a failed
+  # migration never replaces `.next` and never reaches restart_app.
+  log "База: резервная копия и новые docs/sql (до сборки и перезапуска)"
+  bash ./scripts/apply-sql.sh
+
   log "npm run build"
   # Повтор: сборка иногда обрывается на загрузке шрифтов Google и сразу выходит с кодом 1.
   build_ok=0
@@ -287,11 +293,6 @@ main() {
     die "npm run build не удался"
   fi
   assert_protected_files
-
-  # Backup first, then docs/sql. A failure here must not reach restart_app:
-  # the process that is already running keeps the previous code.
-  log "База: резервная копия и новые docs/sql (до перезапуска)"
-  bash ./scripts/apply-sql.sh
 
   restart_app
   log "Деплой завершён: $(git rev-parse --short HEAD)"
