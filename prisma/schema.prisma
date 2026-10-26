@@ -405,6 +405,8 @@ model Task {
   status       TaskStatus @default(IN_PROGRESS)
   order        Int        @default(0)
   deadline     DateTime?
+  // true у старых строк: письмо о новом задании им не шлётся задним числом.
+  assignedMailSent Boolean @default(true)
   studentId    String
   student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())

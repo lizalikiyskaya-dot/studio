@@ -327,12 +327,14 @@ export default function TasksTable({
                   </button>
                 </span>
                 <span className="task-card-n">{taskRowNumber(index)}</span>
-                <EditableWithLinks
-                  defaultValue={task.title}
-                  onSave={(v) => handleTitleBlur(task.id, v)}
-                  placeholder="Описание задания"
-                  className="task-title"
-                />
+                <div data-no-digest="">
+                  <EditableWithLinks
+                    defaultValue={task.title}
+                    onSave={(v) => handleTitleBlur(task.id, v)}
+                    placeholder="Описание задания"
+                    className="task-title"
+                  />
+                </div>
               </div>
               <div className="task-card-meta">
                 <div className="task-card-deadline">
