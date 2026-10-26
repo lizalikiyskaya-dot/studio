@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { AccessDeniedError, requireCabinetAccess, requireMentor, requireMentorSession } from "@/lib/access";
+import { creditStreakWeek } from "@/features/streak/credit";
+import { studentManuscriptEditCounts } from "@/features/streak/weeks";
 import { guidesSchemaReady } from "@/lib/guides";
 import { getSession } from "@/lib/session";
 import { shrinkImage } from "@/lib/shrinkImage";
@@ -180,8 +182,11 @@ async function handleUpload(req: Request) {
     return Response.json({ ok: true, fileName, mime });
   } else if (target === "draft") {
     const draft = await prisma.draft.findUniqueOrThrow({ where: { id } });
-    await requireCabinetAccess(draft.studentId);
+    const session = await requireCabinetAccess(draft.studentId);
     await prisma.draft.update({ where: { id }, data: { fileName: fileName, fileData: dataUrl } });
+    if (studentManuscriptEditCounts(session, draft.studentId, true)) {
+      await creditStreakWeek(draft.studentId);
+    }
   } else if (target === "book-cover") {
     const book = await prisma.book.findUniqueOrThrow({ where: { id } });
     await requireCabinetAccess(book.studentId);

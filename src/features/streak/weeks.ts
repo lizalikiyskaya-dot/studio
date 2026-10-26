@@ -18,11 +18,21 @@ export type StreakPlaque = {
   countedStarts: string[];
 };
 
-const CHAPTER_STREAK = new Set(["SUBMITTED", "IN_REVIEW", "ACCEPTED"]);
+/**
+ * Неделя — с понедельника по воскресенье, Москва.
+ * Она идёт в серию, если ученик сдал задание недели, выполнил основное задание
+ * («сдано на проверку» или «принято») или сам поработал над рукописью.
+ */
+export const STREAK_HINT =
+  "Серия продолжается, если за неделю Вы выполнили задание недели, основное задание или поработали над рукописью. Неделя считается с понедельника по Москве.";
 
-/** Глава засчитывает неделю на «сдана», «на проверке» или «принята». */
-export function chapterCountsForStreak(status: string): boolean {
-  return CHAPTER_STREAK.has(status);
+/** Рукопись засчитывает неделю только когда ученик сам меняет свою карточку. */
+export function studentManuscriptEditCounts(
+  actor: { role: string; userId: string },
+  studentId: string,
+  changed: boolean,
+): boolean {
+  return changed && actor.role === "STUDENT" && actor.userId === studentId;
 }
 
 export function addDays(iso: string, days: number): string {

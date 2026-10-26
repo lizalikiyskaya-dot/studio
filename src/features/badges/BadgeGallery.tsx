@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, useState, useTransition } from "react";
 import { siteConfirm } from "@/components/SiteDialog";
+import StreakHelp from "@/features/streak/StreakHelp";
 import { setBadgeAward } from "./actions";
 import { badgeGroups, type BadgeCabinet, type BadgeView } from "./view";
 import { readSeenBadges, writeSeenBadges } from "./seenBadges";
@@ -135,7 +136,14 @@ export default function BadgeGallery({
       </p>
       {groups.map((group) => (
         <div key={group.id} className="mt-8">
-          <h2 className="text-[18px] font-semibold">{group.label}</h2>
+          <h2 className="flex items-center gap-2 text-[18px] font-semibold">
+            {group.label}
+            {group.id === "streak" ? (
+              <span onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
+                <StreakHelp />
+              </span>
+            ) : null}
+          </h2>
           <ul className="badge-grid mt-4">
             {group.items.map((badge) => {
               const arriving = arrivingId != null && badge.awardId === arrivingId;

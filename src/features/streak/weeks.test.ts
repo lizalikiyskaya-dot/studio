@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  chapterCountsForStreak,
+  STREAK_HINT,
   evaluateStreak,
   moscowMonday,
   streakBonus,
   streakMilestones,
+  studentManuscriptEditCounts,
   unseenRunWeeks,
   weeksLabel,
 } from "./weeks";
@@ -67,12 +68,22 @@ test("бонус серии: 4, 8, 12 и каждые следующие 4", () 
   assert.equal(weeksLabel(5), "5 недель");
 });
 
-test("глава засчитывает сдачу, проверку и принятие", () => {
-  assert.equal(chapterCountsForStreak("SUBMITTED"), true);
-  assert.equal(chapterCountsForStreak("IN_REVIEW"), true);
-  assert.equal(chapterCountsForStreak("ACCEPTED"), true);
-  assert.equal(chapterCountsForStreak("NEEDS_REVISION"), false);
-  assert.equal(chapterCountsForStreak("IN_PROGRESS"), false);
+test("подсказка серии говорит про неделю и три действия ученика", () => {
+  assert.match(STREAK_HINT, /за неделю/);
+  assert.doesNotMatch(STREAK_HINT, /за день/);
+  assert.match(STREAK_HINT, /Вы выполнили задание недели/);
+  assert.match(STREAK_HINT, /основное задание/);
+  assert.match(STREAK_HINT, /поработали над рукописью/);
+  assert.match(STREAK_HINT, /понедельника по Москве/);
+});
+
+test("рукопись засчитывает неделю только при правке самого ученика", () => {
+  const student = { role: "STUDENT", userId: "s1" };
+  const mentor = { role: "MENTOR", userId: "m1" };
+  assert.equal(studentManuscriptEditCounts(student, "s1", true), true);
+  assert.equal(studentManuscriptEditCounts(student, "s1", false), false);
+  assert.equal(studentManuscriptEditCounts(mentor, "s1", true), false);
+  assert.equal(studentManuscriptEditCounts(student, "other", true), false);
 });
 
 test("анимация только для ещё не виденного хвоста серии", () => {

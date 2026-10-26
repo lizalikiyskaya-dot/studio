@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
+import { creditStreakWeek } from "@/features/streak/credit";
+import { studentManuscriptEditCounts } from "@/features/streak/weeks";
 
 export async function createDraft(studentId: string) {
   await requireCabinetAccess(studentId);
@@ -15,8 +17,13 @@ export async function updateDraftField(
   value: string
 ) {
   const draft = await prisma.draft.findUniqueOrThrow({ where: { id: draftId } });
-  await requireCabinetAccess(draft.studentId);
+  const session = await requireCabinetAccess(draft.studentId);
+  const previous = draft[field] ?? "";
+  if (previous === value) return;
   await prisma.draft.update({ where: { id: draftId }, data: { [field]: value } });
+  if (studentManuscriptEditCounts(session, draft.studentId, true)) {
+    await creditStreakWeek(draft.studentId);
+  }
 }
 
 export async function deleteDraft(draftId: string) {
