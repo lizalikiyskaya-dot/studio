@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition, type CSSProperties } from "react";
+import { useRef, useState, useTransition } from "react";
 import { usePathname } from "next/navigation";
 import { Check, X } from "lucide-react";
 import AutoGrowTextarea from "@/components/AutoGrowTextarea";
@@ -9,24 +9,22 @@ import { useCanSuggest } from "./SuggestionContext";
 import type { SuggestableModel } from "@/lib/suggestionRegistry";
 import { markedSuggestion, type MarkedToken } from "@/lib/suggestionHunks";
 
-function tokenStyle(token: MarkedToken): CSSProperties {
-  if (token.type === "del") {
-    return { textDecoration: "line-through", textDecorationColor: "var(--v)", color: "var(--faded)" };
-  }
-  if (token.type === "add") {
-    return { textDecoration: "underline wavy", textDecorationColor: "var(--v)", color: "var(--v)" };
-  }
-  return {};
+function tokenClass(token: MarkedToken) {
+  if (token.type === "del") return "suggest-del";
+  if (token.type === "add") return "suggest-add";
+  return undefined;
 }
 
 function HunkButtons({ onAccept, onReject }: { onAccept: () => void; onReject: () => void }) {
   return (
     <span className="suggest-hunk-actions">
-      <button type="button" onClick={onAccept} className="suggest-accept" title="Принять правку" aria-label="Принять правку">
-        <Check size={12} />
+      <button type="button" onClick={onAccept} className="suggest-accept" title="Принять" aria-label="Принять">
+        <Check size={16} />
+        <span className="suggest-tip">Принять</span>
       </button>
-      <button type="button" onClick={onReject} className="suggest-reject" title="Отклонить правку" aria-label="Отклонить правку">
-        <X size={12} />
+      <button type="button" onClick={onReject} className="suggest-reject" title="Отклонить" aria-label="Отклонить">
+        <X size={16} />
+        <span className="suggest-tip">Отклонить</span>
       </button>
     </span>
   );
@@ -60,7 +58,7 @@ function SuggestionText({
             const prev = tokenIndex > 0 ? piece.tokens[tokenIndex - 1] : pieces[index - 1]?.tokens.at(-1);
             const gap = !!prev && prev.type !== token.type && !/\s$/.test(prev.text) && !/^\s/.test(token.text);
             return (
-              <span key={tokenIndex} style={{ ...tokenStyle(token), marginLeft: gap ? "0.35em" : undefined }}>{token.text}</span>
+              <span key={tokenIndex} className={tokenClass(token)} style={gap ? { marginLeft: "0.35em" } : undefined}>{token.text}</span>
             );
           });
           if (piece.hunk == null) return <span key={index}>{body}</span>;
@@ -219,6 +217,7 @@ export default function SuggestableField({
             className={className}
             style={pending && pending !== value ? { ...style, marginTop: 8 } : style}
             resizable={resizable}
+            submitOnEnter={false}
           />
         )}
       </div>
@@ -259,6 +258,7 @@ export default function SuggestableField({
       className={className}
       style={style}
       resizable={resizable}
+      submitOnEnter={false}
     />
   );
 }

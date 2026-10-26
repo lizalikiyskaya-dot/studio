@@ -282,17 +282,43 @@ textarea.reading,
 
 .book-section-strip { display: none; }
 
-.suggest-doc { white-space: pre-wrap; line-height: 1.45; }
+.suggest-doc {
+  white-space: pre-wrap;
+  line-height: 1.625;
+  overflow-wrap: anywhere;
+}
+/* .fld задаёт высоту 50px однострочному полю. Превью правки — не textarea,
+   и без этого длинный текст вылезает из коробки и ложится поверх поля ниже. */
+div.suggest-doc.fld {
+  height: auto;
+  min-height: 0;
+  padding: 12px 14px;
+  overflow: visible;
+}
+.suggest-add {
+  color: #146c43;
+  text-decoration: underline;
+  text-decoration-color: var(--sage);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.suggest-del {
+  color: var(--faded);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: #8b3a32;
+}
 .suggest-hunk {
-  background: #f4f1ff;
+  background: color-mix(in srgb, var(--sage) 16%, #fff);
   border-radius: 6px;
   box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 .suggest-hunk-actions {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-left: 6px;
+  gap: 8px;
+  margin-left: 8px;
   vertical-align: middle;
 }
 .suggest-accept,
@@ -302,21 +328,53 @@ textarea.reading,
   align-items: center;
   justify-content: center;
   gap: 4px;
-  height: 26px;
+  height: 32px;
   border-radius: 999px;
   cursor: pointer;
+  touch-action: manipulation;
+}
+.suggest-accept,
+.suggest-reject {
+  position: relative;
+  width: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  flex: none;
 }
 .suggest-accept {
-  width: 26px;
   border: 0;
   background: var(--sage);
   color: #fff;
 }
 .suggest-reject {
-  width: 26px;
   border: 1px solid var(--border);
   background: #fff;
   color: var(--ink);
+}
+.suggest-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  z-index: 5;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--deep);
+  color: #fff;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+}
+.suggest-accept:hover .suggest-tip,
+.suggest-accept:focus-visible .suggest-tip,
+.suggest-reject:hover .suggest-tip,
+.suggest-reject:focus-visible .suggest-tip {
+  opacity: 1;
 }
 .suggest-reject-all {
   height: 32px;

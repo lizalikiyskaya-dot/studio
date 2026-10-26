@@ -20,9 +20,11 @@ const AutoGrowTextarea = forwardRef<
     resizable?: boolean;
     ariaLabel?: string;
     autoFocus?: boolean;
+    /** Enter вставляет строку. В коротких полях можно оставить сохранение по Enter. */
+    submitOnEnter?: boolean;
   }
 >(function AutoGrowTextarea(
-  { defaultValue, onBlur, onChange, className, placeholder, style, resizable, ariaLabel, autoFocus },
+  { defaultValue, onBlur, onChange, className, placeholder, style, resizable, ariaLabel, autoFocus, submitOnEnter = true },
   forwardedRef
 ) {
   const innerRef = useRef<HTMLTextAreaElement>(null);
@@ -61,12 +63,11 @@ const AutoGrowTextarea = forwardRef<
       }}
       onBlur={(e) => onBlur(e.target.value)}
       onKeyDown={(e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          const val = e.currentTarget.value;
-          onBlur(val);
-          e.currentTarget.blur();
-        }
+        if (!submitOnEnter || e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) return;
+        e.preventDefault();
+        const val = e.currentTarget.value;
+        onBlur(val);
+        e.currentTarget.blur();
       }}
       className={className}
       style={{
