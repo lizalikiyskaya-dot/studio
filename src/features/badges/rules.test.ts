@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { AUTHOR_RANKS } from "@/features/stars/rules";
-import { BADGES } from "./catalogue";
+import { BADGE_SECTIONS, BADGES } from "./catalogue";
+import { badgeGroups, type BadgeView } from "./view";
 import {
   autoBadgeIds,
   badgesStillOpen,
@@ -138,4 +139,58 @@ test("виджет берёт три последних и считает, ск�
   assert.equal(widgetLine(12), "Ещё 12 можно получить");
   assert.equal(widgetLine(0), "Все значки уже получены");
   assert.equal(badgesStillOpen(41, 4), 37);
+});
+
+test("подсказки методичек и ручных значков без «Значок ставит Лиза»", () => {
+  const onion = BADGES.find((badge) => badge.id === "methodical-2");
+  const longText = BADGES.find((badge) => badge.id === "ten-thousand");
+  const rewrite = BADGES.find((badge) => badge.id === "second-draft");
+  assert.ok(onion && longText && rewrite);
+  assert.equal(hintFor(onion), "Выполните задание по методичке «2 Луковица» и получите отметку «принято».");
+  assert.equal(onion.hint, onion.hintFormal);
+  assert.equal(hintFor(longText), "Напишите текст от 10 000 знаков.");
+  assert.equal(hintFor(rewrite), "Перепишите текст после разбора.");
+  for (const badge of BADGES) {
+    assert.equal(badge.hint.includes("Значок ставит Лиза"), false);
+    assert.equal(badge.hintFormal.includes("Значок ставит Лиза"), false);
+  }
+});
+
+test("разделы значков: старт, уровни, серии, практика, методички, конкурсы", () => {
+  assert.deepEqual(
+    BADGE_SECTIONS.map((section) => section.label),
+    ["Старт", "Уровни", "Серии", "Практика", "Методички", "Конкурсы и публикации"],
+  );
+  const views: BadgeView[] = BADGES.map((badge) => ({
+    id: badge.id,
+    title: badge.title,
+    hint: badge.hint,
+    image: badge.image,
+    section: badge.section,
+    sortOrder: badge.sortOrder,
+    earned: false,
+    awardId: null,
+    awardedAt: null,
+    awardedLabel: null,
+    source: null,
+    progressLabel: null,
+  }));
+  assert.deepEqual(
+    badgeGroups(views).map((group) => group.id),
+    ["start", "level", "streak", "practice", "methodical", "contest"],
+  );
+  const sectionOrder = ["start", "level", "streak", "practice", "methodical", "contest"];
+  let previous = -1;
+  for (const section of sectionOrder) {
+    const orders = BADGES.filter((badge) => badge.section === section).map((badge) => badge.sortOrder);
+    const min = Math.min(...orders);
+    const max = Math.max(...orders);
+    assert.ok(min > previous, section);
+    previous = max;
+  }
+  const locked = widgetBadges(views.map((badge) => ({ ...badge, earned: false, awardedAt: null })));
+  assert.deepEqual(
+    locked.map((badge) => badge.id),
+    ["first-page", "first-week", "first-chapter"],
+  );
 });
