@@ -28,10 +28,16 @@ test("sql добавляет Салли и Марлина и не удаляет
   assert.match(sql, /ON CONFLICT \(id\) DO NOTHING/);
   assert.match(sql, /NOT EXISTS/);
   assert.equal(sql.includes("Дороти"), false);
+  const sallyGo = STORY_CIRCLE_SEED.find((seed) => seed.hero.startsWith("Салли"))?.data.go;
+  assert.equal(sallyGo, "через дверь в мир монстров попадает девочка Бу");
   for (const seed of STORY_CIRCLE_SEED.slice(1)) {
     assert.ok(sql.includes(seed.hero));
     for (const key of STORY_CIRCLE_STEP_KEYS) {
-      assert.ok(sql.includes(seed.data[key]), `${seed.hero} / ${key}`);
+      // Файл уже применён на сервере, строку Салли в нём не меняем.
+      const line = seed.hero.startsWith("Салли") && key === "go"
+        ? "в его квартиру через дверь попадает девочка Бу"
+        : seed.data[key];
+      assert.ok(sql.includes(line), `${seed.hero} / ${key}`);
     }
   }
   const names = sortSqlNames([
