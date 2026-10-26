@@ -40,6 +40,7 @@ test("день оплаты по умолчанию как утреннее ок
   assert.equal(defaultBroadcast("mentor-edit").enabled, false);
   assert.equal(defaultBroadcast("student-edit").enabled, false);
   assert.equal(defaultBroadcast("student-online").enabled, false);
+  assert.equal(defaultBroadcast("submitted").enabled, true);
   assert.equal(defaultBroadcast("student-online").oncePerDay, true);
   assert.equal(defaultBroadcast("guide").enabled, true);
 });

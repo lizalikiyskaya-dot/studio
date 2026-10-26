@@ -16,6 +16,7 @@ export const BROADCAST_KEYS = [
   "mentor-edit",
   "student-edit",
   "student-online",
+  "submitted",
 ] as const;
 
 export type BroadcastKey = (typeof BROADCAST_KEYS)[number];
@@ -56,6 +57,7 @@ export const BROADCAST_META: BroadcastMeta[] = [
   { key: "mentor-edit", title: "Наставник внёс правку", mode: "batch", who: "students" },
   { key: "student-edit", title: "Ученик внёс правку", mode: "batch", who: "mentor" },
   { key: "student-online", title: "Ученик онлайн", mode: "online", who: "mentor" },
+  { key: "submitted", title: "Сдано на проверку", mode: "event", who: "mentor" },
 ];
 
 const WEEKDAY_LABELS = ["", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
@@ -110,6 +112,8 @@ export function defaultBroadcast(key: BroadcastKey): BroadcastSetting {
       return base;
     case "student-online":
       return { ...base, windowMinutes: 0, oncePerDay: true };
+    case "submitted":
+      return { ...base, enabled: true, windowMinutes: 0 };
     default: {
       const never: never = key;
       return never;

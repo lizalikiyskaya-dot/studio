@@ -519,3 +519,19 @@ export function renderEmail(options: {
 
   return { html, text: textLines.join("\n").replace(/\n{3,}/g, "\n\n").trim() };
 }
+
+/**
+ * То же фирменное письмо, без факторов, из-за которых почта чаще попадает в спам:
+ * без загрузки шрифтов, скрытая строка — первое предложение, не марка.
+ */
+export function withoutWebFonts(letter: RenderedEmail, preview: string): RenderedEmail {
+  const html = letter.html
+    .replace(/\n?\s*<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]*>/, "")
+    .replaceAll(FONT_UI, "'Segoe UI',Helvetica,Arial,sans-serif")
+    .replaceAll(FONT_SERIF, "Georgia,'Times New Roman',serif")
+    .replace(
+      `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(EMAIL_BRAND)}</div>`,
+      `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(preview)}</div>`,
+    );
+  return { html, text: letter.text };
+}

@@ -8,6 +8,7 @@ import type { TaskStatus } from "@/generated/prisma/client";
 import { awardStars } from "@/features/stars/award";
 import { creditStreakWeek } from "@/features/streak/credit";
 import { linkAttachmentCounts, submittedStatusCounts } from "@/features/streak/weeks";
+import { mentorSubmissionUrl, notifyMentorOfSubmission } from "@/lib/submissionMail";
 import { mainTaskAwardsStars } from "@/features/stars/rules";
 
 export async function createTask(studentId: string) {
@@ -75,7 +76,9 @@ export async function reorderTasks(studentId: string, ids: string[]) {
 export async function setTaskStatus(taskId: string, status: TaskStatus) {
   if (!isTaskStatus(status)) return null;
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
-  await requireCabinetAccess(task.studentId);
+  const session = await requireCabinetAccess(task.studentId);
+  // Ученик только сдаёт на проверку. Остальные статусы ставит наставник.
+  if (session.role !== "MENTOR" && status !== "SUBMITTED") return task.status;
   if (task.status === status) return status;
   await prisma.task.update({ where: { id: taskId }, data: { status } });
   // 3 звёзды один раз: сдача на проверку или «принято». Повтор и «на доработке» не удваивают.
@@ -84,6 +87,15 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
   }
   if (submittedStatusCounts(task.status, status)) {
     await creditStreakWeek(task.studentId);
+    await notifyMentorOfSubmission({
+      actorRole: session.role,
+      previous: task.status,
+      next: status,
+      studentId: task.studentId,
+      section: "Задания",
+      title: task.title,
+      url: mentorSubmissionUrl(task.studentId, "tasks", task.id),
+    });
   }
   return status;
 }

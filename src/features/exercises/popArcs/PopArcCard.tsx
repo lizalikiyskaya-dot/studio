@@ -197,7 +197,7 @@ export default function PopArcCard({
   }
 
   return (
-    <div ref={rootRef} className="rounded-[18px] mb-4 max-w-[760px]" style={{ border: "1px solid var(--border)", background: open ? "#fff" : "var(--soft)" }}>
+    <div id={`exercise-${character.id}`} ref={rootRef} className="rounded-[18px] mb-4 max-w-[760px]" style={{ border: "1px solid var(--border)", background: open ? "#fff" : "var(--soft)" }}>
       <div onClick={() => setOpen((v) => !v)} className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3.5">
         <div
           className="rounded-full flex-shrink-0"

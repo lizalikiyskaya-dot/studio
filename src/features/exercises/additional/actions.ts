@@ -6,6 +6,7 @@ import type { FreeSection, FreeSectionType, TaskStatus } from "@/generated/prism
 import { isTaskStatus } from "@/features/tasks/status";
 import { creditStreakWeek } from "@/features/streak/credit";
 import { submittedStatusCounts } from "@/features/streak/weeks";
+import { mentorSubmissionUrl, notifyMentorOfSubmission } from "@/lib/submissionMail";
 import { queueCabinetChange } from "@/lib/activityDigest";
 import type { ContentFormat } from "./richText";
 
@@ -148,6 +149,17 @@ export async function setSectionStatus(sectionId: string, status: TaskStatus) {
   if (session.role !== "MENTOR" && status !== "SUBMITTED") return section.status;
   if (section.status === status) return status;
   await prisma.freeSection.update({ where: { id: sectionId }, data: { status } });
-  if (submittedStatusCounts(section.status, status)) await creditStreakWeek(section.studentId);
+  if (submittedStatusCounts(section.status, status)) {
+    await creditStreakWeek(section.studentId);
+    await notifyMentorOfSubmission({
+      actorRole: session.role,
+      previous: section.status,
+      next: status,
+      studentId: section.studentId,
+      section: "Упражнения, дополнительно",
+      title: section.title,
+      url: mentorSubmissionUrl(section.studentId, "extra", section.id),
+    });
+  }
   return status;
 }
