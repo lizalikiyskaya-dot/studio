@@ -14,6 +14,8 @@ export const EMAIL_TYPE_LABEL: Record<string, string> = {
   "daily-quote": "Цитата дня",
   "mentor-letter": "Письмо наставника",
   "student-online": "Ученик онлайн",
+  submitted: "Сдано на проверку",
+  "new-task": "Новое задание",
 };
 
 export function emailTypeLabel(type: string): string {

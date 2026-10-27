@@ -18,11 +18,37 @@ export type StreakPlaque = {
   countedStarts: string[];
 };
 
-const CHAPTER_STREAK = new Set(["SUBMITTED", "IN_REVIEW", "ACCEPTED"]);
+/**
+ * Неделя — с понедельника по воскресенье, Москва.
+ * Она идёт в серию, если за эту неделю случилось хотя бы одно:
+ * ученик сдал задание недели; ученик прикрепил новую ссылку или файл
+ * в задании или рукописи; что-то получило статус «сдано на проверку».
+ * Уже записанные недели не пересчитываются.
+ */
+export const STREAK_HINT =
+  "Серия продолжается, если за неделю Вы выполнили задание недели, прикрепили ссылку или файл в заданиях или рукописях, или сдали что-то на проверку. Неделя считается с понедельника по Москве.";
 
-/** Глава засчитывает неделю на «сдана», «на проверке» или «принята». */
-export function chapterCountsForStreak(status: string): boolean {
-  return CHAPTER_STREAK.has(status);
+/** Ссылку засчитывает только ученик, и только если адрес новый и не пустой. */
+export function linkAttachmentCounts(
+  actor: { role: string; userId: string },
+  studentId: string,
+  previous: string | null | undefined,
+  next: string,
+): boolean {
+  if (actor.role !== "STUDENT" || actor.userId !== studentId) return false;
+  const before = (previous ?? "").trim();
+  const after = next.trim();
+  return after.length > 0 && after !== before;
+}
+
+/** Файл в рукописи засчитывает загрузка самого ученика. */
+export function fileUploadCounts(actor: { role: string; userId: string }, studentId: string): boolean {
+  return actor.role === "STUDENT" && actor.userId === studentId;
+}
+
+/** Неделю даёт переход в «сдано на проверку», не «принято» и не повтор того же статуса. */
+export function submittedStatusCounts(previous: string | null | undefined, next: string): boolean {
+  return next === "SUBMITTED" && previous !== "SUBMITTED";
 }
 
 export function addDays(iso: string, days: number): string {

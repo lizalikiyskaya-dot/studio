@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { appUrl, sendMail } from "@/lib/mail";
-import { sectionLabel } from "@/lib/sections";
+import { SECTION_LABELS, sectionLabel } from "@/lib/sections";
 import {
   groupsReady,
   isSessionStart,
@@ -11,8 +11,9 @@ import {
   type BroadcastSetting,
   type DigestRow,
 } from "@/lib/mailBroadcasts";
-import { withAddress } from "@/lib/addressForm";
-import { mentorWorkLetter, studentOnlineLetter, studentWorkLetter, type DigestPiece } from "@/lib/activityLetters";
+import { greetingName, withAddress } from "@/lib/addressForm";
+import { optOutSecret, signOptOut } from "@/lib/mailOptOut";
+import { mentorDigestGroups, mentorWorkLetter, studentOnlineLetter, studentWorkLetter, type DigestPiece } from "@/lib/activityLetters";
 import { broadcastOpen, envelopeFor, readBroadcast, whoFor, type BroadcastRead } from "@/lib/mailBroadcastStore";
 import { applyLetterTemplate, type LetterKey } from "@/lib/letterTemplates";
 import { readLetterTemplate } from "@/lib/letterTemplateStore";
@@ -71,7 +72,8 @@ export async function queueCabinetChange(input: {
       where: { kind, studentId: input.studentId, section, sentAt: null },
     });
     if (open) {
-      const next = mergeDetail(open.detail, detail);
+      // Строка со ссылкой относится к одному месту: новая заменяет старую, а не клеится через точку с запятой.
+      const next = nextDigestDetail(open.detail, detail);
       if (next !== open.detail) {
         await prisma.mailDigest.update({ where: { id: open.id }, data: { detail: next } });
       }
@@ -113,6 +115,12 @@ export async function queueStudentOnline(studentId: string, now = new Date()): P
 
 type Person = { id: string; name: string; email: string; status: string; emailNotifications: boolean };
 
+function mailUnsubscribeUrl(studentId: string): string | undefined {
+  const secret = optOutSecret();
+  if (!secret) return undefined;
+  return `${appUrl()}/unsubscribe?token=${signOptOut(studentId, "mail", secret)}`;
+}
+
 export async function flushDigests(options: {
   now: Date;
   settings: (key: "mentor-edit" | "student-edit" | "student-online") => Promise<BroadcastSetting | null>;
@@ -129,6 +137,7 @@ export async function flushDigests(options: {
     recipientUserId: string;
     from?: string;
     replyTo?: string;
+    listUnsubscribe?: string;
   }) => Promise<boolean>;
   envelope: (sender: "env" | "profile") => Promise<{ from: string; replyTo?: string }>;
   dress?: (
@@ -158,13 +167,14 @@ export async function flushDigests(options: {
       let subject = "";
       let html = "";
       let text = "";
-      let type = kind;
+      const type = kind;
       if (kind === "mentor-edit") {
         if (student.status !== "APPROVED" || !student.emailNotifications || !student.email.includes("@")) {
           skipped += 1;
           continue;
         }
-        const letter = mentorWorkLetter({ name: student.name, studentId, pieces });
+        const unsubscribeUrl = mailUnsubscribeUrl(student.id);
+        const letter = mentorWorkLetter({ name: student.name, studentId, pieces, unsubscribeUrl });
         to = student.email;
         recipientUserId = student.id;
         subject = "Наставник внёс правку";
@@ -195,15 +205,18 @@ export async function flushDigests(options: {
         recipientUserId = mentor.id;
       }
       if (options.dress) {
-        const path = (pieces[0]?.section === "notes" ? "tasks" : pieces[0]?.section) || "tasks";
+        const sectionKey = pieces[0]?.section.split(":")[0] || "tasks";
+        const path = sectionKey in SECTION_LABELS ? (sectionKey === "notes" ? "tasks" : sectionKey) : "tasks";
+        const linked = pieces.map((piece) => piece.detail.split("\t")[1]?.trim()).find((url) => url?.startsWith("http"));
         const cabinet = kind === "mentor-edit"
-          ? `${appUrl()}/dashboard/${path}`
+          ? linked || `${appUrl()}/dashboard/${path}`
           : `${appUrl()}/student-view/${studentId}/${path}`;
         const dressed = await options.dress(kind, { subject, html, text }, withAddress(student.name, {
-          имя: student.name,
+          имя: kind === "mentor-edit" ? greetingName(student.name) : student.name,
           правки: editsText(pieces),
           когда: group[0].detail || "",
           кабинет: cabinet,
+          отписка: kind === "mentor-edit" ? mailUnsubscribeUrl(student.id) ?? "" : "",
         }));
         subject = dressed.subject;
         html = dressed.html;
@@ -219,6 +232,7 @@ export async function flushDigests(options: {
         recipientUserId,
         from: envelope.from,
         replyTo: envelope.replyTo,
+        listUnsubscribe: kind === "mentor-edit" ? mailUnsubscribeUrl(studentId) : undefined,
       });
       if (!ok) {
         skipped += 1;
@@ -249,13 +263,23 @@ async function loadMentor(): Promise<Person | null> {
   return row;
 }
 
+/** Строка со ссылкой относится к одному месту и заменяет прошлую. Остальное клеится. */
+export function nextDigestDetail(open: string, detail: string): string {
+  return detail.includes("\t") ? detail.slice(0, 500) : mergeDetail(open, detail);
+}
+
+function pieceLines(title: string, items: string[]): string {
+  const lines = items.flatMap((item) => (item.includes("\t") ? [item] : item.split("; ").map((part) => part.trim()).filter((part) => part && part !== title)));
+  return [title, ...(lines.length > 0 ? lines : ["Есть новые правки."])].join("\n");
+}
+
+const DIGEST_GROUP_TITLES = new Set(["Принято", "На доработке", "Заметки", "Правки", "Отзыв"]);
+
 function editsText(pieces: DigestPiece[]): string {
-  return pieces
-    .map((piece) => {
-      const label = sectionLabel(piece.section);
-      const lines = piece.detail.split("; ").map((item) => item.trim()).filter((item) => item && item !== label);
-      return [label, ...(lines.length > 0 ? lines : ["Есть новые правки."])].join("\n");
-    })
+  const groups = mentorDigestGroups(pieces);
+  if (groups.length === 0) return "Есть новые правки.";
+  return groups
+    .map((group) => pieceLines(DIGEST_GROUP_TITLES.has(group.title) ? group.title : sectionLabel(group.title), group.items))
     .join("\n\n");
 }
 

@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState, useTransition } from "react";
 import { Star } from "lucide-react";
 import { setStreakVacation } from "./actions";
 import { readSeenStreak, writeSeenStreak } from "./seenStreak";
+import StreakHelp from "./StreakHelp";
 import { unseenRunWeeks, weeksLabel, type StreakPlaque } from "./weeks";
 
 const BEAT_MS = 1000;
@@ -127,16 +128,22 @@ export default function StreakStrip({
   return (
     <div
       className="streak-strip mt-3"
+      data-streak-counter=""
       data-streak-state={arriving ? "arrive" : "idle"}
       onClick={busy ? skip : undefined}
     >
-      <p className="text-[14.5px] font-semibold leading-none">
-        Серия: {weeksLabel(shown)} подряд
-        <span className="font-normal" style={{ color: "var(--ink2)" }}>
-          {" "}
-          · лучшая: {best}
+      <div className="flex items-center gap-2">
+        <p className="text-[14.5px] font-semibold leading-none">
+          Серия: {weeksLabel(shown)} подряд
+          <span className="font-normal" style={{ color: "var(--ink2)" }}>
+            {" "}
+            · лучшая: {best}
+          </span>
+        </p>
+        <span onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
+          <StreakHelp />
         </span>
-      </p>
+      </div>
       <div className="streak-cells mt-2" role="list" aria-label={`Серия ${weeksLabel(current)}, лучшая ${best}`}>
         {weeks.map((week) => {
           const arrivingCell = arriving === week.start;

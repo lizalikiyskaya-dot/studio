@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import type { BeliefCard, Comment } from "@/generated/prisma/client";
+import type { BeliefCard, Comment, TaskStatus } from "@/generated/prisma/client";
+import ExerciseStatusControl from "@/features/exercises/ExerciseStatusControl";
+import { setBeliefStatus } from "@/features/exercises/cardStatus";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
 import CardSaveButton from "@/components/CardSaveButton";
 import ImageUploadBox from "@/components/ImageUploadBox";
@@ -122,6 +124,8 @@ function CardShell({
   onHeroSaved,
   dropTarget,
   dragHandle,
+  trackStatus = false,
+  isMentorViewer = false,
 }: {
   card: BeliefCard;
   readOnly: boolean;
@@ -132,14 +136,32 @@ function CardShell({
   onHeroSaved: (value: string) => void;
   dropTarget?: DropTargetHandlers;
   dragHandle?: DragHandleHandlers;
+  trackStatus?: boolean;
+  isMentorViewer?: boolean;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [photoUrl, setPhotoUrl] = useState(card.photoUrl);
+  const [status, setStatus] = useState<TaskStatus>(card.status);
+  const [, startTransition] = useTransition();
+  function handleStatus(next: TaskStatus) {
+    setStatus(next);
+    startTransition(() => {
+      void setBeliefStatus(card.id, next);
+    });
+  }
   return (
-    <div {...dropTarget} className="flex items-start gap-1.5">
+    <div {...dropTarget} id={`exercise-${card.id}`} className="flex items-start gap-1.5">
       {dragHandle && <DragHandle handlers={dragHandle} />}
       <div ref={rootRef} className="flex-1 min-w-0">
-        <CollapsibleCharacterShell name={card.hero} photoUrl={photoUrl}>
+        <CollapsibleCharacterShell
+          name={card.hero}
+          photoUrl={photoUrl}
+          headerExtra={
+            trackStatus ? (
+              <ExerciseStatusControl status={status} isMentor={isMentorViewer} onChange={handleStatus} />
+            ) : undefined
+          }
+        >
           <CardBody
             card={card}
             readOnly={readOnly}
@@ -227,11 +249,13 @@ export function BeliefOwnList({
   initialCards,
   suggestions,
   comments,
+  isMentorViewer,
 }: {
   studentId: string;
   initialCards: BeliefCard[];
   suggestions: Record<string, Record<string, string>>;
   comments: Record<string, Comment[]>;
+  isMentorViewer: boolean;
 }) {
   const [cards, setCards] = useState(initialCards);
   const [, startTransition] = useTransition();
@@ -269,6 +293,8 @@ export function BeliefOwnList({
           onHeroSaved={(hero) => handleHeroSaved(card.id, hero)}
           dropTarget={dropTarget(card.id)}
           dragHandle={dragHandle(card.id)}
+          trackStatus
+          isMentorViewer={isMentorViewer}
         />
       ))}
       <Button onClick={handleAdd} variant="dashed" size="sm" pill>

@@ -7,13 +7,17 @@ import { isTaskStatus } from "./status";
 import type { TaskStatus } from "@/generated/prisma/client";
 import { awardStars } from "@/features/stars/award";
 import { creditStreakWeek } from "@/features/streak/credit";
+import { linkAttachmentCounts, submittedStatusCounts } from "@/features/streak/weeks";
+import { mentorSubmissionUrl, notifyMentorOfSubmission } from "@/lib/submissionMail";
+import { queueMentorDigest, reviewGroup, studentTaskUrl } from "@/lib/mentorDigest";
+import { notifyStudentOfNewTask, shouldSendNewTaskMail } from "@/lib/newTaskMail";
 import { mainTaskAwardsStars } from "@/features/stars/rules";
 
 export async function createTask(studentId: string) {
   await requireCabinetAccess(studentId);
   const count = await prisma.task.count({ where: { studentId } });
   const task = await prisma.task.create({
-    data: { studentId, order: count },
+    data: { studentId, order: count, assignedMailSent: false },
   });
   revalidatePath("/dashboard/tasks");
   revalidatePath(`/student-view/${studentId}/tasks`);
@@ -22,7 +26,24 @@ export async function createTask(studentId: string) {
 
 export async function updateTaskTitle(taskId: string, title: string) {
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
-  await requireCabinetAccess(task.studentId);
+  const session = await requireCabinetAccess(task.studentId);
+  const next = title.trim();
+  const send = shouldSendNewTaskMail(session.role, task.title, next, task.assignedMailSent);
+  if (!task.assignedMailSent && next) {
+    const claimed = await prisma.task.updateMany({
+      where: { id: taskId, assignedMailSent: false },
+      data: { title, assignedMailSent: true },
+    });
+    if (claimed.count === 1 && send) {
+      await notifyStudentOfNewTask({
+        studentId: task.studentId,
+        taskId: task.id,
+        title: next,
+        deadline: task.deadline,
+      });
+    }
+    return;
+  }
   await prisma.task.update({ where: { id: taskId }, data: { title } });
 }
 
@@ -32,8 +53,24 @@ export async function updateTaskLink(
   value: string
 ) {
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
-  await requireCabinetAccess(task.studentId);
+  const session = await requireCabinetAccess(task.studentId);
+  // Ссылку на отзыв ставит наставник. Ученик только открывает её.
+  if (field === "feedbackLink" && session.role !== "MENTOR") return;
+  const previous = task[field] ?? "";
+  if (previous === value) return;
   await prisma.task.update({ where: { id: taskId }, data: { [field]: value } });
+  if (field === "feedbackLink" && session.role === "MENTOR" && value.trim() && value.trim() !== previous.trim()) {
+    await queueMentorDigest({
+      studentId: task.studentId,
+      group: "feedback",
+      sourceId: `task:${task.id}`,
+      title: task.title,
+      url: studentTaskUrl(task.id, "all"),
+    });
+  }
+  if (field === "workLink" && linkAttachmentCounts(session, task.studentId, previous, value)) {
+    await creditStreakWeek(task.studentId);
+  }
 }
 
 export async function updateTaskDeadline(taskId: string, deadline: string | null) {
@@ -69,13 +106,36 @@ export async function reorderTasks(studentId: string, ids: string[]) {
 export async function setTaskStatus(taskId: string, status: TaskStatus) {
   if (!isTaskStatus(status)) return null;
   const task = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
-  await requireCabinetAccess(task.studentId);
+  const session = await requireCabinetAccess(task.studentId);
+  // Ученик только сдаёт на проверку. Остальные статусы ставит наставник.
+  if (session.role !== "MENTOR" && status !== "SUBMITTED") return task.status;
   if (task.status === status) return status;
   await prisma.task.update({ where: { id: taskId }, data: { status } });
   // 3 звёзды один раз: сдача на проверку или «принято». Повтор и «на доработке» не удваивают.
   if (mainTaskAwardsStars(status)) {
     await awardStars(task.studentId, "MAIN_TASK", task.id);
+  }
+  const review = session.role === "MENTOR" ? reviewGroup(status) : null;
+  if (review) {
+    await queueMentorDigest({
+      studentId: task.studentId,
+      group: review,
+      sourceId: `task:${task.id}`,
+      title: task.title,
+      url: studentTaskUrl(task.id, review === "accepted" ? "accepted" : "revision"),
+    });
+  }
+  if (submittedStatusCounts(task.status, status)) {
     await creditStreakWeek(task.studentId);
+    await notifyMentorOfSubmission({
+      actorRole: session.role,
+      previous: task.status,
+      next: status,
+      studentId: task.studentId,
+      section: "Задания",
+      title: task.title,
+      url: mentorSubmissionUrl(task.studentId, "tasks", task.id),
+    });
   }
   return status;
 }

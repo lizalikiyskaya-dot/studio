@@ -71,11 +71,13 @@ export function OwnHeroesList({
   initialCharacters,
   suggestions,
   comments,
+  isMentorViewer,
 }: {
   studentId: string;
   initialCharacters: PopArcCharacter[];
   suggestions: Record<string, Record<string, string>>;
   comments: Record<string, Comment[]>;
+  isMentorViewer: boolean;
 }) {
   const [characters, setCharacters] = useState(initialCharacters);
   const [freshId, setFreshId] = useState<string | null>(null);
@@ -110,6 +112,8 @@ export function OwnHeroesList({
               initialComments={comments[character.id] ?? []}
               onDelete={() => handleDelete(character.id)}
               startOpen={character.id === freshId}
+              trackStatus
+              isMentorViewer={isMentorViewer}
             />
           </div>
         </div>

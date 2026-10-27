@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import type { StoryCircleCard, Comment } from "@/generated/prisma/client";
+import type { StoryCircleCard, Comment, TaskStatus } from "@/generated/prisma/client";
+import ExerciseStatusControl from "@/features/exercises/ExerciseStatusControl";
+import { setStoryCircleStatus } from "@/features/exercises/cardStatus";
 import CollapsibleCharacterShell from "@/components/CollapsibleCharacterShell";
 import CardSaveButton from "@/components/CardSaveButton";
 import ImageUploadBox from "@/components/ImageUploadBox";
@@ -97,6 +99,8 @@ function CardShell({
   onHeroSaved,
   dropTarget,
   dragHandle,
+  trackStatus = false,
+  isMentorViewer = false,
 }: {
   card: StoryCircleCard;
   readOnly: boolean;
@@ -106,14 +110,29 @@ function CardShell({
   onHeroSaved: (value: string) => void;
   dropTarget?: DropTargetHandlers;
   dragHandle?: DragHandleHandlers;
+  trackStatus?: boolean;
+  isMentorViewer?: boolean;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [photoUrl, setPhotoUrl] = useState(card.photoUrl);
+  const [status, setStatus] = useState<TaskStatus>(card.status);
+  const [, startTransition] = useTransition();
+  function handleStatus(next: TaskStatus) {
+    setStatus(next);
+    startTransition(() => {
+      void setStoryCircleStatus(card.id, next);
+    });
+  }
   return (
-    <div {...dropTarget} className="flex items-start gap-1.5">
+    <div {...dropTarget} id={`exercise-${card.id}`} className="flex items-start gap-1.5">
       {dragHandle && <DragHandle handlers={dragHandle} />}
       <div ref={rootRef} className="flex-1 min-w-0">
         <CollapsibleCharacterShell
+          headerExtra={
+            trackStatus ? (
+              <ExerciseStatusControl status={status} isMentor={isMentorViewer} onChange={handleStatus} />
+            ) : undefined
+          }
           name={card.hero}
           photoUrl={photoUrl}
           title={
@@ -216,11 +235,13 @@ export function StoryCircleOwnList({
   initialCards,
   suggestions,
   comments,
+  isMentorViewer,
 }: {
   studentId: string;
   initialCards: StoryCircleCard[];
   suggestions: Record<string, Record<string, string>>;
   comments: Record<string, Comment[]>;
+  isMentorViewer: boolean;
 }) {
   const [cards, setCards] = useState(initialCards);
   const [, startTransition] = useTransition();
@@ -258,6 +279,8 @@ export function StoryCircleOwnList({
           onHeroSaved={(hero) => handleHeroSaved(card.id, hero)}
           dropTarget={dropTarget(card.id)}
           dragHandle={dragHandle(card.id)}
+          trackStatus
+          isMentorViewer={isMentorViewer}
         />
       ))}
       <Button onClick={handleAdd} variant="dashed" size="sm" pill>

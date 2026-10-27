@@ -45,6 +45,7 @@ export default async function TasksView({
       <TasksTable
         studentId={studentId}
         initialTasks={tasks}
+        isMentor={mentorView}
         banners={<StudioBanners studentId={studentId} basePath={basePath} />}
       />
     </Suspense>

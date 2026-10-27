@@ -516,11 +516,11 @@ div.suggest-doc.fld {
 .task-head,
 .task-card {
   display: grid;
-  grid-template-columns: minmax(0, 1.8fr) 124px minmax(72px, 0.7fr) minmax(72px, 0.7fr) auto;
-  grid-template-areas: "main deadline work feedback tools";
+  grid-template-columns: minmax(0, 1.8fr) 124px minmax(110px, 1fr) auto;
   gap: 6px 10px;
   align-items: center;
 }
+.task-head { grid-template-areas: "main deadline work tools"; }
 .task-head {
   padding: 10px 12px 4px;
   color: var(--muted);
@@ -529,12 +529,12 @@ div.suggest-doc.fld {
 .task-head span:nth-child(1) { grid-area: main; }
 .task-head span:nth-child(2) { grid-area: deadline; }
 .task-head span:nth-child(3) { grid-area: work; }
-.task-head span:nth-child(4) { grid-area: feedback; }
-.task-head span:nth-child(5) { grid-area: tools; }
+.task-head span:nth-child(4) { grid-area: tools; }
 .task-card {
   grid-template-areas:
-    "main deadline work feedback tools"
-    "note note note note note";
+    "main deadline work tools"
+    "feedback feedback feedback feedback"
+    "note note note note";
   padding: 8px 12px;
   border-top: 1px solid var(--line);
 }
@@ -552,8 +552,17 @@ div.suggest-doc.fld {
 }
 .task-card-deadline { grid-area: deadline; }
 .task-card-work { grid-area: work; }
-.task-card-feedback { grid-area: feedback; }
-.task-card-tools { grid-area: tools; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+/* Своя строка: колонка «Отзыв» сжималась до обрубка кнопкой «Сдать на проверку» (#121). */
+.task-card-feedback {
+  grid-area: feedback;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.task-feedback-label { flex: none; font-size: 12px; font-weight: 600; color: var(--muted); }
+.task-feedback-empty { font-size: 12.5px; color: var(--faded); }
+.task-card-tools { grid-area: tools; display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
 .task-card-note { grid-area: note; min-width: 0; }
 .task-note-fold { min-width: 0; }
 .task-note,
@@ -595,6 +604,7 @@ div.suggest-doc.fld {
     grid-template-areas:
       "main tools"
       "meta meta"
+      "feedback feedback"
       "note note";
     align-items: start;
     padding: 10px 12px;
@@ -607,9 +617,8 @@ div.suggest-doc.fld {
     gap: 4px 12px;
   }
   .task-card-deadline,
-  .task-card-work,
-  .task-card-feedback { grid-area: auto; }
-  .task-card-tools { justify-content: flex-end; }
+  .task-card-work { grid-area: auto; }
+  .task-card-tools { justify-content: flex-end; min-width: 0; max-width: 180px; }
   .task-title { font-size: 16px; font-weight: 600; }
 }
 .banner-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 20px; align-items: start; }
@@ -3761,6 +3770,20 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .stars-pill.is-level-up {
     animation: none;
   }
+}
+
+.submit-star {
+  position: fixed;
+  z-index: 80;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 6px 8px rgba(32, 32, 32, 0.14));
+}
+@media (prefers-reduced-motion: reduce) {
+  .submit-star { display: none; }
 }
 
 .shop-plaque {

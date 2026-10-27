@@ -10,6 +10,7 @@ export default function Accordion({
   headerExtra,
   headerPrefix,
   wrapHeader,
+  id,
   children,
 }: {
   title: React.ReactNode;
@@ -17,6 +18,7 @@ export default function Accordion({
   headerExtra?: React.ReactNode;
   headerPrefix?: React.ReactNode;
   wrapHeader?: boolean;
+  id?: string;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(!!defaultOpen);
@@ -28,6 +30,7 @@ export default function Accordion({
 
   return (
     <div
+      id={id}
       className="hover-lift rounded-[14px] mb-3 overflow-hidden"
       style={{ border: "1px solid var(--rule)", background: open ? "#fff" : "var(--soft)" }}
     >

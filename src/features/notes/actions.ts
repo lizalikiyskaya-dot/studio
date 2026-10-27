@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
 import { queueCabinetChange } from "@/lib/activityDigest";
+import { noteUrl, queueMentorDigest } from "@/lib/mentorDigest";
 
 function sectionFromUrl(url: string): string {
   const match = /\/(?:dashboard|student-view\/[^/]+)\/([a-z-]+)/.exec(url);
@@ -25,22 +26,43 @@ export async function createNote(studentId: string, text: string, anchor?: NoteA
       anchorUrl: anchor?.url ?? "",
     },
   });
-  await queueCabinetChange({
-    studentId,
-    byMentor: session.role === "MENTOR",
-    section: sectionFromUrl(anchor?.url ?? ""),
-    detail: "Заметка",
-  });
+  if (session.role === "MENTOR") {
+    await queueMentorDigest({
+      studentId,
+      group: "note",
+      sourceId: note.id,
+      title: text,
+      url: noteUrl(anchor?.url),
+    });
+  } else {
+    await queueCabinetChange({
+      studentId,
+      byMentor: false,
+      section: sectionFromUrl(anchor?.url ?? ""),
+      detail: "Заметка",
+    });
+  }
   return note;
 }
 
 export async function updateNote(noteId: string, text: string) {
   const note = await prisma.note.findUniqueOrThrow({ where: { id: noteId } });
   const session = await requireCabinetAccess(note.studentId);
+  if (text.trim() === note.text.trim()) return;
   await prisma.note.update({ where: { id: noteId }, data: { text } });
+  if (session.role === "MENTOR") {
+    await queueMentorDigest({
+      studentId: note.studentId,
+      group: "note",
+      sourceId: note.id,
+      title: text,
+      url: noteUrl(note.anchorUrl),
+    });
+    return;
+  }
   await queueCabinetChange({
     studentId: note.studentId,
-    byMentor: session.role === "MENTOR",
+    byMentor: false,
     section: sectionFromUrl(note.anchorUrl),
     detail: "Заметка",
   });

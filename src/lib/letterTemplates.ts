@@ -1,4 +1,4 @@
-import { addressForm, addressVars } from "@/lib/addressForm";
+import { addressForm, addressVars, usesFormalAddress } from "@/lib/addressForm";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail, type EmailBlock } from "@/lib/mail";
 import { optOutLinkLabel } from "@/lib/mailOptOut";
 import type { OptOutKind } from "@/lib/mailOptOut";
@@ -182,10 +182,14 @@ export function cleanDraft(draft: LetterDraft): { value?: LetterDraft; error?: s
 }
 
 export function fillLetter(template: string, vars: Record<string, string>): string {
-  return template.replace(/\{([^{}]+)\}/g, (token, name: string) => {
+  const filled = template.replace(/\{([^{}]+)\}/g, (token, name: string) => {
     const value = vars[name];
     return value == null ? token : value;
   });
+  if (vars.имя !== "") return filled;
+  return filled
+    .replace(/(^|\n),\s*/g, "$1")
+    .replace(/(^|\n)([а-яa-zё])/gu, (_lead, edge: string, letter: string) => edge + letter.toLocaleUpperCase("ru-RU"));
 }
 
 const WEEKLY_TOKENS = new Set(["задание", "текст", "срок", "объём"]);
@@ -404,7 +408,7 @@ function chrome(key: LetterKey, vars: Record<string, string>): {
   if (key === "payment") {
     return {
       action: { label: "Открыть платформу", url: login },
-      footnote: "Письмо приходит утром в день оплаты. Отключить его может наставник.",
+      footnote: unsubFoot("Письмо приходит утром в день оплаты. Отключить его может наставник.", vars.отписка, "mail"),
       signature: EMAIL_SIGNATURE,
     };
   }
@@ -442,7 +446,7 @@ function chrome(key: LetterKey, vars: Record<string, string>): {
   if (key === "mentor-edit") {
     return {
       action: { label: "Открыть кабинет", url: vars.кабинет || tasks },
-      footnote: "Одно письмо на пачку правок, не на каждое сохранение. Отключить такие письма можно в профиле.",
+      footnote: unsubFoot("Одно письмо на пачку правок за час, не на каждое сохранение.", vars.отписка, "mail"),
       signature: EMAIL_SIGNATURE,
     };
   }
@@ -468,10 +472,12 @@ export function applyLetterTemplate(
   if (!stored || sameAsStandard(key, stored)) return designed;
   if (key === "password" && !vars.ссылка?.trim()) return designed;
   const subject = fillLetter(stored.subject, varsForFill(vars)).trim() || designed.subject;
+  const toMentor = key === "registration-mentor" || key === "student-edit" || key === "student-online";
   const letter = renderEmail({
     title: subject,
     blocks: blocksFromTemplate(key, stored.body, vars),
     ...chrome(key, vars),
+    formal: toMentor ? undefined : usesFormalAddress(vars.имя ?? ""),
   });
   return { subject, html: letter.html, text: letter.text };
 }

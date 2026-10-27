@@ -69,6 +69,7 @@ export default async function BeliefView({
               initialCards={own}
               suggestions={ownSuggestions}
               comments={allComments}
+              isMentorViewer={isMentorViewer}
             />
           ),
         },

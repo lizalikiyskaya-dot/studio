@@ -36,12 +36,14 @@ export async function addComment(model: CommentableModel, recordId: string, text
   const session = await requireCabinetAccess(studentId);
   const author = session.role === "MENTOR" ? "Наставник" : "Ученик";
   const comment = await prisma.comment.create({ data: { model, recordId, author, text } });
-  await queueCabinetChange({
-    studentId,
-    byMentor: session.role === "MENTOR",
-    section: MODEL_SECTION[model] ?? "tasks",
-    detail: "Комментарий",
-  });
+  if (session.role !== "MENTOR") {
+    await queueCabinetChange({
+      studentId,
+      byMentor: false,
+      section: MODEL_SECTION[model] ?? "tasks",
+      detail: "Комментарий",
+    });
+  }
   return comment;
 }
 

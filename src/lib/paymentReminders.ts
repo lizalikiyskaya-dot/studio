@@ -1,5 +1,6 @@
-import { addressForm, addressVars } from "@/lib/addressForm";
+import { addressForm, addressVars, usesFormalAddress, withGreeting } from "@/lib/addressForm";
 import { EMAIL_SIGNATURE, appUrl, escapeHtml, renderEmail } from "@/lib/mail";
+import { optOutLinkLabel } from "@/lib/mailOptOut";
 
 /** Утро по Москве, когда письмо ещё уместно. Час 9 включительно, 12 уже нет. */
 export const MORNING_FROM_HOUR = 9;
@@ -111,16 +112,26 @@ function dateLabel(parts: MoscowParts): string {
 
 export function paymentLetterVars(person: { name: string; paymentAmount: number | null }, parts: MoscowParts): Record<string, string> {
   const сумма = person.paymentAmount != null ? `Сумма — ${rubles(person.paymentAmount)}.` : "";
-  return { ...addressVars(person.name), имя: person.name, дата: dateLabel(parts), сумма };
+  return { ...addressVars(person.name), дата: dateLabel(parts), сумма };
 }
 
-export function buildPaymentReminder(person: { name: string; paymentAmount: number | null }, parts: MoscowParts): {
+function paymentFoot(url: string | undefined): string {
+  const base = "Письмо приходит утром в день оплаты. Отключить его может наставник.";
+  if (!url) return base;
+  return `${base}<br><a href="${escapeHtml(url)}" style="color:#4B3FC0;text-decoration:underline;">${escapeHtml(optOutLinkLabel("mail"))}</a>`;
+}
+
+export function buildPaymentReminder(
+  person: { name: string; paymentAmount: number | null },
+  parts: MoscowParts,
+  unsubscribeUrl?: string,
+): {
   subject: string;
   html: string;
   text: string;
 } {
   const when = dateLabel(parts);
-  const paragraphs = [`${escapeHtml(person.name)}, сегодня ${when} — день оплаты.`];
+  const paragraphs = [escapeHtml(withGreeting(person.name, `сегодня ${when} — день оплаты.`))];
   if (person.paymentAmount != null) paragraphs.push(`Сумма — ${rubles(person.paymentAmount)}.`);
   paragraphs.push(`Если дата или сумма изменились, ${addressForm(person.name).write} мне в Телеграме.`);
   const subject = "Сегодня день оплаты";
@@ -128,8 +139,9 @@ export function buildPaymentReminder(person: { name: string; paymentAmount: numb
     title: subject,
     paragraphs,
     action: { label: "Открыть платформу", url: `${appUrl()}/login` },
-    footnote: "Письмо приходит утром в день оплаты. Отключить его может наставник.",
+    footnote: paymentFoot(unsubscribeUrl),
     signature: EMAIL_SIGNATURE,
+    formal: usesFormalAddress(person.name),
   });
   return { subject, html: letter.html, text: letter.text };
 }
@@ -153,7 +165,9 @@ export async function runPaymentReminders(options: {
     html: string;
     text: string;
     recipientUserId: string;
+    listUnsubscribe?: string;
   }) => Promise<boolean>;
+  unsubscribeUrl?: (studentId: string) => string | null;
   dress?: (
     person: ReminderPerson,
     letter: { subject: string; html: string; text: string },
@@ -172,7 +186,8 @@ export async function runPaymentReminders(options: {
   let alreadySent = 0;
   let failed = 0;
   for (const person of people) {
-    const built = buildPaymentReminder(person, parts);
+    const unsubscribeUrl = options.unsubscribeUrl?.(person.id) ?? undefined;
+    const built = buildPaymentReminder(person, parts, unsubscribeUrl);
     const letter = options.dress ? await options.dress(person, built, parts) : built;
     if (dryRun) {
       sent += 1;
@@ -189,6 +204,7 @@ export async function runPaymentReminders(options: {
       html: letter.html,
       text: letter.text,
       recipientUserId: person.id,
+      listUnsubscribe: unsubscribeUrl,
     });
     if (!ok) {
       failed += 1;

@@ -9,7 +9,8 @@ function missingColumn(error: unknown): boolean {
 
 /** enabled true: снова получать. false: отписка. Только ученик. */
 export async function setContentSubscription(userId: string, kind: OptOutKind, enabled: boolean): Promise<boolean> {
-  const data = kind === "weekly" ? { weeklyEmails: enabled } : { quoteEmails: enabled };
+  const data =
+    kind === "weekly" ? { weeklyEmails: enabled } : kind === "quote" ? { quoteEmails: enabled } : { emailNotifications: enabled };
   try {
     const result = await prisma.user.updateMany({
       where: { id: userId, role: "STUDENT" },

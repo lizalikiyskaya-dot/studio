@@ -8,10 +8,43 @@
  */
 export const FORMAL_ADDRESS_NAMES = ["Виктория"] as const;
 
+/** Логин в поле имени: Yannie_E, почта, цифры. Обычное имя, в том числе латиницей, остаётся. */
+export function isAccountLogin(token: string): boolean {
+  if (/[_\d@]/.test(token)) return true;
+  if (/[А-Яа-яЁё]/.test(token)) return false;
+  return /[a-z][A-Z]/.test(token);
+}
+
+/**
+ * Имя в приветствии. Надежда — Надя. Виктория не сокращается.
+ * Логин вроде Yannie_E не подставляется: если живого имени нет, строка пустая.
+ */
+export function greetingName(fullName: string): string {
+  const tokens = fullName.trim().split(/\s+/).filter(Boolean);
+  for (const raw of tokens) {
+    const token = raw.replace(/^[«"(\[]+|[»").,\]]+$/g, "");
+    if (!token || isAccountLogin(token)) continue;
+    if (token.toLocaleLowerCase("ru-RU") === "надежда") return "Надя";
+    return token;
+  }
+  return "";
+}
+
 export function usesFormalAddress(name: string): boolean {
   const first = name.trim().split(/\s+/)[0]?.toLocaleLowerCase("ru-RU") ?? "";
   if (!first) return false;
   return FORMAL_ADDRESS_NAMES.some((item) => item.toLocaleLowerCase("ru-RU") === first);
+}
+
+/** «Надя, сегодня такая цитата.» Без имени: «Сегодня такая цитата.» */
+export function withGreeting(fullName: string, rest: string): string {
+  const who = greetingName(fullName);
+  const sentence = rest.trim();
+  if (!who) {
+    if (!sentence) return "";
+    return sentence.charAt(0).toLocaleUpperCase("ru-RU") + sentence.slice(1);
+  }
+  return `${who}, ${sentence}`;
 }
 
 export type AddressForm = {
@@ -84,6 +117,7 @@ export function addressForm(name: string): AddressForm {
 export function addressVars(name: string): Record<string, string> {
   const form = addressForm(name);
   return {
+    имя: greetingName(name),
     кому: form.toYou,
     чью: form.yourFAcc,
     чей: form.yourM,

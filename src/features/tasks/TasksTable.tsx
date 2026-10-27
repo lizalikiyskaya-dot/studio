@@ -19,28 +19,33 @@ import {
 } from "./actions";
 import { moveBy, moveWithin, taskRowNumber } from "./order";
 import TaskStatusMenu from "./TaskStatusMenu";
+import SubmitForReviewButton from "@/features/submit/SubmitForReviewButton";
+import { submitReviewControl } from "@/features/submit/submitStar";
 import { TASK_FILTERS } from "./status";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import DateField from "@/components/DateField";
 
-function LinkCell({ value, onSave }: { value: string | null; onSave: (value: string) => void }) {
+function linkLabel(value: string, limit = 40) {
+  let display: string;
+  try {
+    const u = new URL(value);
+    display = u.hostname.replace(/^www\./, "") + (u.pathname !== "/" ? u.pathname : "");
+  } catch {
+    display = value;
+  }
+  return display.length > limit ? display.slice(0, limit - 2) + "…" : display;
+}
+
+function LinkCell({ value, onSave, limit = 40 }: { value: string | null; onSave: (value: string) => void; limit?: number }) {
   async function promptEdit() {
     const url = await sitePrompt("Ссылка", value ?? "");
     if (url !== null) onSave(url);
   }
   if (value) {
-    let display: string;
-    try {
-      const u = new URL(value);
-      display = u.hostname.replace(/^www\./, "") + (u.pathname !== "/" ? u.pathname : "");
-      if (display.length > 40) display = display.slice(0, 38) + "…";
-    } catch {
-      display = value.length > 40 ? value.slice(0, 38) + "…" : value;
-    }
     return (
       <div className="flex items-center gap-1.5 min-w-0">
         <a href={value} target="_blank" rel="noopener noreferrer" title={value} className="lnk text-[12.5px] truncate">
-          {display}
+          {linkLabel(value, limit)}
         </a>
         <button onClick={promptEdit} title="Изменить ссылку" style={{ color: "var(--faded)", flexShrink: 0 }}>
           <Pencil size={11} />
@@ -52,6 +57,16 @@ function LinkCell({ value, onSave }: { value: string | null; onSave: (value: str
     <button onClick={promptEdit} className="lnk text-[12px]">
       + ссылка
     </button>
+  );
+}
+
+/** Ученик открывает отзыв наставника и не меняет ссылку. */
+function FeedbackReadOnly({ value }: { value: string | null }) {
+  if (!value) return <span className="task-feedback-empty">пока нет</span>;
+  return (
+    <a href={value} target="_blank" rel="noopener noreferrer" title={value} className="lnk min-w-0 text-[12.5px] truncate">
+      {linkLabel(value, 72)}
+    </a>
   );
 }
 
@@ -116,10 +131,12 @@ function toDateInputValue(date: Date | string | null): string {
 export default function TasksTable({
   studentId,
   initialTasks,
+  isMentor,
   banners,
 }: {
   studentId: string;
   initialTasks: Task[];
+  isMentor: boolean;
   banners?: React.ReactNode;
 }) {
   const [tasks, setTasks] = useState(initialTasks);
@@ -128,6 +145,7 @@ export default function TasksTable({
     tasksRef.current = tasks;
   }, [tasks]);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
+  const [lingering, setLingering] = useState<Set<string>>(() => new Set());
   const dragIdRef = useRef<string | null>(null);
   const [, startTransition] = useTransition();
   const searchParams = useSearchParams();
@@ -166,6 +184,18 @@ export default function TasksTable({
 
   function handleStatus(taskId: string, status: TaskStatus) {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status } : t)));
+    // На вкладке «В процессе» карточка остаётся, пока кнопка уже «Сдано на проверку» и звёздочка летит.
+    if (status === "SUBMITTED" && activeTab === "progress") {
+      setLingering((prev) => new Set(prev).add(taskId));
+      window.setTimeout(() => {
+        setLingering((prev) => {
+          if (!prev.has(taskId)) return prev;
+          const next = new Set(prev);
+          next.delete(taskId);
+          return next;
+        });
+      }, 800);
+    }
     startTransition(async () => {
       await setTaskStatus(taskId, status);
       router.refresh();
@@ -182,7 +212,9 @@ export default function TasksTable({
 
   function visibleOf(list: Task[]) {
     const tab = TABS.find((item) => item.id === activeTab) ?? TABS[0];
-    return list.filter((task) => tab.status == null || task.status === tab.status);
+    return list.filter(
+      (task) => tab.status == null || task.status === tab.status || (tab.id === "progress" && lingering.has(task.id)),
+    );
   }
 
   function persist(next: Task[]) {
@@ -213,10 +245,7 @@ export default function TasksTable({
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   }
 
-  const visible = tasks.filter((task) => {
-    const tab = TABS.find((item) => item.id === activeTab) ?? TABS[0];
-    return tab.status == null || task.status === tab.status;
-  });
+  const visible = visibleOf(tasks);
 
   return (
     <div>
@@ -266,7 +295,6 @@ export default function TasksTable({
           <span>Задание</span>
           <span>Дедлайн</span>
           <span>Работа</span>
-          <span>Отзыв</span>
           <span>Статус</span>
         </div>
         {visible.length === 0 ? (
@@ -311,12 +339,14 @@ export default function TasksTable({
                   </button>
                 </span>
                 <span className="task-card-n">{taskRowNumber(index)}</span>
-                <EditableWithLinks
-                  defaultValue={task.title}
-                  onSave={(v) => handleTitleBlur(task.id, v)}
-                  placeholder="Описание задания"
-                  className="task-title"
-                />
+                <div data-no-digest="">
+                  <EditableWithLinks
+                    defaultValue={task.title}
+                    onSave={(v) => handleTitleBlur(task.id, v)}
+                    placeholder="Описание задания"
+                    className="task-title"
+                  />
+                </div>
               </div>
               <div className="task-card-meta">
                 <div className="task-card-deadline">
@@ -328,15 +358,36 @@ export default function TasksTable({
                 <div className="task-card-work">
                   <LinkCell value={task.workLink} onSave={(v) => handleLink(task.id, "workLink", v)} />
                 </div>
-                <div className="task-card-feedback">
-                  <LinkCell value={task.feedbackLink} onSave={(v) => handleLink(task.id, "feedbackLink", v)} />
-                </div>
               </div>
               <div className="task-card-tools">
-                <TaskStatusMenu status={task.status} onChange={(status) => handleStatus(task.id, status)} />
+                {isMentor ? (
+                  <TaskStatusMenu status={task.status} onChange={(status) => handleStatus(task.id, status)} />
+                ) : (
+                  <span className="inline-flex flex-wrap items-center justify-end gap-2">
+                    <TaskStatusMenu status={task.status} onChange={(status) => handleStatus(task.id, status)} locked />
+                    {submitReviewControl(task.status) === "hidden" ? null : (
+                      <SubmitForReviewButton
+                        submitted={submitReviewControl(task.status) === "submitted"}
+                        onSubmit={() => handleStatus(task.id, "SUBMITTED")}
+                      />
+                    )}
+                  </span>
+                )}
                 <button type="button" onClick={() => handleDelete(task.id)} style={{ color: "var(--muted)" }} title="Удалить задание" aria-label="Удалить задание">
                   <Trash2 size={15} />
                 </button>
+              </div>
+              <div className="task-card-feedback">
+                <span className="task-feedback-label">Отзыв</span>
+                {isMentor ? (
+                  <LinkCell
+                    value={task.feedbackLink}
+                    limit={72}
+                    onSave={(v) => handleLink(task.id, "feedbackLink", v)}
+                  />
+                ) : (
+                  <FeedbackReadOnly value={task.feedbackLink} />
+                )}
               </div>
               <div className="task-card-note">
                 <TaskNote

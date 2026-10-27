@@ -267,6 +267,7 @@ export default function PlanTable({
                     return (
                       <article
                         key={chapter.id}
+                        id={`chapter-${chapter.id}`}
                         className={`chapter-card is-${tone}`}
                         style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
                       >

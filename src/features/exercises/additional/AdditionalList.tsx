@@ -26,7 +26,7 @@ import WritingEditor from "./WritingEditor";
 import WritingMode from "./WritingMode";
 import type { ContentFormat } from "./richText";
 import { Button } from "@/components/ui/Button";
-import TaskStatusMenu from "@/features/tasks/TaskStatusMenu";
+import ExerciseStatusControl from "@/features/exercises/ExerciseStatusControl";
 
 function TableSection({
   section,
@@ -300,6 +300,7 @@ export default function AdditionalList({
         return (
         <Accordion
           key={section.id}
+          id={`exercise-${section.id}`}
           defaultOpen={section.id === freshId}
           title={canRename ? (
             <InlineTitle
@@ -311,7 +312,11 @@ export default function AdditionalList({
             />
           ) : (section.title || "Без названия")}
           headerExtra={
-            <TaskStatusMenu status={section.status} onChange={(status) => handleStatus(section.id, status)} />
+            <ExerciseStatusControl
+              status={section.status}
+              isMentor={isMentorViewer}
+              onChange={(status) => handleStatus(section.id, status)}
+            />
           }
         >
           <SectionBody

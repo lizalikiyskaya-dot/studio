@@ -74,6 +74,7 @@ export default async function PopArcsView({
               initialCharacters={heroes}
               suggestions={ownSuggestions}
               comments={allComments}
+              isMentorViewer={isMentorViewer}
             />
           ),
         },

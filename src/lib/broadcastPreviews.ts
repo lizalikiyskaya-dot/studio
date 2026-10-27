@@ -3,6 +3,8 @@ import { deadlinePreviewLetters } from "@/lib/deadlineReminders";
 import { renderEmail } from "@/lib/mail";
 import { buildPaymentReminder, moscowParts } from "@/lib/paymentReminders";
 import { approvedLetter, dailyQuoteLetter, guideOpenedLetter, passwordResetLetter, registrationStudentLetter, weeklyTaskLetter } from "@/lib/notify";
+import { newTaskLetter } from "@/lib/newTaskMail";
+import { mentorSubmissionUrl, submissionLetter } from "@/lib/submissionMail";
 
 export type BroadcastPreview = {
   subject: string;
@@ -70,5 +72,30 @@ export function broadcastPreviewHtml(): Record<string, BroadcastPreview> {
     "mentor-edit": { subject: activity["mentor-edit"].subject, html: activity["mentor-edit"].letter.html },
     "student-edit": { subject: activity["student-edit"].subject, html: activity["student-edit"].letter.html },
     "student-online": { subject: activity["student-online"].subject, html: activity["student-online"].letter.html },
+    submitted: (() => {
+      const letter = submissionLetter({
+        name: "Надежда",
+        section: "Задания",
+        title: "Черновик первой главы",
+        url: mentorSubmissionUrl("sample", "tasks", "sample-task"),
+      });
+      return { subject: letter.subject, html: letter.html };
+    })(),
+    "new-task": (() => {
+      const sample = {
+        title: "Черновик первой главы",
+        deadline: new Date("2026-11-02T00:00:00Z"),
+        taskId: "sample-task",
+        unsubscribeUrl: "https://studio.lizandwriter.ru/unsubscribe?token=preview-task",
+      };
+      const informal = newTaskLetter({ ...sample, name: "Надежда" });
+      const formal = newTaskLetter({ ...sample, name: "Виктория" });
+      return {
+        subject: informal.subject,
+        html: informal.html,
+        label: "Надя, на «ты»",
+        also: { subject: formal.subject, html: formal.html, label: "Виктория, на «Вы»" },
+      };
+    })(),
   };
 }
