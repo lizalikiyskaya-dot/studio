@@ -1,11 +1,9 @@
 export type DiffToken = { type: "same" | "del" | "add"; text: string };
 
 /**
- * Диф по ПРЕДЛОЖЕНИЯМ, а не по словам.
- *
- * Пословный диф давал рваную картину: зачёркнутое слово, рядом новое,
- * снова кусок старого текста — читать правку невозможно. Здесь изменённое
- * предложение зачёркивается целиком, а следом идёт целиком новое.
+ * Диф по словам: общее начало и конец, включая пробелы и знаки, не трогаем.
+ * Замена одного слова — только это слово зачёркнуто, следом новое.
+ * Несколько замен в одной фразе остаются отдельными кусками.
  */
 
 const TERMINATORS = /[.!?…]/;
@@ -53,47 +51,112 @@ export function splitSentences(text: string): string[] {
   return out;
 }
 
-/** Ключ сравнения: пробелы по краям и их количество внутри не считаем правкой. */
-function key(sentence: string): string {
-  return sentence.trim().replace(/\s+/g, " ");
+function isWordChar(ch: string) {
+  return /[0-9A-Za-zА-Яа-яЁё-]/.test(ch);
 }
 
-export function sentenceDiff(oldText: string, newText: string): DiffToken[] {
-  const oldSentences = splitSentences(oldText);
-  const newSentences = splitSentences(newText);
-  const a = oldSentences.map(key);
-  const b = newSentences.map(key);
+type Word = { word: string; gapAfter: string };
+
+/** Слово с хвостом пробелов. Знаки остаются при слове, общие края срежет диф. */
+function splitWordGaps(text: string): Word[] {
+  const out: Word[] = [];
+  const lead = /^\s+/.exec(text);
+  const rest = lead ? text.slice(lead[0].length) : text;
+  if (lead) out.push({ word: "", gapAfter: lead[0] });
+  const re = /(\S+)(\s*)/g;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(rest))) out.push({ word: match[1], gapAfter: match[2] });
+  return out;
+}
+
+type Op =
+  | { type: "same"; old: Word; neu: Word }
+  | { type: "del"; word: Word }
+  | { type: "add"; word: Word };
+
+function alignWords(oldWords: Word[], newWords: Word[]): Op[] {
+  const a = oldWords.map((word) => word.word);
+  const b = newWords.map((word) => word.word);
   const m = a.length;
   const n = b.length;
-
-  // Классический LCS: общие предложения остаются на месте, остальное
-  // расходится в «убрано» и «добавлено».
   const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
   for (let i = m - 1; i >= 0; i--) {
     for (let j = n - 1; j >= 0; j--) {
       dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
     }
   }
-
-  const raw: DiffToken[] = [];
+  const ops: Op[] = [];
   let i = 0;
   let j = 0;
   while (i < m && j < n) {
     if (a[i] === b[j]) {
-      raw.push({ type: "same", text: oldSentences[i] });
+      ops.push({ type: "same", old: oldWords[i], neu: newWords[j] });
       i++;
       j++;
     } else if (dp[i + 1][j] >= dp[i][j + 1]) {
-      raw.push({ type: "del", text: oldSentences[i] });
+      ops.push({ type: "del", word: oldWords[i] });
       i++;
     } else {
-      raw.push({ type: "add", text: newSentences[j] });
+      ops.push({ type: "add", word: newWords[j] });
       j++;
     }
   }
-  while (i < m) raw.push({ type: "del", text: oldSentences[i++] });
-  while (j < n) raw.push({ type: "add", text: newSentences[j++] });
+  while (i < m) ops.push({ type: "del", word: oldWords[i++] });
+  while (j < n) ops.push({ type: "add", word: newWords[j++] });
+  return ops;
+}
 
+function joinWords(words: Word[], keepTrail: boolean) {
+  let text = "";
+  words.forEach((word, index) => {
+    text += word.word;
+    if (keepTrail || index < words.length - 1) text += word.gapAfter;
+  });
+  return text;
+}
+
+/** Заменённый кусок: все старые слова, затем все новые. Общий пробел после куска — один раз. */
+function renderSpan(dels: Word[], adds: Word[]): DiffToken[] {
+  const oldTrail = dels.length ? dels[dels.length - 1].gapAfter : "";
+  const newTrail = adds.length ? adds[adds.length - 1].gapAfter : "";
+  const shareTrail = dels.length > 0 && adds.length > 0 && oldTrail === newTrail;
+  const tokens: DiffToken[] = [];
+  const deleted = joinWords(dels, !shareTrail);
+  const added = joinWords(adds, !shareTrail);
+  if (deleted) tokens.push({ type: "del", text: deleted });
+  if (added) tokens.push({ type: "add", text: added });
+  if (shareTrail && oldTrail) tokens.push({ type: "same", text: oldTrail });
+  return tokens;
+}
+
+export function sentenceDiff(oldText: string, newText: string): DiffToken[] {
+  if (oldText === newText) return oldText ? [{ type: "same", text: oldText }] : [];
+  const ops = alignWords(splitWordGaps(oldText), splitWordGaps(newText));
+  const raw: DiffToken[] = [];
+  let i = 0;
+  while (i < ops.length) {
+    const op = ops[i];
+    if (op.type === "same") {
+      if (op.old.word) raw.push({ type: "same", text: op.old.word });
+      if (op.old.gapAfter === op.neu.gapAfter) {
+        if (op.old.gapAfter) raw.push({ type: "same", text: op.old.gapAfter });
+      } else {
+        if (op.old.gapAfter) raw.push({ type: "del", text: op.old.gapAfter });
+        if (op.neu.gapAfter) raw.push({ type: "add", text: op.neu.gapAfter });
+      }
+      i++;
+      continue;
+    }
+    const dels: Word[] = [];
+    const adds: Word[] = [];
+    while (i < ops.length && ops[i].type !== "same") {
+      const next = ops[i];
+      if (next.type === "del") dels.push(next.word);
+      else if (next.type === "add") adds.push(next.word);
+      i++;
+    }
+    raw.push(...renderSpan(dels, adds));
+  }
   return groupChanges(raw);
 }
 
@@ -177,18 +240,22 @@ function sharedSuffix(a: string, b: string, prefix: number) {
   return i;
 }
 
+function atWordBoundary(text: string, index: number) {
+  if (index <= 0 || index >= text.length) return true;
+  return !isWordChar(text[index - 1]) || !isWordChar(text[index]);
+}
+
 function wordBoundaryPrefix(text: string, index: number) {
-  if (index <= 0) return 0;
-  if (/\s/.test(text[index] ?? "") || /\s/.test(text[index - 1] ?? "")) return index;
-  const space = text.lastIndexOf(" ", index);
-  return space === -1 ? 0 : space + 1;
+  if (atWordBoundary(text, index)) return index;
+  let i = index;
+  while (i > 0 && isWordChar(text[i - 1])) i--;
+  return i;
 }
 
 function wordBoundarySuffix(text: string, suffix: number) {
   const start = text.length - suffix;
-  if (start <= 0) return suffix;
-  if (/\s/.test(text[start] ?? "") || /\s/.test(text[start - 1] ?? "")) return suffix;
-  const space = text.indexOf(" ", start);
-  if (space === -1) return 0;
-  return text.length - space;
+  if (atWordBoundary(text, start)) return suffix;
+  let i = start;
+  while (i < text.length && isWordChar(text[i])) i++;
+  return text.length - i;
 }

@@ -87,6 +87,52 @@ test("правка внутри уже предложенной вставки �
   assert.equal(second.suggestion, null);
 });
 
+function changed(base: string, suggested: string) {
+  return markedSuggestion(base, suggested)
+    .filter((token) => token.type !== "same")
+    .map((token) => `${token.type}:${token.text}`)
+    .join("|");
+}
+
+test("замена одного слова в середине не захватывает фразу", () => {
+  const base = "Ян уверен, что дом молчит у реки.";
+  const suggested = "Ян уверен, что дом говорит у реки.";
+  assert.equal(changed(base, suggested), "del:молчит|add:говорит");
+  const accepted = resolveHunk(base, suggested, 0, "accept");
+  assert.equal(accepted.value, suggested);
+  assert.equal(accepted.suggestion, null);
+  const rejected = resolveHunk(base, suggested, 0, "reject");
+  assert.equal(rejected.value, base);
+  assert.equal(rejected.suggestion, null);
+});
+
+test("замена фразы помечает только изменённый кусок", () => {
+  const base = "Герой ищет дорогу домой и собирает спутников.";
+  const suggested = "Герой ищет тихую тропу к морю и собирает спутников.";
+  assert.equal(changed(base, suggested), "del:дорогу домой|add:тихую тропу к морю");
+  const accepted = resolveHunk(base, suggested, 0, "accept");
+  assert.equal(accepted.value, suggested);
+  assert.equal(accepted.suggestion, null);
+});
+
+test("чистая вставка и чистое удаление не трогают соседей", () => {
+  const inserted = markedSuggestion("Ян молчит у реки.", "Ян долго молчит у реки.");
+  assert.equal(
+    inserted.filter((token) => token.type !== "same").map((token) => token.text).join(""),
+    "долго ",
+  );
+  const removed = markedSuggestion("Ян долго молчит у реки.", "Ян молчит у реки.");
+  assert.equal(
+    removed.filter((token) => token.type !== "same").map((token) => `${token.type}:${token.text}`).join("|"),
+    "del:долго ",
+  );
+  const accepted = resolveHunk("Ян молчит у реки.", "Ян долго молчит у реки.", 0, "accept");
+  assert.equal(accepted.value, "Ян долго молчит у реки.");
+  const rejected = resolveHunk("Ян долго молчит у реки.", "Ян молчит у реки.", 0, "reject");
+  assert.equal(rejected.value, "Ян долго молчит у реки.");
+  assert.equal(rejected.suggestion, null);
+});
+
 test("когда правок не осталось, предложение снимается", () => {
   const once = resolveHunk(base, suggested, 0, "accept");
   const twice = resolveHunk(once.value, once.suggestion!, 0, "reject");

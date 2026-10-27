@@ -42,11 +42,20 @@ function SuggestionText({
   onHunk: (index: number, action: "accept" | "reject") => void;
 }) {
   const marks = markedSuggestion(base, suggested);
-  const pieces: { hunk: number | null; tokens: MarkedToken[] }[] = [];
+  const pieces: { hunk: number | null; tokens: MarkedToken[]; tail: MarkedToken[] }[] = [];
   for (const token of marks) {
     const last = pieces[pieces.length - 1];
     if (last && last.hunk === token.hunk) last.tokens.push(token);
-    else pieces.push({ hunk: token.hunk, tokens: [token] });
+    else pieces.push({ hunk: token.hunk, tokens: [token], tail: [] });
+  }
+  // Общая точка после слова остаётся у слова, а не уезжает за кнопки.
+  for (let index = 0; index < pieces.length; index++) {
+    const piece = pieces[index];
+    const next = pieces[index + 1];
+    if (piece.hunk == null || !next || next.hunk != null) continue;
+    while (next.tokens.length && /^[.,!?;:…]+$/.test(next.tokens[0].text)) {
+      piece.tail.push(next.tokens.shift()!);
+    }
   }
   const hunks = new Set(marks.map((token) => token.hunk).filter((hunk) => hunk != null));
 
@@ -61,10 +70,15 @@ function SuggestionText({
               <span key={tokenIndex} className={tokenClass(token)} style={gap ? { marginLeft: "0.35em" } : undefined}>{token.text}</span>
             );
           });
-          if (piece.hunk == null) return <span key={index}>{body}</span>;
+          if (piece.hunk == null) {
+            if (!piece.tokens.length) return null;
+            return <span key={index}>{body}</span>;
+          }
+          const tail = piece.tail.map((token, tokenIndex) => <span key={`tail-${tokenIndex}`}>{token.text}</span>);
           return (
             <span key={index} className="suggest-hunk">
               {body}
+              {tail}
               <HunkButtons onAccept={() => onHunk(piece.hunk!, "accept")} onReject={() => onHunk(piece.hunk!, "reject")} />
             </span>
           );
