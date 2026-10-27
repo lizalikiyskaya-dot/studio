@@ -7,7 +7,18 @@ import {
   enqueueCreate,
   nextMaterialOrder,
   titleSaveFromField,
+  toggleOpenId,
 } from "./materialRows";
+
+test("один щелчок открывает личную методичку и следующий закрывает", () => {
+  const opened = toggleOpenId({}, "yan");
+  assert.equal(opened.yan, true);
+  const closed = toggleOpenId(opened, "yan");
+  assert.equal(closed.yan, false);
+  const other = toggleOpenId(opened, "other");
+  assert.equal(other.yan, true);
+  assert.equal(other.other, true);
+});
 
 test("новая строка получает max+1, а не количество", () => {
   assert.equal(nextMaterialOrder([]), 0);

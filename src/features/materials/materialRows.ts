@@ -1,5 +1,10 @@
 export type TitleSave = { id: string; title: string };
 
+/** One click opens a closed row and closes an open one. Other rows stay as they are. */
+export function toggleOpenId(openIds: Readonly<Record<string, boolean>>, id: string): Record<string, boolean> {
+  return { ...openIds, [id]: !(openIds[id] ?? false) };
+}
+
 /** Next `order` for a new row. Count collides when orders have a hole or a tie. */
 export function nextMaterialOrder(existingOrders: readonly number[]): number {
   let max = -1;

@@ -17,12 +17,15 @@ export default function InlineTitle({
   placeholder = "Название",
   autoFocus = false,
   className = "",
+  bubbleTitle = false,
 }: {
   value: string;
   onSave: (value: string) => void;
   placeholder?: string;
   autoFocus?: boolean;
   className?: string;
+  /** Title text belongs to a parent toggle. Only the pencil starts renaming. */
+  bubbleTitle?: boolean;
 }) {
   const [editing, setEditing] = useState(autoFocus);
   const [draft, setDraft] = useState(value);
@@ -71,6 +74,29 @@ export default function InlineTitle({
           }
         }}
       />
+    );
+  }
+
+  if (bubbleTitle) {
+    return (
+      <span className="inline-flex min-w-0 max-w-full flex-1 items-center gap-1.5">
+        <span className={`min-w-0 flex-1 truncate text-left font-semibold ${className}`}>
+          {value.trim() || placeholder}
+        </span>
+        <button
+          type="button"
+          aria-label="переименовать"
+          title="переименовать"
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-full"
+          style={{ background: "#fff", color: "var(--ink)", border: "1px solid var(--border)" }}
+          onClick={(event) => {
+            stop(event);
+            setEditing(true);
+          }}
+        >
+          <Pencil size={13} />
+        </button>
+      </span>
     );
   }
 

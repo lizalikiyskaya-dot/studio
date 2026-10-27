@@ -23,7 +23,7 @@ import {
   setMaterialMonth,
   setMaterialNote,
 } from "./actions";
-import { appendMaterial, applyMaterialTitles, enqueueById, enqueueCreate } from "./materialRows";
+import { appendMaterial, applyMaterialTitles, enqueueById, enqueueCreate, toggleOpenId } from "./materialRows";
 import { BOOK_NOTE_MAX, storedBookNote, visibleBookMonth, visibleBookNote } from "./materialFile";
 import { BOOK_MONTHS, bookMonthYears, formatStoredBookMonth, parseStoredBookMonth } from "./bookMonthSelect";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
@@ -512,24 +512,37 @@ function HandoutsList({
           onDrop={drag.onDrop}
           onDragEnd={() => setArmedId(null)}
           onMouseUp={() => setArmedId(null)}
-          className="hover-lift group mb-3 rounded-[24px] px-4 py-3.5"
+          className="group mb-3 rounded-[24px] px-4 py-3.5"
           style={{ background: "#fff", border: "1px solid var(--border)" }}
         >
-          <div className="flex items-start justify-between gap-3">
+          <div
+            className="flex cursor-pointer items-start justify-between gap-3"
+            role="button"
+            tabIndex={0}
+            aria-expanded={open}
+            onClick={() => setOpenIds((prev) => toggleOpenId(prev, material.id))}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              setOpenIds((prev) => toggleOpenId(prev, material.id));
+            }}
+          >
             <div className="flex min-w-0 flex-1 items-start gap-2">
-              <button
-                type="button"
-                onClick={() => setOpenIds((prev) => ({ ...prev, [material.id]: !open }))}
-                aria-expanded={open}
+              <span
+                aria-hidden="true"
                 className="mt-1 grid h-5 w-5 shrink-0 place-items-center"
                 title={open ? "Свернуть" : "Развернуть"}
               >
                 <ChevronDown size={15} className={`chevron-turn${open ? " is-open" : ""}`} />
-              </button>
+              </span>
               {canManage && (
                 <GripVertical
                   size={14}
-                  onMouseDown={() => setArmedId(material.id)}
+                  onMouseDown={(event) => {
+                    event.stopPropagation();
+                    setArmedId(material.id);
+                  }}
+                  onClick={(event) => event.stopPropagation()}
                   className="mt-1 shrink-0 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
                   style={{ color: "var(--ink-faint)" }}
                 />
@@ -540,14 +553,18 @@ function HandoutsList({
                   autoFocus={material.id === freshId}
                   placeholder="Название методички"
                   onSave={(value) => saveTitle(material.id, value)}
-                  className="text-[17px]"
+                  className="heading text-[17px]"
+                  bubbleTitle
                 />
               ) : (
                 <span className="heading min-w-0 flex-1 text-[17px] font-semibold">{material.title || "Без названия"}</span>
               )}
             </div>
             <span
-              onClick={() => handleStatus(material.id, material.status)}
+              onClick={(event) => {
+                event.stopPropagation();
+                handleStatus(material.id, material.status);
+              }}
               className="cursor-pointer whitespace-nowrap rounded-full px-2.5 py-1 text-[12px]"
               style={MATERIAL_STATUS_STYLE[material.status]}
             >
