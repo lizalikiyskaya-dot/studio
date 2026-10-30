@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Pencil } from "lucide-react";
+import { anchorQuote } from "./quoteMatch";
+import { caretRect, collectVisibleText, offsetInCollected } from "./pageText";
 
-export type Anchor = { quote: string; label: string; url: string };
+export type Anchor = { quote: string; label: string; url: string; offset: number };
 
 const TEXTUAL_INPUT = new Set(["", "text", "search", "url", "tel", "password", "email", "number"]);
 
@@ -57,41 +59,7 @@ function readableLabel(): string {
   return h1 || document.title || "Страница";
 }
 
-type Found = { text: string; rect: DOMRect | null };
-
-function caretRect(field: HTMLTextAreaElement | HTMLInputElement, index: number): DOMRect {
-  const fieldRect = field.getBoundingClientRect();
-  if (field instanceof HTMLInputElement || field.clientWidth < 8) {
-    return new DOMRect(fieldRect.left + 8, fieldRect.top, 0, fieldRect.height);
-  }
-  const mirror = document.createElement("div");
-  const style = getComputedStyle(field);
-  mirror.style.position = "fixed";
-  mirror.style.left = "0";
-  mirror.style.top = "0";
-  mirror.style.visibility = "hidden";
-  mirror.style.pointerEvents = "none";
-  mirror.style.whiteSpace = "pre-wrap";
-  mirror.style.overflowWrap = "break-word";
-  mirror.style.wordBreak = style.wordBreak;
-  mirror.style.width = `${field.clientWidth}px`;
-  mirror.style.font = style.font;
-  mirror.style.lineHeight = style.lineHeight;
-  mirror.style.letterSpacing = style.letterSpacing;
-  mirror.style.padding = style.padding;
-  mirror.style.border = style.border;
-  mirror.textContent = field.value.slice(0, index);
-  const mark = document.createElement("span");
-  mark.textContent = field.value.slice(index, index + 1) || ".";
-  mirror.appendChild(mark);
-  document.body.appendChild(mirror);
-  const markRect = mark.getBoundingClientRect();
-  const mirrorRect = mirror.getBoundingClientRect();
-  mirror.remove();
-  const top = fieldRect.top + (markRect.top - mirrorRect.top) - field.scrollTop;
-  const left = fieldRect.left + (markRect.left - mirrorRect.left) - field.scrollLeft;
-  return new DOMRect(left, Math.min(Math.max(top, fieldRect.top), fieldRect.bottom), markRect.width, markRect.height || 18);
-}
+type Found = { text: string; offset: number; rect: DOMRect | null };
 
 function readSelection(): Found | null {
   const active = document.activeElement;
@@ -101,9 +69,12 @@ function readSelection(): Found | null {
     active instanceof HTMLTextAreaElement ||
     (active instanceof HTMLInputElement && TEXTUAL_INPUT.has((active.type || "text").toLowerCase()))
   ) {
-    const quote = fieldQuote(active.value, active.selectionStart, active.selectionEnd);
-    if (!quote) return null;
-    return { text: quote, rect: caretRect(active, active.selectionStart ?? 0) };
+    const built = anchorQuote(
+      fieldQuote(active.value, active.selectionStart, active.selectionEnd) ?? "",
+      active.selectionStart ?? 0,
+    );
+    if (!built) return null;
+    return { text: built.quote, offset: built.offset, rect: caretRect(active, built.offset) };
   }
 
   const sel = window.getSelection();
@@ -112,7 +83,19 @@ function readSelection(): Found | null {
   const text = sel.toString();
   if (text.trim().length < 2) return null;
   const rect = sel.getRangeAt(0).getBoundingClientRect();
-  return { text, rect };
+  const root = document.querySelector(".studio-content");
+  const collected = root ? collectVisibleText(root) : null;
+  const from = collected ? offsetInCollected(collected, sel.anchorNode, sel.anchorOffset) : null;
+  const to = collected ? offsetInCollected(collected, sel.focusNode, sel.focusOffset) : null;
+  if (collected && from != null && to != null && from !== to) {
+    const start = Math.min(from, to);
+    const end = Math.max(from, to);
+    const built = anchorQuote(collected.text.slice(start, end), start);
+    if (built) return { text: built.quote, offset: built.offset, rect };
+  }
+  const built = anchorQuote(text, 0);
+  if (!built) return null;
+  return { text: built.quote, offset: built.offset, rect };
 }
 
 function editsText(event: KeyboardEvent) {
@@ -146,12 +129,12 @@ export default function SelectionAnnotator({
         }
         const x = Math.min(Math.max(rect.left + Math.min(rect.width / 2, 48), 90), window.innerWidth - 90);
         const y = Math.max(rect.top - 8, 46);
-        const raw = found.text.trim();
         setBtn({
           x,
           y,
           anchor: {
-            quote: raw.length > 280 ? raw.slice(0, 280) + "…" : raw,
+            quote: found.text,
+            offset: found.offset,
             label: readableLabel(),
             url: window.location.pathname + window.location.search,
           },

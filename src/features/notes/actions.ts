@@ -10,11 +10,12 @@ function sectionFromUrl(url: string): string {
   return match?.[1] || "notes";
 }
 
-export type NoteAnchor = { quote: string; label: string; url: string };
+export type NoteAnchor = { quote: string; label: string; url: string; offset?: number };
 
 export async function createNote(studentId: string, text: string, anchor?: NoteAnchor) {
   const session = await requireCabinetAccess(studentId);
   const author = session.role === "MENTOR" ? "Наставник" : "Ученик";
+  const offset = anchor?.offset;
   const note = await prisma.note.create({
     data: {
       studentId,
@@ -24,6 +25,7 @@ export async function createNote(studentId: string, text: string, anchor?: NoteA
       anchorQuote: anchor?.quote ?? "",
       anchorLabel: anchor?.label ?? "",
       anchorUrl: anchor?.url ?? "",
+      anchorOffset: Number.isInteger(offset) && offset! >= 0 ? offset : null,
     },
   });
   if (session.role === "MENTOR") {
@@ -82,6 +84,22 @@ export async function resolveNote(noteId: string) {
     where: { id: noteId },
     data: { resolved: true, resolvedAt: new Date(), resolvedBy },
   });
+}
+
+export async function moveNoteAnchors(
+  studentId: string,
+  updates: { id: string; quote: string; offset: number }[],
+) {
+  await requireCabinetAccess(studentId);
+  for (const update of updates) {
+    const quote = update.quote;
+    if (quote.trim().length < 2 || quote.length > 4000) continue;
+    if (!Number.isInteger(update.offset) || update.offset < 0 || update.offset > 200000) continue;
+    await prisma.note.updateMany({
+      where: { id: update.id, studentId, resolved: false },
+      data: { anchorQuote: quote, anchorOffset: update.offset },
+    });
+  }
 }
 
 export async function pollNotes(studentId: string) {
