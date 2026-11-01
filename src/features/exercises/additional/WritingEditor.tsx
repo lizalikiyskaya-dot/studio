@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlignJustify, Bold, Heading2, Italic, List, ListOrdered, Redo2, TextQuote, Underline, Undo2 } from "lucide-react";
+import { AlignJustify, Bold, ChevronDown, Heading2, Italic, List, ListOrdered, Redo2, TextQuote, Underline, Undo2 } from "lucide-react";
 import {
   applyTextSize,
   loadBlocks,
@@ -360,20 +360,23 @@ export default function WritingEditor({
             </button>
           );
         })}
-        <select
-          className="writing-size"
-          aria-label="Размер текста"
-          title="Размер текста"
-          value={size}
-          onMouseDown={rememberRange}
-          onChange={(event) => applySize(event.target.value)}
-        >
-          {SIZES.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <span className="writing-size-wrap">
+          <select
+            className="writing-size"
+            aria-label="Размер текста"
+            title="Размер текста"
+            value={size}
+            onMouseDown={rememberRange}
+            onChange={(event) => applySize(event.target.value)}
+          >
+            {SIZES.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="writing-size-arrow" size={14} aria-hidden="true" />
+        </span>
         <span className="writing-tool-gap" />
         <button
           type="button"

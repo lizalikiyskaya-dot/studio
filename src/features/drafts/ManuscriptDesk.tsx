@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
 import WritingEditor from "@/features/exercises/additional/WritingEditor";
@@ -32,8 +32,16 @@ const THEMES = [
 
 type Theme = (typeof THEMES)[number]["id"];
 
+const ZOOM_MIN = 80;
+const ZOOM_MAX = 200;
+const ZOOM_STEP = 10;
+
 function themeKey(viewerId: string) {
   return `manuscript-theme:${viewerId}`;
+}
+
+function zoomKey(viewerId: string) {
+  return `manuscript-zoom:${viewerId}`;
 }
 
 function readTheme(viewerId: string): Theme {
@@ -44,6 +52,16 @@ function readTheme(viewerId: string): Theme {
     // Хранилище недоступно: остаётся белая тема.
   }
   return "white";
+}
+
+function readZoom(viewerId: string) {
+  try {
+    const saved = Number(localStorage.getItem(zoomKey(viewerId)));
+    if (Number.isFinite(saved) && saved >= ZOOM_MIN && saved <= ZOOM_MAX) return saved;
+  } catch {
+    // Хранилище недоступно: остаётся обычный размер.
+  }
+  return 100;
 }
 
 function ThemeSwitch({ theme, onChange }: { theme: Theme; onChange: (theme: Theme) => void }) {
@@ -78,23 +96,75 @@ export default function ManuscriptDesk({
   readOnly: boolean;
 }) {
   const [theme, setTheme] = useState<Theme>("white");
+  const [zoom, setZoom] = useState(100);
   const [focus, setFocus] = useState(false);
   const [chapters, setChapters] = useState(initialChapters);
   const [currentId, setCurrentId] = useState(initialChapters[0]?.id ?? null);
   const [status, setStatus] = useState<"saved" | "saving">("saved");
   const timer = useRef<number | null>(null);
   const latest = useRef<{ id: string; content: string; format: ContentFormat } | null>(null);
+  const deskRef = useRef<HTMLElement>(null);
+  const focusRef = useRef(false);
+  const canFocusRef = useRef(false);
 
   useEffect(() => {
     setTheme(readTheme(viewerId));
+    setZoom(readZoom(viewerId));
   }, [viewerId]);
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === "white") root.removeAttribute("data-manuscript-theme");
-    else root.setAttribute("data-manuscript-theme", theme);
-    return () => root.removeAttribute("data-manuscript-theme");
-  }, [theme]);
+    root.classList.add("manuscript-page");
+    root.removeAttribute("data-manuscript-theme");
+    return () => {
+      root.classList.remove("manuscript-page");
+      root.removeAttribute("data-manuscript-theme");
+    };
+  }, []);
+
+  useEffect(() => {
+    let acc = 0;
+    let idle = 0;
+    let lockedUntil = 0;
+    function onWheel(event: WheelEvent) {
+      const target = event.target;
+      const inDesk = target instanceof Node && (
+        (deskRef.current?.contains(target) ?? false) ||
+        (target instanceof Element && target.closest(".manuscript-focus") !== null)
+      );
+      if (!inDesk) return;
+      const horizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+      if (!horizontal) {
+        acc = 0;
+        return;
+      }
+      if (target instanceof Element && target.closest("select, input, textarea, button, a")) return;
+      event.preventDefault();
+      const selection = document.getSelection();
+      if (selection && !selection.isCollapsed && selection.toString().trim() !== "") return;
+      const now = Date.now();
+      if (now < lockedUntil) return;
+      acc += event.deltaX;
+      window.clearTimeout(idle);
+      idle = window.setTimeout(() => {
+        acc = 0;
+      }, 180);
+      if (acc <= -90 && !focusRef.current && canFocusRef.current) {
+        acc = 0;
+        lockedUntil = now + 500;
+        setFocus(true);
+      } else if (acc >= 90 && focusRef.current) {
+        acc = 0;
+        lockedUntil = now + 500;
+        setFocus(false);
+      }
+    }
+    document.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      document.removeEventListener("wheel", onWheel);
+      window.clearTimeout(idle);
+    };
+  }, []);
 
   useEffect(() => {
     if (!focus) return;
@@ -112,6 +182,29 @@ export default function ManuscriptDesk({
     };
   }, [focus]);
 
+  useEffect(() => {
+    if (!focus) return;
+    function onKey(event: KeyboardEvent) {
+      if (!event.altKey || event.ctrlKey || event.metaKey) return;
+      const zoomIn = event.code === "Equal" || event.code === "NumpadAdd";
+      const zoomOut = event.code === "Minus" || event.code === "NumpadSubtract";
+      const reset = event.code === "Digit0" || event.code === "Numpad0";
+      if (!zoomIn && !zoomOut && !reset) return;
+      event.preventDefault();
+      setZoom((current) => {
+        const next = reset ? 100 : Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, current + (zoomIn ? ZOOM_STEP : -ZOOM_STEP)));
+        try {
+          localStorage.setItem(zoomKey(viewerId), String(next));
+        } catch {
+          // Размер останется до перезагрузки страницы.
+        }
+        return next;
+      });
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [focus, viewerId]);
+
   function chooseTheme(next: Theme) {
     setTheme(next);
     try {
@@ -121,7 +214,21 @@ export default function ManuscriptDesk({
     }
   }
 
+  function bumpZoom(delta: number) {
+    setZoom((current) => {
+      const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, current + delta));
+      try {
+        localStorage.setItem(zoomKey(viewerId), String(next));
+      } catch {
+        // Размер останется до перезагрузки страницы.
+      }
+      return next;
+    });
+  }
+
   const current = chapters.find((chapter) => chapter.id === currentId) ?? null;
+  focusRef.current = focus;
+  canFocusRef.current = current !== null;
   const written = chapters.reduce((sum, chapter) => sum + (chapter.writtenChars || 0), 0);
   const planned = chapters.reduce((sum, chapter) => sum + (chapter.plannedChars || 0), 0);
 
@@ -186,13 +293,30 @@ export default function ManuscriptDesk({
   }
 
   const focusScreen = focus && current ? createPortal(
-    <div className="manuscript manuscript-focus" data-theme={theme} role="dialog" aria-modal="true" aria-label="Режим письма">
+    <div
+      className="manuscript manuscript-focus"
+      data-theme={theme}
+      style={{ "--manuscript-zoom": zoom / 100 } as CSSProperties}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Режим письма"
+    >
       <div className="manuscript-focus-top">
         <h2>{current.title.trim() || "Без названия"}</h2>
         <span className="manuscript-count">{formatChars(current.writtenChars)} знаков</span>
+        <span className="manuscript-zoom">
+          <button type="button" title="Уменьшить текст" aria-label="Уменьшить текст" disabled={zoom <= ZOOM_MIN} onClick={() => bumpZoom(-ZOOM_STEP)}>−</button>
+          <button type="button" title="Увеличить текст" aria-label="Увеличить текст" disabled={zoom >= ZOOM_MAX} onClick={() => bumpZoom(ZOOM_STEP)}>+</button>
+        </span>
         <ThemeSwitch theme={theme} onChange={chooseTheme} />
-        <button type="button" className="writing-mode-open" onClick={() => setFocus(false)}>
-          Закрыть
+        <button
+          type="button"
+          className="writing-tool manuscript-glyph"
+          title="Свернуть"
+          aria-label="Свернуть"
+          onClick={() => setFocus(false)}
+        >
+          <span aria-hidden="true">⤡</span>
         </button>
       </div>
       <WritingEditor
@@ -209,7 +333,7 @@ export default function ManuscriptDesk({
   ) : null;
 
   return (
-    <section className="manuscript" data-theme={theme} aria-label="Рукопись">
+    <section ref={deskRef} className="manuscript" aria-label="Рукопись">
       <aside className="manuscript-list">
         <div className="manuscript-list-head">
           <span>{bookTitle.trim() || "Книга"}</span>
@@ -283,14 +407,16 @@ export default function ManuscriptDesk({
                   ? "Вы пишете здесь. Знаки считаются сами и уже стоят в трекере. Вручную их менять не нужно."
                   : "Если Вы начнёте писать здесь, знаки в трекере заменятся на подсчёт по тексту."}
             </p>
-            {readOnly ? (
-              <div className="manuscript-theme-solo">
-                <ThemeSwitch theme={theme} onChange={chooseTheme} />
-              </div>
-            ) : null}
             <div className="manuscript-open-row">
-              <button type="button" className="writing-mode-open" onClick={() => setFocus(true)}>
-                Режим письма
+              <p className="manuscript-swipe-hint">Смахните двумя пальцами или нажмите ⤢</p>
+              <button
+                type="button"
+                className="writing-tool manuscript-glyph"
+                title="Развернуть на весь экран"
+                aria-label="Развернуть на весь экран"
+                onClick={() => setFocus(true)}
+              >
+                <span aria-hidden="true">⤢</span>
               </button>
             </div>
             {focus ? null : (
@@ -302,7 +428,6 @@ export default function ManuscriptDesk({
                 placeholder="Напишите главу здесь"
                 variant="focus"
                 readOnly={readOnly}
-                toolbarExtra={readOnly ? undefined : <ThemeSwitch theme={theme} onChange={chooseTheme} />}
               />
             )}
           </>

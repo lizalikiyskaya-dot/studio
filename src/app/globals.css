@@ -144,17 +144,39 @@ textarea.reading,
   cursor: pointer;
 }
 .writing-tool.is-on { background: var(--soft); }
+.writing-size-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  flex: 0 0 auto;
+}
 .writing-size {
   height: 32px;
+  box-sizing: border-box;
   max-width: 100%;
-  padding: 0 28px 0 12px;
+  margin: 0;
+  padding: 0 30px 0 12px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: #fff;
   color: var(--ink);
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 13px;
+  line-height: 30px;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.writing-size-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: inherit;
 }
 .writing-mode-open {
   height: 32px;
@@ -3017,6 +3039,10 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
 }
 
 .entry-list { display: flex; flex-direction: column; gap: 14px; }
+html.manuscript-page,
+html.manuscript-page body {
+  overscroll-behavior-x: contain;
+}
 .manuscript {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
@@ -3128,6 +3154,7 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
 .manuscript[data-theme="paper"] .manuscript-list button.is-on { background: #e7d3aa; }
 .manuscript[data-theme="paper"] .manuscript-track { border-bottom-color: #e0cfab; }
 .manuscript[data-theme="paper"] .manuscript-hint,
+.manuscript[data-theme="paper"] .manuscript-swipe-hint,
 .manuscript[data-theme="paper"] .manuscript-total,
 .manuscript[data-theme="paper"] .manuscript-save,
 .manuscript[data-theme="paper"] .manuscript-list button span,
@@ -3152,109 +3179,37 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   border-color: #4a4742;
 }
 .manuscript[data-theme="dark"] .writing-tool.is-on { background: #3c3934; }
-html[data-manuscript-theme="dark"] .manuscript-list button.is-on {
-  background: #3a3428;
-  color: #f6f3ec;
-}
-html[data-manuscript-theme="dark"] .manuscript-list button.is-on strong,
-html[data-manuscript-theme="dark"] .manuscript-list button.is-on span,
-html[data-manuscript-theme="dark"] .manuscript-list button.is-on em { color: #f6f3ec; }
-html[data-manuscript-theme="dark"] .writing-tool,
-html[data-manuscript-theme="dark"] .writing-size {
-  background: #3f3c37;
-  color: #f6f3ec;
-  border-color: #6d675c;
-  opacity: 1;
-}
-html[data-manuscript-theme="dark"] .writing-tool svg { color: #f6f3ec; stroke: #f6f3ec; }
 .manuscript[data-theme="dark"] .manuscript-track { border-bottom-color: #3a3834; }
 .manuscript[data-theme="dark"] .manuscript-hint,
+.manuscript[data-theme="dark"] .manuscript-swipe-hint,
 .manuscript[data-theme="dark"] .manuscript-total,
 .manuscript[data-theme="dark"] .manuscript-save,
 .manuscript[data-theme="dark"] .manuscript-list button span,
 .manuscript[data-theme="dark"] .manuscript-list button em { color: #c9c2b4; }
 .manuscript[data-theme="dark"] .writing-prose.is-empty:before { color: #9c9588; }
 .manuscript[data-theme="dark"] .manuscript-themes button.is-on { background: #3c3934; }
-
-/* «Бумага» и «Тёмная» красят всё окно «Рукописей», включая меню и просветы. */
-html[data-manuscript-theme="paper"] body,
-html[data-manuscript-theme="paper"] .studio-shell,
-html[data-manuscript-theme="paper"] .studio-chrome,
-html[data-manuscript-theme="paper"] .studio-topbar,
-html[data-manuscript-theme="paper"] .studio-body,
-html[data-manuscript-theme="paper"] .studio-content {
-  background: #f3e6c8;
-  color: #3b2918;
+.manuscript-open-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 0 0 8px;
 }
-html[data-manuscript-theme="paper"] .studio-topbar { border-bottom-color: #e0cfab; }
-html[data-manuscript-theme="paper"] .studio-logo,
-html[data-manuscript-theme="paper"] .wordmark,
-html[data-manuscript-theme="paper"] .studio-topnav a,
-html[data-manuscript-theme="paper"] .page-title,
-html[data-manuscript-theme="paper"] .manuscript-files { color: #3b2918; }
-html[data-manuscript-theme="paper"] .studio-topnav a.active {
-  color: #3b2918;
-  box-shadow: inset 0 -2px 0 #3b2918;
+.manuscript-swipe-hint {
+  margin: 0;
+  font-family: var(--font-sans), "Noto Sans Symbols", "DejaVu Serif", sans-serif;
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--muted);
 }
-html[data-manuscript-theme="paper"] .notes-chip { background: #fbf3e2; color: #3b2918; }
-html[data-manuscript-theme="paper"] .notes-count { box-shadow: 0 0 0 2px #f3e6c8; }
-html[data-manuscript-theme="dark"] body,
-html[data-manuscript-theme="dark"] .studio-shell,
-html[data-manuscript-theme="dark"] .studio-chrome,
-html[data-manuscript-theme="dark"] .studio-topbar,
-html[data-manuscript-theme="dark"] .studio-body,
-html[data-manuscript-theme="dark"] .studio-content {
-  background: #161513;
-  color: #f6f3ec;
+.manuscript-glyph {
+  font-family: "Noto Sans Symbols", "DejaVu Serif", var(--font-sans), sans-serif;
+  font-size: 17px;
+  line-height: 1;
+  padding: 0;
 }
-html[data-manuscript-theme="dark"] .studio-topbar { border-bottom-color: #3a3834; }
-html[data-manuscript-theme="dark"] .studio-logo,
-html[data-manuscript-theme="dark"] .wordmark,
-html[data-manuscript-theme="dark"] .studio-topnav a,
-html[data-manuscript-theme="dark"] .page-title,
-html[data-manuscript-theme="dark"] .manuscript-files { color: #f6f3ec; }
-html[data-manuscript-theme="dark"] .studio-logo-note,
-html[data-manuscript-theme="dark"] .studio-topnav a { color: #d9d3c7; }
-html[data-manuscript-theme="dark"] .studio-topnav a.active {
-  color: #f6f3ec;
-  box-shadow: inset 0 -2px 0 #f6f3ec;
-}
-html[data-manuscript-theme="dark"] .notes-chip {
-  background: #3f3c37;
-  color: #f6f3ec;
-  border: 1px solid #6d675c;
-}
-html[data-manuscript-theme="dark"] .cal-weekday { color: #c9c2b4 !important; }
-html[data-manuscript-theme="dark"] .cal-day:not(.cal-mark):not(.cal-today) { color: #f6f3ec !important; }
-html[data-manuscript-theme="dark"] .cal-today {
-  background: #f6f3ec !important;
-  color: #161513 !important;
-}
-html[data-manuscript-theme="dark"] .cal-legend { color: #d9d3c7 !important; }
-html[data-manuscript-theme="dark"] .notes-count { background: #f6f3ec; color: #161513; box-shadow: 0 0 0 2px #161513; }
-html[data-manuscript-theme="paper"] .studio-sidebar { background: #ead9b4; }
-html[data-manuscript-theme="paper"] .side-card,
-html[data-manuscript-theme="paper"] .daily-quote,
-html[data-manuscript-theme="paper"] .entry-card {
-  background: #fbf3e2;
-  color: #3b2918;
-  border-color: #e0cfab;
-}
-html[data-manuscript-theme="paper"] .entry-card :where(input, textarea) { background: transparent; color: #3b2918; }
-html[data-manuscript-theme="paper"] .entry-link-btn-ghost { background: #f3e6c8; color: #3b2918; border-color: #c9b48a; }
-html[data-manuscript-theme="dark"] .studio-sidebar { background: #1e1c1a; }
-html[data-manuscript-theme="dark"] .side-card,
-html[data-manuscript-theme="dark"] .daily-quote,
-html[data-manuscript-theme="dark"] .entry-card {
-  background: #242220;
-  color: #f6f3ec;
-  border-color: #3a3834;
-}
-html[data-manuscript-theme="dark"] .entry-card :where(input, textarea) { background: transparent; color: #f6f3ec; }
-html[data-manuscript-theme="dark"] .entry-link-btn-ghost { background: #2a2825; color: #f6f3ec; border-color: #4a4742; }
-html[data-manuscript-theme="dark"] .side-card a,
-html[data-manuscript-theme="paper"] .side-card a { color: inherit; }
-.manuscript-open-row { display: flex; justify-content: flex-end; margin: 0 0 8px; }
+.manuscript,
+.manuscript-focus { overscroll-behavior-x: contain; }
 .manuscript[data-theme="paper"] .writing-mode-open {
   background: #fbf3e2;
   color: #3b2918;
@@ -3296,8 +3251,27 @@ html[data-manuscript-theme="paper"] .side-card a { color: inherit; }
   white-space: nowrap;
 }
 .manuscript-focus .manuscript-count { font-size: 13px; font-weight: 500; }
+.manuscript-zoom { display: inline-flex; align-items: center; gap: 4px; }
+.manuscript-zoom button {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.manuscript-zoom button:disabled { opacity: 0.35; cursor: default; }
 .manuscript-focus .writing-editor { flex: 1; min-height: 0; }
-.manuscript-focus .writing-prose { background: transparent; color: inherit; }
+.manuscript-focus .writing-prose {
+  background: transparent;
+  color: inherit;
+  font-size: calc(20px * var(--manuscript-zoom, 1));
+}
 @media (max-width: 800px) {
   .manuscript { grid-template-columns: 1fr; }
 }
