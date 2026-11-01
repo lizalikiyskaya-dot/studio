@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { AccessDeniedError, requireAuthenticated } from "@/lib/access";
 import { forgetGuidesSchema, guidesSchemaReady } from "@/lib/guides";
+import { shouldRecordGuideOpen } from "@/features/guides/guideOpenLabel";
+import { recordStudentGuideOpen } from "@/features/guides/recordGuideOpen";
+import { mentorGuideReadUrl, notifyMentorOfGuideRead } from "@/lib/guideReadMail";
 
 const SAFE_DOC_TYPES = new Set([
   "application/pdf",
@@ -36,7 +39,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     const guide = await prisma.guide.findUnique({
       where: { id },
-      select: { id: true, fileUrl: true, fileName: true },
+      select: { id: true, title: true, fileUrl: true, fileName: true },
     });
     if (!guide?.fileUrl) return new Response(null, { status: 404 });
 
@@ -46,6 +49,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         select: { visible: true },
       });
       if (!access?.visible) return new Response(null, { status: 404 });
+    }
+
+    if (shouldRecordGuideOpen(session.role)) {
+      const first = await recordStudentGuideOpen(session.userId, id);
+      if (first) {
+        await notifyMentorOfGuideRead({
+          studentId: session.userId,
+          title: guide.title,
+          url: mentorGuideReadUrl(session.userId, id),
+        });
+      }
     }
 
     const decoded = decodeDataUrl(guide.fileUrl);

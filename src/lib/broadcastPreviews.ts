@@ -5,6 +5,7 @@ import { buildPaymentReminder, moscowParts } from "@/lib/paymentReminders";
 import { approvedLetter, dailyQuoteLetter, guideOpenedLetter, passwordResetLetter, registrationStudentLetter, weeklyTaskLetter } from "@/lib/notify";
 import { newTaskLetter } from "@/lib/newTaskMail";
 import { buildNoteReminderLetter } from "@/lib/noteReminders";
+import { guideReadLetter, mentorGuideReadUrl } from "@/lib/guideReadMail";
 import { mentorSubmissionUrl, submissionLetter } from "@/lib/submissionMail";
 
 export type BroadcastPreview = {
@@ -79,6 +80,14 @@ export function broadcastPreviewHtml(): Record<string, BroadcastPreview> {
         section: "Задания",
         title: "Черновик первой главы",
         url: mentorSubmissionUrl("sample", "tasks", "sample-task"),
+      });
+      return { subject: letter.subject, html: letter.html };
+    })(),
+    "guide-read": (() => {
+      const letter = guideReadLetter({
+        name: "Виктория",
+        title: "Сцена у реки",
+        url: mentorGuideReadUrl("sample", "sample-guide"),
       });
       return { subject: letter.subject, html: letter.html };
     })(),

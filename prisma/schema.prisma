@@ -227,6 +227,7 @@ model User {
   passwordResets    PasswordResetToken[]
   guideAccess       GuideAccess[]
   guideProgress     GuideProgress[]
+  guideOpens        GuideOpen[]
   paymentReminderLogs PaymentReminderLog[]
   noteReminderSends NoteReminderSend[]
   weeklySubmissions WeeklySubmission[]
@@ -848,7 +849,22 @@ model Guide {
   updatedAt    DateTime @updatedAt
   access       GuideAccess[]
   progress     GuideProgress[]
+  opens        GuideOpen[]
   badge        Badge?
+}
+
+// Ученик скачал или открыл файл методички. Наставник сюда не попадает.
+// Первое открытие — firstOpenedAt, каждое следующее обновляет только lastOpenedAt.
+model GuideOpen {
+  guideId       String
+  guide         Guide    @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  firstOpenedAt DateTime @default(now())
+  lastOpenedAt  DateTime @default(now())
+
+  @@id([guideId, studentId])
+  @@index([studentId])
 }
 
 model GuideAccess {

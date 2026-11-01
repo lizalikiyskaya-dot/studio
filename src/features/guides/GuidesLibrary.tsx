@@ -241,6 +241,13 @@ export default function GuidesLibrary({
                     </button>
                   ) : null}
                 </div>
+                {guide.readLines.length > 0 ? (
+                  <div className="mt-2 flex flex-col gap-1 text-[13.5px]">
+                    {guide.readLines.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
+                ) : null}
                 {shown ? (
                   <div className="mt-2 flex flex-col gap-1 text-[13.5px]" style={{ color: "var(--ink)" }}>
                     {guide.openedStudents.length === 0 ? (

@@ -83,6 +83,7 @@ export async function createGuide(): Promise<ActionResult<{ guide: LibraryGuide 
         starPrice: null,
         visibleCount: 0,
         openedStudents: [],
+        readLines: [],
       },
     };
   } catch (error) {

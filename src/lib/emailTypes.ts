@@ -16,6 +16,7 @@ export const EMAIL_TYPE_LABEL: Record<string, string> = {
   "mentor-letter": "Письмо наставника",
   "student-online": "Ученик онлайн",
   submitted: "Сдано на проверку",
+  "guide-read": "Ученик открыл методичку",
   "new-task": "Новое задание",
   "custom-mail": "Своя рассылка",
 };

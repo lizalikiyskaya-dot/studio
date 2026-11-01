@@ -18,6 +18,7 @@ export const BROADCAST_KEYS = [
   "student-edit",
   "student-online",
   "submitted",
+  "guide-read",
   "new-task",
 ] as const;
 
@@ -61,6 +62,7 @@ export const BROADCAST_META: BroadcastMeta[] = [
   { key: "student-edit", title: "Ученик внёс правку", mode: "batch", who: "mentor" },
   { key: "student-online", title: "Ученик онлайн", mode: "online", who: "mentor" },
   { key: "submitted", title: "Сдано на проверку", mode: "event", who: "mentor" },
+  { key: "guide-read", title: "Ученик открыл методичку", mode: "event", who: "mentor" },
   { key: "new-task", title: "Новое задание", mode: "event", who: "students" },
 ];
 
@@ -119,6 +121,7 @@ export function defaultBroadcast(key: BroadcastKey): BroadcastSetting {
     case "student-online":
       return { ...base, windowMinutes: 0, oncePerDay: true };
     case "submitted":
+    case "guide-read":
     case "new-task":
       return { ...base, enabled: true, windowMinutes: 0 };
     default: {
