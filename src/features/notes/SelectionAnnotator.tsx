@@ -18,14 +18,12 @@ type HostLike = {
   dataset?: { notesUi?: string; annotateBtn?: string };
 };
 
-/** Панель заметок и поле режима правок не поднимают «Заметку».
- *  Обычный текст и поля ввода поднимают: цитату берут из выделения,
- *  а Delete и набор кнопка не перехватывает. */
+/** Панель заметок не поднимает «Заметку» сама на себе.
+ *  Текст, упражнения и рукописи поднимают: и у наставника, и у ученика. */
 export function blocksNote(node: HostLike | null | undefined): boolean {
   let el = node ?? null;
   while (el) {
     if (el.dataset?.notesUi === "1" || el.dataset?.annotateBtn !== undefined) return true;
-    if (el.getAttribute?.("data-review-field") != null) return true;
     el = el.parentElement ?? null;
   }
   return false;

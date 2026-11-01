@@ -40,6 +40,18 @@ test("смещение поля не заменяется индексом др�
   assert.ok((next.placements[0]?.start ?? 0) > 0);
 });
 
+test("принятие правки на новом поле оставляет цитату на изменённом слове", () => {
+  const state = freshSnap();
+  const anchored = { id: "n1", anchorQuote: "молчит", anchorOffset: 3 };
+  trackSources(state, [{ key: "field-before", text: "Ян молчит у реки." }], [anchored]);
+  const next = trackSources(state, [{ key: "field-after", text: "Ян молчал у реки." }], [
+    { id: "n1", anchorQuote: "молчит", anchorOffset: 3 },
+  ]);
+  assert.deepEqual(next.updates, [{ id: "n1", quote: "молчал", offset: 3 }]);
+  assert.equal(next.placements[0]?.key, "field-after");
+  assert.equal(next.placements[0]?.end, 3 + "молчал".length);
+});
+
 test("буква внутри цитаты остаётся подсвеченной", () => {
   const state = freshSnap();
   const anchored = { id: "n1", anchorQuote: "молчит", anchorOffset: 3 };

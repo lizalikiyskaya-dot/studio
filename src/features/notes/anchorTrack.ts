@@ -39,6 +39,7 @@ export function trackSources(
   notes: Anchored[],
 ) {
   const updates = new Map<string, AnchorUpdate>();
+  const previous = new Map(state.snaps);
   const live = notes.map((note) => {
     const saved = state.overrides.get(note.id);
     if (!saved) return { ...note };
@@ -59,6 +60,26 @@ export function trackSources(
       if (!next) continue;
       remember(state, updates, note, next.quote, next.offset);
     }
+  }
+
+  // Поле правки пересоздаётся при принятии или отклонении. Ключ новый, текст — правка старого.
+  const present = new Set(sources.map((source) => source.key));
+  for (const note of live) {
+    const claim = state.claims.get(note.id);
+    if (!claim || present.has(claim)) continue;
+    const before = previous.get(claim);
+    if (before == null) continue;
+    let best: { quote: string; offset: number; drift: number } | null = null;
+    for (const source of sources) {
+      if (previous.get(source.key) === source.text) continue;
+      const next = shiftAnchor(before, source.text, note.anchorQuote, note.anchorOffset);
+      if (!next) continue;
+      const limit = Math.max(note.anchorQuote.length + 12, note.anchorQuote.length * 2);
+      if (next.quote.length > limit) continue;
+      const drift = Math.abs(next.quote.length - note.anchorQuote.length);
+      if (!best || drift < best.drift) best = { quote: next.quote, offset: next.offset, drift };
+    }
+    if (best) remember(state, updates, note, best.quote, best.offset);
   }
 
   const choices = new Map<string, { key: string; start: number; end: number; exact: boolean }[]>();
