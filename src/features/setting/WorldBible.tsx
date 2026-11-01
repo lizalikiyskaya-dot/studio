@@ -5,6 +5,9 @@ import type { WorldCategory } from "@/generated/prisma/client";
 import { siteConfirm } from "@/components/SiteDialog";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import SuggestableField from "@/features/suggestions/SuggestableField";
+import GrapesTable from "./GrapesTable";
+import CycleGrapesTable from "@/features/storySetting/CycleGrapesTable";
+import StoryGrapesTable from "@/features/storySetting/StoryGrapesTable";
 import { Button } from "@/components/ui/Button";
 import InlineTitle from "@/components/InlineTitle";
 import ReadingText from "@/components/ReadingText";
@@ -305,7 +308,6 @@ export default function WorldBible({
     bodies.set(entry.category, list);
   }
 
-  const grapesThemes = BIBLE_THEMES.filter((theme) => theme.kind === "grapes");
   const entryThemes = BIBLE_THEMES.filter((theme) => theme.kind === "entry");
   const sticker = (
     <WorldSticker
@@ -357,7 +359,6 @@ export default function WorldBible({
           ) : null}
           <div className="bible-groups">
             <section className="bible-group">
-              <h3 className="bible-group-title mb-2.5">Метод GRAPES</h3>
               {allowTables && canEdit ? (
                 <div className="mb-2.5 flex flex-wrap items-center gap-2">
                   {table?.titleField && table.model !== "Story" ? (
@@ -381,34 +382,35 @@ export default function WorldBible({
                   ) : null}
                 </div>
               ) : null}
-              <ChipGrid
-                themes={grapesThemes}
-                openTheme={openTheme?.kind === "grapes" ? openTheme : null}
-                grapes={grapes}
-                bodies={bodies}
-                onOpen={openChip}
-                panel={openTheme?.kind === "grapes" && table ? (
-                  <ThemePanel
-                    theme={openTheme}
-                    table={table}
-                    canEdit={canEdit}
-                    entries={themeEntries}
-                    selected={selected}
-                    photoKind={photoKind}
-                    onClose={() => setOpenTheme(null)}
-                    onPatchGrapes={patchGrapes}
-                    onSelect={selectEntry}
-                    onAdd={handleAddEntry}
-                    onSaveBody={saveBody}
-                    onCollapse={collapseEntry}
-                    onTitle={handleTitle}
-                    onDelete={handleDeleteEntry}
-                    onCategory={handleCategory}
-                    onPhoto={(photoUrl) => setEntries((prev) => prev.map((entry) => entry.id === selected?.id ? { ...entry, photoUrl } : entry))}
-                  />
-                ) : null}
-              />
-              {!wide && openTheme?.kind === "grapes" ? <div className="bible-sticker-mobile">{sticker}</div> : null}
+              {table?.model === "Story" ? (
+                <StoryGrapesTable
+                  key={table.recordId}
+                  story={{ id: table.recordId, ...table.values }}
+                  canEdit={canEdit}
+                  onSaved={patchGrapes}
+                />
+              ) : table?.model === "Cycle" ? (
+                <CycleGrapesTable
+                  key={table.recordId}
+                  cycleId={table.recordId}
+                  cycle={table.values}
+                  suggestions={table.suggestions}
+                  canEdit={canEdit}
+                  onSaved={patchGrapes}
+                />
+              ) : table ? (
+                <GrapesTable
+                  key={table.recordId}
+                  model={table.model}
+                  recordId={table.recordId}
+                  values={table.values}
+                  suggestions={table.suggestions}
+                  canEdit={canEdit}
+                  onSaved={patchGrapes}
+                />
+              ) : (
+                <h3 className="bible-group-title">Метод GRAPES</h3>
+              )}
             </section>
 
             <section className="bible-group">
