@@ -1069,6 +1069,28 @@ model MailBroadcast {
   updatedAt     DateTime @updatedAt
 }
 
+// Своя автоматическая рассылка наставника. Новая строка выключена.
+// Кому и когда хранится здесь. Уже ушедшие письма отмечает EmailLog.
+model CustomMailing {
+  id         String   @id @default(cuid())
+  name       String
+  subject    String
+  body       String
+  enabled    Boolean  @default(false)
+  // once | weekly | monthly
+  cadence    String   @default("once")
+  // Дата для once, ГГГГ-ММ-ДД. У недели и месяца пусто.
+  runOn      String   @default("")
+  weekday    Int      @default(1)
+  monthDay   Int      @default(1)
+  hour       Int      @default(9)
+  minute     Int      @default(0)
+  audience   String   @default("all")
+  studentIds String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 // Пачка правок или отметка визита, пока письмо не ушло.
 model MailDigest {
   id        String    @id @default(cuid())

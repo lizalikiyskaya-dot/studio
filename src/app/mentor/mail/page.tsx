@@ -7,9 +7,11 @@ import { EMAIL_TYPE_LABEL, emailTypeLabel } from "@/lib/emailTypes";
 import MailFilters from "./MailFilters";
 import ComposeMail from "./ComposeMail";
 import AutomaticMail from "./AutomaticMail";
+import CustomMailings from "./CustomMailings";
 import LetterTemplates from "./LetterTemplates";
 import { readLetterEditor } from "@/lib/letterTemplateStore";
 import { readBroadcastList } from "@/lib/mailBroadcastStore";
+import { readCustomMailings } from "@/lib/customMailStore";
 import { broadcastPreviewHtml } from "@/lib/broadcastPreviews";
 import MailTabs, { parseMailTab } from "./MailTabs";
 
@@ -92,6 +94,7 @@ export default async function MentorMailPage({
 
   const types = knownTypes.map((value) => ({ value, label: emailTypeLabel(value) }));
   const broadcasts = await readBroadcastList();
+  const customMail = await readCustomMailings();
   const letters = await readLetterEditor();
 
   return (
@@ -102,12 +105,19 @@ export default async function MentorMailPage({
       {tab === "write" ? <ComposeMail students={recipients} /> : null}
       {tab === "templates" ? <LetterTemplates ready={letters.ready} rows={letters.rows} /> : null}
       {tab === "automatic" ? (
-        <AutomaticMail
-          ready={broadcasts.ready}
-          initial={broadcasts.rows}
-          students={recipients.map((item) => ({ id: item.id, name: item.name }))}
-          previews={broadcastPreviewHtml()}
-        />
+        <>
+          <AutomaticMail
+            ready={broadcasts.ready}
+            initial={broadcasts.rows}
+            students={recipients.map((item) => ({ id: item.id, name: item.name }))}
+            previews={broadcastPreviewHtml()}
+          />
+          <CustomMailings
+            ready={customMail.ready}
+            initial={customMail.rows}
+            students={recipients.map((item) => ({ id: item.id, name: item.name }))}
+          />
+        </>
       ) : null}
       {tab === "history" ? (
         <>
