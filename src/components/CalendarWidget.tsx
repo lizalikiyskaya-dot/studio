@@ -74,7 +74,7 @@ export default function CalendarWidget({
 
       <div className="mt-3 grid grid-cols-7 gap-y-1 text-center">
         {WEEKDAYS.map((w) => (
-          <span key={w} className="text-[11px]" style={{ color: "var(--muted)" }}>{w}</span>
+          <span key={w} className="cal-weekday text-[11px]" style={{ color: "var(--muted)" }}>{w}</span>
         ))}
         {cells.map((day, index) => {
           if (day === null) return <span key={index} />;
@@ -93,7 +93,7 @@ export default function CalendarWidget({
               key={index}
               type="button"
               onClick={() => (hasDeadline || isPaymentDay) && setSelectedDay(selected ? null : day)}
-              className="h-7 grid place-items-center rounded-lg text-[12.5px]"
+              className={`cal-day h-7 grid place-items-center rounded-lg text-[12.5px]${isToday ? " cal-today" : ""}${hasDeadline || isPaymentDay ? " cal-mark" : ""}`}
               style={{
                 background,
                 color,
@@ -108,7 +108,7 @@ export default function CalendarWidget({
         })}
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11.5px]" style={{ color: "var(--ink2)" }}>
+      <div className="cal-legend mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11.5px]" style={{ color: "var(--ink2)" }}>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "#F28A3C" }} />дедлайн</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "#2FB083" }} />день оплаты</span>
       </div>

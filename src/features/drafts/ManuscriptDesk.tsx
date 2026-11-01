@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
 import WritingEditor from "@/features/exercises/additional/WritingEditor";
 import type { ContentFormat } from "@/features/exercises/additional/richText";
@@ -77,6 +78,7 @@ export default function ManuscriptDesk({
   readOnly: boolean;
 }) {
   const [theme, setTheme] = useState<Theme>("white");
+  const [focus, setFocus] = useState(false);
   const [chapters, setChapters] = useState(initialChapters);
   const [currentId, setCurrentId] = useState(initialChapters[0]?.id ?? null);
   const [status, setStatus] = useState<"saved" | "saving">("saved");
@@ -93,6 +95,22 @@ export default function ManuscriptDesk({
     else root.setAttribute("data-manuscript-theme", theme);
     return () => root.removeAttribute("data-manuscript-theme");
   }, [theme]);
+
+  useEffect(() => {
+    if (!focus) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setFocus(false);
+    }
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [focus]);
 
   function chooseTheme(next: Theme) {
     setTheme(next);
@@ -166,6 +184,29 @@ export default function ManuscriptDesk({
       </p>
     );
   }
+
+  const focusScreen = focus && current ? createPortal(
+    <div className="manuscript manuscript-focus" data-theme={theme} role="dialog" aria-modal="true" aria-label="Режим письма">
+      <div className="manuscript-focus-top">
+        <h2>{current.title.trim() || "Без названия"}</h2>
+        <span className="manuscript-count">{formatChars(current.writtenChars)} знаков</span>
+        <ThemeSwitch theme={theme} onChange={chooseTheme} />
+        <button type="button" className="writing-mode-open" onClick={() => setFocus(false)}>
+          Закрыть
+        </button>
+      </div>
+      <WritingEditor
+        key={current.id}
+        value={current.manuscript}
+        format={asFormat(current.manuscriptFormat)}
+        onChange={onChange}
+        placeholder="Напишите главу здесь"
+        variant="focus"
+        readOnly={readOnly}
+      />
+    </div>,
+    document.body,
+  ) : null;
 
   return (
     <section className="manuscript" data-theme={theme} aria-label="Рукопись">
@@ -247,21 +288,29 @@ export default function ManuscriptDesk({
                 <ThemeSwitch theme={theme} onChange={chooseTheme} />
               </div>
             ) : null}
-            <WritingEditor
-              key={current.id}
-              value={current.manuscript}
-              format={asFormat(current.manuscriptFormat)}
-              onChange={onChange}
-              placeholder="Напишите главу здесь"
-              variant="focus"
-              readOnly={readOnly}
-              toolbarExtra={readOnly ? undefined : <ThemeSwitch theme={theme} onChange={chooseTheme} />}
-            />
+            <div className="manuscript-open-row">
+              <button type="button" className="writing-mode-open" onClick={() => setFocus(true)}>
+                Режим письма
+              </button>
+            </div>
+            {focus ? null : (
+              <WritingEditor
+                key={current.id}
+                value={current.manuscript}
+                format={asFormat(current.manuscriptFormat)}
+                onChange={onChange}
+                placeholder="Напишите главу здесь"
+                variant="focus"
+                readOnly={readOnly}
+                toolbarExtra={readOnly ? undefined : <ThemeSwitch theme={theme} onChange={chooseTheme} />}
+              />
+            )}
           </>
         ) : (
           <p className="manuscript-quiet">Выберите главу слева или создайте новую.</p>
         )}
       </div>
+      {focusScreen}
     </section>
   );
 }
