@@ -1,8 +1,8 @@
 "use client";
 
-import type { Cycle } from "@/generated/prisma/client";
 import type { CycleGrapesField } from "./actions";
-import GrapesLetterCard from "@/components/GrapesLetterCard";
+import GrapesLetterCard, { GrapesSection } from "@/components/GrapesLetterCard";
+import ReadingText from "@/components/ReadingText";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 
 const ROWS: { field: CycleGrapesField; letter: string; label: string }[] = [
@@ -18,26 +18,39 @@ export default function CycleGrapesTable({
   cycleId,
   cycle,
   suggestions,
+  canEdit = true,
+  onSaved,
 }: {
   cycleId: string;
-  cycle: Cycle;
+  cycle: Record<CycleGrapesField, string>;
   suggestions: Record<string, string>;
+  canEdit?: boolean;
+  onSaved?: (field: CycleGrapesField, value: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-      {ROWS.map(({ field, letter, label }) => (
-        <GrapesLetterCard key={field} letter={letter} label={label}>
-          <SuggestableField
-            model="Cycle"
-            recordId={cycleId}
-            field={field}
-            value={cycle[field]}
-            suggestion={suggestions[field]}
-            placeholder="Коротко, своими словами"
-            className="w-full bg-transparent text-[13px] leading-snug outline-none"
-          />
-        </GrapesLetterCard>
-      ))}
-    </div>
+    <GrapesSection>
+      <div className="mt-2.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+        {ROWS.map(({ field, letter, label }) => (
+          <GrapesLetterCard key={field} letter={letter} label={label}>
+            {canEdit ? (
+              <SuggestableField
+                model="Cycle"
+                recordId={cycleId}
+                field={field}
+                value={cycle[field]}
+                suggestion={suggestions[field]}
+                placeholder="Коротко, своими словами"
+                className="w-full bg-transparent text-[13px] leading-snug outline-none"
+                onSaved={(value) => onSaved?.(field, value)}
+              />
+            ) : cycle[field] ? (
+              <ReadingText text={cycle[field]} />
+            ) : (
+              <p className="text-[13px]" style={{ color: "var(--muted)" }}>Пока пусто</p>
+            )}
+          </GrapesLetterCard>
+        ))}
+      </div>
+    </GrapesSection>
   );
 }
