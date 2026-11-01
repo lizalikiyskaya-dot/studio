@@ -126,8 +126,10 @@ textarea.reading,
 /* «Дополнительно»: карточка по ширине чтения, как остальные упражнения. */
 .additional-board { max-width: 760px; }
 
-.writing-editor { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.writing-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.writing-editor { display: flex; flex-direction: column; gap: 10px; min-width: 0; max-width: 100%; }
+.writing-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.writing-card-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+.writing-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
 .writing-toolbar-extra { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
 .writing-tool-gap { width: 8px; }
 .writing-tool {
@@ -142,6 +144,18 @@ textarea.reading,
   cursor: pointer;
 }
 .writing-tool.is-on { background: var(--soft); }
+.writing-size {
+  height: 32px;
+  max-width: 100%;
+  padding: 0 28px 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
 .writing-mode-open {
   height: 32px;
   padding: 0 14px;
@@ -194,9 +208,19 @@ textarea.reading,
   border-left: 2px solid var(--border);
   color: var(--ink2);
 }
-.writing-prose ul,
-.writing-prose ol { margin: 0 0 0.75em; padding-left: 1.25em; }
+.writing-prose ul { list-style: disc; margin: 0 0 0.75em; padding-left: 1.4em; }
+.writing-prose ol { list-style: decimal; margin: 0 0 0.75em; padding-left: 1.4em; }
+.writing-prose li { display: list-item; }
+.writing-prose li + li { margin-top: 0.2em; }
+.writing-prose u { text-decoration: underline; text-underline-offset: 2px; }
+.writing-prose .writing-size-s { font-size: 0.82em; }
+.writing-prose .writing-size-l { font-size: 1.35em; }
+.writing-prose .writing-size-xl { font-size: 1.7em; }
+.writing-prose [data-align="justify"] { text-align: justify; }
 .writing-prose :last-child { margin-bottom: 0; }
+body:has(.writing-mode) .notes-layer { z-index: 240; }
+body:has(.writing-mode) .notes-fab { z-index: 240 !important; }
+body:has(.writing-mode) .annotate-pop { z-index: 250 !important; }
 
 .writing-mode {
   position: fixed;
