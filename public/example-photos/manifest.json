@@ -1,0 +1,113 @@
+{
+  "pop-arc": [
+    {
+      "order": 0,
+      "name": "Тони Старк (Iron Man)",
+      "file": "heroes/toni-stark-iron-man.webp"
+    },
+    {
+      "order": 1,
+      "name": "Эльза (Frozen)",
+      "file": "heroes/elza-frozen.webp"
+    },
+    {
+      "order": 2,
+      "name": "Шрек",
+      "file": "heroes/shrek.webp"
+    },
+    {
+      "order": 3,
+      "name": "Симба (The Lion King)",
+      "file": "heroes/simba-the-lion-king.webp"
+    },
+    {
+      "order": 4,
+      "name": "Энакин Скайуокер / Дарт Вейдер",
+      "file": "heroes/enakin-skayuoker-dart-veyder.jpg"
+    },
+    {
+      "order": 5,
+      "name": "Уолтер Уайт (Breaking Bad)",
+      "file": "heroes/uolter-uayt-breaking-bad.jpg"
+    },
+    {
+      "order": 6,
+      "name": "Майкл Корлеоне (The Godfather)",
+      "file": "heroes/maykl-korleone-the-godfather.jpg"
+    },
+    {
+      "order": 7,
+      "name": "Джокер (Артур Флек)",
+      "file": "heroes/dzhoker-artur-flek.jpg"
+    },
+    {
+      "order": 8,
+      "name": "Санса Старк (Игра престолов)",
+      "file": "heroes/sansa-stark-igra-prestolov.jpg"
+    },
+    {
+      "order": 9,
+      "name": "Хитклиф (Грозовой перевал)",
+      "file": "heroes/hitklif-grozovoy-pereval.jpg"
+    },
+    {
+      "order": 10,
+      "name": "Стив Роджерс / Капитан Америка",
+      "file": "heroes/stiv-rodzhers-kapitan-amerika.jpg"
+    }
+  ],
+  "belief": [
+    {
+      "order": 0,
+      "name": "Тони Старк (Iron Man)",
+      "file": "heroes/toni-stark-iron-man.webp"
+    },
+    {
+      "order": 1,
+      "name": "Эльза (Frozen)",
+      "file": "heroes/elza-frozen.webp"
+    },
+    {
+      "order": 2,
+      "name": "Шрек",
+      "file": "heroes/shrek.webp"
+    },
+    {
+      "order": 3,
+      "name": "Симба (The Lion King)",
+      "file": "heroes/simba-the-lion-king.webp"
+    },
+    {
+      "order": 4,
+      "name": "Энакин Скайуокер / Дарт Вейдер",
+      "file": "heroes/enakin-skayuoker-dart-veyder.jpg"
+    },
+    {
+      "order": 5,
+      "name": "Уолтер Уайт (Breaking Bad)",
+      "file": "heroes/uolter-uayt-breaking-bad.jpg"
+    },
+    {
+      "order": 6,
+      "name": "Майкл Корлеоне (The Godfather)",
+      "file": "heroes/maykl-korleone-the-godfather.jpg"
+    },
+    {
+      "order": 7,
+      "name": "Джокер (Артур Флек)",
+      "file": "heroes/dzhoker-artur-flek.jpg"
+    },
+    {
+      "order": 8,
+      "name": "Стив Роджерс / Капитан Америка",
+      "file": "heroes/stiv-rodzhers-kapitan-amerika.jpg"
+    }
+  ],
+  "story-circle": [
+    {
+      "order": 0,
+      "name": "Дороти (Волшебник страны Оз)",
+      "file": "heroes/doroti-volshebnik-strany-oz.jpg"
+    }
+  ]
+}
