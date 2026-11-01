@@ -2,7 +2,8 @@ import Mark from "@/components/Mark";
 import BadgeWidget from "@/features/badges/BadgeWidget";
 import type { BadgeView } from "@/features/badges/view";
 import StarJournal from "@/features/shop/StarJournal";
-import type { StarPurchase } from "@/features/stars/award";
+import type { StarHistoryEntry, StarPurchase } from "@/features/stars/award";
+import StarHistory from "@/features/stars/StarHistory";
 import StarsStatus, { type StarPlaque } from "@/features/stars/StarsStatus";
 import type { StreakPlaque } from "@/features/streak/weeks";
 import type { Task } from "@/generated/prisma/client";
@@ -41,6 +42,7 @@ export default function CabinetHello({
   badgeWidget,
   badgeLine,
   purchases = null,
+  history,
 }: {
   name: string;
   tasks: Task[];
@@ -52,6 +54,7 @@ export default function CabinetHello({
   badgeWidget: BadgeView[];
   badgeLine: string;
   purchases?: StarPurchase[] | null;
+  history: StarHistoryEntry[];
 }) {
   const now = new Date();
   const parts = moscowParts(now);
@@ -96,6 +99,7 @@ export default function CabinetHello({
         markVacation={!playStars}
         href={`${basePath}/weekly`}
       />
+      <StarHistory rows={history} />
       {purchases ? <StarJournal rows={purchases} /> : null}
       <BadgeWidget href={`${basePath}/badges`} badges={badgeWidget} line={badgeLine} />
     </section>

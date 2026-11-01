@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { StarKind } from "@/generated/prisma/client";
 import { syncAutoBadges } from "@/features/badges/sync";
+import { starAwardReason } from "./history";
 import { STAR_POINTS, type StarKindName } from "./rules";
 
 function isUniqueViolation(error: unknown): boolean {
@@ -95,6 +96,36 @@ export async function starPurchases(studentId: string): Promise<StarPurchase[]> 
       points: row.points,
       note: row.note,
       createdAt: row.createdAt.toISOString(),
+    }));
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error) {
+      const code = String((error as { code?: unknown }).code);
+      if (code === "P2021" || code === "P2022") return [];
+    }
+    throw error;
+  }
+}
+
+export type StarHistoryEntry = {
+  id: string;
+  points: number;
+  reason: string;
+  at: string;
+};
+
+/** Все начисления ученика, сначала свежие. Траты сюда не входят. */
+export async function starHistory(studentId: string): Promise<StarHistoryEntry[]> {
+  try {
+    const rows = await prisma.starAward.findMany({
+      where: { studentId, direction: "EARN" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      select: { id: true, kind: true, points: true, sourceId: true, note: true, createdAt: true },
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      points: row.points,
+      reason: starAwardReason(row),
+      at: row.createdAt.toISOString(),
     }));
   } catch (error) {
     if (typeof error === "object" && error !== null && "code" in error) {
