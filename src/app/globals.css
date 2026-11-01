@@ -3161,6 +3161,74 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
 .manuscript[data-theme="dark"] .manuscript-list button em { color: #c9c2b4; }
 .manuscript[data-theme="dark"] .writing-prose.is-empty:before { color: #9c9588; }
 .manuscript[data-theme="dark"] .manuscript-themes button.is-on { background: #3c3934; }
+
+/* «Бумага» и «Тёмная» красят всё окно «Рукописей», включая меню и просветы. */
+html[data-manuscript-theme="paper"] body,
+html[data-manuscript-theme="paper"] .studio-shell,
+html[data-manuscript-theme="paper"] .studio-chrome,
+html[data-manuscript-theme="paper"] .studio-topbar,
+html[data-manuscript-theme="paper"] .studio-body,
+html[data-manuscript-theme="paper"] .studio-content {
+  background: #f3e6c8;
+  color: #3b2918;
+}
+html[data-manuscript-theme="paper"] .studio-topbar { border-bottom-color: #e0cfab; }
+html[data-manuscript-theme="paper"] .studio-logo,
+html[data-manuscript-theme="paper"] .wordmark,
+html[data-manuscript-theme="paper"] .studio-topnav a,
+html[data-manuscript-theme="paper"] .page-title,
+html[data-manuscript-theme="paper"] .manuscript-files { color: #3b2918; }
+html[data-manuscript-theme="paper"] .studio-topnav a.active {
+  color: #3b2918;
+  box-shadow: inset 0 -2px 0 #3b2918;
+}
+html[data-manuscript-theme="paper"] .notes-chip { background: #fbf3e2; color: #3b2918; }
+html[data-manuscript-theme="paper"] .notes-count { box-shadow: 0 0 0 2px #f3e6c8; }
+html[data-manuscript-theme="dark"] body,
+html[data-manuscript-theme="dark"] .studio-shell,
+html[data-manuscript-theme="dark"] .studio-chrome,
+html[data-manuscript-theme="dark"] .studio-topbar,
+html[data-manuscript-theme="dark"] .studio-body,
+html[data-manuscript-theme="dark"] .studio-content {
+  background: #161513;
+  color: #f6f3ec;
+}
+html[data-manuscript-theme="dark"] .studio-topbar { border-bottom-color: #3a3834; }
+html[data-manuscript-theme="dark"] .studio-logo,
+html[data-manuscript-theme="dark"] .wordmark,
+html[data-manuscript-theme="dark"] .studio-topnav a,
+html[data-manuscript-theme="dark"] .page-title,
+html[data-manuscript-theme="dark"] .manuscript-files { color: #f6f3ec; }
+html[data-manuscript-theme="dark"] .studio-logo-note,
+html[data-manuscript-theme="dark"] .studio-topnav a { color: #d9d3c7; }
+html[data-manuscript-theme="dark"] .studio-topnav a.active {
+  color: #f6f3ec;
+  box-shadow: inset 0 -2px 0 #f6f3ec;
+}
+html[data-manuscript-theme="dark"] .notes-chip { background: #2a2825; color: #f6f3ec; }
+html[data-manuscript-theme="dark"] .notes-count { background: #f6f3ec; color: #161513; box-shadow: 0 0 0 2px #161513; }
+html[data-manuscript-theme="paper"] .studio-sidebar { background: #ead9b4; }
+html[data-manuscript-theme="paper"] .side-card,
+html[data-manuscript-theme="paper"] .daily-quote,
+html[data-manuscript-theme="paper"] .entry-card {
+  background: #fbf3e2;
+  color: #3b2918;
+  border-color: #e0cfab;
+}
+html[data-manuscript-theme="paper"] .entry-card :where(input, textarea) { background: transparent; color: #3b2918; }
+html[data-manuscript-theme="paper"] .entry-link-btn-ghost { background: #f3e6c8; color: #3b2918; border-color: #c9b48a; }
+html[data-manuscript-theme="dark"] .studio-sidebar { background: #1e1c1a; }
+html[data-manuscript-theme="dark"] .side-card,
+html[data-manuscript-theme="dark"] .daily-quote,
+html[data-manuscript-theme="dark"] .entry-card {
+  background: #242220;
+  color: #f6f3ec;
+  border-color: #3a3834;
+}
+html[data-manuscript-theme="dark"] .entry-card :where(input, textarea) { background: transparent; color: #f6f3ec; }
+html[data-manuscript-theme="dark"] .entry-link-btn-ghost { background: #2a2825; color: #f6f3ec; border-color: #4a4742; }
+html[data-manuscript-theme="dark"] .side-card a,
+html[data-manuscript-theme="paper"] .side-card a { color: inherit; }
 @media (max-width: 800px) {
   .manuscript { grid-template-columns: 1fr; }
 }

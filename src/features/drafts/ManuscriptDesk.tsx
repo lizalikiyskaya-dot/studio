@@ -87,6 +87,13 @@ export default function ManuscriptDesk({
     setTheme(readTheme(viewerId));
   }, [viewerId]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "white") root.removeAttribute("data-manuscript-theme");
+    else root.setAttribute("data-manuscript-theme", theme);
+    return () => root.removeAttribute("data-manuscript-theme");
+  }, [theme]);
+
   function chooseTheme(next: Theme) {
     setTheme(next);
     try {
