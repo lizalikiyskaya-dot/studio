@@ -185,10 +185,12 @@ export default function ManuscriptDesk({
   useEffect(() => {
     if (!focus) return;
     function onKey(event: KeyboardEvent) {
-      if (!event.altKey || event.ctrlKey || event.metaKey) return;
+      const mac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+      const chord = mac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
+      if (!chord || event.altKey) return;
       const zoomIn = event.code === "Equal" || event.code === "NumpadAdd";
-      const zoomOut = event.code === "Minus" || event.code === "NumpadSubtract";
-      const reset = event.code === "Digit0" || event.code === "Numpad0";
+      const zoomOut = !event.shiftKey && (event.code === "Minus" || event.code === "NumpadSubtract");
+      const reset = !event.shiftKey && (event.code === "Digit0" || event.code === "Numpad0");
       if (!zoomIn && !zoomOut && !reset) return;
       event.preventDefault();
       setZoom((current) => {
@@ -201,8 +203,8 @@ export default function ManuscriptDesk({
         return next;
       });
     }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, [focus, viewerId]);
 
   function chooseTheme(next: Theme) {
