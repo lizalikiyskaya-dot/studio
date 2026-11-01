@@ -27,7 +27,7 @@ export default function DraftsList({
 }: {
   studentId: string;
   initialDrafts: Draft[];
-  manuscript?: { bookId: string | null; bookTitle: string; chapters: ManuscriptChapter[] };
+  manuscript?: { bookId: string | null; bookTitle: string; chapters: ManuscriptChapter[]; viewerId: string };
   readOnly?: boolean;
 }) {
   const [drafts, setDrafts] = useState(initialDrafts);
@@ -106,6 +106,7 @@ export default function DraftsList({
           bookId={manuscript.bookId}
           bookTitle={manuscript.bookTitle}
           initialChapters={manuscript.chapters}
+          viewerId={manuscript.viewerId}
           readOnly={readOnly}
         />
       ) : null}

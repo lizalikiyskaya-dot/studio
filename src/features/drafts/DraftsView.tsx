@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
 import { resolveActiveBook } from "@/lib/resolveBook";
 import DraftsList from "./DraftsList";
 import type { ManuscriptChapter } from "./ManuscriptDesk";
@@ -23,6 +24,7 @@ export default async function DraftsView({
     `,
   ]);
   const files = new Set(withFile.map((row) => row.id));
+  const session = await getSession();
   const { activeBook } = await resolveActiveBook(studentId);
   const chapters: ManuscriptChapter[] = activeBook
     ? await prisma.planChapter.findMany({
@@ -49,6 +51,7 @@ export default async function DraftsView({
         bookId: activeBook?.id ?? null,
         bookTitle: activeBook?.title ?? "",
         chapters,
+        viewerId: session?.userId ?? studentId,
       }}
       initialDrafts={drafts.map((draft) => ({
         ...draft,

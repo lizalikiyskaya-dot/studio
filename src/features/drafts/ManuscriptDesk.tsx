@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import WritingEditor from "@/features/exercises/additional/WritingEditor";
 import type { ContentFormat } from "@/features/exercises/additional/richText";
@@ -23,22 +23,78 @@ function asFormat(value: string): ContentFormat {
   return value === "markdown" ? "markdown" : "plain";
 }
 
+const THEMES = [
+  { id: "white", label: "Белая" },
+  { id: "paper", label: "Бумага" },
+  { id: "dark", label: "Тёмная" },
+] as const;
+
+type Theme = (typeof THEMES)[number]["id"];
+
+function themeKey(viewerId: string) {
+  return `manuscript-theme:${viewerId}`;
+}
+
+function readTheme(viewerId: string): Theme {
+  try {
+    const saved = localStorage.getItem(themeKey(viewerId));
+    if (saved === "paper" || saved === "dark" || saved === "white") return saved;
+  } catch {
+    // Хранилище недоступно: остаётся белая тема.
+  }
+  return "white";
+}
+
+function ThemeSwitch({ theme, onChange }: { theme: Theme; onChange: (theme: Theme) => void }) {
+  return (
+    <span className="manuscript-themes" role="group" aria-label="Тема окна">
+      {THEMES.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          className={item.id === theme ? "is-on" : undefined}
+          aria-pressed={item.id === theme}
+          onClick={() => onChange(item.id)}
+        >
+          {item.label}
+        </button>
+      ))}
+    </span>
+  );
+}
+
 export default function ManuscriptDesk({
   bookId,
   bookTitle,
   initialChapters,
+  viewerId,
   readOnly,
 }: {
   bookId: string | null;
   bookTitle: string;
   initialChapters: ManuscriptChapter[];
+  viewerId: string;
   readOnly: boolean;
 }) {
+  const [theme, setTheme] = useState<Theme>("white");
   const [chapters, setChapters] = useState(initialChapters);
   const [currentId, setCurrentId] = useState(initialChapters[0]?.id ?? null);
   const [status, setStatus] = useState<"saved" | "saving">("saved");
   const timer = useRef<number | null>(null);
   const latest = useRef<{ id: string; content: string; format: ContentFormat } | null>(null);
+
+  useEffect(() => {
+    setTheme(readTheme(viewerId));
+  }, [viewerId]);
+
+  function chooseTheme(next: Theme) {
+    setTheme(next);
+    try {
+      localStorage.setItem(themeKey(viewerId), next);
+    } catch {
+      // Выбор останется до перезагрузки страницы.
+    }
+  }
 
   const current = chapters.find((chapter) => chapter.id === currentId) ?? null;
   const written = chapters.reduce((sum, chapter) => sum + (chapter.writtenChars || 0), 0);
@@ -105,7 +161,7 @@ export default function ManuscriptDesk({
   }
 
   return (
-    <section className="manuscript" aria-label="Рукопись">
+    <section className="manuscript" data-theme={theme} aria-label="Рукопись">
       <aside className="manuscript-list">
         <div className="manuscript-list-head">
           <span>{bookTitle.trim() || "Книга"}</span>
@@ -179,6 +235,11 @@ export default function ManuscriptDesk({
                   ? "Вы пишете здесь. Знаки считаются сами и уже стоят в трекере. Вручную их менять не нужно."
                   : "Если Вы начнёте писать здесь, знаки в трекере заменятся на подсчёт по тексту."}
             </p>
+            {readOnly ? (
+              <div className="manuscript-theme-solo">
+                <ThemeSwitch theme={theme} onChange={chooseTheme} />
+              </div>
+            ) : null}
             <WritingEditor
               key={current.id}
               value={current.manuscript}
@@ -187,6 +248,7 @@ export default function ManuscriptDesk({
               placeholder="Напишите главу здесь"
               variant="focus"
               readOnly={readOnly}
+              toolbarExtra={readOnly ? undefined : <ThemeSwitch theme={theme} onChange={chooseTheme} />}
             />
           </>
         ) : (
