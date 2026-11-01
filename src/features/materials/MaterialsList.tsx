@@ -425,11 +425,13 @@ function HandoutsList({
   materials,
   guides,
   canManage,
+  starBalance,
 }: {
   studentId: string;
   materials: MaterialRow[];
   guides: CabinetGuide[];
   canManage: boolean;
+  starBalance: number;
 }) {
   const { items: handouts, setItems: setHandouts, startTransition, saveTitle, addItem } = useEditableMaterials(materials);
   const [armedId, setArmedId] = useState<string | null>(null);
@@ -494,7 +496,7 @@ function HandoutsList({
               detail={canManage ? "Добавьте методичку — её увидят в кабинетах." : "Методички студии появятся здесь."}
             />
           ) : (
-            <LibraryGuides studentId={studentId} guides={guides} canManage={canManage} />
+            <LibraryGuides studentId={studentId} guides={guides} canManage={canManage} starBalance={starBalance} />
           )}
         </div>
       )}
@@ -603,12 +605,14 @@ export default function MaterialsList({
   initialMaterials,
   guides,
   canManage,
+  starBalance,
   initialTab = 0,
 }: {
   studentId: string;
   initialMaterials: MaterialRow[];
   guides: CabinetGuide[];
   canManage: boolean;
+  starBalance: number;
   initialTab?: number;
 }) {
   const books = initialMaterials.filter((m) => m.category === "BOOK");
@@ -622,7 +626,7 @@ export default function MaterialsList({
       </section>
       <section className="sheet px-5 pt-4 pb-3" style={{ order: initialTab === 1 ? 0 : 1 }}>
         <h2 className="mb-2 text-[18px] font-semibold">Методички</h2>
-        <HandoutsList studentId={studentId} materials={handouts} guides={guides} canManage={canManage} />
+        <HandoutsList studentId={studentId} materials={handouts} guides={guides} canManage={canManage} starBalance={starBalance} />
       </section>
     </div>
   );

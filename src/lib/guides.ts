@@ -161,11 +161,10 @@ export async function loadLibrary(): Promise<{ ready: true; guides: LibraryGuide
 }
 
 /**
- * Методички в кабинете ученика.
- * Наставник видит все, включая скрытые. Ученик — только открытые.
- * Содержимое файла в ответ не кладём: скачивание идёт через API, там проверка повторяется.
+ * Методички в кабинете ученика: и открытые, и закрытые.
+ * Закрытую ученик видит в списке и может купить. Файл отдаёт только API.
  */
-export async function loadCabinetGuides(studentId: string, includeHidden: boolean): Promise<CabinetGuide[]> {
+export async function loadCabinetGuides(studentId: string, _includeHidden = true): Promise<CabinetGuide[]> {
   if (!(await guidesSchemaReady())) return [];
   try {
     const guides = await prisma.guide.findMany({
@@ -193,7 +192,7 @@ export async function loadCabinetGuides(studentId: string, includeHidden: boolea
       visible: guide.access[0]?.visible ?? false,
       status: guide.progress[0]?.status ?? "UNREAD",
     }));
-    return includeHidden ? rows : rows.filter((guide) => guide.visible);
+    return rows;
   } catch (error) {
     const fallback = mapMissing(error, [] as CabinetGuide[]);
     if (fallback) return fallback;

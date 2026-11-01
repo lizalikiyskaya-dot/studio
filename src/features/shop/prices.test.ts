@@ -4,14 +4,14 @@ import path from "node:path";
 import test from "node:test";
 import { rankForStars } from "@/features/stars/rules";
 import { findDestructive } from "../../../scripts/sql-guard.mjs";
+import { STAR_POINTS } from "@/features/stars/rules";
 import {
   confirmPurchase,
   listedPrice,
-  METHODICAL_PRICE_START,
+  METHODICAL_PRICE,
   missingStarsLabel,
   openedLine,
   planPurchase,
-  priceForMethodicalNumber,
   shopIntro,
   shopOffers,
   type ShopGuide,
@@ -29,55 +29,35 @@ function guide(partial: Partial<ShopGuide> & Pick<ShopGuide, "id" | "title">): S
   };
 }
 
-test("цена растёт с номером, №1 остаётся 8", () => {
-  assert.equal(METHODICAL_PRICE_START, 8);
-  assert.equal(listedPrice(guide({ id: "a", title: "1 Писательская практика" })), 8);
-  assert.equal(listedPrice(guide({ id: "a", title: "Писательская практика" })), 8);
+test("любая методичка стоит как три основных задания", () => {
+  assert.equal(STAR_POINTS.MAIN_TASK, 3);
+  assert.equal(METHODICAL_PRICE, STAR_POINTS.MAIN_TASK * 3);
+  assert.equal(listedPrice(guide({ id: "a", title: "1 Писательская практика" })), 9);
   assert.equal(listedPrice(guide({ id: "a", title: "2 Луковица" })), 9);
-  assert.equal(listedPrice(guide({ id: "a", title: "10 Крючки" })), 17);
-  assert.equal(listedPrice(guide({ id: "a", title: "16 Синопсис" })), 23);
-  assert.equal(listedPrice(guide({ id: "a", title: "7-1 Сценарные структуры" })), 14);
-  assert.equal(listedPrice(guide({ id: "a", title: "7-2 Сценарные структуры" })), 14);
-  assert.equal(listedPrice(guide({ id: "a", title: "19-2 Библия мира" })), 26);
-  assert.equal(priceForMethodicalNumber(19), priceForMethodicalNumber(1) + 18);
-  assert.ok(listedPrice(guide({ id: "a", title: "4 Второстепенные" })) < listedPrice(guide({ id: "a", title: "5 Сеттинги" })));
-  assert.equal(listedPrice(guide({ id: "a", title: "Новая методичка", fileBytes: 40_000 })), 8);
-  assert.equal(listedPrice(guide({ id: "a", title: "Новая методичка", fileBytes: 400_000 })), 12);
-  assert.equal(listedPrice(guide({ id: "a", title: "Новая методичка", fileBytes: 2_000_000 })), 18);
-  assert.equal(listedPrice(guide({ id: "a", title: "Новая методичка", fileBytes: null })), 12);
-  assert.equal(listedPrice(guide({ id: "a", title: "16 Синопсис", starPrice: 8 })), 8);
+  assert.equal(listedPrice(guide({ id: "a", title: "10 Крючки" })), 9);
+  assert.equal(listedPrice(guide({ id: "a", title: "16 Синопсис" })), 9);
+  assert.equal(listedPrice(guide({ id: "a", title: "7-1 Сценарные структуры" })), 9);
+  assert.equal(listedPrice(guide({ id: "a", title: "19-2 Библия мира" })), 9);
+  assert.equal(listedPrice(guide({ id: "a", title: "Новая методичка", fileBytes: 40_000 })), 9);
+  assert.equal(listedPrice(guide({ id: "a", title: "Новая методичка", fileBytes: 2_000_000 })), 9);
+  assert.equal(listedPrice(guide({ id: "a", title: "16 Синопсис", starPrice: 8 })), 9);
+  assert.equal(listedPrice(guide({ id: "a", title: "16 Синопсис", starPrice: 18 })), 9);
 });
 
-test("закрытые методички, пара по цене номера, открытая Лизой в магазин не входит", () => {
+test("закрытые методички покупаются по одной, открытая в список не входит", () => {
   const guides = [
     guide({ id: "g1", title: "1 Писательская практика", visible: true }),
     guide({ id: "g7a", title: "7-1 Сценарные структуры" }),
-    guide({ id: "g7b", title: "7-2 Сценарные структуры" }),
+    guide({ id: "g7b", title: "7-2 Сценарные структуры", starPrice: 8 }),
     guide({ id: "g10", title: "10 Крючки" }),
-    guide({ id: "g19a", title: "19-1 Библия мира", visible: true }),
-    guide({ id: "g19b", title: "19-2 Библия мира" }),
   ];
   const offers = shopOffers(guides);
   assert.deepEqual(
     offers.map((offer) => [offer.id, offer.price, offer.guideIds]),
     [
-      ["pair:7", 14, ["g7a", "g7b"]],
-      ["g10", 17, ["g10"]],
-      ["g19b", 26, ["g19b"]],
-    ],
-  );
-});
-
-test("своя цена наставника разбивает пару", () => {
-  const offers = shopOffers([
-    guide({ id: "g7a", title: "7-1 Сценарные структуры", starPrice: 8 }),
-    guide({ id: "g7b", title: "7-2 Сценарные структуры" }),
-  ]);
-  assert.deepEqual(
-    offers.map((offer) => [offer.id, offer.price]),
-    [
-      ["g7a", 8],
-      ["g7b", 14],
+      ["g7a", 9, ["g7a"]],
+      ["g7b", 9, ["g7b"]],
+      ["g10", 9, ["g10"]],
     ],
   );
 });
@@ -99,14 +79,12 @@ test("покупка уменьшает счёт и не трогает зара
   assert.equal(single.note, "методичка «2 Луковица»");
   assert.equal(rankForStars(single.earned).current.title, before);
 
-  const pair = planPurchase(guides, ["g7b", "g7a"], 21, earned);
-  assert.equal(pair.ok, true);
-  if (!pair.ok) return;
-  assert.equal(pair.price, 14);
-  assert.equal(pair.sourceId, "pair:7");
-  assert.equal(pair.balanceAfter, 7);
-  assert.equal(pair.earned, earned);
-  assert.match(pair.note, /методички/);
+  const other = planPurchase(guides, ["g7a"], 21, earned);
+  assert.equal(other.ok, true);
+  if (!other.ok) return;
+  assert.equal(other.price, 9);
+  assert.equal(other.sourceId, "g7a");
+  assert.equal(other.balanceAfter, 12);
 
   const poor = planPurchase(guides, ["g2"], 5, earned);
   assert.deepEqual(poor, { ok: false, reason: "missing", missing: 4, price: 9 });
