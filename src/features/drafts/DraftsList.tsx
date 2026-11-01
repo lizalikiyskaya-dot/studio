@@ -11,6 +11,7 @@ import EmptyState from "@/components/EmptyState";
 import PageHeader from "@/components/PageHeader";
 import { EntryLink, EntryNote, EntryTitle } from "@/features/entries/EntryParts";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
+import ManuscriptDesk, { type ManuscriptChapter } from "./ManuscriptDesk";
 
 function draftDate(value: Date | string) {
   const date = value instanceof Date ? value : new Date(value);
@@ -21,9 +22,13 @@ function draftDate(value: Date | string) {
 export default function DraftsList({
   studentId,
   initialDrafts,
+  manuscript,
+  readOnly = false,
 }: {
   studentId: string;
   initialDrafts: Draft[];
+  manuscript?: { bookId: string | null; bookTitle: string; chapters: ManuscriptChapter[] };
+  readOnly?: boolean;
 }) {
   const [drafts, setDrafts] = useState(initialDrafts);
   // Card is draggable ONLY while the grip handle is held, so selecting the
@@ -89,19 +94,32 @@ export default function DraftsList({
       <PageHeader
         title="Рукописи"
         actions={
+          readOnly ? undefined : (
           <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
             <Plus size={16} /> Добавить рукопись
           </button>
+          )
         }
       />
+      {manuscript ? (
+        <ManuscriptDesk
+          bookId={manuscript.bookId}
+          bookTitle={manuscript.bookTitle}
+          initialChapters={manuscript.chapters}
+          readOnly={readOnly}
+        />
+      ) : null}
+      <h2 className="manuscript-files">Файлы и ссылки</h2>
       {drafts.length === 0 ? (
         <EmptyState
           cue="Самое время писать"
           detail="Черновики и рукописи появятся здесь."
           action={
+            readOnly ? undefined : (
             <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
               <Plus size={16} /> Добавить рукопись
             </button>
+            )
           }
         />
       ) : (

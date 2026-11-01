@@ -306,17 +306,27 @@ export default function PlanTable({
                         <ChapterNote chapter={chapter} suggestion={chapterSuggestions.note} />
                         <div className="chapter-card-foot">
                           <div className="chapter-card-figures">
-                            <input
-                              key={`${chapter.id}-w-${chapter.writtenChars}`}
-                              defaultValue={formatChars(chapter.writtenChars)}
-                              onBlur={(e) => handleNumber(chapter.id, "writtenChars", parseChars(e.target.value))}
-                              onKeyDown={blurOnEnter}
-                              inputMode="numeric"
-                              aria-label="Написано знаков"
-                              placeholder="0"
-                              className="chapter-num"
-                              size={Math.max(1, formatChars(chapter.writtenChars).length)}
-                            />
+                            {chapter.writtenHere ? (
+                              <span
+                                className="chapter-num"
+                                title="Считается из рукописи"
+                                aria-label="Написано знаков, считается из рукописи"
+                              >
+                                {formatChars(chapter.writtenChars)}
+                              </span>
+                            ) : (
+                              <input
+                                key={`${chapter.id}-w-${chapter.writtenChars}`}
+                                defaultValue={formatChars(chapter.writtenChars)}
+                                onBlur={(e) => handleNumber(chapter.id, "writtenChars", parseChars(e.target.value))}
+                                onKeyDown={blurOnEnter}
+                                inputMode="numeric"
+                                aria-label="Написано знаков"
+                                placeholder="0"
+                                className="chapter-num"
+                                size={Math.max(1, formatChars(chapter.writtenChars).length)}
+                              />
+                            )}
                             <span aria-hidden="true">/</span>
                             <input
                               key={`${chapter.id}-p-${chapter.plannedChars}`}

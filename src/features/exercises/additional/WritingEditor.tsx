@@ -117,6 +117,7 @@ export default function WritingEditor({
   placeholder = "Напишите здесь",
   variant = "card",
   toolbarExtra,
+  readOnly = false,
 }: {
   value: string;
   format: ContentFormat;
@@ -124,6 +125,7 @@ export default function WritingEditor({
   placeholder?: string;
   variant?: "card" | "focus";
   toolbarExtra?: React.ReactNode;
+  readOnly?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const history = useRef<string[]>([savedKey(value, format)]);
@@ -340,7 +342,7 @@ export default function WritingEditor({
 
   return (
     <div className={`writing-editor writing-editor-${variant}`}>
-      <div className="writing-toolbar" role="toolbar" aria-label="Оформление">
+      {readOnly ? null : <div className="writing-toolbar" role="toolbar" aria-label="Оформление">
         {TOOLS.map((tool) => {
           const Icon = tool.icon;
           return (
@@ -394,21 +396,22 @@ export default function WritingEditor({
           <Redo2 size={15} />
         </button>
         {toolbarExtra ? <span className="writing-toolbar-extra">{toolbarExtra}</span> : null}
-      </div>
+      </div>}
       <div
         ref={ref}
         className={`writing-prose${empty ? " is-empty" : ""}`}
-        contentEditable
+        contentEditable={!readOnly}
         role="textbox"
         aria-multiline="true"
+        aria-readonly={readOnly || undefined}
         aria-label="Текст"
         data-placeholder={placeholder}
         spellCheck
-        onInput={() => publish()}
-        onKeyUp={rememberActive}
-        onMouseUp={rememberActive}
-        onKeyDown={onKeyDown}
-        onPaste={onPaste}
+        onInput={readOnly ? undefined : () => publish()}
+        onKeyUp={readOnly ? undefined : rememberActive}
+        onMouseUp={readOnly ? undefined : rememberActive}
+        onKeyDown={readOnly ? undefined : onKeyDown}
+        onPaste={readOnly ? undefined : onPaste}
         onFocus={() => {
           try {
             document.execCommand("defaultParagraphSeparator", false, "p");
