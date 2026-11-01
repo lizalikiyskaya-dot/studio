@@ -33,7 +33,7 @@ test("пустое фото заполняется, уже стоящее и к�
     updates.map((row) => row.id),
     ["empty", "blank"],
   );
-  assert.equal(updates[0]?.photoUrl, "data:pop-arc/00.png");
+  assert.equal(updates[0]?.photoUrl, "data:heroes/toni-stark-iron-man.webp");
 });
 
 test("у арок и веры есть фото, у круга только записанные в манифесте", () => {
@@ -41,8 +41,15 @@ test("у арок и веры есть фото, у круга только за
     assert.ok(pickExamplePhoto(manifest["pop-arc"], { name: seed.name, order }));
   }
   for (const [order, seed] of BELIEF_SEED.entries()) {
-    assert.ok(pickExamplePhoto(manifest.belief, { name: seed.hero, order }));
+    const file = pickExamplePhoto(manifest.belief, { name: seed.hero, order });
+    assert.ok(file);
+    const arc = pickExamplePhoto(manifest["pop-arc"], { name: seed.hero, order: -1 });
+    assert.equal(file, arc);
   }
+  assert.equal(
+    pickExamplePhoto(manifest["story-circle"], { name: "Салли (Корпорация монстров)", order: 1 }),
+    null,
+  );
   for (const [order, seed] of STORY_CIRCLE_SEED.entries()) {
     const listed = manifest["story-circle"].some((entry) => entry.name === seed.hero);
     assert.equal(Boolean(pickExamplePhoto(manifest["story-circle"], { name: seed.hero, order })), listed);

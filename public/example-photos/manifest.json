@@ -1,30 +1,113 @@
 {
   "pop-arc": [
-    { "order": 0, "name": "Тони Старк (Iron Man)", "file": "pop-arc/00.png" },
-    { "order": 1, "name": "Эльза (Frozen)", "file": "pop-arc/01.png" },
-    { "order": 2, "name": "Шрек", "file": "pop-arc/02.png" },
-    { "order": 3, "name": "Симба (The Lion King)", "file": "pop-arc/03.png" },
-    { "order": 4, "name": "Энакин Скайуокер / Дарт Вейдер", "file": "pop-arc/04.png" },
-    { "order": 5, "name": "Уолтер Уайт (Breaking Bad)", "file": "pop-arc/05.png" },
-    { "order": 6, "name": "Майкл Корлеоне (The Godfather)", "file": "pop-arc/06.png" },
-    { "order": 7, "name": "Джокер (Артур Флек)", "file": "pop-arc/07.png" },
-    { "order": 8, "name": "Санса Старк (Игра престолов)", "file": "pop-arc/08.png" },
-    { "order": 9, "name": "Хитклиф (Грозовой перевал)", "file": "pop-arc/09.png" },
-    { "order": 10, "name": "Стив Роджерс / Капитан Америка", "file": "pop-arc/10.png" }
+    {
+      "order": 0,
+      "name": "Тони Старк (Iron Man)",
+      "file": "heroes/toni-stark-iron-man.webp"
+    },
+    {
+      "order": 1,
+      "name": "Эльза (Frozen)",
+      "file": "heroes/elza-frozen.webp"
+    },
+    {
+      "order": 2,
+      "name": "Шрек",
+      "file": "heroes/shrek.webp"
+    },
+    {
+      "order": 3,
+      "name": "Симба (The Lion King)",
+      "file": "heroes/simba-the-lion-king.webp"
+    },
+    {
+      "order": 4,
+      "name": "Энакин Скайуокер / Дарт Вейдер",
+      "file": "heroes/enakin-skayuoker-dart-veyder.jpg"
+    },
+    {
+      "order": 5,
+      "name": "Уолтер Уайт (Breaking Bad)",
+      "file": "heroes/uolter-uayt-breaking-bad.jpg"
+    },
+    {
+      "order": 6,
+      "name": "Майкл Корлеоне (The Godfather)",
+      "file": "heroes/maykl-korleone-the-godfather.jpg"
+    },
+    {
+      "order": 7,
+      "name": "Джокер (Артур Флек)",
+      "file": "heroes/dzhoker-artur-flek.jpg"
+    },
+    {
+      "order": 8,
+      "name": "Санса Старк (Игра престолов)",
+      "file": "heroes/sansa-stark-igra-prestolov.jpg"
+    },
+    {
+      "order": 9,
+      "name": "Хитклиф (Грозовой перевал)",
+      "file": "heroes/hitklif-grozovoy-pereval.jpg"
+    },
+    {
+      "order": 10,
+      "name": "Стив Роджерс / Капитан Америка",
+      "file": "heroes/stiv-rodzhers-kapitan-amerika.jpg"
+    }
   ],
   "belief": [
-    { "order": 0, "name": "Тони Старк (Iron Man)", "file": "belief/00.png" },
-    { "order": 1, "name": "Эльза (Frozen)", "file": "belief/01.png" },
-    { "order": 2, "name": "Шрек", "file": "belief/02.png" },
-    { "order": 3, "name": "Симба (The Lion King)", "file": "belief/03.png" },
-    { "order": 4, "name": "Энакин Скайуокер / Дарт Вейдер", "file": "belief/04.png" },
-    { "order": 5, "name": "Уолтер Уайт (Breaking Bad)", "file": "belief/05.png" },
-    { "order": 6, "name": "Майкл Корлеоне (The Godfather)", "file": "belief/06.png" },
-    { "order": 7, "name": "Джокер (Артур Флек)", "file": "belief/07.png" },
-    { "order": 8, "name": "Стив Роджерс / Капитан Америка", "file": "belief/08.png" }
+    {
+      "order": 0,
+      "name": "Тони Старк (Iron Man)",
+      "file": "heroes/toni-stark-iron-man.webp"
+    },
+    {
+      "order": 1,
+      "name": "Эльза (Frozen)",
+      "file": "heroes/elza-frozen.webp"
+    },
+    {
+      "order": 2,
+      "name": "Шрек",
+      "file": "heroes/shrek.webp"
+    },
+    {
+      "order": 3,
+      "name": "Симба (The Lion King)",
+      "file": "heroes/simba-the-lion-king.webp"
+    },
+    {
+      "order": 4,
+      "name": "Энакин Скайуокер / Дарт Вейдер",
+      "file": "heroes/enakin-skayuoker-dart-veyder.jpg"
+    },
+    {
+      "order": 5,
+      "name": "Уолтер Уайт (Breaking Bad)",
+      "file": "heroes/uolter-uayt-breaking-bad.jpg"
+    },
+    {
+      "order": 6,
+      "name": "Майкл Корлеоне (The Godfather)",
+      "file": "heroes/maykl-korleone-the-godfather.jpg"
+    },
+    {
+      "order": 7,
+      "name": "Джокер (Артур Флек)",
+      "file": "heroes/dzhoker-artur-flek.jpg"
+    },
+    {
+      "order": 8,
+      "name": "Стив Роджерс / Капитан Америка",
+      "file": "heroes/stiv-rodzhers-kapitan-amerika.jpg"
+    }
   ],
   "story-circle": [
-    { "order": 0, "name": "Дороти (Волшебник страны Оз)", "file": "story-circle/00.png" },
-    { "order": 1, "name": "Салли (Корпорация монстров)", "file": "story-circle/01.png" }
+    {
+      "order": 0,
+      "name": "Дороти (Волшебник страны Оз)",
+      "file": "heroes/doroti-volshebnik-strany-oz.jpg"
+    }
   ]
 }
