@@ -4,6 +4,7 @@ import { renderEmail } from "@/lib/mail";
 import { buildPaymentReminder, moscowParts } from "@/lib/paymentReminders";
 import { approvedLetter, dailyQuoteLetter, guideOpenedLetter, passwordResetLetter, registrationStudentLetter, weeklyTaskLetter } from "@/lib/notify";
 import { newTaskLetter } from "@/lib/newTaskMail";
+import { buildNoteReminderLetter } from "@/lib/noteReminders";
 import { mentorSubmissionUrl, submissionLetter } from "@/lib/submissionMail";
 
 export type BroadcastPreview = {
@@ -80,6 +81,32 @@ export function broadcastPreviewHtml(): Record<string, BroadcastPreview> {
         url: mentorSubmissionUrl("sample", "tasks", "sample-task"),
       });
       return { subject: letter.subject, html: letter.html };
+    })(),
+    "note-reminder": (() => {
+      const books = new Map([["book-1", "Тихий дом"]]);
+      const informal = buildNoteReminderLetter({
+        name: "Надежда",
+        baseUrl: "https://studio.lizandwriter.ru",
+        bookTitles: books,
+        unsubscribeUrl: "https://studio.lizandwriter.ru/unsubscribe?token=preview-notes",
+        notes: [
+          { anchorLabel: "Сеттинг", anchorUrl: "/dashboard/setting?book=book-1" },
+          { anchorLabel: "Сеттинг", anchorUrl: "/dashboard/setting?book=book-1" },
+          { anchorLabel: "О книге", anchorUrl: "/dashboard/about" },
+        ],
+      });
+      const formal = buildNoteReminderLetter({
+        name: "Виктория",
+        baseUrl: "https://studio.lizandwriter.ru",
+        unsubscribeUrl: "https://studio.lizandwriter.ru/unsubscribe?token=preview-notes",
+        notes: [{ anchorLabel: "Сеттинг", anchorUrl: "/dashboard/setting" }],
+      });
+      return {
+        subject: informal.subject,
+        html: informal.html,
+        label: "Надя, на «ты»",
+        also: { subject: formal.subject, html: formal.html, label: "Виктория, на «Вы»" },
+      };
     })(),
     "new-task": (() => {
       const sample = {
