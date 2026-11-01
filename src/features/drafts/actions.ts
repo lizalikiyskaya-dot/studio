@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
 import { creditStreakWeek } from "@/features/streak/credit";
 import { linkAttachmentCounts } from "@/features/streak/weeks";
+import { countSigns } from "./manuscriptCount";
+import type { ContentFormat } from "@/features/exercises/additional/richText";
+import { createPlanChapter } from "@/features/books/actions";
+
+function asFormat(value: string): ContentFormat {
+  return value === "markdown" ? "markdown" : "plain";
+}
 
 export async function createDraft(studentId: string) {
   await requireCabinetAccess(studentId);
@@ -30,6 +37,50 @@ export async function deleteDraft(draftId: string) {
   const draft = await prisma.draft.findUniqueOrThrow({ where: { id: draftId } });
   await requireCabinetAccess(draft.studentId);
   await prisma.draft.delete({ where: { id: draftId } });
+}
+
+async function chapterBook(chapterId: string) {
+  const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id: chapterId } });
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
+  const session = await requireCabinetAccess(book.studentId);
+  return { chapter, book, session };
+}
+
+export async function createManuscriptChapter(bookId: string) {
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
+  const session = await requireCabinetAccess(book.studentId);
+  if (session.role === "MENTOR") return null;
+  const { chapter } = await createPlanChapter(bookId);
+  return prisma.planChapter.update({
+    where: { id: chapter.id },
+    data: { writtenHere: true, manuscript: "", manuscriptFormat: "plain", writtenChars: 0 },
+  });
+}
+
+export async function saveManuscriptChapter(chapterId: string, content: string, format: ContentFormat) {
+  const { session } = await chapterBook(chapterId);
+  if (session.role === "MENTOR") return null;
+  const stored = asFormat(format);
+  const writtenChars = countSigns(content, stored);
+  await prisma.planChapter.update({
+    where: { id: chapterId },
+    data: {
+      manuscript: content,
+      manuscriptFormat: stored,
+      writtenHere: true,
+      writtenChars,
+    },
+  });
+  return { writtenChars };
+}
+
+export async function renameManuscriptChapter(chapterId: string, title: string) {
+  const { session } = await chapterBook(chapterId);
+  if (session.role === "MENTOR") return;
+  await prisma.planChapter.update({
+    where: { id: chapterId },
+    data: { title: title.slice(0, 200) },
+  });
 }
 
 export async function reorderDrafts(studentId: string, ids: string[]) {

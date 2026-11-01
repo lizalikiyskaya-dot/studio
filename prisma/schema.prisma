@@ -518,6 +518,10 @@ model PlanChapter {
   note             String  @default("")
   plannedChars     Int     @default(0)
   writtenChars     Int     @default(0)
+  // Текст, написанный в «Рукописях». Пусто и writtenHere = false — знаки вводят в трекере вручную.
+  manuscript       String  @default("")
+  manuscriptFormat String  @default("plain")
+  writtenHere      Boolean @default(false)
   color            String?
   actBreakAfter    Boolean @default(false)
   actId            String?
