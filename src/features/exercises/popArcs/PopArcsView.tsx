@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Subtabs from "@/components/Subtabs";
 import { ExamplesList, OwnHeroesList } from "./PopArcsList";
 import { POP_ARC_SEED } from "./seedData";
+import { fillEmptyExamplePhotos, seededExamplePhoto } from "@/features/exercises/examplePhotos";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
 import { attachPortrait, photoIds } from "@/lib/portraits";
@@ -28,6 +29,7 @@ export default async function PopArcsView({
         name: seed.name,
         arcType: seed.arcType,
         data: seed.data,
+        photoUrl: seededExamplePhoto("pop-arc", seed.name, i),
       })),
     });
     examples = await prisma.popArcCharacter.findMany({
@@ -35,6 +37,12 @@ export default async function PopArcsView({
       orderBy: { order: "asc" },
       omit: { photoUrl: true },
     });
+  } else {
+    const bare = await prisma.popArcCharacter.findMany({
+      where: { studentId, isExample: true, OR: [{ photoUrl: null }, { photoUrl: "" }] },
+      select: { id: true, name: true, order: true, photoUrl: true },
+    });
+    await fillEmptyExamplePhotos("pop-arc", bare);
   }
 
   const [ownHeroes, portraits] = await Promise.all([

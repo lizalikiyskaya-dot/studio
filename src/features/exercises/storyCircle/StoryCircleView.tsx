@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Subtabs from "@/components/Subtabs";
 import { StoryCircleExamplesList, StoryCircleOwnList } from "./StoryCircleList";
 import { STORY_CIRCLE_SEED } from "./seedData";
+import { fillEmptyExamplePhotos, seededExamplePhoto } from "@/features/exercises/examplePhotos";
 import { getSuggestionsForRecords } from "@/features/suggestions/actions";
 import { getCommentsForRecords } from "@/features/comments/actions";
 import { attachPortrait, photoIds } from "@/lib/portraits";
@@ -27,6 +28,7 @@ export default async function StoryCircleView({
         isExample: true,
         hero: seed.hero,
         data: seed.data,
+        photoUrl: seededExamplePhoto("story-circle", seed.hero, i),
       })),
     });
     examples = await prisma.storyCircleCard.findMany({
@@ -34,6 +36,15 @@ export default async function StoryCircleView({
       orderBy: { order: "asc" },
       omit: { photoUrl: true },
     });
+  } else {
+    const bare = await prisma.storyCircleCard.findMany({
+      where: { studentId, isExample: true, OR: [{ photoUrl: null }, { photoUrl: "" }] },
+      select: { id: true, hero: true, order: true, photoUrl: true },
+    });
+    await fillEmptyExamplePhotos(
+      "story-circle",
+      bare.map((row) => ({ id: row.id, name: row.hero, order: row.order, photoUrl: row.photoUrl })),
+    );
   }
 
   const [ownCards, portraits] = await Promise.all([
