@@ -19,13 +19,13 @@ test("обычный текст заметку не блокирует", () => {
   assert.equal(blocksNote(null), false);
 });
 
-test("режим правок не поднимает заметку", () => {
+test("поле в режиме правок тоже можно отметить", () => {
   const field = {
     tagName: "TEXTAREA",
     parentElement: { tagName: "DIV", getAttribute: (name: string) => (name === "data-review-field" ? "" : null) },
   };
-  assert.equal(blocksNote(field), true);
-  assert.equal(isTextField(field), false);
+  assert.equal(blocksNote(field), false);
+  assert.equal(isTextField(field), true);
 });
 
 test("панель заметок не аннотирует сама себя", () => {

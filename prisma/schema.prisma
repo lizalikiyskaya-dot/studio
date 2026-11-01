@@ -261,6 +261,8 @@ model Note {
   anchorQuote  String    @default("")
   anchorLabel  String    @default("")
   anchorUrl    String    @default("")
+  // Смещение цитаты в тексте. Пусто у старых заметок: тогда берётся первое вхождение.
+  anchorOffset Int?
   resolved     Boolean   @default(false)
   resolvedAt   DateTime?
   resolvedBy   String    @default("")
