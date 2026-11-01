@@ -1,6 +1,6 @@
 "use client";
 
-import { siteAlert, siteChoice } from "@/components/SiteDialog";
+import { siteAlert, siteChoice, siteConfirm } from "@/components/SiteDialog";
 
 import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
@@ -9,18 +9,25 @@ import { cycleGuideStatus, setGuideVisibleForStudent } from "@/features/guides/a
 import type { CabinetGuide } from "@/features/guides/types";
 import DownloadButton from "@/components/DownloadButton";
 import ReadingText from "@/components/ReadingText";
+import { buyMethodicals } from "@/features/shop/actions";
+import { confirmPurchase, METHODICAL_PRICE, openedLine } from "@/features/shop/prices";
 import { MATERIAL_STATUS_LABEL, MATERIAL_STATUS_STYLE, nextMaterialStatus } from "./status";
 
 export default function LibraryGuides({
   studentId,
   guides: initialGuides,
   canManage,
+  starBalance = 0,
 }: {
   studentId: string;
   guides: CabinetGuide[];
   canManage: boolean;
+  starBalance?: number;
 }) {
   const [guides, setGuides] = useState(initialGuides);
+  const [balance, setBalance] = useState(starBalance);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
 
   function patch(id: string, partial: Partial<CabinetGuide>) {
     setGuides((prev) => prev.map((guide) => (guide.id === id ? { ...guide, ...partial } : guide)));
@@ -61,8 +68,25 @@ export default function LibraryGuides({
     }
   }
 
+  async function buy(guide: CabinetGuide) {
+    if (canManage || guide.visible || busyId) return;
+    const ok = await siteConfirm(confirmPurchase(METHODICAL_PRICE, balance - METHODICAL_PRICE, [guide.title || "Методичка"]));
+    if (!ok) return;
+    setBusyId(guide.id);
+    const result = await buyMethodicals([guide.id]);
+    setBusyId(null);
+    if (!result.ok) {
+      await siteAlert(result.error);
+      return;
+    }
+    setBalance(result.balance);
+    patch(guide.id, { visible: true });
+    setNotice(openedLine([guide.title || "Методичка"]));
+  }
+
   return (
     <div className="flex flex-col gap-3">
+      {notice ? <p className="text-[14.5px]">{notice}</p> : null}
       {guides.map((guide, index) => {
         const canFetch = canManage || guide.visible;
         return (
@@ -73,17 +97,36 @@ export default function LibraryGuides({
           >
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <h3 className="heading min-w-0 flex-1 text-[17px] font-semibold">{guide.title || "Без названия"}</h3>
-              <button
-                type="button"
-                onClick={() => void handleStatus(guide.id, guide.status)}
-                className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
-                style={MATERIAL_STATUS_STYLE[guide.status]}
-              >
-                {MATERIAL_STATUS_LABEL[guide.status]}
-              </button>
+              {canFetch ? (
+                <button
+                  type="button"
+                  onClick={() => void handleStatus(guide.id, guide.status)}
+                  className="text-[12px] px-2.5 py-1 rounded-full whitespace-nowrap cursor-pointer"
+                  style={MATERIAL_STATUS_STYLE[guide.status]}
+                >
+                  {MATERIAL_STATUS_LABEL[guide.status]}
+                </button>
+              ) : null}
             </div>
 
             {guide.description ? <ReadingText text={guide.description} className="mt-3" /> : null}
+
+            {!canManage && !guide.visible ? (
+              <div className="mt-3">
+                <p className="text-[13.5px]" style={{ color: "var(--muted)" }}>
+                  Закрыто. Вы можете открыть её за {METHODICAL_PRICE} звёзд.
+                </p>
+                <button
+                  type="button"
+                  className="mt-2 rounded-full px-4 h-8 text-[13.5px] font-semibold"
+                  style={{ background: "var(--y)", color: "var(--ink)" }}
+                  disabled={busyId !== null}
+                  onClick={() => void buy(guide)}
+                >
+                  Купить за звёзды
+                </button>
+              </div>
+            ) : null}
 
             <div className="mt-3 flex items-center gap-3 flex-wrap">
               {canFetch && guide.hasFile ? (
@@ -93,11 +136,11 @@ export default function LibraryGuides({
                   mime={guide.fileMime}
                   bytes={guide.fileBytes}
                 />
-              ) : (
+              ) : canFetch ? (
                 <span className="text-[13px]" style={{ color: "var(--muted)" }}>
                   файл пока не загружен
                 </span>
-              )}
+              ) : null}
               {canManage ? (
                 <span className="inline-flex items-center gap-2 ml-auto">
                   <ToggleSwitch checked={guide.visible} onChange={(checked) => void handleVisible(guide.id, checked)} />

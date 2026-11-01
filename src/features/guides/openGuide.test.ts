@@ -36,7 +36,7 @@ test("открытие методички не шлёт письмо само и
   assert.match(library, /показать/);
   assert.doesNotMatch(library, /notifyOnOpen|Письмо ученику/);
   assert.doesNotMatch(library, /\/mentor\/guides\/\$\{/);
-  assert.match(guides, /includeHidden \? rows : rows\.filter\(\(guide\) => guide\.visible\)/);
+  assert.doesNotMatch(guides, /rows\.filter\(\(guide\) => guide\.visible\)/);
   assert.match(studentPage, /redirect\("\/dashboard\/materials\?tab=handouts"\)/);
   assert.match(mentorPage, /redirect\("\/mentor\/guides"\)/);
   assert.equal(fs.existsSync(path.join(root, "src/features/guides/GuideReader.tsx")), false);

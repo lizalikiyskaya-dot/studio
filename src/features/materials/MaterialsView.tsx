@@ -1,4 +1,5 @@
 import { loadCabinetGuides } from "@/lib/guides";
+import { starAccount } from "@/features/stars/award";
 import { loadStudentMaterials } from "./loadMaterials";
 import MaterialsList from "./MaterialsList";
 import PageHeader from "@/components/PageHeader";
@@ -12,9 +13,10 @@ export default async function MaterialsView({
   canManage: boolean;
   initialTab?: number;
 }) {
-  const [materials, guides] = await Promise.all([
+  const [materials, guides, stars] = await Promise.all([
     loadStudentMaterials(studentId),
-    loadCabinetGuides(studentId, canManage),
+    loadCabinetGuides(studentId, true),
+    starAccount(studentId),
   ]);
 
   return (
@@ -27,6 +29,7 @@ export default async function MaterialsView({
         initialMaterials={materials}
         guides={guides}
         canManage={canManage}
+        starBalance={stars.balance}
         initialTab={initialTab}
       />
     </div>
