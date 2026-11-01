@@ -1,5 +1,10 @@
 User-agent: *
 Allow: /
 Disallow: /save.php
-
+Disallow: /send.php
+Disallow: /preview.html
+Disallow: /preview.css
+Disallow: /scripts/
+Disallow: /*.md$
+Disallow: /*.zip$
 Sitemap: https://lizandwriter.ru/sitemap.xml
