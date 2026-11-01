@@ -92,6 +92,7 @@ export default function LibraryGuides({
         return (
           <article
             key={guide.id}
+            id={`guide-${guide.id}`}
             className="guide-card rounded-[24px] px-4 py-3.5"
             style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
           >
@@ -110,6 +111,7 @@ export default function LibraryGuides({
             </div>
 
             {guide.description ? <ReadingText text={guide.description} className="mt-3" /> : null}
+            {canManage && guide.readLine ? <p className="mt-2 text-[13.5px]">{guide.readLine}</p> : null}
 
             {!canManage && !guide.visible ? (
               <div className="mt-3">

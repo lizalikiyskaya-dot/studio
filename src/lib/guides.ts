@@ -1,6 +1,7 @@
 import { Prisma } from "@/generated/prisma/client";
 import { withStatementTimeout } from "@/lib/dbBudget";
 import { prisma } from "@/lib/prisma";
+import { guideOpenLine } from "@/features/guides/guideOpenLabel";
 import type { CabinetGuide, LibraryGuide, OpenedStudent } from "@/features/guides/types";
 
 /**
@@ -109,7 +110,8 @@ function toLibraryGuide(
     starPrice?: number | null;
     access: { student: OpenedStudent }[];
   },
-  fileBytes: number | null
+  fileBytes: number | null,
+  readLines: string[],
 ): LibraryGuide {
   const openedStudents = sortOpenedStudents(guide.access.map((row) => row.student));
   return {
@@ -125,7 +127,48 @@ function toLibraryGuide(
     starPrice: guide.starPrice ?? null,
     visibleCount: openedStudents.length,
     openedStudents,
+    readLines,
   };
+}
+
+async function readLineForStudent(studentId: string, guideIds: string[]): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (guideIds.length === 0) return map;
+  try {
+    const rows = await prisma.guideOpen.findMany({
+      where: { studentId, guideId: { in: guideIds } },
+      select: { guideId: true, lastOpenedAt: true, student: { select: { name: true } } },
+    });
+    for (const row of rows) {
+      const line = guideOpenLine(row.student.name, row.lastOpenedAt);
+      if (line) map.set(row.guideId, line);
+    }
+  } catch (error) {
+    if (!isMissingSchemaError(error)) throw error;
+  }
+  return map;
+}
+
+async function readLinesByGuide(guideIds: string[]): Promise<Map<string, string[]>> {
+  const map = new Map<string, string[]>();
+  if (guideIds.length === 0) return map;
+  try {
+    const rows = await prisma.guideOpen.findMany({
+      where: { guideId: { in: guideIds } },
+      orderBy: { lastOpenedAt: "desc" },
+      select: { guideId: true, lastOpenedAt: true, student: { select: { name: true } } },
+    });
+    for (const row of rows) {
+      const line = guideOpenLine(row.student.name, row.lastOpenedAt);
+      if (!line) continue;
+      const list = map.get(row.guideId) ?? [];
+      list.push(line);
+      map.set(row.guideId, list);
+    }
+  } catch (error) {
+    if (!isMissingSchemaError(error)) throw error;
+  }
+  return map;
 }
 
 export async function loadLibrary(): Promise<{ ready: true; guides: LibraryGuide[]; studentCount: number } | { ready: false }> {
@@ -152,7 +195,12 @@ export async function loadLibrary(): Promise<{ ready: true; guides: LibraryGuide
       prisma.user.count({ where: GUIDE_AUDIENCE }),
     ]);
     const sizes = await guideByteSizes(guides.map((guide) => guide.id));
-    return { ready: true, studentCount, guides: guides.map((guide) => toLibraryGuide(guide, sizes.get(guide.id) ?? null)) };
+    const reads = await readLinesByGuide(guides.map((guide) => guide.id));
+    return {
+      ready: true,
+      studentCount,
+      guides: guides.map((guide) => toLibraryGuide(guide, sizes.get(guide.id) ?? null, reads.get(guide.id) ?? [])),
+    };
   } catch (error) {
     const fallback = mapMissing(error, { ready: false as const });
     if (fallback) return fallback;
@@ -180,6 +228,7 @@ export async function loadCabinetGuides(studentId: string, _includeHidden = true
       },
     });
     const sizes = await guideByteSizes(guides.map((guide) => guide.id));
+    const reads = await readLineForStudent(studentId, guides.map((guide) => guide.id));
     const rows: CabinetGuide[] = guides.map((guide) => ({
       id: guide.id,
       title: guide.title,
@@ -191,6 +240,7 @@ export async function loadCabinetGuides(studentId: string, _includeHidden = true
       isPdf: guide.fileMime === "application/pdf",
       visible: guide.access[0]?.visible ?? false,
       status: guide.progress[0]?.status ?? "UNREAD",
+      readLine: reads.get(guide.id) ?? null,
     }));
     return rows;
   } catch (error) {

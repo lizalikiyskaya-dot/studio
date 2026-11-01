@@ -21,6 +21,8 @@ export type LibraryGuide = {
   starPrice: number | null;
   visibleCount: number;
   openedStudents: OpenedStudent[];
+  /** «Открыли: Имя — дата» по тем, кто скачал файл. Логины не попадают. */
+  readLines: string[];
 };
 
 /** Методичка в кабинете конкретного ученика. Файл отдаёт только API. */
@@ -35,6 +37,8 @@ export type CabinetGuide = {
   isPdf: boolean;
   visible: boolean;
   status: MaterialStatus;
+  /** Строка «Открыли», если этот ученик уже скачивал файл. */
+  readLine: string | null;
 };
 
 export type ActionFail = { ok: false; error: string };
