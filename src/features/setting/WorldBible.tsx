@@ -5,9 +5,6 @@ import type { WorldCategory } from "@/generated/prisma/client";
 import { siteConfirm } from "@/components/SiteDialog";
 import ImageUploadBox from "@/components/ImageUploadBox";
 import SuggestableField from "@/features/suggestions/SuggestableField";
-import GrapesTable from "./GrapesTable";
-import CycleGrapesTable from "@/features/storySetting/CycleGrapesTable";
-import StoryGrapesTable from "@/features/storySetting/StoryGrapesTable";
 import { Button } from "@/components/ui/Button";
 import InlineTitle from "@/components/InlineTitle";
 import ReadingText from "@/components/ReadingText";
@@ -111,7 +108,6 @@ export default function WorldBible({
   const [openTheme, setOpenTheme] = useState<BibleTheme | null>(null);
   const [notes, setNotes] = useState(fantasyNotes);
   const [themeNotes, setThemeNotes] = useState<Record<string, string>>({});
-  const [mobileNotes, setMobileNotes] = useState(false);
   const [wide, setWide] = useState(false);
   const [nudge, setNudge] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -181,7 +177,6 @@ export default function WorldBible({
   function openChip(theme: BibleTheme) {
     setOpenTheme((current) => (current?.id === theme.id ? null : theme));
     setSelectedId(null);
-    setMobileNotes(true);
   }
 
   function saveOpenThemeNote(value: string) {
@@ -308,6 +303,7 @@ export default function WorldBible({
     bodies.set(entry.category, list);
   }
 
+  const grapesThemes = BIBLE_THEMES.filter((theme) => theme.kind === "grapes");
   const entryThemes = BIBLE_THEMES.filter((theme) => theme.kind === "entry");
   const sticker = (
     <WorldSticker
@@ -318,10 +314,6 @@ export default function WorldBible({
       notes={notes}
       onNotes={saveNotes}
       suggestions={fantasySuggestions}
-      themeLabel={openTheme?.label ?? null}
-      themeNote={openTheme && table ? themeNotes[themeNoteKey(openTheme.kind === "grapes" ? table.id : "", openTheme.id)] ?? "" : ""}
-      themeKey={openTheme && table ? `${openTheme.kind === "grapes" ? table.id : ""}:${openTheme.id}` : "closed"}
-      onThemeNote={saveOpenThemeNote}
       nudged={nudge}
       onNudgeEnd={() => setNudge(false)}
     />
@@ -340,77 +332,85 @@ export default function WorldBible({
 
       <div className="bible-layout">
         <div className="bible-main">
-          {allowTables && table ? (
-            <label id={table ? `setting-${table.id}` : undefined} className="bible-setting-pick">
-              <span>Сеттинг</span>
-              <select
-                aria-label="Сеттинг"
-                value={table.id}
-                onChange={(event) => {
-                  setTableId(event.target.value);
-                  setSelectedId(null);
-                }}
-              >
-                {tables.map((item) => (
-                  <option key={item.id} value={item.id}>{item.title}</option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-          <div className="bible-groups">
-            <section className="bible-group">
-              {allowTables && canEdit ? (
-                <div className="mb-2.5 flex flex-wrap items-center gap-2">
-                  {table?.titleField && table.model !== "Story" ? (
-                    <SuggestableField
-                      key={`${table.recordId}-${table.titleField}`}
-                      model={table.model}
-                      recordId={table.recordId}
-                      field={table.titleField}
-                      value={table.title}
-                      suggestion={table.suggestions[table.titleField]}
-                      as="input"
-                      placeholder="название таблицы"
-                      ariaLabel="Название таблицы"
-                      className="min-w-0 flex-1 bg-transparent text-[14px] font-medium outline-none"
-                      onSaved={(title) => setTables((prev) => prev.map((item) => item.id === table.id ? { ...item, title: title.trim() || item.title } : item))}
-                    />
-                  ) : null}
-                  <button type="button" onClick={handleAddTable} className="text-[13px]" style={{ color: "var(--muted)" }}>+ таблица</button>
-                  {table && table.id !== "primary" ? (
-                    <button type="button" onClick={() => void handleDeleteTable()} className="text-[13px]" style={{ color: "var(--link)" }}>удалить таблицу</button>
-                  ) : null}
-                </div>
+          {table ? (
+            <div id={allowTables ? `setting-${table.id}` : undefined} className="mb-2.5 flex flex-wrap items-center gap-2">
+              {tables.length > 1 ? (
+                <label className="bible-setting-pick" style={{ margin: 0 }}>
+                  <span>Сеттинг</span>
+                  <select
+                    aria-label="Сеттинг"
+                    value={table.id}
+                    onChange={(event) => {
+                      setTableId(event.target.value);
+                      setSelectedId(null);
+                      setOpenTheme(null);
+                    }}
+                  >
+                    {tables.map((item) => (
+                      <option key={item.id} value={item.id}>{item.title}</option>
+                    ))}
+                  </select>
+                </label>
               ) : null}
-              {table?.model === "Story" ? (
-                <StoryGrapesTable
-                  key={table.recordId}
-                  story={{ id: table.recordId, ...table.values }}
-                  canEdit={canEdit}
-                  onSaved={patchGrapes}
-                />
-              ) : table?.model === "Cycle" ? (
-                <CycleGrapesTable
-                  key={table.recordId}
-                  cycleId={table.recordId}
-                  cycle={table.values}
-                  suggestions={table.suggestions}
-                  canEdit={canEdit}
-                  onSaved={patchGrapes}
-                />
-              ) : table ? (
-                <GrapesTable
-                  key={table.recordId}
+              {allowTables && canEdit && table.titleField && table.model !== "Story" ? (
+                <SuggestableField
+                  key={`${table.recordId}-${table.titleField}`}
                   model={table.model}
                   recordId={table.recordId}
-                  values={table.values}
-                  suggestions={table.suggestions}
-                  canEdit={canEdit}
-                  onSaved={patchGrapes}
+                  field={table.titleField}
+                  value={table.title}
+                  suggestion={table.suggestions[table.titleField]}
+                  as="input"
+                  placeholder="Название сеттинга"
+                  ariaLabel="Название сеттинга"
+                  className="min-w-[140px] flex-1 bg-transparent text-[15px] font-semibold outline-none"
+                  onSaved={(title) => setTables((prev) => prev.map((item) => item.id === table.id ? { ...item, title: title.trim() || item.title } : item))}
                 />
               ) : (
-                <h3 className="bible-group-title">Метод GRAPES</h3>
+                <h3 className="bible-group-title">{table.title}</h3>
               )}
+              {allowTables && canEdit ? (
+                <Button type="button" variant="secondary" size="sm" onClick={handleAddTable}>Ещё сеттинг</Button>
+              ) : null}
+              {allowTables && canEdit && table.id !== "primary" ? (
+                <button type="button" onClick={() => void handleDeleteTable()} className="text-[13px]" style={{ color: "var(--link)" }}>удалить</button>
+              ) : null}
+            </div>
+          ) : null}
+          {!wide ? <div className="bible-sticker-mobile">{sticker}</div> : null}
+          <div className="bible-groups">
+            <section className="bible-group">
+              <h3 className="bible-group-title mb-2.5">Метод GRAPES</h3>
+              <ChipGrid
+                themes={grapesThemes}
+                openTheme={openTheme?.kind === "grapes" ? openTheme : null}
+                grapes={grapes}
+                bodies={bodies}
+                onOpen={openChip}
+                panel={openTheme?.kind === "grapes" && table ? (
+                  <ThemePanel
+                    theme={openTheme}
+                    table={table}
+                    canEdit={canEdit}
+                    entries={themeEntries}
+                    selected={selected}
+                    photoKind={photoKind}
+                    themeNote={themeNotes[themeNoteKey(table.id, openTheme.id)] ?? ""}
+                    themeKey={`${table.id}:${openTheme.id}`}
+                    onThemeNote={saveOpenThemeNote}
+                    onClose={() => setOpenTheme(null)}
+                    onPatchGrapes={patchGrapes}
+                    onSelect={selectEntry}
+                    onAdd={handleAddEntry}
+                    onSaveBody={saveBody}
+                    onCollapse={collapseEntry}
+                    onTitle={handleTitle}
+                    onDelete={handleDeleteEntry}
+                    onCategory={handleCategory}
+                    onPhoto={(photoUrl) => setEntries((prev) => prev.map((entry) => entry.id === selected?.id ? { ...entry, photoUrl } : entry))}
+                  />
+                ) : null}
+              />
             </section>
 
             <section className="bible-group">
@@ -429,6 +429,9 @@ export default function WorldBible({
                     entries={themeEntries}
                     selected={selected}
                     photoKind={photoKind}
+                    themeNote={themeNotes[themeNoteKey("", openTheme.id)] ?? ""}
+                    themeKey={`:${openTheme.id}`}
+                    onThemeNote={saveOpenThemeNote}
                     onClose={() => setOpenTheme(null)}
                     onPatchGrapes={patchGrapes}
                     onSelect={selectEntry}
@@ -442,17 +445,8 @@ export default function WorldBible({
                   />
                 ) : null}
               />
-              {!wide && openTheme?.kind === "entry" ? <div className="bible-sticker-mobile">{sticker}</div> : null}
             </section>
           </div>
-
-          {!wide && !openTheme ? (
-            <div className="bible-sticker-mobile">
-              {mobileNotes ? sticker : (
-                <button type="button" onClick={() => setMobileNotes(true)} className="text-[13px]" style={{ color: "var(--ink2)" }}>Заметки</button>
-              )}
-            </div>
-          ) : null}
         </div>
         <aside className="bible-sticker-side" aria-label="Заметки">
           {wide ? sticker : null}
@@ -616,6 +610,9 @@ function ThemePanel({
   entries,
   selected,
   photoKind,
+  themeNote,
+  themeKey,
+  onThemeNote,
   onClose,
   onPatchGrapes,
   onSelect,
@@ -633,6 +630,9 @@ function ThemePanel({
   entries: BibleEntry[];
   selected: BibleEntry | null;
   photoKind: PhotoKind;
+  themeNote: string;
+  themeKey: string;
+  onThemeNote: (value: string) => void;
   onClose: () => void;
   onPatchGrapes: (field: GrapesField, value: string) => void;
   onSelect: (id: string) => void;
@@ -660,6 +660,22 @@ function ThemePanel({
           {theme.label}
         </h3>
         <button type="button" onClick={onClose} className="ml-auto text-[13px]" style={{ color: "var(--ink2)" }}>свернуть</button>
+      </div>
+      <div className="bible-theme-note">
+        <div className="text-[12px] font-semibold" style={{ color: "#5c5016" }}>К этой теме</div>
+        {canEdit ? (
+          <textarea
+            key={themeKey}
+            defaultValue={themeNote}
+            aria-label={`Заметка темы ${theme.label}`}
+            placeholder="Заметка только к этой теме. Сохранится, когда свернёте."
+            className="mt-1 w-full bg-transparent text-[14px] leading-relaxed outline-none"
+            style={{ fontFamily: "var(--font-serif), Georgia, serif", minHeight: 52, color: "#3a3416" }}
+            onBlur={(event) => onThemeNote(event.target.value)}
+          />
+        ) : (
+          <p className="mt-1 text-[14px] leading-relaxed" style={{ fontFamily: "var(--font-serif), Georgia, serif" }}>{themeNote || "Пока пусто"}</p>
+        )}
       </div>
       <div className="mt-3 rounded-[16px] px-3.5 py-3" style={{ background: "#F8F4F1" }}>
         <div className="text-[12px] font-medium" style={{ color: "var(--muted)" }}>Подсказки</div>
@@ -747,10 +763,6 @@ function WorldSticker({
   notes,
   onNotes,
   suggestions,
-  themeLabel,
-  themeNote,
-  themeKey,
-  onThemeNote,
   nudged,
   onNudgeEnd,
 }: {
@@ -761,10 +773,6 @@ function WorldSticker({
   notes: string;
   onNotes: (value: string) => void;
   suggestions?: Record<string, string>;
-  themeLabel: string | null;
-  themeNote: string;
-  themeKey: string;
-  onThemeNote: (value: string) => void;
   nudged: boolean;
   onNudgeEnd: () => void;
 }) {
@@ -788,26 +796,6 @@ function WorldSticker({
       ) : (
         <NoteChecklist value={notes} canEdit={canEdit} onSave={onNotes} />
       )}
-      <div className="mt-3 border-t pt-3" style={{ borderColor: "rgba(92,80,22,0.18)" }}>
-        <h4 className="text-[13px] font-semibold" style={ink}>К этой теме</h4>
-        {themeLabel ? (
-          canEdit ? (
-            <textarea
-              key={themeKey}
-              defaultValue={themeNote}
-              aria-label={`Заметка темы ${themeLabel}`}
-              placeholder="Заметка только к этой теме"
-              className="mt-1 w-full text-[14px] leading-relaxed outline-none"
-              style={{ ...style, minHeight: 72 }}
-              onBlur={(event) => onThemeNote(event.target.value)}
-            />
-          ) : (
-            <p className="mt-1 text-[14px] leading-relaxed" style={{ fontFamily: "var(--font-serif), Georgia, serif" }}>{themeNote || "Пока пусто"}</p>
-          )
-        ) : (
-          <p className="mt-1 text-[12.5px] leading-snug" style={ink}>Откройте тему.</p>
-        )}
-      </div>
     </div>
   );
 }
@@ -1000,10 +988,9 @@ function EntryEditor({
         style={{ borderColor: "var(--border)", fontFamily: "var(--font-serif), Georgia, serif", minHeight: 110 }}
       />
       <div className="mt-2.5 flex items-center gap-3">
-        <Button type="button" variant="primary" size="sm" pill onClick={persist}>Сохранить</Button>
         <button type="button" onClick={() => onDelete(entry.id)} className="rounded-full px-3 py-1.5 text-[12.5px]" style={{ border: "1px dashed var(--border)", color: "var(--link)" }}>удалить запись</button>
       </div>
-      <p className="mt-2 text-[12px]" style={{ color: "var(--muted)" }}>Тема записи: {entryLabel(entry.category)}</p>
+      <p className="mt-2 text-[12px]" style={{ color: "var(--muted)" }}>Текст сохранится, когда свернёте запись. Тема: {entryLabel(entry.category)}</p>
     </div>
   );
 }

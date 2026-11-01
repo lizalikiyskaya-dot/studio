@@ -3656,7 +3656,7 @@ html.manuscript-page body {
 .setting-stage-row { display: flex; flex-direction: column; gap: 16px; align-items: stretch; }
 .setting-stage-main, .setting-stage-side { min-width: 0; }
 .setting-banner {
-  height: 128px;
+  height: 112px;
   width: 100%;
   border-radius: 24px;
   background-color: #fff;
@@ -3676,10 +3676,16 @@ html.manuscript-page body {
   border: 1px solid var(--border);
 }
 @media (min-width: 981px) {
-  .setting-top { flex-direction: row; align-items: stretch; }
-  .setting-top .setting-banner { flex: 1 1 auto; width: auto; height: auto; min-height: 176px; }
+  .setting-top { flex-direction: row; align-items: flex-start; }
+  .setting-top .setting-banner { flex: 1 1 auto; width: auto; height: 168px; min-height: 168px; }
   .setting-top .setting-stage-side { width: 300px; flex: 0 0 300px; }
-  .setting-banner { height: 176px; }
+  .setting-banner { height: 168px; }
+}
+.bible-theme-note {
+  margin-top: 12px;
+  border-radius: 14px;
+  background: #fff3a1;
+  padding: 10px 12px;
 }
 .bible-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 @container bible (min-width: 560px) {

@@ -154,9 +154,14 @@ export default function SettingMixPanel({
               ))}
             </div>
           ) : (
-            <p className="mt-1 text-[12.5px]" style={{ color: "var(--muted)" }}>Ползунки ещё на нуле.</p>
+            <p className="mt-1 text-[12.5px]" style={{ color: "var(--muted)" }}>Нажмите «настроить», чтобы выбрать доли.</p>
           )}
-          <div className="mt-3">
+        </div>
+      )}
+
+      {open && !proposed ? (
+        <div className="mt-3 flex flex-col gap-3">
+          <div>
             <div className="setting-quadrant">
               {QUADRANT.map((id) => {
                 const meta = MIX_META[id];
@@ -186,12 +191,10 @@ export default function SettingMixPanel({
               <span>логика · hard</span>
               <span>интуиция · soft</span>
             </div>
+            <p className="mt-2 text-[12.5px] leading-snug" style={{ color: "var(--ink2)" }}>
+              Клетка ставит 100% одной доли и обнуляет остальные. Точную смесь задают ползунки ниже.
+            </p>
           </div>
-        </div>
-      )}
-
-      {open && !proposed ? (
-        <div className="mt-3 flex flex-col gap-3">
           <div className="rounded-[16px] px-3 py-3" style={{ border: "1px solid var(--border)", background: "#fff" }}>
             <div className="flex flex-col gap-2.5">
               {SLIDERS.map((id) => {
