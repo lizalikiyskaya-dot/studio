@@ -8,8 +8,10 @@ import StudentsList from "./StudentsList";
 import { markedTitle } from "@/components/markedTitle";
 import { loadCurrentWork } from "@/lib/studentFocusData";
 import { loadMentorFeed } from "@/lib/mentorFeedLoad";
+import { loadAwaitingReview } from "@/lib/awaitingReviewLoad";
 import { feedCounts, studentHint } from "@/lib/mentorFeed";
-import { MentorDayCard, MentorFeedPanel } from "@/features/mentorFeed/MentorFeed";
+import { MentorDayCard } from "@/features/mentorFeed/MentorFeed";
+import { AwaitingReview } from "@/features/mentorFeed/AwaitingReview";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -47,7 +49,7 @@ export default async function MentorPage() {
   const students = people
     .filter((s) => s.status === "APPROVED" || s.status === "SUSPENDED")
     .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, "ru"));
-  const feed = await loadMentorFeed(session.userId);
+  const [feed, awaiting] = await Promise.all([loadMentorFeed(session.userId), loadAwaitingReview()]);
   const counts = feedCounts(feed);
   const hintByStudent = new Map<string, { hint: string; href: string; at: string; kind: string; sourceId: string }>();
   for (const item of feed) {
@@ -177,7 +179,7 @@ export default async function MentorPage() {
               ))}
             </div>
           </section>
-          <MentorFeedPanel items={feed} />
+          <AwaitingReview items={awaiting} now={new Date().toISOString()} />
           <section className="sheet p-4">
             <h2 className="text-[16px] font-semibold mb-2">Недавние решения</h2>
             {decided.length === 0 ? (
