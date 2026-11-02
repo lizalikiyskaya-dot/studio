@@ -35,6 +35,10 @@ type Theme = (typeof THEMES)[number]["id"];
 const ZOOM_MIN = 80;
 const ZOOM_MAX = 200;
 const ZOOM_STEP = 10;
+const MEASURE_MIN = 52;
+const MEASURE_MAX = 88;
+const MEASURE_STEP = 6;
+const MEASURE_DEFAULT = 70;
 
 function themeKey(viewerId: string) {
   return `manuscript-theme:${viewerId}`;
@@ -42,6 +46,10 @@ function themeKey(viewerId: string) {
 
 function zoomKey(viewerId: string) {
   return `manuscript-zoom:${viewerId}`;
+}
+
+function measureKey(viewerId: string) {
+  return `manuscript-measure:${viewerId}`;
 }
 
 function readTheme(viewerId: string): Theme {
@@ -62,6 +70,16 @@ function readZoom(viewerId: string) {
     // Хранилище недоступно: остаётся обычный размер.
   }
   return 100;
+}
+
+function readMeasure(viewerId: string) {
+  try {
+    const saved = Number(localStorage.getItem(measureKey(viewerId)));
+    if (Number.isFinite(saved) && saved >= MEASURE_MIN && saved <= MEASURE_MAX) return saved;
+  } catch {
+    // Хранилище недоступно: остаётся удобная ширина строки.
+  }
+  return MEASURE_DEFAULT;
 }
 
 function ThemeSwitch({ theme, onChange }: { theme: Theme; onChange: (theme: Theme) => void }) {
@@ -97,6 +115,7 @@ export default function ManuscriptDesk({
 }) {
   const [theme, setTheme] = useState<Theme>("white");
   const [zoom, setZoom] = useState(100);
+  const [measure, setMeasure] = useState(MEASURE_DEFAULT);
   const [focus, setFocus] = useState(false);
   const [chapters, setChapters] = useState(initialChapters);
   const [currentId, setCurrentId] = useState(initialChapters[0]?.id ?? null);
@@ -110,6 +129,7 @@ export default function ManuscriptDesk({
   useEffect(() => {
     setTheme(readTheme(viewerId));
     setZoom(readZoom(viewerId));
+    setMeasure(readMeasure(viewerId));
   }, [viewerId]);
 
   useEffect(() => {
@@ -228,6 +248,18 @@ export default function ManuscriptDesk({
     });
   }
 
+  function bumpMeasure(delta: number) {
+    setMeasure((current) => {
+      const next = Math.min(MEASURE_MAX, Math.max(MEASURE_MIN, current + delta));
+      try {
+        localStorage.setItem(measureKey(viewerId), String(next));
+      } catch {
+        // Ширина останется до перезагрузки страницы.
+      }
+      return next;
+    });
+  }
+
   const current = chapters.find((chapter) => chapter.id === currentId) ?? null;
   focusRef.current = focus;
   canFocusRef.current = current !== null;
@@ -298,7 +330,7 @@ export default function ManuscriptDesk({
     <div
       className="manuscript manuscript-focus"
       data-theme={theme}
-      style={{ "--manuscript-zoom": zoom / 100 } as CSSProperties}
+      style={{ "--manuscript-zoom": zoom / 100, "--manuscript-measure": measure } as CSSProperties}
       role="dialog"
       aria-modal="true"
       aria-label="Режим письма"
@@ -309,6 +341,10 @@ export default function ManuscriptDesk({
         <span className="manuscript-zoom">
           <button type="button" title="Уменьшить текст" aria-label="Уменьшить текст" disabled={zoom <= ZOOM_MIN} onClick={() => bumpZoom(-ZOOM_STEP)}>−</button>
           <button type="button" title="Увеличить текст" aria-label="Увеличить текст" disabled={zoom >= ZOOM_MAX} onClick={() => bumpZoom(ZOOM_STEP)}>+</button>
+        </span>
+        <span className="manuscript-measure">
+          <button type="button" title="Уже колонка" aria-label="Уже колонка" disabled={measure <= MEASURE_MIN} onClick={() => bumpMeasure(-MEASURE_STEP)}>Уже</button>
+          <button type="button" title="Шире колонка" aria-label="Шире колонка" disabled={measure >= MEASURE_MAX} onClick={() => bumpMeasure(MEASURE_STEP)}>Шире</button>
         </span>
         <ThemeSwitch theme={theme} onChange={chooseTheme} />
         <button
