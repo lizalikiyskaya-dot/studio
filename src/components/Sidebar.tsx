@@ -13,7 +13,6 @@ import {
   LayoutGrid,
   ListChecks,
   LogOut,
-  Megaphone,
   Mail,
   Menu,
   MessageSquareText,
@@ -44,13 +43,12 @@ import { useSheetSwipe } from "@/components/useSheetSwipe";
 
 const TOP_ITEMS = [
   { path: "tasks", label: "Задания", icon: Bookmark },
-  { path: "weekly", label: "Задание недели", icon: Sparkles },
-  { path: "work-plan", label: "План работы", icon: CalendarDays },
+  { path: "weekly", label: "Неделя", icon: Sparkles },
+  { path: "exercises", label: "Упражнения", icon: Pencil },
   { path: "materials", label: "Материалы", icon: BookOpen },
   { path: "drafts", label: "Рукописи", icon: FileText },
-  { path: "exercises", label: "Упражнения", icon: Pencil },
-  { path: "submissions", label: "Трекер заявок", icon: Send },
-  { path: "open-calls", label: "Опен-коллы", icon: Megaphone },
+  { path: "work-plan", label: "План работы", icon: CalendarDays },
+  { path: "publications", label: "Публикации", icon: Send },
 ];
 
 const WORKSHOP_ITEMS = [
@@ -331,15 +329,13 @@ export default function Sidebar({
           href: hrefFor(item.path),
           label: item.label,
           icon: item.icon,
-          beacon: beaconSet.has(item.path),
-          active: section === item.path,
+          beacon: item.path === "publications"
+            ? beaconSet.has("publications") || beaconSet.has("submissions") || beaconSet.has("open-calls")
+            : beaconSet.has(item.path),
+          active: item.path === "publications"
+            ? section === "publications" || section === "submissions" || section === "open-calls"
+            : section === item.path,
         })),
-        ...(bookWorkshopUnlocked
-          ? [{ key: "book", href: hrefFor("about"), label: "Мастерская книги", icon: BookOpen, beacon: bookBeacon, active: onBook }]
-          : []),
-        ...(storyWorkshopUnlocked
-          ? [{ key: "stories", href: hrefFor("cycles"), label: "Мастерская рассказов", icon: PenLine, beacon: storyBeacon, active: onStory }]
-          : []),
       ];
 
   const avatarBg = "var(--deep)";
@@ -360,6 +356,10 @@ export default function Sidebar({
       <div className="deadline-when">{formatDeadline(upcoming.deadline)}</div>
     </div>
   ) : null;
+
+  const currentBook = (books ?? []).find((book) => book.id === bookParam) ?? books?.[0];
+  const bookTitle = currentBook?.title.trim() || "Книга";
+  const showWorkshopPlaque = !mentorMenuOnly && (bookWorkshopUnlocked || storyWorkshopUnlocked);
 
   const subItems = onBook && bookWorkshopUnlocked
     ? WORKSHOP_ITEMS
@@ -390,6 +390,23 @@ export default function Sidebar({
           <Wordmark />
           {mentorMenuOnly && <span className="studio-logo-note">кабинет наставника</span>}
         </Link>
+        {showWorkshopPlaque && (
+          <div className="workshop-plaque" aria-label="Мастерская">
+            <span className="workshop-plaque-ribbon" aria-hidden="true" />
+            <div className="workshop-plaque-copy">
+              <div className="workshop-plaque-kicker">Мастерская</div>
+              <div className="workshop-plaque-title">{bookTitle}</div>
+            </div>
+            <div className="workshop-plaque-pills">
+              {bookWorkshopUnlocked && (
+                <Link href={hrefFor("about")} className={onBook ? "is-on" : ""}>Книга</Link>
+              )}
+              {storyWorkshopUnlocked && (
+                <Link href={hrefFor("cycles")} className={onStory ? "is-on" : ""}>Рассказы</Link>
+              )}
+            </div>
+          </div>
+        )}
         <nav className="studio-topnav" aria-label="Разделы">
           {topLinks.map((item) => {
             const Icon = item.icon;
@@ -440,6 +457,15 @@ export default function Sidebar({
           ] as const).map(([path, label]) => (
             <Link key={path} href={hrefFor(path)} className={section === path ? "is-on" : ""}>
               {label}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
+      {onStory && storyWorkshopUnlocked && !mentorMenuOnly ? (
+        <nav className="book-section-strip" aria-label="Разделы рассказов">
+          {STORY_WORKSHOP_ITEMS.map((item) => (
+            <Link key={item.path} href={hrefFor(item.path)} className={section === item.path ? "is-on" : ""}>
+              {item.label}
             </Link>
           ))}
         </nav>
@@ -564,32 +590,29 @@ export default function Sidebar({
 
       {!mentorMenuOnly && (
         <nav className="studio-tabbar" aria-label="Мобильные разделы">
-          <Tab href={`${basePath}/tasks`} label="Задания" icon={ListChecks} active={section === "tasks"} />
-          {bookWorkshopUnlocked ? (
-            <Tab href={hrefFor("about")} label="Книга" icon={BookOpen} active={onBook} beacon={bookBeacon} />
+          {(bookWorkshopUnlocked || storyWorkshopUnlocked) ? (
+            <Tab
+              href={bookWorkshopUnlocked ? hrefFor("about") : hrefFor("cycles")}
+              label="Мастерская"
+              icon={BookOpen}
+              active={onBook || onStory}
+              beacon={bookBeacon || storyBeacon}
+              tone="workshop"
+            />
           ) : (
             <Tab href={`${basePath}/materials`} label="Материалы" icon={BookOpen} active={section === "materials"} />
           )}
+          <Tab href={`${basePath}/tasks`} label="Задания" icon={ListChecks} active={section === "tasks"} />
           <Tab href={`${basePath}/exercises`} label="Упражнения" icon={PenLine} active={section === "exercises"} beacon={beaconSet.has("exercises")} />
-          <button
-            type="button"
-            onClick={() => toggleSheet("calendar")}
-            aria-expanded={sheet === "calendar"}
-            className="studio-tab flex-1 flex flex-col items-center gap-1 text-[11px]"
-            style={{ color: sheet === "calendar" ? "var(--ink)" : "var(--muted)", fontWeight: sheet === "calendar" ? 600 : 400 }}
-          >
-            <span className="h-8 w-12 rounded-full grid place-items-center" style={{ background: sheet === "calendar" ? "var(--y)" : "transparent" }}><CalendarDays size={16} /></span>
-            Календарь
-          </button>
           <button
             type="button"
             onClick={() => toggleSheet("sections")}
             aria-expanded={sheet === "sections"}
-            className="studio-tab flex-1 flex flex-col items-center gap-1 text-[11px]"
-            style={{ color: sheet === "sections" ? "var(--ink)" : "var(--muted)", fontWeight: sheet === "sections" ? 600 : 400 }}
+            className="studio-tab"
+            style={{ color: sheet === "sections" ? "var(--ink)" : "var(--muted)", fontWeight: sheet === "sections" ? 650 : 400 }}
           >
-            <span className="h-8 w-12 rounded-full grid place-items-center" style={{ background: sheet === "sections" ? "var(--y)" : "transparent" }}><LayoutGrid size={16} /></span>
-            Разделы
+            <span className="studio-tab-ic" style={{ background: sheet === "sections" ? "var(--y)" : "transparent" }}><LayoutGrid size={16} /></span>
+            Ещё
           </button>
         </nav>
       )}
@@ -609,7 +632,7 @@ export default function Sidebar({
               <button type="button" className="sheet-grab" data-sheet-handle aria-label="Потяните вниз, чтобы закрыть">
                 <span />
               </button>
-              <div className="text-[16px] font-semibold">{sheet === "calendar" ? "Календарь" : "Разделы"}</div>
+              <div className="text-[16px] font-semibold">{sheet === "calendar" ? "Календарь" : mentorMenuOnly ? "Разделы" : "Ещё"}</div>
               <button type="button" className="studio-sheet-close" onClick={() => setSheet(null)}>
                 <X size={16} /> Закрыть
               </button>
@@ -653,19 +676,9 @@ export default function Sidebar({
               ) : (
                 <>
                   <nav aria-label="Разделы кабинета">
-                    {topLinks.filter((item) => item.key !== "book" && item.key !== "stories").map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <Link key={item.key} href={item.href} className={`studio-sheet-link${item.active ? " active" : ""}`}>
-                          <Icon size={16} />
-                          <span>{item.label}</span>
-                          {item.beacon && <span className="ml-auto h-2 w-2 rounded-full" style={{ background: "var(--danger)" }} title="Есть обновления" />}
-                        </Link>
-                      );
-                    })}
                     {bookWorkshopUnlocked && !mentorMenuOnly && (
                       <>
-                        <div className="studio-sheet-kicker">Мастерская книги</div>
+                        <div className="studio-sheet-kicker">Мастерская</div>
                         <div className="mb-3">
                           <WorkshopBookCard books={books ?? []} />
                         </div>
@@ -680,7 +693,7 @@ export default function Sidebar({
                     )}
                     {storyWorkshopUnlocked && !mentorMenuOnly && (
                       <>
-                        <div className="studio-sheet-kicker">Мастерская рассказов</div>
+                        <div className="studio-sheet-kicker">Рассказы</div>
                         <div className="mb-3">
                           <WorkshopCycleCard cycles={cycles ?? []} basePath={basePath} />
                         </div>
@@ -692,6 +705,23 @@ export default function Sidebar({
                           </Link>
                         ))}
                       </>
+                    )}
+                    {!mentorMenuOnly && <div className="studio-sheet-kicker">Учёба</div>}
+                    {topLinks.filter((item) => item.key !== "book" && item.key !== "stories").map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link key={item.key} href={item.href} className={`studio-sheet-link${item.active ? " active" : ""}`}>
+                          <Icon size={16} />
+                          <span>{item.label}</span>
+                          {item.beacon && <span className="ml-auto h-2 w-2 rounded-full" style={{ background: "var(--danger)" }} title="Есть обновления" />}
+                        </Link>
+                      );
+                    })}
+                    {!mentorMenuOnly && calendar && (
+                      <button type="button" className="studio-sheet-link" onClick={() => setSheet("calendar")}>
+                        <CalendarDays size={16} />
+                        <span>Календарь</span>
+                      </button>
                     )}
                   </nav>
                   {mentorMenuOnly && nearest && (
@@ -719,10 +749,11 @@ export default function Sidebar({
   );
 }
 
-function Tab({ href, label, icon: Icon, active, beacon }: { href: string; label: string; icon: typeof Bookmark; active: boolean; beacon?: boolean }) {
+function Tab({ href, label, icon: Icon, active, beacon, tone }: { href: string; label: string; icon: typeof Bookmark; active: boolean; beacon?: boolean; tone?: "workshop" }) {
+  const workshop = tone === "workshop";
   return (
-    <Link href={href} className="flex-1 flex flex-col items-center gap-1 text-[11px] relative" style={{ color: active ? "var(--ink)" : "var(--muted)", fontWeight: active ? 600 : 400 }}>
-      <span className="h-8 w-12 rounded-full grid place-items-center" style={{ background: active ? "var(--y)" : "transparent" }}>
+    <Link href={href} className={workshop ? "studio-tab is-workshop" : "studio-tab"} style={{ color: active || workshop ? "var(--ink)" : "var(--muted)", fontWeight: active || workshop ? 650 : 400 }}>
+      <span className="studio-tab-ic" style={{ background: workshop ? "var(--deep)" : active ? "var(--y)" : "transparent", color: workshop ? "#fff" : "inherit" }}>
         <Icon size={16} />
       </span>
       {label}

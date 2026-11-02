@@ -13,6 +13,7 @@ export const SECTION_LABELS: Record<string, string> = {
   exercises: "Упражнения",
   submissions: "Трекер заявок",
   "open-calls": "Опен-коллы",
+  publications: "Публикации",
   about: "О книге",
   plan: "Трекер по главам",
   acts: "План книги",

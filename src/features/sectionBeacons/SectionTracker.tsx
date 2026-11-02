@@ -6,7 +6,7 @@ import { markSectionSeen, markSectionActivity } from "./actions";
 
 // Sidebar sections we track. Keys match the URL segment after the base path.
 const TRACKED = new Set([
-  "tasks", "weekly", "work-plan", "materials", "drafts", "exercises", "submissions", "open-calls",
+  "tasks", "weekly", "work-plan", "materials", "drafts", "exercises", "submissions", "open-calls", "publications",
   "about", "plan", "acts", "dossier", "arcs", "setting", "cycles", "stories",
 ]);
 
