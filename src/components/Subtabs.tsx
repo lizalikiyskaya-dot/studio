@@ -23,6 +23,8 @@ export default function Subtabs({
             return (
               <button
                 key={tab.label}
+                type="button"
+                data-note-tab={i}
                 onClick={() => setActive(i)}
                 className="text-[14px] px-4 py-1.5 rounded-full"
                 style={{
@@ -39,6 +41,8 @@ export default function Subtabs({
           return (
             <button
               key={tab.label}
+              type="button"
+              data-note-tab={i}
               onClick={() => setActive(i)}
               className="text-[14px] px-4 py-2 rounded-full"
               style={{
@@ -54,7 +58,7 @@ export default function Subtabs({
         })}
       </div>
       {tabs.map((tab, i) => (
-        <div key={tab.label} style={{ display: active === i ? "block" : "none" }}>
+        <div key={tab.label} data-note-panel={i} style={{ display: active === i ? "block" : "none" }}>
           {tab.content}
         </div>
       ))}

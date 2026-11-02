@@ -118,15 +118,30 @@ export default function WorldBible({
   const table = tables.find((item) => item.id === tableId) ?? tables[0];
 
   useEffect(() => {
-    const match = /^#setting-(.+)$/.exec(window.location.hash);
-    if (!match || !tables.some((item) => item.id === match[1])) return;
-    // Адрес из письма известен только в браузере, после загрузки страницы.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTableId(match[1]);
-    const frame = requestAnimationFrame(() => {
-      document.getElementById(`setting-${match[1]}`)?.scrollIntoView({ block: "start" });
-    });
-    return () => cancelAnimationFrame(frame);
+    function openTable(id: string) {
+      if (!tables.some((item) => item.id === id)) return;
+      setTableId(id);
+      const frame = requestAnimationFrame(() => {
+        document.getElementById(`setting-${id}`)?.scrollIntoView({ block: "start" });
+      });
+      window.setTimeout(() => cancelAnimationFrame(frame), 400);
+    }
+    function onSwitch(event: Event) {
+      const detail = (event as CustomEvent<string>).detail ?? "";
+      if (!detail.startsWith("setting:")) return;
+      openTable(detail.slice("setting:".length));
+    }
+    function onHash() {
+      const match = /^#setting-(.+)$/.exec(window.location.hash);
+      if (match) openTable(decodeURIComponent(match[1]));
+    }
+    window.addEventListener("studio:note-switch", onSwitch);
+    window.addEventListener("hashchange", onHash);
+    onHash();
+    return () => {
+      window.removeEventListener("studio:note-switch", onSwitch);
+      window.removeEventListener("hashchange", onHash);
+    };
   }, [tables]);
   const grapes = table?.values ?? emptyGrapes();
   const visibleEntries = allowTables
@@ -343,9 +358,9 @@ export default function WorldBible({
       ) : null}
 
       <div className="bible-layout">
-        <div className="bible-main">
+        <div className="bible-main" id={allowTables && table ? `setting-${table.id}` : undefined}>
           {table ? (
-            <div id={allowTables ? `setting-${table.id}` : undefined} className="mb-2.5 flex flex-wrap items-center gap-2">
+            <div className="mb-2.5 flex flex-wrap items-center gap-2">
               {allowTables && canEdit && table.titleField && table.model !== "Story" ? (
                 <SuggestableField
                   key={`${table.recordId}-${table.titleField}`}
@@ -363,6 +378,13 @@ export default function WorldBible({
               ) : (
                 <h3 className="bible-group-title">{table.title}</h3>
               )}
+              {tables.filter((item) => item.id !== table.id).map((item) => (
+                <div key={`text-${item.id}`} id={`setting-${item.id}`} hidden data-note-switch={`setting:${item.id}`}>
+                  {Object.values(item.values).join("\n")}
+                  {"\n"}
+                  {entries.filter((entry) => entry.settingKey === item.id).map((entry) => `${entry.title}\n${entry.body}`).join("\n")}
+                </div>
+              ))}
               {tables.filter((item) => item.id !== table.id).map((item) => (
                 <button
                   key={item.id}

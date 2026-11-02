@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Pencil } from "lucide-react";
-import { anchorQuote } from "./quoteMatch";
+import { anchorQuote, withAnchorHash } from "./quoteMatch";
 import { caretRect, collectPageText, collectWritingText, offsetInCollected } from "./pageText";
 
 export type Anchor = { quote: string; label: string; url: string; offset: number };
@@ -48,6 +48,17 @@ export function fieldQuote(value: string, start: number | null, end: number | nu
 function hostOf(node: Node | null): HTMLElement | null {
   if (!node) return null;
   return node instanceof HTMLElement ? node : node.parentElement;
+}
+
+const TARGET_ID = /^(exercise|task|chapter|setting|character)-/;
+
+export function anchorTargetId(node: Element | null | undefined): string | null {
+  let current = node ?? null;
+  while (current) {
+    if (current.id && TARGET_ID.test(current.id)) return current.id;
+    current = current.parentElement;
+  }
+  return null;
 }
 
 function readableLabel(): string {
@@ -127,6 +138,9 @@ export default function SelectionAnnotator({
         }
         const x = Math.min(Math.max(rect.left + Math.min(rect.width / 2, 48), 90), window.innerWidth - 90);
         const y = Math.max(rect.top - 8, 46);
+        const activeNode = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        const selected = window.getSelection()?.anchorNode;
+        const selectedEl = selected instanceof HTMLElement ? selected : selected?.parentElement ?? null;
         setBtn({
           x,
           y,
@@ -134,7 +148,10 @@ export default function SelectionAnnotator({
             quote: found.text,
             offset: found.offset,
             label: readableLabel(),
-            url: window.location.pathname + window.location.search,
+            url: withAnchorHash(
+              window.location.pathname + window.location.search,
+              anchorTargetId(activeNode && isTextField(activeNode) ? activeNode : selectedEl),
+            ),
           },
         });
       }, 40);

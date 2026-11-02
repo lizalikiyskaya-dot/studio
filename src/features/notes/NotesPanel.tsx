@@ -575,8 +575,10 @@ export default function NotesPanel({
     setFlashId(note.id);
     setCurrentId(note.id);
     setOpen(false);
-    const here = window.location.pathname + window.location.search;
-    if (cabinetSection(here) === cabinetSection(note.anchorUrl) && !note.anchorUrl.includes("?")) return;
+    const here = window.location.pathname + window.location.search + window.location.hash;
+    const samePage = cabinetSection(here) === cabinetSection(note.anchorUrl);
+    const hasPlace = note.anchorUrl.includes("?") || note.anchorUrl.includes("#");
+    if (samePage && !hasPlace) return;
     const dest = urlForViewer(note.anchorUrl, window.location.pathname);
     if (dest !== here) router.push(dest);
   }

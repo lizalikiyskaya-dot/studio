@@ -1,6 +1,22 @@
+export function splitAnchorUrl(url: string) {
+  const hashAt = url.indexOf("#");
+  const hash = hashAt >= 0 ? url.slice(hashAt) : "";
+  const before = hashAt >= 0 ? url.slice(0, hashAt) : url;
+  const queryAt = before.indexOf("?");
+  const path = queryAt === -1 ? before : before.slice(0, queryAt);
+  const query = queryAt === -1 ? "" : before.slice(queryAt);
+  return { path, query, hash };
+}
+
 export function pathnameOf(url: string) {
-  const query = url.indexOf("?");
-  return query === -1 ? url : url.slice(0, query);
+  return splitAnchorUrl(url).path;
+}
+
+/** Якорь карточки или вкладки: #exercise-…, #task-…, #chapter-…, #setting-…, #character-…. */
+export function withAnchorHash(url: string, id: string | null) {
+  const { path, query, hash } = splitAnchorUrl(url);
+  if (!id) return `${path}${query}${hash}`;
+  return `${path}${query}#${id}`;
 }
 
 /** Один и тот же раздел в кабинете ученика и в просмотре наставника. */
@@ -20,15 +36,15 @@ export function anchorOnPage(anchorUrl: string, pathname: string) {
 
 /** Ссылка заметки в том кабинете, где её открывают: ученик не уходит в student-view. */
 export function urlForViewer(anchorUrl: string, currentPath: string) {
+  const { query, hash } = splitAnchorUrl(anchorUrl);
   const section = cabinetSection(anchorUrl);
-  const queryAt = anchorUrl.indexOf("?");
-  const query = queryAt === -1 ? "" : anchorUrl.slice(queryAt);
+  const tail = `${query}${hash}`;
   if (currentPath.startsWith("/student-view/")) {
     const id = currentPath.split("/")[2] ?? "";
-    return `/student-view/${id}${section}${query}`;
+    return `/student-view/${id}${section}${tail}`;
   }
-  if (currentPath.startsWith("/dashboard")) return `/dashboard${section}${query}`;
-  return pathnameOf(anchorUrl) + query;
+  if (currentPath.startsWith("/dashboard")) return `/dashboard${section}${tail}`;
+  return pathnameOf(anchorUrl) + tail;
 }
 
 export function quoteSpan(value: string, quote: string): { start: number; end: number } | null {
