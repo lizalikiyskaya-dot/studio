@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Макет. Загрузка рукописи</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400&family=Onest:wght@400;500;600;650&display=swap" rel="stylesheet" />
+  <style>
+    :root { --ink:#202020; --muted:#6d6a64; --line:#eceae4; --y:#ffd43b; --soft:#f6f5f1; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f6f5f1; color: var(--ink); font-family: Onest, sans-serif; }
+    .wrap { width: 1180px; padding: 28px 32px 40px; }
+    h1 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.04em; }
+    h1 mark { background: var(--y); padding: 0 3px; }
+    .lead { margin: 0 0 18px; color: var(--muted); max-width: 720px; line-height: 1.45; }
+    .steps { display: grid; grid-template-columns: 1fr 1fr 1.15fr; gap: 14px; }
+    .step { background: #fff; border-radius: 22px; padding: 16px; min-height: 460px; }
+    .n { font-size: 12px; font-weight: 650; color: var(--muted); }
+    h2 { margin: 4px 0 12px; font-size: 18px; }
+    .sheet { border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
+    .sheet b { display: block; margin-bottom: 8px; }
+    .fake-btn, button { border: 0; border-radius: 999px; font: inherit; font-weight: 600; }
+    .y { background: var(--y); height: 40px; padding: 0 14px; }
+    .choice { display: block; width: 100%; text-align: left; background: var(--soft); border-radius: 14px; padding: 12px 14px; margin: 0 0 8px; height: auto; }
+    .choice small { display: block; font-weight: 500; color: var(--muted); margin-top: 3px; }
+    .row { display: flex; gap: 8px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--line); }
+    .row input { margin-top: 4px; }
+    .row strong { display: block; }
+    .row span { color: var(--muted); font-size: 13px; }
+    .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+    .quiet { color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Загрузить <mark>текст</mark></h1>
+    <p class="lead">Макет, не сборка. Файл .docx или открытая ссылка на Google Docs режется по заголовкам. Главы появляются в «Рукописях» и в трекере, со своим числом знаков. В план книги это само не переносится.</p>
+    <div class="steps">
+      <section class="step">
+        <div class="n">1. Рукописи</div>
+        <h2>Кнопка рядом с главами</h2>
+        <div class="sheet">
+          <b>Дом у реки</b>
+          <div class="quiet">Глава 1 · Туман</div>
+          <div class="quiet" style="margin-top:6px">Глава 2 · Письма</div>
+          <div style="margin-top:14px"><button class="y">Загрузить текст</button></div>
+        </div>
+      </section>
+      <section class="step">
+        <div class="n">2. Откуда текст</div>
+        <h2>Без входа в Google</h2>
+        <button class="choice">Файл .docx<small>С компьютера. Заголовки в Word становятся главами.</small></button>
+        <button class="choice">Ссылка на Google Docs<small>Только если документ открыт по ссылке. Пароль Google не спрашиваем.</small></button>
+        <p class="quiet">Закрытый документ по ссылке не скачается. Тогда остаётся файл .docx.</p>
+      </section>
+      <section class="step">
+        <div class="n">3. Проверка перед записью</div>
+        <h2>Ничего не создано, пока не нажмёте</h2>
+        <label class="row"><input type="checkbox" checked /><div><strong>Север</strong><span>12 480 знаков · заголовок 1</span></div></label>
+        <label class="row"><input type="checkbox" checked /><div><strong>Письма</strong><span>8 214 знаков · заголовок 1</span></div></label>
+        <label class="row"><input type="checkbox" /><div><strong>Черновик в конце</strong><span>640 знаков · без заголовка, можно не брать</span></div></label>
+        <div class="foot">
+          <span class="quiet">Уровень заголовка: 1</span>
+          <button class="y">Создать 2 главы</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

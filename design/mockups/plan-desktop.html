@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Макет. План книги</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Onest:wght@400;500;600;650;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #202020;
+      --muted: #6d6a64;
+      --line: #eceae4;
+      --y: #ffd43b;
+      --soft: #f6f5f1;
+      --paper: #fffcf7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #fff;
+      color: var(--ink);
+      font-family: Onest, "Segoe UI", sans-serif;
+      font-size: 15px;
+    }
+    .page { width: 1180px; padding: 28px 36px 48px; }
+    .kicker {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+    h1 { margin: 0; font-size: 40px; font-weight: 650; letter-spacing: -0.04em; }
+    h1 mark { background: var(--y); color: inherit; padding: 0 4px; border-radius: 4px; }
+    .actions { display: flex; gap: 8px; }
+    button {
+      border: 0;
+      border-radius: 999px;
+      height: 40px;
+      padding: 0 16px;
+      font: inherit;
+      font-weight: 600;
+      cursor: default;
+    }
+    .ghost { background: var(--soft); color: var(--ink); }
+    .y { background: var(--y); color: var(--ink); }
+    .layout { display: grid; grid-template-columns: 220px 1fr; gap: 28px; margin-top: 22px; }
+    .lines h2, .outline h2 { margin: 0 0 10px; font-size: 13px; font-weight: 650; color: var(--muted); letter-spacing: 0.02em; }
+    .line, .add-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border-radius: 12px;
+      height: auto;
+      padding: 8px 10px;
+      font-weight: 600;
+    }
+    .line.on { background: #fff6cc; }
+    .dot { width: 10px; height: 10px; border-radius: 99px; flex: none; }
+    .add-line { color: var(--muted); font-weight: 500; padding-left: 10px; }
+    .act { margin: 0 0 18px; }
+    .act-name { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; font-size: 18px; }
+    .act-name span { color: var(--muted); font-size: 13px; font-weight: 500; }
+    .card {
+      display: grid;
+      grid-template-columns: 22px 6px 1fr;
+      gap: 10px;
+      align-items: start;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin: 0 0 8px;
+    }
+    .card.lift {
+      transform: translate(18px, -6px);
+      box-shadow: 0 16px 30px -18px rgba(32, 32, 32, 0.45);
+      background: #fff;
+    }
+    .grip { color: #c4c0b8; font-size: 16px; line-height: 1.2; letter-spacing: -1px; padding-top: 2px; }
+    .bar { width: 6px; align-self: stretch; border-radius: 99px; }
+    .who { font-size: 12px; font-weight: 650; }
+    .card strong { display: block; font-size: 16px; margin-top: 1px; }
+    .card p { margin: 4px 0 0; font-family: Literata, Georgia, serif; font-size: 15px; line-height: 1.45; color: #3a3834; }
+    .drop { height: 4px; border-radius: 99px; background: var(--y); margin: 2px 8px 10px; }
+    .note { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <p class="kicker">Макет. Этого экрана в кабинете ещё нет. Трекер по главам остаётся как есть и с этим планом не связан.</p>
+    <header>
+      <h1>План <mark>книги</mark></h1>
+      <div class="actions">
+        <button class="ghost">Новая ветка</button>
+        <button class="y">+ Событие</button>
+      </div>
+    </header>
+    <div class="layout">
+      <aside class="lines">
+        <h2>Сюжетные ветки</h2>
+        <button class="line on"><span class="dot" style="background:#2FB083"></span>Янис</button>
+        <button class="line"><span class="dot" style="background:#F28A3C"></span>Эмбер</button>
+        <button class="line"><span class="dot" style="background:#3B9EDB"></span>Коля</button>
+        <button class="add-line">+ Новая ветка</button>
+      </aside>
+      <div class="outline">
+        <section class="act">
+          <h2 class="act-name">Акт 1 <span>Янис узнаёт</span></h2>
+          <article class="card">
+            <span class="grip">⠿</span>
+            <span class="bar" style="background:#2FB083"></span>
+            <div>
+              <span class="who" style="color:#14684B">Янис</span>
+              <strong>Наука против смысла</strong>
+              <p>Он держится за объяснение и не хочет смотреть, что за ним.</p>
+            </div>
+          </article>
+          <article class="card">
+            <span class="grip">⠿</span>
+            <span class="bar" style="background:#2FB083"></span>
+            <div>
+              <span class="who" style="color:#14684B">Янис</span>
+              <strong>Новость про деда</strong>
+              <p>Видит, что какой-то дед дожил до 68. Отправляется на вокзал.</p>
+            </div>
+          </article>
+          <article class="card">
+            <span class="grip">⠿</span>
+            <span class="bar" style="background:#3B9EDB"></span>
+            <div>
+              <span class="who" style="color:#18638F">Коля</span>
+              <strong>Вечер с братом и племянником</strong>
+              <p>Добивается отпуска. Разговор за столом, ещё без Эмбер.</p>
+            </div>
+          </article>
+        </section>
+        <section class="act">
+          <h2 class="act-name">Акт 2 <span>Эмбер едет</span></h2>
+          <article class="card lift">
+            <span class="grip">⠿</span>
+            <span class="bar" style="background:#F28A3C"></span>
+            <div>
+              <span class="who" style="color:#9A4B12">Эмбер</span>
+              <strong>Москва, внук, кафе</strong>
+              <p>Карточку тянут за ручку. Жёлтая полоска показывает, куда она встанет.</p>
+            </div>
+          </article>
+          <div class="drop"></div>
+          <article class="card">
+            <span class="grip">⠿</span>
+            <span class="bar" style="background:#F28A3C"></span>
+            <div>
+              <span class="who" style="color:#9A4B12">Эмбер</span>
+              <strong>Кафе, ночь, покушение</strong>
+              <p>Короткая сцена. Подробности открываются по карточке, не отдельным видом.</p>
+            </div>
+          </article>
+          <article class="card">
+            <span class="grip">⠿</span>
+            <span class="bar" style="background:#2FB083"></span>
+            <div>
+              <span class="who" style="color:#14684B">Янис</span>
+              <strong>Сосед Генрих и сон про бабушку</strong>
+              <p>Полёт в Россию. Сон не смешивается с линией Эмбер.</p>
+            </div>
+          </article>
+        </section>
+        <p class="note">Новое событие спрашивает ветку и название. Пустая «Глава 38» сама не создаётся. Главы трекера отсюда не плодятся.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
