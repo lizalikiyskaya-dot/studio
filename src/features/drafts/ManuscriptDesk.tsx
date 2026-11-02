@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { FileUp, Plus, Trash2 } from "lucide-react";
-import WritingEditor from "@/features/exercises/additional/WritingEditor";
 import ManuscriptFocus from "./ManuscriptFocus";
 import type { ContentFormat } from "@/features/exercises/additional/richText";
 import { formatChars } from "@/features/acts/chapterText";
@@ -393,27 +392,18 @@ export default function ManuscriptDesk({
                   ? "Вы пишете здесь. Знаки считаются сами и уже стоят в трекере. Вручную их менять не нужно."
                   : "Если Вы начнёте писать здесь, знаки в трекере заменятся на подсчёт по тексту."}
             </p>
-            <div className="manuscript-open-row">
-              <p className="manuscript-swipe-hint">Смахните двумя пальцами или нажмите ⤢</p>
-              <button
-                type="button"
-                className="writing-tool manuscript-glyph"
-                title="Развернуть на весь экран"
-                aria-label="Развернуть на весь экран"
-                onClick={() => setFocus(true)}
-              >
-                <span aria-hidden="true">⤢</span>
-              </button>
-            </div>
             {focus ? null : (
-              <WritingEditor
+              <ManuscriptFocus
                 key={current.id}
+                title=""
                 value={current.manuscript}
                 format={asFormat(current.manuscriptFormat)}
                 onChange={onChange}
                 placeholder="Напишите главу здесь"
-                variant="focus"
                 readOnly={readOnly}
+                viewerId={viewerId}
+                layout="page"
+                onClose={() => setFocus(true)}
               />
             )}
           </>

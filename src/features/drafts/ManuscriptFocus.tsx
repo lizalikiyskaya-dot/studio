@@ -21,7 +21,7 @@ const ZOOM_STEP = 10;
 const MEASURE_MIN = 52;
 const MEASURE_MAX = 88;
 const MEASURE_STEP = 6;
-const MEASURE_DEFAULT = 70;
+const MEASURE_DEFAULT = 68;
 
 function themeKey(viewerId: string) {
   return `manuscript-theme:${viewerId}`;
@@ -204,7 +204,7 @@ export default function ManuscriptFocus({
       aria-label={layout === "screen" ? "Режим письма" : undefined}
     >
       {leading ? <div className="manuscript-focus-book">{leading}</div> : null}
-      <p className="manuscript-focus-title">{title.trim() || "Без названия"}</p>
+      {title.trim() ? <p className="manuscript-focus-title">{title.trim()}</p> : null}
       <span className="manuscript-count-side">{formatChars(signs)}</span>
       <WritingEditor
         value={value}
@@ -247,7 +247,7 @@ export default function ManuscriptFocus({
       />
       {readOnly ? (
         <button type="button" className="weekly-expand manuscript-focus-close" onClick={onClose}>
-          Свернуть
+          {layout === "screen" ? "Свернуть" : "Развернуть"}
         </button>
       ) : null}
     </div>
