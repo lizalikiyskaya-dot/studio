@@ -1,6 +1,6 @@
 "use client";
 
-import { siteAlert, siteConfirm } from "@/components/SiteDialog";
+import { siteAlert, siteChoice, siteConfirm } from "@/components/SiteDialog";
 
 import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
@@ -46,8 +46,13 @@ export default function LibraryGuides({
   async function handleVisible(id: string, visible: boolean) {
     const current = guides.find((guide) => guide.id === id)?.visible ?? false;
     if (visible) {
+      const choice = await siteChoice("Отправить уведомление на почту?", {
+        yes: "Отправить",
+        no: "Не отправлять",
+      });
+      if (choice === "dismiss") return;
       patch(id, { visible: true });
-      const result = await setGuideVisibleForStudent(id, studentId, true, false);
+      const result = await setGuideVisibleForStudent(id, studentId, true, choice === "yes");
       if (!result.ok) {
         patch(id, { visible: current });
         await siteAlert(result.error);

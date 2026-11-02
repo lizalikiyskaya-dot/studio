@@ -276,7 +276,6 @@ export async function notifyStudentGuideOpened(
   studentId: string,
   guide: { id: string; title: string; description: string }
 ) {
-  if (studentMailStopped("guide")) return;
   const student = await prisma.user.findUnique({
     where: { id: studentId },
     select: { name: true, email: true, status: true, emailNotifications: true },
