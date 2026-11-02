@@ -4,6 +4,7 @@ import StarsStatus, { type StarPlaque } from "@/features/stars/StarsStatus";
 import type { StreakPlaque } from "@/features/streak/weeks";
 import { formatWeeklyDate, pickWeekly, weekPhase } from "./schedule";
 import WeeklyForm from "./WeeklyForm";
+import { WeeklyPreview } from "./WeeklyAnswer";
 
 type TaskRow = {
   id: string;
@@ -34,6 +35,7 @@ export default function WeeklyView({
   account,
   streak,
   today,
+  viewerId,
 }: {
   studentId: string;
   canSubmit: boolean;
@@ -43,6 +45,7 @@ export default function WeeklyView({
   account: StarPlaque;
   streak: StreakPlaque;
   today: string;
+  viewerId: string;
 }) {
   const byTask = new Map(submissions.map((row) => [row.weeklyTaskId, row]));
   const { current } = pickWeekly(tasks, today);
@@ -70,19 +73,29 @@ export default function WeeklyView({
           Задания недели ещё не опубликованы.
         </p>
       ) : (
-        <article id={focus ? `weekly-${focus.id}` : undefined} className="sheet mt-4 px-4 py-3" style={{ overflow: "hidden" }}>
+        <>
+        <article id={`weekly-${focus.id}`} className="sheet mt-4 px-4 py-3" style={{ overflow: "hidden" }}>
           <h2 className="text-[18px] leading-snug">{focus.title}</h2>
           <ReadingText text={focus.prompt} className="mt-2" />
           <p className="mt-2 text-[12.5px]" style={{ color: "var(--muted)" }}>
             {formatWeeklyDate(focus.publishedOn)} · Сколько: {focus.lengthHint} · {availability}
           </p>
-          {open && canSubmit ? (
-            <WeeklyForm studentId={studentId} weeklyTaskId={focus.id} initialText={saved?.text ?? ""} />
-          ) : null}
           {open && !canSubmit && saved?.text ? (
-            <ReadingText text={saved.text} className="mt-3" />
+            <div className="mt-3">
+              <WeeklyPreview viewerId={viewerId} title={focus.title} text={saved.text} />
+            </div>
           ) : null}
         </article>
+        {open && canSubmit ? (
+          <WeeklyForm
+            studentId={studentId}
+            viewerId={viewerId}
+            weeklyTaskId={focus.id}
+            title={focus.title}
+            initialText={saved?.text ?? ""}
+          />
+        ) : null}
+        </>
       )}
 
       {tasks.length > 0 ? (
@@ -114,7 +127,9 @@ export default function WeeklyView({
                     </span>
                   </div>
                   {phase === "past" && done ? (
-                    <ReadingText text={text} className="mt-2" />
+                    <div className="mt-2">
+                      <WeeklyPreview viewerId={viewerId} title={task.title} text={text} />
+                    </div>
                   ) : null}
                   {phase === "past" && !done ? (
                     <p className="mt-1 text-[13.5px]" style={{ color: "var(--muted)" }}>

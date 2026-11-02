@@ -340,6 +340,18 @@ export default function WritingEditor({
 
   const empty = value.trim() === "";
 
+  function placeCaretAtStart() {
+    const el = ref.current;
+    if (!el) return;
+    const block = el.firstElementChild ?? el;
+    const range = document.createRange();
+    range.setStart(block, 0);
+    range.collapse(true);
+    const selection = document.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  }
+
   return (
     <div className={`writing-editor writing-editor-${variant}`}>
       {readOnly ? null : <div className="writing-toolbar" role="toolbar" aria-label="Оформление">
@@ -411,6 +423,12 @@ export default function WritingEditor({
         data-placeholder={placeholder}
         spellCheck
         onInput={readOnly ? undefined : () => publish()}
+        onMouseDown={readOnly ? undefined : (event) => {
+          if (!empty) return;
+          event.preventDefault();
+          ref.current?.focus();
+          placeCaretAtStart();
+        }}
         onKeyUp={readOnly ? undefined : rememberActive}
         onMouseUp={readOnly ? undefined : rememberActive}
         onKeyDown={readOnly ? undefined : onKeyDown}

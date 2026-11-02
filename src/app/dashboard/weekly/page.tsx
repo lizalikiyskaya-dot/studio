@@ -17,6 +17,7 @@ export default async function Page() {
       account={data.account}
       streak={data.streak}
       today={data.today}
+      viewerId={session.userId}
     />
   );
 }
