@@ -9,6 +9,7 @@ import { submittedStatusCounts } from "@/features/streak/weeks";
 import { mentorSubmissionUrl, notifyMentorOfSubmission } from "@/lib/submissionMail";
 import { queueCabinetChange } from "@/lib/activityDigest";
 import { queueMentorDigest, reviewGroup, studentExerciseUrl } from "@/lib/mentorDigest";
+import { stampStudentSection } from "@/features/sectionBeacons/actions";
 import type { ContentFormat } from "./richText";
 
 export async function createAdditionalSection(
@@ -170,6 +171,9 @@ export async function setSectionStatus(sectionId: string, status: TaskStatus) {
       title: section.title,
       url: studentExerciseUrl("extra", section.id),
     });
+  }
+  if (session.role === "STUDENT" && status === "SUBMITTED") {
+    await stampStudentSection(section.studentId, "exercises");
   }
   if (submittedStatusCounts(section.status, status)) {
     await creditStreakWeek(section.studentId);
