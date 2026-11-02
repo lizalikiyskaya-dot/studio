@@ -109,6 +109,7 @@ export default function ManuscriptFocus({
   const [theme, setTheme] = useState<Theme>("white");
   const [zoom, setZoom] = useState(100);
   const [measure, setMeasure] = useState(MEASURE_DEFAULT);
+  const [view, setView] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -202,29 +203,9 @@ export default function ManuscriptFocus({
       aria-modal={layout === "screen" ? true : undefined}
       aria-label={layout === "screen" ? "Режим письма" : undefined}
     >
-      <div className="manuscript-focus-top">
-        {leading}
-        <h2>{title.trim() || "Без названия"}</h2>
-        <span className="manuscript-count">{formatChars(signs)} знаков</span>
-        <span className="manuscript-zoom">
-          <button type="button" title="Уменьшить текст" aria-label="Уменьшить текст" disabled={zoom <= ZOOM_MIN} onClick={() => bumpZoom(-ZOOM_STEP)}>−</button>
-          <button type="button" title="Увеличить текст" aria-label="Увеличить текст" disabled={zoom >= ZOOM_MAX} onClick={() => bumpZoom(ZOOM_STEP)}>+</button>
-        </span>
-        <span className="manuscript-measure">
-          <button type="button" title="Уже колонка" aria-label="Уже колонка" disabled={measure <= MEASURE_MIN} onClick={() => bumpMeasure(-MEASURE_STEP)}>Уже</button>
-          <button type="button" title="Шире колонка" aria-label="Шире колонка" disabled={measure >= MEASURE_MAX} onClick={() => bumpMeasure(MEASURE_STEP)}>Шире</button>
-        </span>
-        <ThemeSwitch theme={theme} onChange={chooseTheme} />
-        <button
-          type="button"
-          className="writing-tool manuscript-glyph"
-          title={layout === "screen" ? "Свернуть" : "Развернуть на весь экран"}
-          aria-label={layout === "screen" ? "Свернуть" : "Развернуть на весь экран"}
-          onClick={onClose}
-        >
-          <span aria-hidden="true">{layout === "screen" ? "⤡" : "⤢"}</span>
-        </button>
-      </div>
+      {leading ? <div className="manuscript-focus-book">{leading}</div> : null}
+      <p className="manuscript-focus-title">{title.trim() || "Без названия"}</p>
+      <span className="manuscript-count-side">{formatChars(signs)}</span>
       <WritingEditor
         value={value}
         format={format}
@@ -232,7 +213,43 @@ export default function ManuscriptFocus({
         placeholder={placeholder}
         variant="focus"
         readOnly={readOnly}
+        toolbarExtra={
+          <>
+            <span className="manuscript-view-anchor">
+              <button type="button" className="writing-tool" aria-expanded={view} aria-label="Вид текста" title="Вид текста" onClick={() => setView((open) => !open)}>
+                ···
+              </button>
+              {view ? (
+                <span className="manuscript-view">
+                  <span className="manuscript-zoom">
+                    <button type="button" title="Уменьшить текст" aria-label="Уменьшить текст" disabled={zoom <= ZOOM_MIN} onClick={() => bumpZoom(-ZOOM_STEP)}>−</button>
+                    <button type="button" title="Увеличить текст" aria-label="Увеличить текст" disabled={zoom >= ZOOM_MAX} onClick={() => bumpZoom(ZOOM_STEP)}>+</button>
+                  </span>
+                  <span className="manuscript-measure">
+                    <button type="button" title="Уже колонка" aria-label="Уже колонка" disabled={measure <= MEASURE_MIN} onClick={() => bumpMeasure(-MEASURE_STEP)}>Уже</button>
+                    <button type="button" title="Шире колонка" aria-label="Шире колонка" disabled={measure >= MEASURE_MAX} onClick={() => bumpMeasure(MEASURE_STEP)}>Шире</button>
+                  </span>
+                  <ThemeSwitch theme={theme} onChange={chooseTheme} />
+                </span>
+              ) : null}
+            </span>
+            <button
+              type="button"
+              className="writing-tool manuscript-glyph"
+              title={layout === "screen" ? "Свернуть" : "Развернуть на весь экран"}
+              aria-label={layout === "screen" ? "Свернуть" : "Развернуть на весь экран"}
+              onClick={onClose}
+            >
+              <span aria-hidden="true">{layout === "screen" ? "⤡" : "⤢"}</span>
+            </button>
+          </>
+        }
       />
+      {readOnly ? (
+        <button type="button" className="weekly-expand manuscript-focus-close" onClick={onClose}>
+          Свернуть
+        </button>
+      ) : null}
     </div>
   );
 

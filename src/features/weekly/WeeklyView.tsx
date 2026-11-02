@@ -73,27 +73,29 @@ export default function WeeklyView({
           Задания недели ещё не опубликованы.
         </p>
       ) : (
-        <article id={focus ? `weekly-${focus.id}` : undefined} className="sheet mt-4 px-4 py-3" style={{ overflow: "hidden" }}>
+        <>
+        <article id={`weekly-${focus.id}`} className="sheet mt-4 px-4 py-3" style={{ overflow: "hidden" }}>
           <h2 className="text-[18px] leading-snug">{focus.title}</h2>
           <ReadingText text={focus.prompt} className="mt-2" />
           <p className="mt-2 text-[12.5px]" style={{ color: "var(--muted)" }}>
             {formatWeeklyDate(focus.publishedOn)} · Сколько: {focus.lengthHint} · {availability}
           </p>
-          {open && canSubmit ? (
-            <WeeklyForm
-              studentId={studentId}
-              viewerId={viewerId}
-              weeklyTaskId={focus.id}
-              title={focus.title}
-              initialText={saved?.text ?? ""}
-            />
-          ) : null}
           {open && !canSubmit && saved?.text ? (
             <div className="mt-3">
               <WeeklyPreview viewerId={viewerId} title={focus.title} text={saved.text} />
             </div>
           ) : null}
         </article>
+        {open && canSubmit ? (
+          <WeeklyForm
+            studentId={studentId}
+            viewerId={viewerId}
+            weeklyTaskId={focus.id}
+            title={focus.title}
+            initialText={saved?.text ?? ""}
+          />
+        ) : null}
+        </>
       )}
 
       {tasks.length > 0 ? (
