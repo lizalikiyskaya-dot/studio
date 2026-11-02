@@ -42,7 +42,8 @@ export async function deleteDraft(draftId: string) {
 }
 
 async function chapterBook(chapterId: string) {
-  const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id: chapterId } });
+  const chapter = await prisma.planChapter.findUnique({ where: { id: chapterId } });
+  if (!chapter) return null;
   const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
   const session = await requireCabinetAccess(book.studentId);
   return { chapter, book, session };
@@ -73,7 +74,9 @@ export async function createManuscriptChapter(bookId: string) {
 }
 
 export async function saveManuscriptChapter(chapterId: string, content: string, format: ContentFormat) {
-  const { chapter, book, session } = await chapterBook(chapterId);
+  const found = await chapterBook(chapterId);
+  if (!found) return null;
+  const { chapter, book, session } = found;
   const stored = asFormat(format);
   const writtenChars = countSigns(content, stored);
   await prisma.planChapter.update({
@@ -90,7 +93,9 @@ export async function saveManuscriptChapter(chapterId: string, content: string, 
 }
 
 export async function renameManuscriptChapter(chapterId: string, title: string) {
-  const { book, session } = await chapterBook(chapterId);
+  const found = await chapterBook(chapterId);
+  if (!found) return;
+  const { book, session } = found;
   const next = title.slice(0, 200);
   await prisma.planChapter.update({
     where: { id: chapterId },

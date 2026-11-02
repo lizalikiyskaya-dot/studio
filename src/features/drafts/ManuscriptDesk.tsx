@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
-import { FileUp, Plus } from "lucide-react";
+import { FileUp, Plus, Trash2 } from "lucide-react";
 import WritingEditor from "@/features/exercises/additional/WritingEditor";
 import type { ContentFormat } from "@/features/exercises/additional/richText";
 import { formatChars } from "@/features/acts/chapterText";
 import { countSigns } from "./manuscriptCount";
+import { siteAlert, siteConfirm } from "@/components/SiteDialog";
+import { deletePlanChapter } from "@/features/books/actions";
 import { createManuscriptChapter, renameManuscriptChapter, saveManuscriptChapter } from "./actions";
 import ManuscriptImport from "./ManuscriptImport";
 import { manuscriptLastKey } from "@/lib/writeChapterKey";
@@ -346,6 +348,25 @@ export default function ManuscriptDesk({
     })();
   }
 
+  async function removeChapter(chapterId: string) {
+    if (readOnly) return;
+    if (!(await siteConfirm("Удалить главу?"))) return;
+    if (timer.current) window.clearTimeout(timer.current);
+    if (latest.current?.id === chapterId) latest.current = null;
+    const result = await deletePlanChapter(chapterId);
+    if (!result.ok) {
+      await siteAlert(result.message);
+      return;
+    }
+    const remaining = chapters.filter((chapter) => chapter.id !== chapterId);
+    const index = chapters.findIndex((chapter) => chapter.id === chapterId);
+    setChapters(remaining);
+    if (currentId === chapterId) {
+      setCurrentId(remaining[index]?.id ?? remaining[index - 1]?.id ?? null);
+      setFocus(false);
+    }
+  }
+
   if (!bookId) {
     return (
       <p className="manuscript-empty">
@@ -369,6 +390,12 @@ export default function ManuscriptDesk({
         ) : null}
         <h2>{current.title.trim() || "Без названия"}</h2>
         <span className="manuscript-count">{formatChars(current.writtenChars)} знаков</span>
+        {readOnly ? null : (
+          <button type="button" className="chapter-tool chapter-tool-icon" aria-label="Удалить главу" onClick={() => removeChapter(current.id)}>
+            <Trash2 size={14} />
+            Удалить
+          </button>
+        )}
         <span className="manuscript-zoom">
           <button type="button" title="Уменьшить текст" aria-label="Уменьшить текст" disabled={zoom <= ZOOM_MIN} onClick={() => bumpZoom(-ZOOM_STEP)}>−</button>
           <button type="button" title="Увеличить текст" aria-label="Увеличить текст" disabled={zoom >= ZOOM_MAX} onClick={() => bumpZoom(ZOOM_STEP)}>+</button>
@@ -422,16 +449,27 @@ export default function ManuscriptDesk({
         ) : (
           <ul>
             {chapters.map((chapter, index) => (
-              <li key={chapter.id}>
+              <li key={chapter.id} className="manuscript-chapter">
                 <button
                   type="button"
-                  className={chapter.id === current?.id ? "is-on" : undefined}
+                  className={chapter.id === current?.id ? "manuscript-chapter-pick is-on" : "manuscript-chapter-pick"}
                   onClick={() => select(chapter.id)}
                 >
                   <span>Глава {index + 1}</span>
                   <strong>{chapter.title.trim() || "Без названия"}</strong>
                   {chapter.writtenHere ? <em>{formatChars(chapter.writtenChars)} зн.</em> : null}
                 </button>
+                {readOnly ? null : (
+                  <button
+                    type="button"
+                    className="manuscript-chapter-delete"
+                    aria-label={`Удалить главу ${index + 1}`}
+                    onClick={() => removeChapter(chapter.id)}
+                  >
+                    <Trash2 size={14} />
+                    Удалить
+                  </button>
+                )}
               </li>
             ))}
           </ul>
@@ -472,6 +510,12 @@ export default function ManuscriptDesk({
                     void renameManuscriptChapter(current.id, title);
                   }}
                 />
+              )}
+              {readOnly ? null : (
+                <button type="button" className="chapter-tool chapter-tool-icon" aria-label="Удалить главу" onClick={() => removeChapter(current.id)}>
+                  <Trash2 size={14} />
+                  Удалить
+                </button>
               )}
             </div>
             <p className="manuscript-hint">
