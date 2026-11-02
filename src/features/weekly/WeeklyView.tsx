@@ -70,7 +70,7 @@ export default function WeeklyView({
           Задания недели ещё не опубликованы.
         </p>
       ) : (
-        <article className="sheet mt-4 px-4 py-3" style={{ overflow: "hidden" }}>
+        <article id={focus ? `weekly-${focus.id}` : undefined} className="sheet mt-4 px-4 py-3" style={{ overflow: "hidden" }}>
           <h2 className="text-[18px] leading-snug">{focus.title}</h2>
           <ReadingText text={focus.prompt} className="mt-2" />
           <p className="mt-2 text-[12.5px]" style={{ color: "var(--muted)" }}>
@@ -94,7 +94,7 @@ export default function WeeklyView({
               const text = byTask.get(task.id)?.text ?? "";
               const done = text.trim().length > 0;
               return (
-                <article key={task.id} className="rounded-[12px] px-3 py-1.5" style={{ border: "1px solid var(--border)" }}>
+                <article key={task.id} id={`weekly-${task.id}`} className="rounded-[12px] px-3 py-1.5" style={{ border: "1px solid var(--border)" }}>
                   <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                     <span className="text-[12.5px]" style={{ color: "var(--muted)" }}>
                       {formatWeeklyDate(task.publishedOn)}

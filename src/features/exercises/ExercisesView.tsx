@@ -16,7 +16,7 @@ export default function ExercisesView({
   focus?: string;
 }) {
   return (
-    <div>
+    <div id="exercises-page">
       <PageHeader
         title="Упражнения"
       />

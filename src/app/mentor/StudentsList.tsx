@@ -10,6 +10,7 @@ import WorkshopLockControls from "./WorkshopLockControls";
 import { LinkButton } from "@/components/ui/Button";
 import EmptyState from "@/components/EmptyState";
 import { PresenceIndicator, ActivityBeacon } from "./StudentBeacons";
+import { markFeedSeen } from "@/features/mentorFeed/actions";
 
 type AccessStatus = "OPEN" | "AWAITING" | "SUSPENDED";
 
@@ -47,9 +48,31 @@ type Student = {
   lastActivityAt: Date | null;
   /** Время самой свежей правки ученика, которую наставник ещё не открывал. */
   unseenAt: Date | null;
+  unseenHint: string | null;
+  unseenHref: string | null;
+  unseenKind: string | null;
+  unseenSourceId: string | null;
   /** Задание, глава или рукопись, которые сейчас в работе. Пусто — «—». */
   currentWork: string | null;
 };
+
+function UnseenLink({ student }: { student: Student }) {
+  return (
+    <a
+      className="mentor-unseen"
+      href={student.unseenHref ?? "#"}
+      onClick={(event) => {
+        if (!student.unseenKind || !student.unseenSourceId || !student.unseenHref) return;
+        event.preventDefault();
+        void markFeedSeen([{ kind: student.unseenKind, sourceId: student.unseenSourceId }]).then(() => {
+          window.location.href = student.unseenHref!;
+        });
+      }}
+    >
+      {student.unseenHint}
+    </a>
+  );
+}
 
 function initials(name: string) {
   return name
@@ -80,6 +103,7 @@ function Person({ student }: { student: Student }) {
         <span className="mentor-person-name">{student.name}</span>
         <ActivityBeacon unseenAt={student.unseenAt} />
       </div>
+      {student.unseenHint ? <UnseenLink student={student} /> : null}
       <span className="mentor-person-email" title={student.email}>{student.email}</span>
     </div>
   );
@@ -269,6 +293,7 @@ export default function StudentsList({ initialStudents }: { initialStudents: Stu
                     <span className="text-[15px] font-medium leading-snug break-words">{s.name}</span>
                     <ActivityBeacon unseenAt={s.unseenAt} />
                   </div>
+                  {s.unseenHint ? <UnseenLink student={s} /> : null}
                   <div className="mt-0.5 truncate text-[12.5px]" style={{ color: "var(--muted)" }} title={s.email}>{s.email}</div>
                   <div className="mt-1.5">
                     <div className="mentor-card-kicker">Сейчас в работе</div>
