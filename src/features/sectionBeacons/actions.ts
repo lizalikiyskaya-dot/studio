@@ -28,6 +28,18 @@ export async function markSectionSeen(studentId: string, section: string) {
   revalidatePath("/", "layout");
 }
 
+/** Сдача задания недели: маячок в кабинете наставника без письма «правки ученика». */
+export async function stampStudentSection(studentId: string, section: string) {
+  const session = await viewer(studentId);
+  if (!session || session.role !== "STUDENT" || session.userId !== studentId) return;
+  await prisma.sectionActivity.upsert({
+    where: { studentId_section: { studentId, section } },
+    create: { studentId, section, byRole: "STUDENT" },
+    update: { at: new Date(), byRole: "STUDENT" },
+  });
+  revalidatePath("/", "layout");
+}
+
 export async function markSectionActivity(studentId: string, section: string) {
   const session = await viewer(studentId);
   if (!session) return;

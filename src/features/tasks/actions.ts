@@ -12,6 +12,7 @@ import { mentorSubmissionUrl, notifyMentorOfSubmission } from "@/lib/submissionM
 import { queueMentorDigest, reviewGroup, studentTaskUrl } from "@/lib/mentorDigest";
 import { notifyStudentOfNewTask, shouldSendNewTaskMail } from "@/lib/newTaskMail";
 import { mainTaskAwardsStars } from "@/features/stars/rules";
+import { stampStudentSection } from "@/features/sectionBeacons/actions";
 
 export async function createTask(studentId: string) {
   await requireCabinetAccess(studentId);
@@ -124,6 +125,9 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
       title: task.title,
       url: studentTaskUrl(task.id, review === "accepted" ? "accepted" : "revision"),
     });
+  }
+  if (session.role === "STUDENT" && status === "SUBMITTED") {
+    await stampStudentSection(task.studentId, "tasks");
   }
   if (submittedStatusCounts(task.status, status)) {
     await creditStreakWeek(task.studentId);

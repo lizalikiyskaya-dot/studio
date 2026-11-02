@@ -4,6 +4,8 @@ import { markedTitle } from "@/components/markedTitle";
 import { loadBadges } from "@/features/badges/load";
 import { starAccount, starHistory, starPurchases } from "@/features/stars/award";
 import { loadStreak } from "@/features/streak/load";
+import { pendingWeeklyReviews, type WeeklyReview } from "@/features/weekly/review";
+import { getSession } from "@/lib/session";
 import TasksTable from "./TasksTable";
 import CabinetHello from "./CabinetHello";
 import StudioBanners from "@/components/StudioBanners";
@@ -16,7 +18,8 @@ export default async function TasksView({
   basePath: string;
 }) {
   const mentorView = basePath !== "/dashboard";
-  const [tasks, student, stars, streak, badges, purchases, history] = await Promise.all([
+  const session = mentorView ? await getSession() : null;
+  const [tasks, student, stars, streak, badges, purchases, history, weeklyReviews] = await Promise.all([
     prisma.task.findMany({
       where: { studentId },
       orderBy: { order: "asc" },
@@ -27,6 +30,7 @@ export default async function TasksView({
     loadBadges(studentId),
     mentorView ? starPurchases(studentId) : Promise.resolve(null),
     starHistory(studentId),
+    mentorView && session?.role === "MENTOR" ? loadWeeklyReviews(studentId, session.userId) : Promise.resolve([]),
   ]);
 
   return (
@@ -48,8 +52,37 @@ export default async function TasksView({
         studentId={studentId}
         initialTasks={tasks}
         isMentor={mentorView}
+        weeklyReviews={weeklyReviews}
         banners={<StudioBanners studentId={studentId} basePath={basePath} />}
       />
     </Suspense>
+  );
+}
+
+async function loadWeeklyReviews(studentId: string, mentorId: string): Promise<WeeklyReview[]> {
+  const seen = await prisma.sectionSeen.findUnique({
+    where: { userId_studentId_section: { userId: mentorId, studentId, section: "weekly" } },
+    select: { seenAt: true },
+  });
+  const rows = await prisma.weeklySubmission.findMany({
+    where: { studentId },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      weeklyTaskId: true,
+      text: true,
+      updatedAt: true,
+      weeklyTask: { select: { title: true } },
+    },
+  });
+  return pendingWeeklyReviews(
+    rows.map((row) => ({
+      id: row.id,
+      weeklyTaskId: row.weeklyTaskId,
+      title: row.weeklyTask.title.trim() || "Задание недели",
+      text: row.text,
+      updatedAt: row.updatedAt.toISOString(),
+    })),
+    seen?.seenAt.toISOString() ?? null,
   );
 }

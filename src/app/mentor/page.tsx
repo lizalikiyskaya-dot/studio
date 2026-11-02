@@ -9,6 +9,7 @@ import { getUnseenActivity } from "@/lib/unseenActivity";
 import { markedTitle } from "@/components/markedTitle";
 import { loadCurrentWork } from "@/lib/studentFocusData";
 import { sectionLabel } from "@/lib/sections";
+import { loadRecentStudentEdits } from "@/lib/recentEditsLoad";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -100,13 +101,9 @@ export default async function MentorPage() {
   );
   const hello = hour < 12 ? "Доброе утро" : hour < 18 ? "Добрый день" : "Добрый вечер";
   const mentorName = mentor?.name?.trim().split(/\s+/)[0] || "наставник";
-  const recentEdits = students.length === 0
-    ? []
-    : await prisma.sectionActivity.findMany({
-        where: { studentId: { in: students.map((s) => s.id) }, byRole: "STUDENT" },
-        orderBy: { at: "desc" },
-        take: 6,
-      });
+  const recentEdits = await loadRecentStudentEdits(
+    students.map((student) => ({ id: student.id, lastActivityAt: student.lastActivityAt })),
+  );
   const nameById = new Map(students.map((s) => [s.id, s.name]));
 
   return (
@@ -177,10 +174,10 @@ export default async function MentorPage() {
               <p className="text-[13.5px]" style={{ color: "var(--muted)" }}>Свежих правок нет.</p>
             ) : (
               recentEdits.map((row) => (
-                <a key={`${row.studentId}:${row.section}`} href={`/student-view/${row.studentId}/${row.section}`} className="mentor-edit-row">
+                <a key={`${row.studentId}:${row.section}`} href={editHref(row.studentId, row.section)} className="mentor-edit-row">
                   <span className="min-w-0">
                     <span className="block truncate text-[14px] font-medium">{nameById.get(row.studentId) ?? "Ученик"}</span>
-                    <span className="block truncate text-[12.5px]" style={{ color: "var(--muted)" }}>{sectionLabel(row.section)}</span>
+                    <span className="block truncate text-[12.5px]" style={{ color: "var(--muted)" }}>{row.section === "cabinet" ? "Кабинет" : sectionLabel(row.section)}</span>
                   </span>
                   <span className="shrink-0 text-[12px]" style={{ color: "var(--muted)" }}>{ago(row.at, today)}</span>
                 </a>
@@ -205,6 +202,11 @@ export default async function MentorPage() {
       </div>
     </div>
   );
+}
+
+function editHref(studentId: string, section: string): string {
+  if (section === "cabinet" || section === "notes") return `/student-view/${studentId}/tasks`;
+  return `/student-view/${studentId}/${section}`;
 }
 
 function ago(date: Date, now: Date): string {

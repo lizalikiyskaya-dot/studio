@@ -46,4 +46,16 @@ test("письмо короткое: имя, раздел, название и �
   assert.equal(exerciseFocusIndex("circle"), 2);
   assert.equal(exerciseFocusIndex("нет"), 0);
   assert.match(mentorSubmissionUrl("s", "circle", "card-1"), /focus=circle#exercise-card-1$/);
+  const weeklyUrl = mentorSubmissionUrl("student-1", "weekly", "week-1");
+  assert.match(weeklyUrl, /\/student-view\/student-1\/weekly#weekly-week-1$/);
+  const weekly = submissionLetter({
+    name: "Анна",
+    section: "Задание недели",
+    title: "Комната после новости",
+    url: weeklyUrl,
+  });
+  assert.equal(weekly.subject, "Анна: сдано на проверку");
+  assert.match(weekly.text, /Задание недели/);
+  assert.match(weekly.text, /Комната после новости/);
+  assert.match(weekly.text, /#weekly-week-1/);
 });

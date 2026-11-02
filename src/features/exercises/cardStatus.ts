@@ -8,6 +8,7 @@ import { creditStreakWeek } from "@/features/streak/credit";
 import { submittedStatusCounts } from "@/features/streak/weeks";
 import { mentorSubmissionUrl, notifyMentorOfSubmission, type ExerciseFocus } from "@/lib/submissionMail";
 import { queueMentorDigest, reviewGroup, studentExerciseUrl } from "@/lib/mentorDigest";
+import { stampStudentSection } from "@/features/sectionBeacons/actions";
 
 async function saveCardStatus(
   studentId: string,
@@ -30,6 +31,9 @@ async function saveCardStatus(
       title: place.title,
       url: studentExerciseUrl(place.focus, place.id),
     });
+  }
+  if (!isExample && session.role === "STUDENT" && next === "SUBMITTED") {
+    await stampStudentSection(studentId, "exercises");
   }
   if (!isExample && submittedStatusCounts(previous, next)) {
     await creditStreakWeek(studentId);

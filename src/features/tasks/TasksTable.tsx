@@ -24,6 +24,8 @@ import { submitReviewControl } from "@/features/submit/submitStar";
 import { TASK_FILTERS } from "./status";
 import EditableWithLinks from "@/components/EditableWithLinks";
 import DateField from "@/components/DateField";
+import ReadingText from "@/components/ReadingText";
+import type { WeeklyReview } from "@/features/weekly/review";
 
 function linkLabel(value: string, limit = 40) {
   let display: string;
@@ -132,11 +134,13 @@ export default function TasksTable({
   studentId,
   initialTasks,
   isMentor,
+  weeklyReviews = [],
   banners,
 }: {
   studentId: string;
   initialTasks: Task[];
   isMentor: boolean;
+  weeklyReviews?: WeeklyReview[];
   banners?: React.ReactNode;
 }) {
   const [tasks, setTasks] = useState(initialTasks);
@@ -259,7 +263,8 @@ export default function TasksTable({
 
       <div className="status-cards" role="tablist" aria-label="Фильтр заданий">
         {TABS.map((tab) => {
-          const count = tab.status == null ? tasks.length : tasks.filter((task) => task.status === tab.status).length;
+          const weeklyExtra = tab.id === "submitted" || tab.id === "all" ? weeklyReviews.length : 0;
+          const count = (tab.status == null ? tasks.length : tasks.filter((task) => task.status === tab.status).length) + weeklyExtra;
           const on = tab.id === activeTab;
           return (
             <button
@@ -278,6 +283,26 @@ export default function TasksTable({
           );
         })}
       </div>
+
+      {isMentor && (activeTab === "submitted" || activeTab === "all") && weeklyReviews.length > 0 ? (
+        <div className="mt-3 flex flex-col gap-2">
+          {weeklyReviews.map((item) => (
+            <article key={item.id} id={`weekly-${item.weeklyTaskId}`} className="sheet px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[12.5px]" style={{ color: "var(--muted)" }}>Задание недели</span>
+                <span className="text-[15px] font-semibold">{item.title}</span>
+                <span className="rounded-full px-2.5 py-0.5 text-[12px] font-medium" style={{ background: "var(--pill-vio-bg)", color: "var(--pill-vio-fg)" }}>
+                  сдано на проверку
+                </span>
+              </div>
+              {item.text.trim() ? <ReadingText text={item.text} className="mt-2" /> : null}
+              <a href={`/student-view/${studentId}/weekly#weekly-${item.weeklyTaskId}`} className="lnk mt-2 inline-block text-[13px]">
+                Открыть задание недели
+              </a>
+            </article>
+          ))}
+        </div>
+      ) : null}
 
       {tasks.length === 0 ? (
         <EmptyState

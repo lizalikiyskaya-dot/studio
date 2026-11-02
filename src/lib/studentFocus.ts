@@ -150,13 +150,16 @@ export function currentWorkLabel(source: FocusSource, now = new Date()): string 
 export function nearestDeadlineViews(
   rows: NearestDeadline[],
   now = new Date(),
-  limit = 4,
 ): NearestDeadlineView[] {
-  const today = stampNumber(startStamp(now));
   return rows
-    .filter((row) => row.status !== "ACCEPTED" && row.deadline && stampNumber(startStamp(row.deadline)) >= today)
-    .sort((a, b) => a.deadline.getTime() - b.deadline.getTime() || a.student.localeCompare(b.student, "ru"))
-    .slice(0, limit)
+    .filter((row) => row.status !== "ACCEPTED" && row.deadline)
+    .sort((a, b) => {
+      const delta = a.deadline.getTime() - b.deadline.getTime();
+      if (delta !== 0) return delta;
+      const byStudent = a.student.localeCompare(b.student, "ru");
+      if (byStudent !== 0) return byStudent;
+      return a.title.localeCompare(b.title, "ru");
+    })
     .map((row) => ({
       id: row.id,
       href: `/student-view/${row.studentId}/tasks`,

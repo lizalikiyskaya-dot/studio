@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { requireCabinetAccess } from "@/lib/access";
 import { awardStars, starTotal } from "@/features/stars/award";
 import { creditStreakWeek } from "@/features/streak/credit";
+import { stampStudentSection } from "@/features/sectionBeacons/actions";
+import { mentorSubmissionUrl, notifyMentorOfSubmission } from "@/lib/submissionMail";
 import { moscowToday, pickWeekly } from "./schedule";
 
 const MAX_TEXT = 20_000;
@@ -37,10 +39,23 @@ export async function submitWeeklyTask(
     create: { studentId, weeklyTaskId, text: trimmed },
     update: { text: trimmed },
   });
-  if (!existing) await creditStreakWeek(studentId);
+  if (!existing) {
+    await creditStreakWeek(studentId);
+    const task = await prisma.weeklyTask.findUnique({ where: { id: weeklyTaskId }, select: { title: true } });
+    await stampStudentSection(studentId, "weekly");
+    await notifyMentorOfSubmission({
+      actorRole: "STUDENT",
+      previous: null,
+      next: "SUBMITTED",
+      studentId,
+      section: "Задание недели",
+      title: task?.title ?? "Задание недели",
+      url: mentorSubmissionUrl(studentId, "weekly", weeklyTaskId),
+    });
+  }
 
-  // 2 звёзды один раз на неделю. Повторная сдача обновляет текст и сюда не добавляет очки.
-  // Письмо наставнику и субботняя рассылка отсюда не уходят.
+  // 2 звёзды один раз на неделю, в момент сдачи учеником. Наставник «принято» не ставит.
+  // Повторная сдача обновляет текст и сюда не добавляет очки. Письмо уходит только с первой сдачи.
   const awarded = await awardStars(studentId, "WEEKLY", weeklyTaskId);
   return { ok: true, awarded, total: await starTotal(studentId) };
 }
