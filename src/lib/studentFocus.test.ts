@@ -65,24 +65,35 @@ test("рукопись, если в книге уже есть текст, а г
   );
 });
 
-test("ближайшие дедлайны без прошедших и принятых", () => {
+test("ближайшие дедлайны: принятое скрыто, просроченное и все будущие видны", () => {
   const views = nearestDeadlineViews(
     [
       { id: "old", studentId: "a", student: "Анна", title: "Старое", deadline: new Date("2026-10-01T09:00:00Z"), status: "IN_PROGRESS" },
       { id: "done", studentId: "a", student: "Анна", title: "Принято", deadline: new Date("2026-10-20T09:00:00Z"), status: "ACCEPTED" },
       { id: "today", studentId: "a", student: "Анна", title: "Правки", deadline: new Date("2026-10-19T09:00:00Z"), status: "NEEDS_REVISION" },
       { id: "blank", studentId: "b", student: "Елена", title: "  ", deadline: new Date("2026-10-21T09:00:00Z"), status: "IN_PROGRESS" },
+      { id: "same-a", studentId: "v", student: "Виктория", title: "Методичка 1", deadline: new Date("2026-11-08T00:00:00Z"), status: "IN_PROGRESS" },
+      { id: "same-b", studentId: "v", student: "Виктория", title: "Неделя 2, дополнительное", deadline: new Date("2026-11-08T00:00:00Z"), status: "SUBMITTED" },
+      { id: "later", studentId: "y", student: "Yannie_E", title: "Дальше", deadline: new Date("2026-11-22T00:00:00Z"), status: "PLANNED" },
+      { id: "fifth", studentId: "y", student: "Yannie_E", title: "Ещё одно", deadline: new Date("2026-11-15T00:00:00Z"), status: "IN_PROGRESS" },
     ],
     now,
   );
   assert.deepEqual(
-    views.map((item) => [item.when, item.title, item.hot]),
+    views.map((item) => [item.when, item.student, item.title]),
     [
-      ["сегодня", "Правки", true],
-      ["21 окт", "Задание", false],
+      ["1 окт", "Анна", "Старое"],
+      ["сегодня", "Анна", "Правки"],
+      ["21 окт", "Елена", "Задание"],
+      ["8 нояб", "Виктория", "Методичка 1"],
+      ["8 нояб", "Виктория", "Неделя 2, дополнительное"],
+      ["15 нояб", "Yannie_E", "Ещё одно"],
+      ["22 нояб", "Yannie_E", "Дальше"],
     ],
   );
-  assert.equal(views[0]?.href, "/student-view/a/tasks");
+  assert.equal(views[0]?.hot, true);
+  assert.equal(views[1]?.href, "/student-view/a/tasks");
+  assert.equal(views.find((item) => item.title === "Принято"), undefined);
 });
 
 test("ближайшие оплаты и пустой список", () => {
