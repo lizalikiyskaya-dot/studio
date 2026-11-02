@@ -56,6 +56,46 @@ button, a { font: inherit; color: inherit; }
   background: var(--y);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
 }
+.shop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 8px 0 14px;
+  border-radius: 16px;
+  background: var(--deep);
+  color: #fff;
+  flex: none;
+  position: relative;
+}
+.shop:before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 0;
+  width: 12px;
+  height: 18px;
+  background: var(--y);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+}
+.shop .k {
+  margin-left: 16px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.72);
+}
+.shop .name { font-size: 14px; font-weight: 650; margin-top: 1px; }
+.shop .modes { display: flex; gap: 4px; margin-left: 4px; }
+.shop .modes a {
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 650;
+  color: #fff;
+}
+.shop .modes a.on { background: var(--y); color: var(--ink); }
+.shop .modes a.off { background: rgba(255, 255, 255, 0.12); }
 .shell { display: flex; gap: 22px; padding: 22px 28px 32px; }
 .side {
   width: 268px;
