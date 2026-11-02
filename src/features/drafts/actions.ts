@@ -7,6 +7,8 @@ import { linkAttachmentCounts } from "@/features/streak/weeks";
 import { countSigns } from "./manuscriptCount";
 import type { ContentFormat } from "@/features/exercises/additional/richText";
 import { createPlanChapter } from "@/features/books/actions";
+import { appUrl } from "@/lib/mail";
+import { mentorTextLineTitle, queueMentorDigest } from "@/lib/mentorDigest";
 
 function asFormat(value: string): ContentFormat {
   return value === "markdown" ? "markdown" : "plain";
@@ -46,20 +48,32 @@ async function chapterBook(chapterId: string) {
   return { chapter, book, session };
 }
 
-export async function createManuscriptChapter(bookId: string) {
-  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
-  const session = await requireCabinetAccess(book.studentId);
-  if (session.role === "MENTOR") return null;
-  const { chapter } = await createPlanChapter(bookId);
-  return prisma.planChapter.update({
-    where: { id: chapter.id },
-    data: { writtenHere: true, manuscript: "", manuscriptFormat: "plain", writtenChars: 0 },
+/** Наставник пишет в ту же главу, что и ученик. Письмо ученику собирается в общую пачку правок. */
+async function noteMentorChapter(role: string, studentId: string, chapterId: string, title: string) {
+  if (role !== "MENTOR") return;
+  await queueMentorDigest({
+    studentId,
+    group: "text",
+    sourceId: `PlanChapter:${chapterId}`,
+    title: mentorTextLineTitle("PlanChapter", title),
+    url: `${appUrl()}/dashboard/drafts`,
   });
 }
 
+export async function createManuscriptChapter(bookId: string) {
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
+  const session = await requireCabinetAccess(book.studentId);
+  const { chapter } = await createPlanChapter(bookId);
+  const saved = await prisma.planChapter.update({
+    where: { id: chapter.id },
+    data: { writtenHere: true, manuscript: "", manuscriptFormat: "plain", writtenChars: 0 },
+  });
+  await noteMentorChapter(session.role, book.studentId, saved.id, saved.title);
+  return saved;
+}
+
 export async function saveManuscriptChapter(chapterId: string, content: string, format: ContentFormat) {
-  const { session } = await chapterBook(chapterId);
-  if (session.role === "MENTOR") return null;
+  const { chapter, book, session } = await chapterBook(chapterId);
   const stored = asFormat(format);
   const writtenChars = countSigns(content, stored);
   await prisma.planChapter.update({
@@ -71,16 +85,18 @@ export async function saveManuscriptChapter(chapterId: string, content: string, 
       writtenChars,
     },
   });
+  await noteMentorChapter(session.role, book.studentId, chapterId, chapter.title);
   return { writtenChars };
 }
 
 export async function renameManuscriptChapter(chapterId: string, title: string) {
-  const { session } = await chapterBook(chapterId);
-  if (session.role === "MENTOR") return;
+  const { book, session } = await chapterBook(chapterId);
+  const next = title.slice(0, 200);
   await prisma.planChapter.update({
     where: { id: chapterId },
-    data: { title: title.slice(0, 200) },
+    data: { title: next },
   });
+  await noteMentorChapter(session.role, book.studentId, chapterId, next);
 }
 
 export async function reorderDrafts(studentId: string, ids: string[]) {
