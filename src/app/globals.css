@@ -328,8 +328,9 @@ body:has(.writing-mode) .annotate-pop { z-index: 250 !important; }
 
 .book-section-strip {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
+  overflow: visible;
   padding: 8px 20px 10px;
   background: #fff;
   border-bottom: 1px solid var(--line);
@@ -1371,10 +1372,7 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   font-size: 13px;
   font-weight: 500;
   color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 9em;
 }
 .workshop-plaque-pills { display: flex; gap: 2px; flex-shrink: 0; }
 .workshop-plaque-pills a {

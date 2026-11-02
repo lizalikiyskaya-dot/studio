@@ -753,7 +753,7 @@ function Tab({ href, label, icon: Icon, active, beacon, tone }: { href: string; 
   const workshop = tone === "workshop";
   return (
     <Link href={href} className={workshop ? "studio-tab is-workshop" : "studio-tab"} style={{ color: active || workshop ? "var(--ink)" : "var(--muted)", fontWeight: active || workshop ? 650 : 400 }}>
-      <span className="studio-tab-ic" style={{ background: workshop ? "var(--deep)" : active ? "var(--y)" : "transparent", color: workshop ? "#fff" : "inherit" }}>
+      <span className="studio-tab-ic" style={{ background: workshop || active ? "var(--y)" : "transparent", color: "inherit" }}>
         <Icon size={16} />
       </span>
       {label}
