@@ -74,6 +74,7 @@ export default async function CyclesView({
         </div>
       </section>
 
+      <div className="chapter-follow">
       <Subtabs
         tabs={[
           { label: "О цикле", content: <AboutCycleForm cycle={activeCycle} /> },
@@ -121,6 +122,7 @@ export default async function CyclesView({
           },
         ]}
       />
+      </div>
     </div>
   );
 }

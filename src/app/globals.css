@@ -2680,6 +2680,7 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
 .chapter-card:focus-within .act-break,
 .chapter-card .act-break.is-on { opacity: 1; }
 .chapter-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; color: var(--ink2); font-size: 13px; }
+.chapter-follow { margin-top: 14px; }
 .chapter-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .chapter-legend i { width: 10px; height: 10px; border-radius: 99px; display: inline-block; }
 .chapter-legend i.is-progress { background: #E6DDD2; }
