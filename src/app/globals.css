@@ -2172,6 +2172,10 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 .feed-page h1 { margin: 0; font-size: 28px; letter-spacing: -0.03em; color: var(--ink); }
 .feed-page-note { margin: 8px 0 14px; color: var(--ink2); font-size: 14px; }
 .feed-head .feed-all { text-align: left; }
+.await-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.await-who { font-size: 14px; font-weight: 650; }
+.await-title { margin-top: 1px; font-size: 13.5px; line-height: 1.35; }
+.await-wait { margin-top: 2px; font-size: 12.5px; color: var(--muted); }
 @media (max-width: 720px) {
   .feed-pop { position: fixed; top: calc(var(--chrome-h, 64px) + 8px); left: 12px; right: 12px; width: auto; }
 }
