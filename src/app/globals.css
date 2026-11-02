@@ -4109,6 +4109,53 @@ html.manuscript-page body {
   72% { box-shadow: 0 0 0 5px rgba(255, 212, 59, 0.55); }
   100% { box-shadow: none; }
 }
+.star-history { position: relative; width: min(420px, 100%); margin-top: 14px; }
+.star-history-button {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.star-history-panel {
+  margin-top: 8px;
+  max-height: min(360px, 70vh);
+  overflow: auto;
+  padding: 12px 12px 4px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 14px 28px -18px rgba(32, 32, 32, 0.45);
+}
+.star-history-date {
+  margin: 10px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--muted);
+}
+.star-history-panel section:first-child .star-history-date { margin-top: 0; }
+.star-history-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.35;
+}
+.star-history-row:last-child { border-bottom: 0; }
+.star-history-delta {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.star-history-delta.is-plus { color: #2fb083; }
+.star-history-delta.is-minus { color: var(--ink); }
 .stars-rank.is-revealing {
   animation: stars-rank-in 0.28s ease both;
 }

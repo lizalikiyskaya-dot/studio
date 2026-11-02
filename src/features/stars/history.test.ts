@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { starAwardReason, starHistoryDate } from "./history";
+import { groupStarHistory, starAwardReason, starHistoryDate, starHistoryDelta } from "./history";
 
 test("подпись берёт заметку журнала, если она есть", () => {
   assert.equal(
@@ -25,6 +25,23 @@ test("пустая заметка раскрывается по виду нач�
 test("дата истории по Москве", () => {
   assert.equal(starHistoryDate("2026-10-25T21:30:00.000Z"), "26 октября 2026");
   assert.equal(starHistoryDate("не дата"), "");
+});
+
+test("история собирается по дате, знак у числа", () => {
+  const rows = [
+    { at: "2026-10-26T07:00:00.000Z", id: "a" },
+    { at: "2026-10-26T08:00:00.000Z", id: "b" },
+    { at: "2026-10-24T07:00:00.000Z", id: "c" },
+  ];
+  const groups = groupStarHistory(rows);
+  assert.equal(groups.length, 2);
+  assert.equal(groups[0].date, "26 октября 2026");
+  assert.deepEqual(groups[0].rows.map((row) => row.id), ["a", "b"]);
+  assert.equal(groups[1].date, "24 октября 2026");
+  assert.equal(starHistoryDelta(3), "+3");
+  assert.equal(starHistoryDelta(-9), "−9");
+  assert.equal(starHistoryDelta(0), "0");
+  assert.equal(starHistoryDelta(3).includes("—"), false);
 });
 
 test("в подписях нет длинного тире", () => {
