@@ -15,7 +15,9 @@ export type FeedDraft = {
 
 export type FeedItem = FeedDraft & { seen: boolean };
 
-export type SeenMark = { kind: string; sourceId: string; seenAt: string };
+export const MENTOR_FEED_POPUP = 8;
+
+export type SeenMark = { kind: string; sourceId: string; seenAt: string; dismissedAt?: string | null };
 
 export function isFeedKind(value: string): value is FeedKind {
   return (FEED_KINDS as readonly string[]).includes(value);
@@ -31,9 +33,17 @@ export function isUnseen(at: string, seenAt: string | undefined): boolean {
   return Date.parse(at) > Date.parse(seenAt);
 }
 
+/** «Удалить» прячет событие, пока источник не станет новее отметки. */
+export function isDismissed(at: string, dismissedAt: string | null | undefined): boolean {
+  if (!dismissedAt) return false;
+  return Date.parse(at) <= Date.parse(dismissedAt);
+}
+
 export function buildFeed(drafts: FeedDraft[], seen: SeenMark[]): FeedItem[] {
   const marks = new Map(seen.map((row) => [feedKey(row.kind, row.sourceId), row.seenAt]));
+  const hidden = new Map(seen.map((row) => [feedKey(row.kind, row.sourceId), row.dismissedAt]));
   return drafts
+    .filter((draft) => !isDismissed(draft.at, hidden.get(feedKey(draft.kind, draft.sourceId))))
     .map((draft) => ({
       ...draft,
       seen: !isUnseen(draft.at, marks.get(feedKey(draft.kind, draft.sourceId))),

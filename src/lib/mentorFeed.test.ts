@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildFeed, feedCounts, filterFeed, isUnseen, type FeedDraft } from "./mentorFeed";
+import { buildFeed, feedCounts, filterFeed, isDismissed, isUnseen, type FeedDraft } from "./mentorFeed";
 
 function draft(partial: Partial<FeedDraft> & Pick<FeedDraft, "kind" | "sourceId" | "at">): FeedDraft {
   return {
@@ -44,6 +44,16 @@ test("лента ставит непрочитанный разбор выше �
     ],
   );
   assert.deepEqual(feedCounts(items), { action: 1, edits: 1, all: 2 });
+});
+
+test("удалённое событие скрыто, более новая сдача возвращает его", () => {
+  assert.equal(isDismissed("2026-11-02T10:00:00.000Z", "2026-11-02T11:00:00.000Z"), true);
+  assert.equal(isDismissed("2026-11-02T12:00:00.000Z", "2026-11-02T11:00:00.000Z"), false);
+  const items = buildFeed(
+    [draft({ kind: "task", sourceId: "t", at: "2026-11-02T10:00:00.000Z", needsAction: true })],
+    [{ kind: "task", sourceId: "t", seenAt: "2026-11-02T11:00:00.000Z", dismissedAt: "2026-11-02T11:00:00.000Z" }],
+  );
+  assert.equal(items.length, 0);
 });
 
 test("фильтр оставляет разбор одного ученика", () => {

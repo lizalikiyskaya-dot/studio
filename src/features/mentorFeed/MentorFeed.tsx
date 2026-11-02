@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
-import { markFeedSeen } from "./actions";
-import { filterFeed, openLabel, type FeedItem, type FeedKind } from "@/lib/mentorFeed";
+import { dismissFeed, markFeedSeen } from "./actions";
+import { MENTOR_FEED_POPUP, filterFeed, openLabel, type FeedItem, type FeedKind } from "@/lib/mentorFeed";
 
 export type FeedView = FeedItem;
 
@@ -19,9 +20,20 @@ function ago(iso: string): string {
   return `${days} дн назад`;
 }
 
-function FeedRows({ items, onOpen }: { items: FeedView[]; onOpen: (item: FeedView) => void }) {
+function FeedRows({
+  items,
+  onOpen,
+  onDelete,
+  empty,
+}: {
+  items: FeedView[];
+  onOpen: (item: FeedView) => void;
+  onDelete: (item: FeedView) => void;
+  empty: string;
+}) {
   if (items.length === 0) {
-    return <p className="feed-empty">Свежих событий нет.</p>;
+    if (!empty) return null;
+    return <p className="feed-empty">{empty}</p>;
   }
   return (
     <div>
@@ -43,11 +55,9 @@ function FeedRows({ items, onOpen }: { items: FeedView[]; onOpen: (item: FeedVie
               <button type="button" className="feed-open" onClick={() => onOpen(item)}>
                 {openLabel(item.kind as FeedKind)}
               </button>
-              {item.seen ? null : (
-                <button type="button" className="feed-quiet" onClick={() => onOpen({ ...item, href: "" })}>
-                  Прочитано
-                </button>
-              )}
+              <button type="button" className="feed-delete" onClick={() => onDelete(item)}>
+                Удалить
+              </button>
             </div>
           </div>
           <span className="feed-when">{ago(item.at)}</span>
@@ -62,12 +72,30 @@ function useFeedControls(items: FeedView[]) {
   const [type, setType] = useState<"all" | "action" | "edit">("all");
   const [studentId, setStudentId] = useState("");
   const [pending, startTransition] = useTransition();
+  const [hidden, setHidden] = useState<string[]>([]);
+  const [note, setNote] = useState("");
+  const live = items.filter((item) => !hidden.includes(`${item.kind}:${item.sourceId}`));
   const students = useMemo(() => {
     const map = new Map<string, string>();
-    for (const item of items) map.set(item.studentId, item.student);
+    for (const item of live) map.set(item.studentId, item.student);
     return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1], "ru"));
-  }, [items]);
-  const visible = filterFeed(items, type, studentId);
+  }, [items, hidden]);
+  const visible = filterFeed(live, type, studentId);
+
+  function remove(item: FeedView) {
+    const key = `${item.kind}:${item.sourceId}`;
+    setHidden((prev) => [...prev, key]);
+    setNote("");
+    startTransition(async () => {
+      const ok = await dismissFeed([{ kind: item.kind, sourceId: item.sourceId }]);
+      if (!ok) {
+        setHidden((prev) => prev.filter((value) => value !== key));
+        setNote("Удаление заработает, когда будет подключена колонка в таблице.");
+        return;
+      }
+      router.refresh();
+    });
+  }
 
   function mark(rows: FeedView[], href?: string) {
     const unseen = rows.filter((row) => !row.seen).map((row) => ({ kind: row.kind, sourceId: row.sourceId }));
@@ -78,7 +106,7 @@ function useFeedControls(items: FeedView[]) {
     });
   }
 
-  return { type, setType, studentId, setStudentId, students, visible, pending, mark };
+  return { type, setType, studentId, setStudentId, students, live, visible, pending, note, mark, remove };
 }
 
 function Filters({
@@ -121,16 +149,17 @@ function Filters({
   );
 }
 
-export function MentorFeedPanel({ items }: { items: FeedView[] }) {
+export function MentorFeedPanel({ items, showAllLink = true }: { items: FeedView[]; showAllLink?: boolean }) {
   const controls = useFeedControls(items);
   return (
     <section className="sheet p-4 feed-panel" aria-label="С последнего визита">
       <div className="feed-head">
         <h2>С последнего визита</h2>
-        <button type="button" className="feed-all" disabled={controls.pending} onClick={() => controls.mark(controls.visible)}>
-          Прочитать все
+        <button type="button" className="feed-all" disabled={controls.pending || controls.live.length === 0} onClick={() => controls.mark(controls.live)}>
+          Пометить все как прочитанное
         </button>
       </div>
+      {controls.note ? <p className="feed-empty">{controls.note}</p> : null}
       <Filters
         type={controls.type}
         studentId={controls.studentId}
@@ -140,8 +169,15 @@ export function MentorFeedPanel({ items }: { items: FeedView[] }) {
       />
       <FeedRows
         items={controls.visible}
+        empty="Свежих событий нет."
         onOpen={(item) => controls.mark([item], item.href || undefined)}
+        onDelete={controls.remove}
       />
+      {showAllLink ? (
+        <Link href="/mentor/notifications" className="feed-more">
+          Все уведомления
+        </Link>
+      ) : null}
     </section>
   );
 }
@@ -149,7 +185,17 @@ export function MentorFeedPanel({ items }: { items: FeedView[] }) {
 export function MentorBell({ items }: { items: FeedView[] }) {
   const [open, setOpen] = useState(false);
   const controls = useFeedControls(items);
-  const count = items.filter((item) => !item.seen).length;
+  const count = controls.live.filter((item) => !item.seen).length;
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   return (
     <div className="feed-bell-wrap">
       <button
@@ -165,11 +211,14 @@ export function MentorBell({ items }: { items: FeedView[] }) {
       {open ? (
         <div className="feed-pop" role="dialog" aria-label="Уведомления">
           <div className="feed-head">
-            <div className="feed-kicker">Не открыто · {count}</div>
-            <button type="button" className="feed-all" disabled={controls.pending} onClick={() => controls.mark(controls.visible)}>
-              Прочитать все
+            <button type="button" className="feed-all" disabled={controls.pending || controls.live.length === 0} onClick={() => controls.mark(controls.live)}>
+              Пометить все как прочитанное
+            </button>
+            <button type="button" className="feed-close" onClick={() => setOpen(false)}>
+              Закрыть
             </button>
           </div>
+          {controls.note ? <p className="feed-empty">{controls.note}</p> : null}
           <Filters
             type={controls.type}
             studentId={controls.studentId}
@@ -178,8 +227,16 @@ export function MentorBell({ items }: { items: FeedView[] }) {
             onStudent={controls.setStudentId}
           />
           <div className="feed-pop-body">
-            <FeedRows items={controls.visible} onOpen={(item) => controls.mark([item], item.href || undefined)} />
+            <FeedRows
+              items={controls.visible.slice(0, MENTOR_FEED_POPUP)}
+              empty="Свежих событий нет."
+              onOpen={(item) => controls.mark([item], item.href || undefined)}
+              onDelete={controls.remove}
+            />
           </div>
+          <Link href="/mentor/notifications" className="feed-more" onClick={() => setOpen(false)}>
+            Все уведомления
+          </Link>
         </div>
       ) : null}
     </div>
@@ -227,6 +284,13 @@ export function MentorDayCard({ items }: { items: FeedView[] }) {
     });
   }
 
+  function hide(item: FeedView) {
+    startTransition(async () => {
+      await dismissFeed([{ kind: item.kind, sourceId: item.sourceId }]);
+      router.refresh();
+    });
+  }
+
   function openItem(item: FeedView) {
     startTransition(async () => {
       await markFeedSeen([{ kind: item.kind, sourceId: item.sourceId }]);
@@ -243,9 +307,9 @@ export function MentorDayCard({ items }: { items: FeedView[] }) {
         Сдач на разбор: {action.length}. Правок без сдачи: {edits.length}. Ссылка открывает это место и подсвечивает изменение.
       </p>
       {action.length > 0 ? <div className="feed-group">Нужен разбор</div> : null}
-      <FeedRows items={action} onOpen={openItem} />
+      <FeedRows items={action} empty="" onOpen={openItem} onDelete={hide} />
       {edits.length > 0 ? <div className="feed-group">Просто правки</div> : null}
-      <FeedRows items={edits} onOpen={openItem} />
+      <FeedRows items={edits} empty="" onOpen={openItem} onDelete={hide} />
       <div className="feed-day-actions">
         <button type="button" className="feed-quiet" onClick={later}>
           Оставить на потом

@@ -33,3 +33,7 @@ CREATE TABLE IF NOT EXISTS "MentorItemSeen" (
 );
 
 CREATE INDEX IF NOT EXISTS "MentorItemSeen_userId_idx" ON "MentorItemSeen" ("userId");
+
+-- «Удалить» в колокольчике. Та же колонка, что в docs/sql/2026-11-02-student-bell.sql.
+-- Прячет строку только у этого человека. Задание и глава в кабинете остаются.
+ALTER TABLE "MentorItemSeen" ADD COLUMN IF NOT EXISTS "dismissedAt" TIMESTAMP(3);

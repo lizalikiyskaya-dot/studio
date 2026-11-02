@@ -5,6 +5,25 @@ import { buildFeed, type FeedDraft, type FeedItem, type SeenMark } from "@/lib/m
 
 const SPECIFIC = new Set(["exercises", "weekly", "tasks"]);
 
+function missingDismissColumn(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  const code = (error as { code?: string }).code;
+  return code === "P2021" || code === "P2022" || code === "42P01" || message.includes("dismissedAt") || message.includes("MentorItemSeen");
+}
+
+async function loadDismissed(mentorId: string): Promise<{ kind: string; sourceId: string; dismissedAt: Date }[]> {
+  try {
+    return await prisma.$queryRaw<{ kind: string; sourceId: string; dismissedAt: Date }[]>`
+      SELECT kind, "sourceId", "dismissedAt"
+      FROM "MentorItemSeen"
+      WHERE "userId" = ${mentorId} AND "dismissedAt" IS NOT NULL
+    `;
+  } catch (error) {
+    if (missingDismissColumn(error)) return [];
+    throw error;
+  }
+}
+
 export const loadMentorFeed = cache(async (mentorId: string): Promise<FeedItem[]> => {
   const students = await prisma.user.findMany({
     where: { role: "STUDENT", status: { in: ["APPROVED", "SUSPENDED"] } },
@@ -14,7 +33,7 @@ export const loadMentorFeed = cache(async (mentorId: string): Promise<FeedItem[]
   const ids = students.map((student) => student.id);
   const nameById = new Map(students.map((student) => [student.id, student.name]));
 
-  const [tasks, chapters, weekly, activity, seen] = await Promise.all([
+  const [tasks, chapters, weekly, activity, seen, dismissed] = await Promise.all([
     prisma.task.findMany({
       where: { studentId: { in: ids }, status: "SUBMITTED" },
       select: { id: true, studentId: true, title: true, updatedAt: true },
@@ -41,6 +60,7 @@ export const loadMentorFeed = cache(async (mentorId: string): Promise<FeedItem[]
       where: { userId: mentorId },
       select: { kind: true, sourceId: true, seenAt: true },
     }),
+    loadDismissed(mentorId),
   ]);
 
   const submittedStudents = new Set(tasks.map((task) => task.studentId));
@@ -117,10 +137,12 @@ export const loadMentorFeed = cache(async (mentorId: string): Promise<FeedItem[]
     });
   }
 
+  const hiddenAt = new Map(dismissed.map((row) => [`${row.kind}:${row.sourceId}`, row.dismissedAt.toISOString()]));
   const marks: SeenMark[] = seen.map((row) => ({
     kind: row.kind,
     sourceId: row.sourceId,
     seenAt: row.seenAt.toISOString(),
+    dismissedAt: hiddenAt.get(`${row.kind}:${row.sourceId}`) ?? null,
   }));
   return buildFeed(drafts, marks);
 });
