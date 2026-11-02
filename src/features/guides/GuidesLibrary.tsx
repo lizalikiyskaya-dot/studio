@@ -1,6 +1,6 @@
 "use client";
 
-import { siteAlert, siteChoice, siteConfirm } from "@/components/SiteDialog";
+import { siteAlert, siteConfirm } from "@/components/SiteDialog";
 
 import { useState } from "react";
 import { ChevronDown, GripVertical } from "lucide-react";
@@ -95,18 +95,10 @@ export default function GuidesLibrary({
   }
 
   async function handleAll(id: string, visible: boolean) {
-    let notify = false;
     if (!visible) {
       if (!(await siteConfirm("Скрыть эту методичку у всех учеников? Скачать её они больше не смогут."))) return;
-    } else {
-      const choice = await siteChoice("Отправить уведомление на почту?", {
-        yes: "Отправить",
-        no: "Не отправлять",
-      });
-      if (choice === "dismiss") return;
-      notify = choice === "yes";
     }
-    const result = await setGuideVisibleForAll(id, visible, notify);
+    const result = await setGuideVisibleForAll(id, visible, false);
     if (!result.ok) {
       await siteAlert(result.error);
       return;

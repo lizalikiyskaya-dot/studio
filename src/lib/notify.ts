@@ -5,6 +5,7 @@ import { optOutLinkLabel, type OptOutKind } from "@/lib/mailOptOut";
 import { dressLetter } from "@/lib/letterTemplateStore";
 import { sectionLabel } from "@/lib/sections";
 import { mailGate, queueCabinetChange } from "@/lib/activityDigest";
+import { MENTOR_EDIT_GAP_MS, studentMailStopped } from "@/lib/studentMailPolicy";
 
 /**
  * Письма об изменениях в кабинете.
@@ -56,7 +57,7 @@ async function claimMentorWindow(studentId: string): Promise<boolean> {
 }
 
 async function claimStudentWindow(studentId: string): Promise<boolean> {
-  const cutoff = new Date(Date.now() - THROTTLE_MS);
+  const cutoff = new Date(Date.now() - MENTOR_EDIT_GAP_MS);
   const res = await prisma.user.updateMany({
     where: {
       id: studentId,
@@ -154,7 +155,7 @@ export function mentorEditLetter(section: string, name = "") {
       "Разделы с изменениями отмечены маячками в боковом меню. Правки в тексте можно принять или отклонить.",
     ],
     action: { label: "Открыть кабинет", url: `${appUrl()}/dashboard/tasks` },
-    footnote: "Письмо приходит не чаще одного раза в час.",
+    footnote: "Сводка приходит не чаще одного раза в сутки. Если новых правок не было, письма нет.",
     signature: EMAIL_SIGNATURE,
     formal: usesFormalAddress(name),
   });
@@ -229,6 +230,7 @@ export function registrationStudentLetter(name: string) {
 
 /** Наставник одобрил заявку → письмо ученику. */
 export async function notifyApproved(userId: string) {
+  if (studentMailStopped("approved")) return;
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { name: true, email: true },
@@ -274,6 +276,7 @@ export async function notifyStudentGuideOpened(
   studentId: string,
   guide: { id: string; title: string; description: string }
 ) {
+  if (studentMailStopped("guide")) return;
   const student = await prisma.user.findUnique({
     where: { id: studentId },
     select: { name: true, email: true, status: true, emailNotifications: true },

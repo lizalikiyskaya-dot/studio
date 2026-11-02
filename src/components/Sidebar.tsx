@@ -41,6 +41,8 @@ import { MentorBell } from "@/features/mentorFeed/MentorFeed";
 import { setReviewMode } from "@/features/reviewMode/actions";
 import { useCanSuggest, useSetCanSuggest } from "@/features/suggestions/SuggestionContext";
 import { useSheetSwipe } from "@/components/useSheetSwipe";
+import { StudentBell } from "@/features/studentFeed/StudentBell";
+import type { StudentFeedItem } from "@/lib/studentFeed";
 
 const TOP_ITEMS = [
   { path: "tasks", label: "Задания", icon: Bookmark },
@@ -115,6 +117,7 @@ export default function Sidebar({
   feed,
   dailyQuote,
   weekSide,
+  studentFeed,
   children,
 }: {
   basePath: string;
@@ -139,6 +142,7 @@ export default function Sidebar({
   feed?: FeedItem[];
   dailyQuote?: DailyQuoteRow | null;
   weekSide?: WeekSideModel | null;
+  studentFeed?: StudentFeedItem[];
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -404,6 +408,7 @@ export default function Sidebar({
         </nav>
         <div className="studio-top-actions">
           {mentorMenuOnly && feed ? <MentorBell items={feed} /> : null}
+          {studentFeed ? <StudentBell items={studentFeed} /> : null}
           {typeof notesCount === "number" && (
             <button type="button" className="notes-chip" onClick={() => window.dispatchEvent(new Event("studio:toggle-notes"))}>
               <MessageSquareText size={16} />

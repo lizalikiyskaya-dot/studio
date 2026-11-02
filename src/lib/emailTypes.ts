@@ -18,6 +18,8 @@ export const EMAIL_TYPE_LABEL: Record<string, string> = {
   submitted: "Сдано на проверку",
   "guide-read": "Ученик открыл методичку",
   "new-task": "Новое задание",
+  "task-accepted": "Задание принято",
+  "task-revision": "Задание на доработке",
   "custom-mail": "Своя рассылка",
 };
 

@@ -12,6 +12,7 @@ import { noteReminderLogLine } from "@/lib/noteReminders";
 import { runScheduledNoteReminders } from "@/lib/noteReminderRun";
 import { applyLetterTemplate } from "@/lib/letterTemplates";
 import { readLetterTemplate } from "@/lib/letterTemplateStore";
+import { studentMailStopped } from "@/lib/studentMailPolicy";
 
 const LOCK_KEY = 8710231842018;
 const TICK_MS = 15 * 60 * 1000;
@@ -73,6 +74,9 @@ function paymentUnsubscribeUrl(studentId: string): string | null {
 
 /** Один прогон. Письма уходят только в продакшене и только без dry-run. */
 export async function runScheduledPaymentReminders(now = new Date()) {
+  if (studentMailStopped("payment")) {
+    return { skipped: "disabled" as const, dueOn: null, planned: 0, sent: 0, alreadySent: 0, failed: 0, dryRun: true };
+  }
   const gate = await readBroadcast("payment");
   const setting = gate.legacy ? null : gate.setting;
   if (setting && !setting.enabled) {

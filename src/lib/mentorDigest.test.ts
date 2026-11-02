@@ -79,7 +79,7 @@ test("письмо называет места и ведёт по ссылке, 
 
 test("пачка наставника ждёт час и шлёт один список", async () => {
   const now = new Date("2026-10-20T12:00:00Z");
-  const sent: { to: string; html: string; text: string }[] = [];
+  const sent: { to: string; html: string; text: string; type?: string; subject?: string }[] = [];
   const due: DigestRow = {
     id: "due",
     kind: "mentor-edit",
@@ -113,16 +113,30 @@ test("пачка наставника ждёт час и шлёт один сп�
     student: async (id) => ({ id, name: "Надя", email: "n@example.com", status: "APPROVED", emailNotifications: true }),
     mentor: async () => null,
     send: async (input) => {
-      sent.push({ to: input.to, html: input.html, text: input.text });
+      sent.push({ to: input.to, html: input.html, text: input.text, type: input.type, subject: input.subject });
       return true;
     },
     envelope: async () => ({ from: "Сервер <server@example.com>" }),
   });
-  assert.equal(ready.sent, 1);
-  assert.equal(sent.length, 1);
-  assert.equal(sent[0].to, "n@example.com");
-  assert.match(sent[0].text, /Надя, я внесла правки в твой кабинет/);
-  assert.match(sent[0].text, /Принято/);
-  assert.match(sent[0].text, /Заметки/);
-  assert.match(sent[0].html, /tab=accepted#task-1/);
+  assert.equal(ready.sent, 2);
+  const decision = sent.find((item) => item.type === "task-accepted");
+  const digest = sent.find((item) => item.type === "mentor-edit");
+  assert.equal(decision?.to, "n@example.com");
+  assert.match(decision?.text ?? "", /приняла задание/);
+  assert.equal(digest?.subject, "Сводка новых правок");
+  assert.match(digest?.text ?? "", /Заметки/);
+  assert.equal((digest?.text ?? "").includes("Принято"), false);
+
+  const held = await flushDigests({
+    now,
+    settings: async (key) => (key === "mentor-edit" ? { ...defaultBroadcast("mentor-edit"), enabled: true, windowMinutes: 60 } : { ...defaultBroadcast(key), enabled: false }),
+    list: async (kind) => (kind === "mentor-edit" ? [{ ...fresh, createdAt: new Date("2026-10-20T10:00:00Z") }] : []),
+    markSent: async () => undefined,
+    student: async (id) => ({ id, name: "Надя", email: "n@example.com", status: "APPROVED", emailNotifications: true }),
+    mentor: async () => null,
+    send: async () => true,
+    envelope: async () => ({ from: "Сервер <server@example.com>" }),
+    recentlySent: async () => true,
+  });
+  assert.equal(held.sent, 0);
 });

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { appUrl, sendMail } from "@/lib/mail";
 import { defaultBroadcast } from "@/lib/mailBroadcasts";
 import { envelopeFor, readBroadcast } from "@/lib/mailBroadcastStore";
+import { studentMailStopped } from "@/lib/studentMailPolicy";
 import { optOutSecret, signOptOut } from "@/lib/mailOptOut";
 import {
   deliverNoteReminders,
@@ -110,6 +111,7 @@ export async function loadNoteReminderPreview(now = new Date()): Promise<NoteRem
 
 /** Один прогон. Живые письма только в продакшене, когда рассылка включена. */
 export async function runScheduledNoteReminders(now = new Date()): Promise<NoteReminderRunResult | null> {
+  if (studentMailStopped("note-reminder")) return idle(true, "disabled");
   const gate = await readBroadcast("note-reminder");
   const setting = gate.legacy ? defaultBroadcast("note-reminder") : gate.setting;
   const dryRun = noteReminderDryRun();

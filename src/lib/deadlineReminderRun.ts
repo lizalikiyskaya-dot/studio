@@ -3,6 +3,7 @@ import { appUrl, sendMail } from "@/lib/mail";
 import { optOutSecret, signOptOut } from "@/lib/mailOptOut";
 import { defaultBroadcast } from "@/lib/mailBroadcasts";
 import { envelopeFor, readBroadcast } from "@/lib/mailBroadcastStore";
+import { studentMailStopped } from "@/lib/studentMailPolicy";
 import {
   deadlineDryRun,
   deadlineMarker,
@@ -101,6 +102,7 @@ export type OneDeadlineReminder = {
 
 /** Ручная отправка одному ученику. Тот же журнал и те же метки, что у утреннего прогона. */
 export async function runOneDeadlineReminder(query: string, dryRun: boolean, now = new Date()): Promise<OneDeadlineReminder> {
+  if (studentMailStopped("deadline")) return { code: 0, lines: ["Письмо о сроке ученику больше не отправляется."] };
   const gate = await readBroadcast("deadline");
   const stored = gate.legacy ? defaultBroadcast("deadline") : gate.setting;
   const setting = { ...stored, enabled: true, hour: null, audience: "all" as const, studentIds: "" };
@@ -161,6 +163,7 @@ function oneOffExit(result: DeadlineRunResult): number {
 
 /** Один прогон. Живые письма только в продакшене и без DEADLINE_REMINDER_DRY_RUN. */
 export async function runScheduledDeadlineReminders(now = new Date()): Promise<DeadlineRunResult | null> {
+  if (studentMailStopped("deadline")) return idle(true, "disabled");
   const gate = await readBroadcast("deadline");
   const setting = gate.legacy ? defaultBroadcast("deadline") : gate.setting;
   const dryRun = deadlineDryRun();

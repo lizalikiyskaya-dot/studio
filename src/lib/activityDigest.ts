@@ -14,6 +14,8 @@ import {
 import { greetingName, withAddress } from "@/lib/addressForm";
 import { optOutSecret, signOptOut } from "@/lib/mailOptOut";
 import { mentorDigestGroups, mentorWorkLetter, studentOnlineLetter, studentWorkLetter, type DigestPiece } from "@/lib/activityLetters";
+import { taskDecisionLetter } from "@/lib/reviewMail";
+import { MENTOR_EDIT_GAP_MS } from "@/lib/studentMailPolicy";
 import { broadcastOpen, envelopeFor, readBroadcast, whoFor, type BroadcastRead } from "@/lib/mailBroadcastStore";
 import { applyLetterTemplate, type LetterKey } from "@/lib/letterTemplates";
 import { readLetterTemplate } from "@/lib/letterTemplateStore";
@@ -145,6 +147,8 @@ export async function flushDigests(options: {
     designed: { subject: string; html: string; text: string },
     vars: Record<string, string>,
   ) => Promise<{ subject: string; html: string; text: string }>;
+  /** Сводка правок ученику уже уходила за последние сутки. */
+  recentlySent?: (studentId: string, now: Date) => Promise<boolean>;
 }): Promise<{ sent: number; skipped: number }> {
   let sent = 0;
   let skipped = 0;
@@ -162,25 +166,19 @@ export async function flushDigests(options: {
         continue;
       }
       const pieces: DigestPiece[] = group.map((row) => ({ section: row.section, detail: row.detail }));
+      if (kind === "mentor-edit") {
+        const outcome = await deliverStudentEditMail(options, setting, group, student);
+        sent += outcome.sent;
+        skipped += outcome.skipped;
+        continue;
+      }
       let to = "";
       let recipientUserId = "";
       let subject = "";
       let html = "";
       let text = "";
       const type = kind;
-      if (kind === "mentor-edit") {
-        if (student.status !== "APPROVED" || !student.emailNotifications || !student.email.includes("@")) {
-          skipped += 1;
-          continue;
-        }
-        const unsubscribeUrl = mailUnsubscribeUrl(student.id);
-        const letter = mentorWorkLetter({ name: student.name, studentId, pieces, unsubscribeUrl });
-        to = student.email;
-        recipientUserId = student.id;
-        subject = "Наставник внёс правку";
-        html = letter.html;
-        text = letter.text;
-      } else {
+      {
         const mentor = await options.mentor();
         if (!mentor?.email || !mentor.emailNotifications) {
           skipped += 1;
@@ -207,16 +205,13 @@ export async function flushDigests(options: {
       if (options.dress) {
         const sectionKey = pieces[0]?.section.split(":")[0] || "tasks";
         const path = sectionKey in SECTION_LABELS ? (sectionKey === "notes" ? "tasks" : sectionKey) : "tasks";
-        const linked = pieces.map((piece) => piece.detail.split("\t")[1]?.trim()).find((url) => url?.startsWith("http"));
-        const cabinet = kind === "mentor-edit"
-          ? linked || `${appUrl()}/dashboard/${path}`
-          : `${appUrl()}/student-view/${studentId}/${path}`;
+        const cabinet = `${appUrl()}/student-view/${studentId}/${path}`;
         const dressed = await options.dress(kind, { subject, html, text }, withAddress(student.name, {
-          имя: kind === "mentor-edit" ? greetingName(student.name) : student.name,
+          имя: student.name,
           правки: editsText(pieces),
           когда: group[0].detail || "",
           кабинет: cabinet,
-          отписка: kind === "mentor-edit" ? mailUnsubscribeUrl(student.id) ?? "" : "",
+          отписка: "",
         }));
         subject = dressed.subject;
         html = dressed.html;
@@ -232,7 +227,7 @@ export async function flushDigests(options: {
         recipientUserId,
         from: envelope.from,
         replyTo: envelope.replyTo,
-        listUnsubscribe: kind === "mentor-edit" ? mailUnsubscribeUrl(studentId) : undefined,
+        listUnsubscribe: undefined,
       });
       if (!ok) {
         skipped += 1;
@@ -243,6 +238,113 @@ export async function flushDigests(options: {
     }
   }
   return { sent, skipped };
+}
+
+function isDecisionSection(section: string): boolean {
+  return section.startsWith("accepted:") || section.startsWith("revision:");
+}
+
+/** Принято и доработка уходят сразу. Сводка правок — не чаще раза в сутки и только если правки есть. */
+async function deliverStudentEditMail(
+  options: {
+    now: Date;
+    markSent: (ids: string[], sentAt: Date) => Promise<void>;
+    send: (input: {
+      to: string;
+      subject: string;
+      html: string;
+      text: string;
+      type: string;
+      recipientUserId: string;
+      from?: string;
+      replyTo?: string;
+      listUnsubscribe?: string;
+    }) => Promise<boolean>;
+    envelope: (sender: "env" | "profile") => Promise<{ from: string; replyTo?: string }>;
+    dress?: (
+      key: LetterKey,
+      designed: { subject: string; html: string; text: string },
+      vars: Record<string, string>,
+    ) => Promise<{ subject: string; html: string; text: string }>;
+    recentlySent?: (studentId: string, now: Date) => Promise<boolean>;
+  },
+  setting: BroadcastSetting,
+  group: DigestRow[],
+  student: Person,
+): Promise<{ sent: number; skipped: number }> {
+  if (student.status !== "APPROVED" || !student.emailNotifications || !student.email.includes("@")) {
+    return { sent: 0, skipped: 1 };
+  }
+  let sent = 0;
+  let skipped = 0;
+  const decisions = group.filter((row) => isDecisionSection(row.section));
+  const edits = group.filter((row) => !isDecisionSection(row.section));
+  const envelope = await options.envelope(setting.sender);
+  for (const row of decisions) {
+    const groupName = row.section.startsWith("accepted:") ? "accepted" : "revision";
+    const [title, url] = row.detail.split("\t");
+    const letter = taskDecisionLetter({
+      name: student.name,
+      group: groupName,
+      title: title || "Задание",
+      url: (url || `${appUrl()}/dashboard/tasks`).trim(),
+    });
+    const ok = await options.send({
+      to: student.email,
+      subject: groupName === "accepted" ? "Наставник принял задание" : "Наставник отправил на доработку",
+      html: letter.html,
+      text: letter.text,
+      type: groupName === "accepted" ? "task-accepted" : "task-revision",
+      recipientUserId: student.id,
+      from: envelope.from,
+      replyTo: envelope.replyTo,
+    });
+    if (!ok) {
+      skipped += 1;
+      continue;
+    }
+    await options.markSent([row.id], options.now);
+    sent += 1;
+  }
+  if (edits.length === 0) return { sent, skipped };
+  if (options.recentlySent && (await options.recentlySent(student.id, options.now))) {
+    return { sent, skipped: skipped + 1 };
+  }
+  const pieces: DigestPiece[] = edits.map((row) => ({ section: row.section, detail: row.detail }));
+  const unsubscribeUrl = mailUnsubscribeUrl(student.id);
+  const letter = mentorWorkLetter({ name: student.name, studentId: student.id, pieces, unsubscribeUrl });
+  let subject = "Сводка новых правок";
+  let html = letter.html;
+  let text = letter.text;
+  if (options.dress) {
+    const sectionKey = pieces[0]?.section.split(":")[0] || "tasks";
+    const path = sectionKey in SECTION_LABELS ? (sectionKey === "notes" ? "tasks" : sectionKey) : "tasks";
+    const linked = pieces.map((piece) => piece.detail.split("\t")[1]?.trim()).find((url) => url?.startsWith("http"));
+    const dressed = await options.dress("mentor-edit", { subject, html, text }, withAddress(student.name, {
+      имя: greetingName(student.name),
+      правки: editsText(pieces),
+      когда: edits[0]?.detail || "",
+      кабинет: linked || `${appUrl()}/dashboard/${path}`,
+      отписка: unsubscribeUrl ?? "",
+    }));
+    subject = dressed.subject;
+    html = dressed.html;
+    text = dressed.text;
+  }
+  const ok = await options.send({
+    to: student.email,
+    subject,
+    html,
+    text,
+    type: "mentor-edit",
+    recipientUserId: student.id,
+    from: envelope.from,
+    replyTo: envelope.replyTo,
+    listUnsubscribe: unsubscribeUrl,
+  });
+  if (!ok) return { sent, skipped: skipped + 1 };
+  await options.markSent(edits.map((row) => row.id), options.now);
+  return { sent: sent + 1, skipped };
 }
 
 async function loadStudent(id: string): Promise<Person | null> {
@@ -302,6 +404,19 @@ export async function runScheduledDigests(now = new Date()) {
     student: loadStudent,
     mentor: loadMentor,
     send: (input) => sendMail(input),
+    recentlySent: async (studentId, now) => {
+      const since = new Date(now.getTime() - MENTOR_EDIT_GAP_MS);
+      try {
+        const row = await prisma.emailLog.findFirst({
+          where: { type: "mentor-edit", recipientUserId: studentId, status: "sent", createdAt: { gte: since } },
+          select: { id: true },
+        });
+        return Boolean(row);
+      } catch (error) {
+        console.error("[mail] проверка сводки не прочитана", error);
+        return false;
+      }
+    },
     envelope: envelopeFor,
     dress: async (key, designed, vars) => applyLetterTemplate(key, await readLetterTemplate(key), designed, vars),
   });
