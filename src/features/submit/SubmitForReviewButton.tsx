@@ -7,9 +7,12 @@ import { flySubmitStar } from "./submitStar";
 export default function SubmitForReviewButton({
   submitted,
   onSubmit,
+  fly = true,
 }: {
   submitted: boolean;
   onSubmit: () => void;
+  /** У основных заданий полёт выключен: сдача звёзд не даёт. */
+  fly?: boolean;
 }) {
   return (
     <Button
@@ -19,7 +22,7 @@ export default function SubmitForReviewButton({
       aria-disabled={submitted}
       onClick={(event) => {
         if (submitted) return;
-        flySubmitStar(event.currentTarget);
+        if (fly) flySubmitStar(event.currentTarget);
         onSubmit();
       }}
       style={

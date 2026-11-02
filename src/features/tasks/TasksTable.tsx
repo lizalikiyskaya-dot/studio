@@ -367,6 +367,7 @@ export default function TasksTable({
                     <TaskStatusMenu status={task.status} onChange={(status) => handleStatus(task.id, status)} locked />
                     {submitReviewControl(task.status) === "hidden" ? null : (
                       <SubmitForReviewButton
+                        fly={false}
                         submitted={submitReviewControl(task.status) === "submitted"}
                         onSubmit={() => handleStatus(task.id, "SUBMITTED")}
                       />
