@@ -3,6 +3,7 @@
 import { siteConfirm } from "@/components/SiteDialog";
 
 import { useMemo, useState, useTransition, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Plus, Trash2, X } from "lucide-react";
 import type { Comment } from "@/generated/prisma/client";
 import {
@@ -754,7 +755,7 @@ function ChapterSheet(props: {
     images: "Образы",
   };
 
-  return (
+  return createPortal(
     <>
       <button type="button" className="plan-sheet-back" aria-label="Закрыть" onClick={props.onClose} />
       <aside className="plan-sheet" role="dialog" aria-label={chapter.title || "Глава"} style={{ position: "fixed", top: 0, right: 0, zIndex: 41, width: "min(440px, 100%)", height: "100dvh", overflow: "auto", background: "#fff", borderLeft: "1px solid #ececec", padding: "22px 22px 48px", fontFamily: SANS }}>
@@ -948,6 +949,7 @@ function ChapterSheet(props: {
           Удалить главу
         </button>
       </aside>
-    </>
+    </>,
+    document.body,
   );
 }
