@@ -8,10 +8,18 @@ export default async function DraftsView({
   studentId,
   readOnly = false,
   manuscriptReadOnly,
+  part = "write",
+  requestedBookId,
+  focusChapterId,
+  startFocus = false,
 }: {
   studentId: string;
   readOnly?: boolean;
   manuscriptReadOnly?: boolean;
+  part?: "write" | "files";
+  requestedBookId?: string;
+  focusChapterId?: string | null;
+  startFocus?: boolean;
 }) {
   // fileData — это сам файл. В список кладём только ссылку на скачивание.
   const [drafts, withFile] = await Promise.all([
@@ -27,7 +35,7 @@ export default async function DraftsView({
   ]);
   const files = new Set(withFile.map((row) => row.id));
   const session = await getSession();
-  const { activeBook } = await resolveActiveBook(studentId);
+  const { activeBook } = await resolveActiveBook(studentId, requestedBookId);
   const chapters: ManuscriptChapter[] = activeBook
     ? await prisma.planChapter.findMany({
         where: { bookId: activeBook.id },
@@ -50,6 +58,9 @@ export default async function DraftsView({
       studentId={studentId}
       readOnly={readOnly}
       manuscriptReadOnly={manuscriptReadOnly ?? readOnly}
+      part={part}
+      focusChapterId={part === "write" ? focusChapterId : null}
+      startFocus={part === "write" && startFocus}
       manuscript={{
         bookId: activeBook?.id ?? null,
         bookTitle: activeBook?.title ?? "",

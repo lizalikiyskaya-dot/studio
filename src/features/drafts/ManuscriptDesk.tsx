@@ -9,6 +9,7 @@ import { formatChars } from "@/features/acts/chapterText";
 import { countSigns } from "./manuscriptCount";
 import { createManuscriptChapter, renameManuscriptChapter, saveManuscriptChapter } from "./actions";
 import ManuscriptImport from "./ManuscriptImport";
+import { manuscriptLastKey } from "@/lib/writeChapterKey";
 
 export type ManuscriptChapter = {
   id: string;
@@ -89,19 +90,26 @@ export default function ManuscriptDesk({
   initialChapters,
   viewerId,
   readOnly,
+  focusChapterId = null,
+  startFocus = false,
 }: {
   bookId: string | null;
   bookTitle: string;
   initialChapters: ManuscriptChapter[];
   viewerId: string;
   readOnly: boolean;
+  focusChapterId?: string | null;
+  startFocus?: boolean;
 }) {
   const [theme, setTheme] = useState<Theme>("white");
   const [zoom, setZoom] = useState(100);
-  const [focus, setFocus] = useState(false);
+  const [focus, setFocus] = useState(startFocus);
   const [importOpen, setImportOpen] = useState(false);
   const [chapters, setChapters] = useState(initialChapters);
-  const [currentId, setCurrentId] = useState(initialChapters[0]?.id ?? null);
+  const [currentId, setCurrentId] = useState(() => {
+    if (focusChapterId && initialChapters.some((chapter) => chapter.id === focusChapterId)) return focusChapterId;
+    return initialChapters[0]?.id ?? null;
+  });
   const [status, setStatus] = useState<"saved" | "saving">("saved");
   const timer = useRef<number | null>(null);
   const latest = useRef<{ id: string; content: string; format: ContentFormat } | null>(null);
@@ -113,6 +121,15 @@ export default function ManuscriptDesk({
     setTheme(readTheme(viewerId));
     setZoom(readZoom(viewerId));
   }, [viewerId]);
+
+  useEffect(() => {
+    if (!bookId || !currentId) return;
+    try {
+      localStorage.setItem(manuscriptLastKey(bookId), currentId);
+    } catch {
+      // Хранилище недоступно: виджет откроет последнюю главу книги.
+    }
+  }, [bookId, currentId]);
 
   useEffect(() => {
     const root = document.documentElement;
