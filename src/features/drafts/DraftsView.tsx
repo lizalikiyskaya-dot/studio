@@ -7,9 +7,11 @@ import type { ManuscriptChapter } from "./ManuscriptDesk";
 export default async function DraftsView({
   studentId,
   readOnly = false,
+  manuscriptReadOnly,
 }: {
   studentId: string;
   readOnly?: boolean;
+  manuscriptReadOnly?: boolean;
 }) {
   // fileData — это сам файл. В список кладём только ссылку на скачивание.
   const [drafts, withFile] = await Promise.all([
@@ -47,6 +49,7 @@ export default async function DraftsView({
     <DraftsList
       studentId={studentId}
       readOnly={readOnly}
+      manuscriptReadOnly={manuscriptReadOnly ?? readOnly}
       manuscript={{
         bookId: activeBook?.id ?? null,
         bookTitle: activeBook?.title ?? "",

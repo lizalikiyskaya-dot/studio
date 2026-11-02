@@ -24,11 +24,13 @@ export default function DraftsList({
   initialDrafts,
   manuscript,
   readOnly = false,
+  manuscriptReadOnly = readOnly,
 }: {
   studentId: string;
   initialDrafts: Draft[];
   manuscript?: { bookId: string | null; bookTitle: string; chapters: ManuscriptChapter[]; viewerId: string };
   readOnly?: boolean;
+  manuscriptReadOnly?: boolean;
 }) {
   const [drafts, setDrafts] = useState(initialDrafts);
   // Card is draggable ONLY while the grip handle is held, so selecting the
@@ -107,7 +109,7 @@ export default function DraftsList({
           bookTitle={manuscript.bookTitle}
           initialChapters={manuscript.chapters}
           viewerId={manuscript.viewerId}
-          readOnly={readOnly}
+          readOnly={manuscriptReadOnly}
         />
       ) : null}
       <h2 className="manuscript-files">Файлы и ссылки</h2>
