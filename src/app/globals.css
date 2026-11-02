@@ -1002,6 +1002,10 @@ div.suggest-doc.fld {
   .hover-lift:active {
     transform: translateY(1px) scale(0.97);
   }
+  /* Collapsible cards: a press must not move the card, or the click is lost. */
+  .hover-lift:has(.collapse-slot):hover:active {
+    transform: translateY(-6px) scale(1.03);
+  }
 }
 
 @keyframes guide-card-in {
@@ -4448,6 +4452,11 @@ html.manuscript-page body {
   }
   :where(button, [role="tab"], .btn-y, .hover-lift, .status-card):active {
     transform: translateY(1px) scale(0.97);
+  }
+  .hover-lift:has(.collapse-slot):active,
+  .story-card-hit:active,
+  button.w-full[aria-expanded]:active {
+    transform: none;
   }
 }
 
