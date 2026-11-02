@@ -2062,13 +2062,13 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 .feed-bell.is-open { background: #fff; box-shadow: inset 0 0 0 1.5px var(--ink); }
 .feed-bell-count { position: absolute; top: -4px; right: -6px; height: 20px; min-width: 20px; padding: 0 6px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 11.5px; font-weight: 650; display: grid; place-items: center; box-shadow: 0 0 0 2px #fff; }
 .feed-pop { position: absolute; top: 48px; right: 0; width: min(420px, calc(100vw - 24px)); max-height: min(70vh, 640px); overflow: hidden; display: flex; flex-direction: column; background: #fff; border-radius: 16px; box-shadow: var(--shadow-md), 0 0 0 1px rgba(32, 32, 32, 0.04); padding: 14px; z-index: 40; }
-.feed-pop-body { overflow: auto; min-height: 0; }
+.feed-pop-body { margin-top: 4px; overflow: auto; min-height: 0; }
 .feed-close { border: 0; background: var(--soft); color: var(--ink); height: 32px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; flex: 0 0 auto; }
 .feed-delete { border: 0; background: none; padding: 0; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; }
 .feed-more { display: block; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); text-align: center; color: var(--link); font-size: 14px; font-weight: 650; }
-.feed-page { max-width: 760px; }
-.feed-page h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.03em; color: var(--ink); }
-.feed-page-note { margin: 0 0 14px; color: var(--ink2); font-size: 14px; }
+.feed-page { max-width: 760px; padding: 18px 16px 8px; }
+.feed-page h1 { margin: 0; font-size: 28px; letter-spacing: -0.03em; color: var(--ink); }
+.feed-page-note { margin: 8px 0 14px; color: var(--ink2); font-size: 14px; }
 .feed-head .feed-all { text-align: left; }
 @media (max-width: 720px) {
   .feed-pop { position: fixed; top: calc(var(--chrome-h, 64px) + 8px); left: 12px; right: 12px; width: auto; }

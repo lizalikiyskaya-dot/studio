@@ -1,6 +1,7 @@
 import { sectionLabel } from "@/lib/sections";
 
 export const STUDENT_FEED_DAYS = 21;
+export const STUDENT_FEED_POPUP = 8;
 
 export type StudentFeedKind = "task-accepted" | "task-revision" | "task-new" | "note" | "edit";
 
@@ -27,15 +28,24 @@ type NoteRow = {
   authorRole: string;
 };
 type EditRow = { section: string; at: Date; byRole: string };
-type SeenRow = { kind: string; sourceId: string; seenAt: Date };
+type SeenRow = { kind: string; sourceId: string; seenAt: Date; dismissedAt?: Date | null };
 
 function fresh(at: Date, now: Date): boolean {
   return now.getTime() - at.getTime() <= STUDENT_FEED_DAYS * 24 * 60 * 60 * 1000 && at.getTime() <= now.getTime() + 60_000;
 }
 
+function seenRow(seen: SeenRow[], kind: string, sourceId: string): SeenRow | undefined {
+  return seen.find((item) => item.kind === kind && item.sourceId === sourceId);
+}
+
 function wasSeen(seen: SeenRow[], kind: string, sourceId: string, at: Date): boolean {
-  const row = seen.find((item) => item.kind === kind && item.sourceId === sourceId);
+  const row = seenRow(seen, kind, sourceId);
   return Boolean(row && row.seenAt.getTime() >= at.getTime());
+}
+
+function wasDismissed(seen: SeenRow[], kind: string, sourceId: string, at: Date): boolean {
+  const row = seenRow(seen, kind, sourceId);
+  return Boolean(row?.dismissedAt && row.dismissedAt.getTime() >= at.getTime());
 }
 
 function oneLine(text: string): string {
@@ -57,6 +67,8 @@ export function openStudentLabel(kind: StudentFeedKind): string {
 export function buildStudentFeed(input: {
   now: Date;
   basePath?: string;
+  /** Полная история для страницы «Все уведомления». В колокольчике только свежие. */
+  full?: boolean;
   tasks: TaskRow[];
   notes: NoteRow[];
   edits: EditRow[];
@@ -68,7 +80,8 @@ export function buildStudentFeed(input: {
   for (const task of input.tasks) {
     const title = oneLine(task.title);
     if (!title) continue;
-    if (task.status === "ACCEPTED" && fresh(task.updatedAt, input.now)) {
+    if (task.status === "ACCEPTED" && (input.full || fresh(task.updatedAt, input.now))) {
+      if (wasDismissed(input.seen, "task-accepted", task.id, task.updatedAt)) continue;
       items.push({
         kind: "task-accepted",
         sourceId: task.id,
@@ -81,7 +94,8 @@ export function buildStudentFeed(input: {
       });
       continue;
     }
-    if (task.status === "NEEDS_REVISION" && fresh(task.updatedAt, input.now)) {
+    if (task.status === "NEEDS_REVISION" && (input.full || fresh(task.updatedAt, input.now))) {
+      if (wasDismissed(input.seen, "task-revision", task.id, task.updatedAt)) continue;
       items.push({
         kind: "task-revision",
         sourceId: task.id,
@@ -94,7 +108,8 @@ export function buildStudentFeed(input: {
       });
       continue;
     }
-    if (task.status !== "ACCEPTED" && task.status !== "NEEDS_REVISION" && fresh(task.createdAt, input.now)) {
+    if (task.status !== "ACCEPTED" && task.status !== "NEEDS_REVISION" && (input.full || fresh(task.createdAt, input.now))) {
+      if (wasDismissed(input.seen, "task-new", task.id, task.createdAt)) continue;
       items.push({
         kind: "task-new",
         sourceId: task.id,
@@ -111,7 +126,8 @@ export function buildStudentFeed(input: {
   for (const note of input.notes) {
     if (note.authorRole !== "MENTOR" || note.resolved) continue;
     const at = note.updatedAt.getTime() >= note.createdAt.getTime() ? note.updatedAt : note.createdAt;
-    if (!fresh(at, input.now)) continue;
+    if (!input.full && !fresh(at, input.now)) continue;
+    if (wasDismissed(input.seen, "note", note.id, at)) continue;
     const text = oneLine(note.text);
     if (!text) continue;
     items.push({
@@ -129,7 +145,8 @@ export function buildStudentFeed(input: {
   for (const edit of input.edits) {
     if (edit.byRole !== "MENTOR") continue;
     if (edit.section === "tasks" || edit.section === "notes") continue;
-    if (!fresh(edit.at, input.now)) continue;
+    if (!input.full && !fresh(edit.at, input.now)) continue;
+    if (wasDismissed(input.seen, "edit", edit.section, edit.at)) continue;
     items.push({
       kind: "edit",
       sourceId: edit.section,
@@ -142,7 +159,8 @@ export function buildStudentFeed(input: {
     });
   }
 
-  return items.sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 40);
+  const sorted = items.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+  return input.full ? sorted : sorted.slice(0, 40);
 }
 
 export function filterStudentFeed(items: StudentFeedItem[], type: "all" | "tasks" | "edits"): StudentFeedItem[] {
