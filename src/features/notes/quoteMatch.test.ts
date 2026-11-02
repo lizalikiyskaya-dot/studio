@@ -35,6 +35,11 @@ test("ученик остаётся в своём кабинете, настав
     urlForViewer("/dashboard/tasks", "/student-view/abc/exercises"),
     "/student-view/abc/tasks",
   );
+  assert.equal(
+    urlForViewer("/dashboard/exercises#exercise-hero", "/student-view/abc/tasks"),
+    "/student-view/abc/exercises#exercise-hero",
+  );
+  assert.equal(anchorOnPage("/dashboard/exercises#exercise-hero", "/dashboard/exercises"), true);
 });
 
 test("повтор цитаты держится у своего смещения", () => {

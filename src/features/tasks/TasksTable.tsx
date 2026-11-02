@@ -245,6 +245,17 @@ export default function TasksTable({
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   }
 
+  useEffect(() => {
+    function onSwitch(event: Event) {
+      const detail = (event as CustomEvent<string>).detail ?? "";
+      if (!detail.startsWith("task-tab:")) return;
+      const id = detail.slice("task-tab:".length);
+      if (TABS.some((tab) => tab.id === id)) selectTab(id);
+    }
+    window.addEventListener("studio:note-switch", onSwitch);
+    return () => window.removeEventListener("studio:note-switch", onSwitch);
+  });
+
   const visible = visibleOf(tasks);
 
   return (
@@ -291,6 +302,16 @@ export default function TasksTable({
         />
       ) : (
       <div className="task-sheet" key={activeTab}>
+        {tasks.filter((task) => !visible.some((row) => row.id === task.id)).map((task) => {
+          const tab = TABS.find((item) => item.status === task.status)?.id ?? "all";
+          return (
+            <div key={task.id} id={`task-${task.id}`} hidden data-note-switch={`task-tab:${tab}`}>
+              {task.title}
+              {"\n"}
+              {task.notes}
+            </div>
+          );
+        })}
         <div className="task-head" aria-hidden="true">
           <span>Задание</span>
           <span>Дедлайн</span>

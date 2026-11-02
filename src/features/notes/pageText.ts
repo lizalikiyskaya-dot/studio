@@ -30,7 +30,7 @@ function gap(prev: Text, next: Text) {
 }
 
 /** Видимый текст страницы без полей ввода. Между абзацами ставится перевод строки, как в выделении. */
-export function collectVisibleText(root: Element, scope: "page" | "writing" = "page") {
+export function collectVisibleText(root: Element, scope: "page" | "writing" | "search" = "page") {
   const chunks: TextChunk[] = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
@@ -44,10 +44,12 @@ export function collectVisibleText(root: Element, scope: "page" | "writing" = "p
         return NodeFilter.FILTER_REJECT;
       }
       if (scope === "page" && parent.closest(".writing-prose")) return NodeFilter.FILTER_REJECT;
-      if (parent.closest("[aria-hidden='true'], [inert], .collapse-slot:not(.is-open)")) return NodeFilter.FILTER_REJECT;
+      if (scope !== "search" && parent.closest("[aria-hidden='true'], [inert], .collapse-slot:not(.is-open)")) {
+        return NodeFilter.FILTER_REJECT;
+      }
       const review = parent.closest("[data-review-field]");
       if (parent.closest(".suggest-doc") && review?.querySelector("textarea, input")) return NodeFilter.FILTER_REJECT;
-      if (hidden(parent)) return NodeFilter.FILTER_REJECT;
+      if (scope !== "search" && hidden(parent)) return NodeFilter.FILTER_REJECT;
       return NodeFilter.FILTER_ACCEPT;
     },
   });
@@ -65,7 +67,7 @@ export function collectVisibleText(root: Element, scope: "page" | "writing" = "p
   return { text, chunks };
 }
 
-function joinRoots(roots: Element[], scope: "page" | "writing") {
+function joinRoots(roots: Element[], scope: "page" | "writing" | "search") {
   const chunks: TextChunk[] = [];
   let text = "";
   for (const root of roots) {
@@ -87,6 +89,14 @@ export function collectPageText() {
   const studio = document.querySelector(".studio-content");
   if (!studio) return { text: "", chunks: [] as TextChunk[] };
   return joinRoots([studio], "page");
+}
+
+/** Текст скрытых вкладок и свёрнутых карточек: по нему заметка находит свой раздел. */
+export function collectSearchText() {
+  if (typeof document === "undefined") return { text: "", chunks: [] as TextChunk[] };
+  const studio = document.querySelector(".studio-content");
+  if (!studio) return { text: "", chunks: [] as TextChunk[] };
+  return joinRoots([studio], "search");
 }
 
 /** Только текст редактора: и в карточке, и в открытом окне письма. */

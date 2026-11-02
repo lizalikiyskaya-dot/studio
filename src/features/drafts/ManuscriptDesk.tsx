@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
 import WritingEditor from "@/features/exercises/additional/WritingEditor";
-import type { ContentFormat } from "@/features/exercises/additional/richText";
+import { blocksToPlain, loadBlocks, type ContentFormat } from "@/features/exercises/additional/richText";
 import { formatChars } from "@/features/acts/chapterText";
 import { countSigns } from "./manuscriptCount";
 import { createManuscriptChapter, renameManuscriptChapter, saveManuscriptChapter } from "./actions";
@@ -22,6 +22,10 @@ export type ManuscriptChapter = {
 
 function asFormat(value: string): ContentFormat {
   return value === "markdown" ? "markdown" : "plain";
+}
+
+function plainChapter(content: string, format: string) {
+  return blocksToPlain(loadBlocks(content, asFormat(format)));
 }
 
 const THEMES = [
@@ -111,6 +115,29 @@ export default function ManuscriptDesk({
     setTheme(readTheme(viewerId));
     setZoom(readZoom(viewerId));
   }, [viewerId]);
+
+  useEffect(() => {
+    function openChapter(id: string) {
+      if (!id) return;
+      setCurrentId(id);
+    }
+    function onSwitch(event: Event) {
+      const detail = (event as CustomEvent<string>).detail ?? "";
+      if (!detail.startsWith("chapter:")) return;
+      openChapter(detail.slice("chapter:".length));
+    }
+    function onHash() {
+      const match = /^#chapter-(.+)$/.exec(window.location.hash);
+      if (match) openChapter(decodeURIComponent(match[1]));
+    }
+    window.addEventListener("studio:note-switch", onSwitch);
+    window.addEventListener("hashchange", onHash);
+    onHash();
+    return () => {
+      window.removeEventListener("studio:note-switch", onSwitch);
+      window.removeEventListener("hashchange", onHash);
+    };
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -321,15 +348,17 @@ export default function ManuscriptDesk({
           <span aria-hidden="true">⤡</span>
         </button>
       </div>
-      <WritingEditor
-        key={current.id}
-        value={current.manuscript}
-        format={asFormat(current.manuscriptFormat)}
-        onChange={onChange}
-        placeholder="Напишите главу здесь"
-        variant="focus"
-        readOnly={readOnly}
-      />
+      <div id={`chapter-${current.id}`}>
+        <WritingEditor
+          key={current.id}
+          value={current.manuscript}
+          format={asFormat(current.manuscriptFormat)}
+          onChange={onChange}
+          placeholder="Напишите главу здесь"
+          variant="focus"
+          readOnly={readOnly}
+        />
+      </div>
     </div>,
     document.body,
   ) : null;
@@ -422,21 +451,28 @@ export default function ManuscriptDesk({
               </button>
             </div>
             {focus ? null : (
-              <WritingEditor
-                key={current.id}
-                value={current.manuscript}
-                format={asFormat(current.manuscriptFormat)}
-                onChange={onChange}
-                placeholder="Напишите главу здесь"
-                variant="focus"
-                readOnly={readOnly}
-              />
+              <div id={`chapter-${current.id}`}>
+                <WritingEditor
+                  key={current.id}
+                  value={current.manuscript}
+                  format={asFormat(current.manuscriptFormat)}
+                  onChange={onChange}
+                  placeholder="Напишите главу здесь"
+                  variant="focus"
+                  readOnly={readOnly}
+                />
+              </div>
             )}
           </>
         ) : (
           <p className="manuscript-quiet">Выберите главу слева или создайте новую.</p>
         )}
       </div>
+      {chapters.filter((chapter) => chapter.id !== current?.id).map((chapter) => (
+        <div key={chapter.id} id={`chapter-${chapter.id}`} hidden data-note-switch={`chapter:${chapter.id}`}>
+          {plainChapter(chapter.manuscript, chapter.manuscriptFormat)}
+        </div>
+      ))}
       {focusScreen}
     </section>
   );

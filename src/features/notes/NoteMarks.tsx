@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { freshSnap, trackSources, type Placement } from "./anchorTrack";
 import { idAtBoxes, idAtOffset } from "./noteHit";
-import { caretRect, collectPageText, collectWritingText, visibleFields, type TextChunk } from "./pageText";
+import { caretRect, collectPageText, collectSearchText, collectWritingText, visibleFields, type TextChunk } from "./pageText";
 import { anchorOnPage, locateQuote, mapSpan, coverSegments } from "./quoteMatch";
 
 export type MarkNote = {
@@ -163,10 +163,10 @@ function paintFields(
 }
 
 function needsReveal(el: Element) {
-  if (el.closest(".collapse-slot:not(.is-open), .chapter-note-clamp, .task-note-clamp")) return true;
+  if (el.closest(".collapse-slot:not(.is-open), .chapter-note-clamp, .task-note-clamp, [hidden], [data-note-switch]")) return true;
   let node: Element | null = el;
   while (node && node !== document.body) {
-    if (getComputedStyle(node).display === "none") return true;
+    if (node instanceof HTMLElement && getComputedStyle(node).display === "none") return true;
     node = node.parentElement;
   }
   return false;
@@ -183,21 +183,29 @@ function reveal(el: Element) {
     current = closed.parentElement;
     guard += 1;
   }
-  let hidden: Element | null = el;
-  guard = 0;
-  while (hidden && guard < 8) {
-    if (hidden instanceof HTMLElement && getComputedStyle(hidden).display === "none" && hidden.parentElement) {
-      const kids = [...hidden.parentElement.children];
-      const index = kids.indexOf(hidden);
-      const button = hidden.parentElement.querySelectorAll(":scope > :first-child button")[index - 1];
-      if (button instanceof HTMLElement) button.click();
+  const opened = new Set<Element>();
+  let node: Element | null = el;
+  while (node && node !== document.body) {
+    const panel: Element | null = node.closest("[data-note-panel]");
+    if (panel && !opened.has(panel)) {
+      opened.add(panel);
+      if (panel instanceof HTMLElement && getComputedStyle(panel).display === "none") {
+        const index = panel.getAttribute("data-note-panel");
+        const button = panel.parentElement?.querySelector(`:scope > :first-child [data-note-tab="${index}"]`);
+        if (button instanceof HTMLElement) button.click();
+      }
+      node = panel.parentElement;
+      continue;
     }
-    hidden = hidden.parentElement;
-    guard += 1;
+    node = node.parentElement;
   }
   const clamp = el.closest(".chapter-note-clamp, .task-note-clamp");
   const more = clamp?.parentElement?.querySelector("button");
   if (more instanceof HTMLElement) more.click();
+  const sw = el.closest("[data-note-switch]");
+  if (sw instanceof HTMLElement && sw.dataset.noteSwitch) {
+    window.dispatchEvent(new CustomEvent("studio:note-switch", { detail: sw.dataset.noteSwitch }));
+  }
 }
 
 function clearMarks() {
@@ -332,7 +340,7 @@ export default function NoteMarks({
         : place.key === "dom" || place.key === "writing"
           ? rangeFor(chunks, place.start, place.end)?.startContainer.parentElement ?? null
           : fields.find((field) => keyFor(field) === place.key) ?? null;
-      const targetHost = host ?? hiddenField(root!, target);
+      const targetHost = host ?? hiddenField(root!, target) ?? buriedText(root!, target);
       if (!targetHost) return;
       if (revealed.current !== flash && needsReveal(targetHost)) {
         revealed.current = flash;
@@ -475,6 +483,15 @@ function hiddenField(root: Element, note: MarkNote) {
     return node;
   }
   return null;
+}
+
+function buriedText(root: Element, note: MarkNote) {
+  if (!root.isConnected) return null;
+  const collected = collectSearchText();
+  const span = locateQuote(collected.text, note.anchorQuote, note.anchorOffset);
+  if (!span) return null;
+  const chunk = collected.chunks.find((item) => span.start >= item.start && span.start < item.end);
+  return chunk?.node.parentElement ?? null;
 }
 
 function placedFallback(
