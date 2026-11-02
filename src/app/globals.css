@@ -210,10 +210,24 @@ textarea.reading,
   outline: none;
 }
 .writing-prose:focus { border-color: #c9c4f5; box-shadow: 0 0 0 4px rgba(101, 83, 232, 0.12); }
+.writing-prose.is-empty { position: relative; }
 .writing-prose.is-empty:before {
   content: attr(data-placeholder);
+  position: absolute;
+  z-index: 1;
+  top: 14px;
+  right: 16px;
+  left: 16px;
   color: var(--faded);
   pointer-events: none;
+  font: inherit;
+  line-height: inherit;
+  white-space: pre-wrap;
+}
+.writing-editor-focus .writing-prose.is-empty:before {
+  top: 8px;
+  right: 2px;
+  left: 2px;
 }
 .writing-prose p,
 .writing-prose h2,
@@ -3322,6 +3336,11 @@ html.manuscript-page body {
   font-size: calc(20px * var(--manuscript-zoom, 1));
   /* Две строки кнопок в правом углу не должны наезжать на строку. */
   padding-top: 72px;
+}
+.manuscript-focus .writing-prose.is-empty:before {
+  top: 72px;
+  right: 2px;
+  left: 2px;
 }
 @media (max-width: 800px) {
   .manuscript { grid-template-columns: 1fr; }
