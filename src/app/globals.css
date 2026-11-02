@@ -4427,3 +4427,110 @@ button.streak-cell { cursor: pointer; }
   .badge-cell.is-arriving .badge-medal { animation: none; }
 }
 
+.plan-switch { display: flex; flex-wrap: wrap; gap: 8px; }
+.plan-switch button {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.plan-switch button.is-on { background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 650; }
+.plan-outline-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.plan-outline-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.plan-line-pick { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 650; }
+.plan-line-pick select {
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  padding: 0 12px;
+}
+.plan-outline-ghost,
+.plan-outline .plan-outline-add {
+  height: 40px;
+  width: auto;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 650;
+}
+.plan-outline-ghost {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+.plan-outline-note { margin: 8px 0 14px; color: var(--muted); font-size: 13px; line-height: 1.4; }
+.plan-outline-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; }
+.plan-act h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
+.plan-outline-layout aside h2 { margin: 0 0 10px; font-size: 13px; color: var(--muted); font-weight: 650; }
+.plan-line, .plan-card { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 8px; }
+.plan-line { align-items: center; background: #fff; border-radius: 12px; padding: 6px 8px; }
+.plan-line i, .plan-lane-name i { width: 8px; border-radius: 99px; flex: none; }
+.plan-line i { height: 18px; }
+.plan-card > i { width: 6px; align-self: stretch; border-radius: 99px; flex: none; }
+.plan-line input, .plan-card input, .plan-card textarea {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+}
+.plan-card { background: #fffcf7; border: 1px solid var(--border); border-radius: 16px; padding: 12px; }
+.plan-card.is-lift, .plan-lane-card.is-lift { box-shadow: 0 16px 28px -16px rgba(32, 32, 32, 0.45); }
+.plan-grip, .plan-line button, .plan-card-delete { border: 0; background: transparent; color: var(--muted); cursor: grab; padding: 0; }
+.plan-card-delete, .plan-line button { cursor: pointer; }
+.plan-who { display: block; font-size: 12px; font-weight: 650; }
+.plan-card input { font-size: 16px; font-weight: 650; }
+.plan-card textarea { margin-top: 4px; font-family: var(--font-serif), Georgia, serif; font-size: 15px; line-height: 1.45; }
+.plan-lanes-scroll { overflow-x: auto; padding-bottom: 8px; }
+.plan-lanes { display: grid; gap: 8px; align-items: stretch; min-width: 720px; }
+.plan-lane-head, .plan-lane-cell { background: #f6f5f1; border-radius: 14px; padding: 10px; min-height: 72px; }
+.plan-lane-head { font-weight: 650; min-height: 0; }
+.plan-lane-name { display: flex; align-items: center; gap: 8px; font-weight: 650; }
+.plan-lane-name i { height: 28px; }
+.plan-lane-card {
+  display: block;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+  cursor: grab;
+}
+.plan-lane-card b { display: block; font-size: 14px; }
+.plan-lane-card span {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #3a3834;
+}
+@media (max-width: 800px) {
+  .plan-outline-layout { grid-template-columns: 1fr; }
+  .plan-lanes { min-width: 560px; }
+}
+
