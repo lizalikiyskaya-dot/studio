@@ -40,9 +40,10 @@ export function exerciseFocusIndex(focus: string | undefined): number {
   return index < 0 ? 0 : index;
 }
 
-export function mentorSubmissionUrl(studentId: string, where: "tasks" | ExerciseFocus, id: string): string {
+export function mentorSubmissionUrl(studentId: string, where: "tasks" | "weekly" | ExerciseFocus, id: string): string {
   const home = appUrl();
   if (where === "tasks") return `${home}/student-view/${studentId}/tasks?tab=submitted#task-${id}`;
+  if (where === "weekly") return `${home}/student-view/${studentId}/weekly#weekly-${id}`;
   return `${home}/student-view/${studentId}/exercises?focus=${EXERCISE_FOCUS[where]}#exercise-${id}`;
 }
 

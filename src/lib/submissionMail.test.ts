@@ -26,6 +26,7 @@ test("письмо только при новой сдаче самого уче
 test("письмо короткое: имя, раздел, название и ссылка наставника", () => {
   const url = mentorSubmissionUrl("student-1", "tasks", "task-1");
   assert.match(url, /\/student-view\/student-1\/tasks\?tab=submitted#task-task-1$/);
+  assert.match(mentorSubmissionUrl("student-1", "weekly", "week-1"), /\/student-view\/student-1\/weekly#weekly-week-1$/);
   const letter = submissionLetter({
     name: "Надежда Yannie_E",
     section: "Задания",

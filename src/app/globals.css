@@ -4823,3 +4823,29 @@ button.streak-cell { cursor: pointer; }
   .badge-cell.is-arriving .badge-medal { animation: none; }
 }
 
+.weekly-editor .writing-prose { min-height: 280px; }
+.weekly-preview p {
+  margin: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 16px;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.weekly-expand {
+  height: 36px;
+  margin-top: 8px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.manuscript-focus .weekly-expand { margin-top: 0; }
+
