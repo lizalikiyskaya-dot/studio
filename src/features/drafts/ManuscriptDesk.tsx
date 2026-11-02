@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
-import { Plus } from "lucide-react";
+import { FileUp, Plus } from "lucide-react";
 import WritingEditor from "@/features/exercises/additional/WritingEditor";
 import type { ContentFormat } from "@/features/exercises/additional/richText";
 import { formatChars } from "@/features/acts/chapterText";
 import { countSigns } from "./manuscriptCount";
 import { createManuscriptChapter, renameManuscriptChapter, saveManuscriptChapter } from "./actions";
+import ManuscriptImport from "./ManuscriptImport";
 
 export type ManuscriptChapter = {
   id: string;
@@ -98,6 +99,7 @@ export default function ManuscriptDesk({
   const [theme, setTheme] = useState<Theme>("white");
   const [zoom, setZoom] = useState(100);
   const [focus, setFocus] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [chapters, setChapters] = useState(initialChapters);
   const [currentId, setCurrentId] = useState(initialChapters[0]?.id ?? null);
   const [status, setStatus] = useState<"saved" | "saving">("saved");
@@ -339,12 +341,17 @@ export default function ManuscriptDesk({
       <aside className="manuscript-list">
         <div className="manuscript-list-head">
           <span>{bookTitle.trim() || "Книга"}</span>
-          {readOnly ? null : (
+        </div>
+        {readOnly ? null : (
+          <div className="manuscript-list-actions">
             <button type="button" className="btn-y manuscript-add" onClick={addChapter}>
               <Plus size={14} /> Новая глава
             </button>
-          )}
-        </div>
+            <button type="button" className="manuscript-upload" onClick={() => setImportOpen(true)}>
+              <FileUp size={14} /> Загрузить текст
+            </button>
+          </div>
+        )}
         {chapters.length === 0 ? (
           <p className="manuscript-quiet">Глав пока нет.</p>
         ) : (
@@ -438,6 +445,17 @@ export default function ManuscriptDesk({
         )}
       </div>
       {focusScreen}
+      {importOpen && bookId ? (
+        <ManuscriptImport
+          bookId={bookId}
+          onClose={() => setImportOpen(false)}
+          onCreated={(created) => {
+            setChapters((prev) => [...prev, ...created]);
+            setCurrentId(created[0]?.id ?? currentId);
+            setImportOpen(false);
+          }}
+        />
+      ) : null}
     </section>
   );
 }
