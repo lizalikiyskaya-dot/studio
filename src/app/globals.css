@@ -3256,6 +3256,22 @@ html.manuscript-page body {
   min-width: 0;
 }
 .manuscript-list { padding: 12px; }
+.manuscript-book { display: flex; flex-direction: column; gap: 2px; min-width: 0; width: 100%; }
+.manuscript-book span { font-size: 11px; color: var(--muted); font-weight: 650; }
+.manuscript-book select {
+  width: 100%;
+  max-width: 220px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  padding: 0 12px;
+}
+.manuscript-focus .manuscript-book { width: auto; }
+.manuscript-focus .manuscript-book select { background: transparent; color: inherit; }
 .manuscript-list-head {
   display: flex;
   align-items: center;
@@ -3477,6 +3493,7 @@ html.manuscript-page body {
 .manuscript-focus[data-theme="dark"] { background: #161513; color: #f6f3ec; }
 .manuscript-focus-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 14px;
   margin-bottom: 8px;

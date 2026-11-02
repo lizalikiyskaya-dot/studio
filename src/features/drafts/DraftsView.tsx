@@ -35,7 +35,7 @@ export default async function DraftsView({
   ]);
   const files = new Set(withFile.map((row) => row.id));
   const session = await getSession();
-  const { activeBook } = await resolveActiveBook(studentId, requestedBookId);
+  const { books, activeBook } = await resolveActiveBook(studentId, requestedBookId);
   const chapters: ManuscriptChapter[] = activeBook
     ? await prisma.planChapter.findMany({
         where: { bookId: activeBook.id },
@@ -61,6 +61,7 @@ export default async function DraftsView({
       part={part}
       focusChapterId={part === "write" ? focusChapterId : null}
       startFocus={part === "write" && startFocus}
+      books={books.map((book) => ({ id: book.id, title: book.title }))}
       manuscript={{
         bookId: activeBook?.id ?? null,
         bookTitle: activeBook?.title ?? "",

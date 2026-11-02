@@ -25,6 +25,7 @@ export default function DraftsList({
   studentId,
   initialDrafts,
   manuscript,
+  books = [],
   readOnly = false,
   manuscriptReadOnly = readOnly,
   part = "write",
@@ -34,6 +35,7 @@ export default function DraftsList({
   studentId: string;
   initialDrafts: Draft[];
   manuscript?: { bookId: string | null; bookTitle: string; chapters: ManuscriptChapter[]; viewerId: string };
+  books?: { id: string; title: string }[];
   readOnly?: boolean;
   manuscriptReadOnly?: boolean;
   part?: "write" | "files";
@@ -133,6 +135,7 @@ export default function DraftsList({
             readOnly={manuscriptReadOnly}
             focusChapterId={focusChapterId}
             startFocus={startFocus}
+            books={books}
           />
         ) : null
       ) : drafts.length === 0 ? (
