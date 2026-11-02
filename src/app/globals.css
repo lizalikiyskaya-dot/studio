@@ -1333,42 +1333,64 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
 }
 .studio-topnav a .nav-icon { display: none; }
+.studio-topbar { flex-wrap: wrap; height: auto; min-height: 64px; row-gap: 2px; align-items: center; }
+.studio-topbar .wordmark-name { padding-bottom: 0.8em; }
+.studio-topnav {
+  overflow: visible;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  height: auto;
+  min-width: min(100%, 560px);
+}
 .workshop-plaque {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 52px;
-  padding: 0 8px 0 16px;
-  border-radius: 16px;
-  background: var(--deep);
-  color: #fff;
+  gap: 8px;
+  height: 40px;
+  padding: 0 4px 0 14px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--ink);
   position: relative;
-  flex-shrink: 1;
-  min-width: 0;
+  flex: 0 1 auto;
+  min-width: max-content;
+  max-width: 100%;
 }
 .workshop-plaque-ribbon {
   position: absolute;
-  left: 14px;
+  left: 12px;
   top: 0;
-  width: 12px;
-  height: 18px;
+  width: 8px;
+  height: 14px;
   background: var(--y);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
 }
-.workshop-plaque-copy { min-width: 0; margin-left: 12px; }
-.workshop-plaque-kicker { font-size: 11px; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.72); }
-.workshop-plaque-title { font-size: 14px; font-weight: 650; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px; }
-.workshop-plaque-pills { display: flex; gap: 4px; flex-shrink: 0; }
+.workshop-plaque-copy { display: flex; align-items: baseline; gap: 6px; min-width: 0; margin-left: 8px; }
+.workshop-plaque-kicker { font-size: 13px; font-weight: 650; color: var(--ink); white-space: nowrap; }
+.workshop-plaque-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 9em;
+}
+.workshop-plaque-pills { display: flex; gap: 2px; flex-shrink: 0; }
 .workshop-plaque-pills a {
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 5px 10px;
   font-size: 13px;
   font-weight: 650;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
+  color: var(--ink2);
+  background: transparent;
   text-decoration: none;
+  white-space: nowrap;
 }
 .workshop-plaque-pills a.is-on { background: var(--y); color: var(--ink); }
+@media (max-width: 1279px) {
+  .workshop-plaque-title { display: none; }
+}
 .studio-tab {
   flex: 1;
   display: flex;
@@ -2387,7 +2409,8 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .book-section-strip { padding: 8px 16px 10px; }
   .studio-logo { order: 1; min-width: 0; }
   .studio-top-actions { order: 2; }
-  .workshop-plaque { order: 3; width: 100%; height: 48px; }
+  .workshop-plaque { order: 3; width: auto; max-width: 100%; height: 40px; min-width: 0; }
+  .workshop-plaque-title { display: none; }
   .studio-menu-btn { width: 40px; padding: 0; font-size: 0; gap: 0; justify-content: center; }
   .studio-menu-btn svg { width: 18px; height: 18px; }
   .studio-topnav { display: none; }
