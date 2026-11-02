@@ -4,10 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { CircleAlert } from "lucide-react";
 import { markedTitle } from "@/components/markedTitle";
+import { formatResetWait } from "@/lib/resetWait";
+
+type Sent = { kind: "sent" } | { kind: "wait"; retryAfterMs: number };
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [sent, setSent] = useState<Sent | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,7 +31,25 @@ export default function ForgotPasswordPage() {
       setError(data.error ?? "Не получилось отправить письмо");
       return;
     }
-    setSent(true);
+    if (data.wait === true) {
+      const retryAfterMs = typeof data.retryAfterMs === "number" && data.retryAfterMs > 0 ? data.retryAfterMs : 120_000;
+      setSent({ kind: "wait", retryAfterMs });
+      return;
+    }
+    setSent({ kind: "sent" });
+  }
+
+  if (sent?.kind === "wait") {
+    return (
+      <div>
+        <h1 className="auth-title">{markedTitle("Письмо уже отправлено")}</h1>
+        <p className="auth-sub">
+          Мы уже отправили Вам письмо со ссылкой для смены пароля. Подождите около 2 минут
+          {" "}(осталось {formatResetWait(sent.retryAfterMs)}) и проверьте «Входящие», «Спам» и «Промоакции».
+        </p>
+        <Link href="/login" className="btn-y mt-6">Вернуться ко входу</Link>
+      </div>
+    );
   }
 
   if (sent) {
