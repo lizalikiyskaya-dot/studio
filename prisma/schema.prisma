@@ -479,6 +479,8 @@ model Book {
   chapters     PlanChapter[]
   characters   Character[]
   acts         Act[]
+  storylines   Storyline[]
+  planCards    PlanCard[]
   worldEntries WorldEntry[]
   extraGrapes  GrapesSetting[]
 
@@ -529,6 +531,7 @@ model PlanChapter {
   act              Act?    @relation(fields: [actId], references: [id], onDelete: SetNull)
   reviewStatus     ChapterReviewStatus @default(IN_PROGRESS)
   blocks           StorylineBlock[]
+  planCards        PlanCard[]
 
   @@index([bookId])
   @@index([actId])
@@ -578,6 +581,7 @@ model Act {
   status   String       @default("")
   chapters ActChapter[]
   planChapters PlanChapter[]
+  planCards PlanCard[]
 
   @@index([bookId])
 }
@@ -609,6 +613,43 @@ model StorylineBlock {
   span          Int          @default(1)
 
   @@index([chapterId])
+  @@index([planChapterId])
+}
+
+// Ветка плана. Цвет — свой, не ячейка трекера.
+model Storyline {
+  id     String     @id @default(cuid())
+  bookId String
+  book   Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order  Int        @default(0)
+  name   String     @default("")
+  color  String     @default("#2FB083")
+  note   String     @default("")
+  cards  PlanCard[]
+
+  @@index([bookId])
+}
+
+// Событие плана. planChapterId — столбец ленты, не запись трекера о знаках.
+// sourceBlockId помнит старую сцену, чтобы копирование не повторилось.
+model PlanCard {
+  id            String       @id @default(cuid())
+  bookId        String
+  book          Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  storylineId   String
+  storyline     Storyline    @relation(fields: [storylineId], references: [id], onDelete: Cascade)
+  actId         String?
+  act           Act?         @relation(fields: [actId], references: [id], onDelete: SetNull)
+  planChapterId String?
+  planChapter   PlanChapter? @relation(fields: [planChapterId], references: [id], onDelete: SetNull)
+  order         Int          @default(0)
+  title         String       @default("")
+  body          String       @default("")
+  sourceBlockId String?      @unique
+
+  @@index([bookId])
+  @@index([storylineId])
+  @@index([actId])
   @@index([planChapterId])
 }
 

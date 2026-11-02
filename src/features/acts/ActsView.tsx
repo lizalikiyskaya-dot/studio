@@ -2,13 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { resolveActiveBook } from "@/lib/resolveBook";
 import BookSelect from "@/features/books/BookSelect";
 import NoBookRedirect from "@/features/books/NoBookRedirect";
-import BookPlanBoard from "./BookPlanBoard";
+import BookOutline from "@/features/plan/BookOutline";
 import { ensureUnifiedChapters } from "./unifyChapters";
-import { normalizePlanView } from "./chapterText";
 import StudioBanners from "@/components/StudioBanners";
 import PageHeader from "@/components/PageHeader";
-import { getSuggestionsForRecords } from "@/features/suggestions/actions";
-import { getCommentsForRecords } from "@/features/comments/actions";
 
 export default async function ActsView({
   studentId,
@@ -32,36 +29,43 @@ export default async function ActsView({
 
   await ensureUnifiedChapters(activeBook.id);
 
-  const [acts, chapters, student] = await Promise.all([
+  const [acts, chapters, lines, cards] = await Promise.all([
     prisma.act.findMany({
       where: { bookId: activeBook.id },
       orderBy: { order: "asc" },
+      select: { id: true, title: true, order: true },
     }),
     prisma.planChapter.findMany({
       where: { bookId: activeBook.id },
       orderBy: { order: "asc" },
-      include: { blocks: { orderBy: { order: "asc" } } },
+      select: { id: true, title: true, order: true, actId: true },
     }),
-    prisma.user.findUniqueOrThrow({ where: { id: studentId }, select: { planView: true } }),
-  ]);
-  const [actSuggestions, chapterSuggestions, actComments] = await Promise.all([
-    getSuggestionsForRecords("Act", acts.map((act) => act.id)),
-    getSuggestionsForRecords("PlanChapter", chapters.map((chapter) => chapter.id)),
-    getCommentsForRecords("Act", acts.map((act) => act.id)),
+    prisma.storyline.findMany({
+      where: { bookId: activeBook.id },
+      orderBy: { order: "asc" },
+      select: { id: true, name: true, color: true, order: true },
+    }),
+    prisma.planCard.findMany({
+      where: { bookId: activeBook.id },
+      orderBy: { order: "asc" },
+      select: { id: true, storylineId: true, actId: true, planChapterId: true, order: true, title: true, body: true },
+    }),
   ]);
 
   return (
-    <BookPlanBoard
-      bookId={activeBook.id}
-      studentId={studentId}
-      initialView={normalizePlanView(student.planView)}
-      initialActs={acts}
-      initialChapters={chapters}
-      suggestions={chapterSuggestions}
-      actSuggestions={actSuggestions}
-      comments={actComments}
-      banners={<StudioBanners studentId={studentId} basePath={basePath} />}
-      bookSelect={<BookSelect books={books} activeBookId={activeBook.id} compact />}
-    />
+    <div>
+      <PageHeader title="План книги" />
+      <StudioBanners studentId={studentId} basePath={basePath} />
+      <div className="mb-4">
+        <BookSelect books={books} activeBookId={activeBook.id} compact />
+      </div>
+      <BookOutline
+        bookId={activeBook.id}
+        initialActs={acts}
+        initialChapters={chapters}
+        initialLines={lines}
+        initialCards={cards}
+      />
+    </div>
   );
 }
