@@ -358,7 +358,7 @@ export default function ManuscriptDesk({
                 >
                   <span>Глава {index + 1}</span>
                   <strong>{chapter.title.trim() || "Без названия"}</strong>
-                  <em>{chapter.writtenHere ? `${formatChars(chapter.writtenChars)} зн.` : "вручную"}</em>
+                  {chapter.writtenHere ? <em>{formatChars(chapter.writtenChars)} зн.</em> : null}
                 </button>
               </li>
             ))}
