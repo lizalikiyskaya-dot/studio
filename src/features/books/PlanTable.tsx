@@ -1,6 +1,6 @@
 "use client";
 
-import { siteConfirm } from "@/components/SiteDialog";
+import { siteAlert, siteConfirm } from "@/components/SiteDialog";
 
 import { useState, useTransition, useRef, useEffect } from "react";
 import { Trash2 } from "lucide-react";
@@ -187,8 +187,12 @@ export default function PlanTable({
 
   async function handleDelete(chapterId: string) {
     if (!(await siteConfirm("Удалить главу?"))) return;
+    const result = await deletePlanChapter(chapterId);
+    if (!result.ok) {
+      await siteAlert(result.message);
+      return;
+    }
     setChapters((prev) => prev.filter((c) => c.id !== chapterId));
-    startTransition(() => deletePlanChapter(chapterId));
   }
 
   function handleActBreak(chapterId: string, value: boolean) {
@@ -365,6 +369,7 @@ export default function PlanTable({
                             aria-label="Удалить главу"
                           >
                             <Trash2 size={14} />
+                            Удалить
                           </button>
                         </div>
                       </article>

@@ -1,6 +1,6 @@
 "use client";
 
-import { siteConfirm } from "@/components/SiteDialog";
+import { siteAlert, siteConfirm } from "@/components/SiteDialog";
 
 import { useMemo, useState, useTransition, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -275,9 +275,13 @@ export default function BookPlanBoard({
 
   async function removeChapter(chapterId: string) {
     if (!(await siteConfirm("Удалить главу?"))) return;
+    const result = await deletePlanChapter(chapterId);
+    if (!result.ok) {
+      await siteAlert(result.message);
+      return;
+    }
     setChapters((prev) => prev.filter((chapter) => chapter.id !== chapterId));
     if (openId === chapterId) setOpenId(null);
-    startTransition(() => deletePlanChapter(chapterId));
   }
 
   async function removeAct(actId: string) {

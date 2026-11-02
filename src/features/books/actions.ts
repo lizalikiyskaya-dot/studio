@@ -192,9 +192,43 @@ export async function updateBookPhotoPosition(
   await prisma.book.update({ where: { id: bookId }, data: { [field]: position } });
 }
 
-export async function deletePlanChapter(chapterId: string) {
-  const chapter = await prisma.planChapter.findUniqueOrThrow({ where: { id: chapterId } });
+function requestCode(error: unknown) {
+  return typeof error === "object" && error && "code" in error && typeof error.code === "string" ? error.code : "";
+}
+
+function missingTable(error: unknown) {
+  const code = requestCode(error);
+  const message = error instanceof Error ? error.message : "";
+  return code === "P2021" || code === "P2022" || code === "42P01" || message.includes("does not exist");
+}
+
+export async function deletePlanChapter(chapterId: string): Promise<{ ok: true } | { ok: false; message: string }> {
+  const chapter = await prisma.planChapter.findUnique({ where: { id: chapterId } });
+  if (!chapter) return { ok: true };
   const book = await prisma.book.findUniqueOrThrow({ where: { id: chapter.bookId } });
   await requireCabinetAccess(book.studentId);
-  await prisma.planChapter.delete({ where: { id: chapterId } });
+
+  // Текст рукописи лежит в самой главе. Сцены, правки и комментарии — отдельные строки
+  // без каскада в клиенте: их снимаем до удаления, чтобы внешний ключ не откатил действие.
+  await prisma.storylineBlock.deleteMany({ where: { planChapterId: chapterId } });
+  await prisma.fieldSuggestion.deleteMany({ where: { model: "PlanChapter", recordId: chapterId } });
+  await prisma.comment.deleteMany({ where: { model: "PlanChapter", recordId: chapterId } });
+  try {
+    await prisma.chapterFeedEvent.deleteMany({ where: { chapterId } });
+  } catch (error) {
+    if (!missingTable(error)) throw error;
+  }
+
+  try {
+    await prisma.planChapter.delete({ where: { id: chapterId } });
+  } catch (error) {
+    if (requestCode(error) === "P2003") {
+      return { ok: false, message: "Главу не удалось удалить: на неё ещё ссылаются другие записи." };
+    }
+    throw error;
+  }
+
+  revalidatePath("/dashboard", "layout");
+  revalidatePath(`/student-view/${book.studentId}`, "layout");
+  return { ok: true };
 }

@@ -2574,7 +2574,6 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
     transform: translateY(-4px) scale(1.015);
     box-shadow: 0 16px 32px -18px rgba(43, 45, 92, 0.45);
   }
-  .chapter-card:active { transform: translateY(1px) scale(0.98); }
 }
 .chapter-card.is-progress { background: #F6F1EA; }
 .chapter-card.is-almost { background: #F4DDBC; }
@@ -2746,7 +2745,14 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   color: var(--muted);
   font-size: 12.5px;
 }
-.chapter-tool-icon { display: inline-flex; }
+.chapter-tool-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
 .chapter-card-title {
   display: block;
   width: 100%;
@@ -3283,6 +3289,27 @@ html.manuscript-page body {
   font-size: 13px;
 }
 .manuscript-list ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.manuscript-chapter { display: flex; align-items: stretch; gap: 2px; }
+.manuscript-chapter-pick { flex: 1; min-width: 0; }
+.manuscript-list .manuscript-chapter-delete {
+  width: auto;
+  flex: none;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.manuscript-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.manuscript-title-row .manuscript-title,
+.manuscript-title-row h2 { flex: 1; min-width: 0; }
 .manuscript-list button {
   width: 100%;
   text-align: left;
@@ -3493,6 +3520,7 @@ html.manuscript-page body {
   gap: 14px;
   margin-bottom: 8px;
 }
+.manuscript-focus .chapter-tool { color: inherit; }
 .manuscript-focus-top h2 {
   margin: 0;
   min-width: 0;
