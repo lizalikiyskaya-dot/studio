@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Макет: уведомления кабинета наставника</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #202020;
+    --ink2: #555;
+    --muted: #8a8a8a;
+    --soft: #f4f4f4;
+    --line: #ececec;
+    --y: #ffd43b;
+    --deep: #2b2d5c;
+    --link: #4b3fc0;
+    --shadow: 0 18px 40px -24px rgba(43, 45, 92, 0.45);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #fff;
+    color: var(--ink);
+    font-family: Onest, system-ui, sans-serif;
+    font-size: 14.5px;
+    line-height: 1.45;
+  }
+  .topbar {
+    height: 64px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    border-bottom: 1px solid var(--line);
+    background: #fff;
+    position: relative;
+    z-index: 5;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; flex-shrink: 0; }
+  .wordmark { position: relative; font-weight: 700; font-size: 21px; letter-spacing: -0.01em; line-height: 1; padding-bottom: 0.55em; }
+  .ribbon {
+    position: absolute; left: 0.2em; top: 0.9em; width: 0.32em; height: 0.7em; background: var(--y);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+  }
+  .logo-note { font-size: 13px; color: var(--muted); }
+  .nav { display: flex; align-items: stretch; gap: 18px; min-width: 0; height: 100%; overflow: hidden; }
+  .nav a {
+    position: relative; flex-shrink: 0; font-size: 13.5px; color: #3a3a3a; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px; height: 100%;
+  }
+  .nav a.on { font-weight: 600; color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink); }
+  .nav a.on::before {
+    content: ""; position: absolute; left: 50%; top: 0; width: 11px; height: 18px; margin-left: -5.5px; background: var(--y);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  }
+  .actions { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .bell {
+    position: relative; width: 40px; height: 40px; border: 0; border-radius: 999px; background: var(--soft);
+    color: var(--ink); display: grid; place-items: center; cursor: pointer;
+  }
+  .bell.is-open { background: #fff; box-shadow: inset 0 0 0 1.5px var(--ink); }
+  .count {
+    position: absolute; top: -4px; right: -6px; height: 20px; min-width: 20px; padding: 0 6px;
+    border-radius: 999px; background: var(--ink); color: #fff; font-size: 11.5px; font-weight: 600;
+    display: grid; place-items: center; box-shadow: 0 0 0 2px #fff;
+  }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 999px; background: var(--deep); color: #fff;
+    display: grid; place-items: center; font-size: 13px; font-weight: 600; text-decoration: none;
+  }
+  .menu {
+    height: 40px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--soft);
+    display: inline-flex; align-items: center; gap: 8px; font: inherit; font-size: 14.5px; cursor: pointer;
+  }
+  .page { padding: 24px 40px 40px; }
+  .date { font-size: 14px; color: var(--muted); text-transform: capitalize; }
+  h1 { margin: 6px 0 0; font-size: 40px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.08; }
+  .mk {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M3 22 L60 15 L130 8 L198 2 L196 40 L199 70 L197 96 L120 98 L50 99 L1 100 L4 66 L0 44 Z' fill='%23ffd43b'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-size: 100% 62%; background-position: 0 88%;
+  }
+  .stats { display: flex; gap: 12px; margin-top: 22px; }
+  .stat { width: 180px; border-radius: 16px; background: var(--soft); padding: 14px 16px; }
+  .stat b { display: block; font-size: 28px; letter-spacing: -0.03em; line-height: 1; margin-top: 6px; }
+  .stat span { color: var(--ink2); font-size: 12.5px; }
+  .anchor { position: relative; }
+  .panel, .popup {
+    position: absolute; top: 72px; right: 24px; width: 392px; background: #fff;
+    border-radius: 16px; box-shadow: var(--shadow), 0 0 0 1px rgba(32,32,32,0.04);
+    padding: 14px 14px 8px; z-index: 6;
+  }
+  .popup { width: 420px; padding-top: 16px; }
+  .popup::before {
+    content: ""; position: absolute; right: 22px; top: 0; width: 14px; height: 26px; background: var(--y);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+  }
+  .panel-head, .popup-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .kicker { font-size: 12px; font-weight: 600; color: var(--ink2); }
+  .popup h2 { margin: 8px 0 0; font-size: 22px; letter-spacing: -0.02em; line-height: 1.15; font-weight: 650; }
+  .lead { margin: 6px 0 0; color: var(--ink2); font-size: 13.5px; }
+  .textbtn { border: 0; background: transparent; color: var(--link); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; }
+  .rows { margin: 10px 0 0; padding: 0; list-style: none; }
+  .row { display: grid; grid-template-columns: 8px 1fr auto; gap: 8px 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--y); margin-top: 6px; box-shadow: 0 0 0 3px rgba(255, 212, 59, 0.35); }
+  .who { font-size: 14px; font-weight: 650; }
+  .what { display: block; margin-top: 1px; font-size: 12.5px; color: var(--muted); }
+  .detail { display: block; margin-top: 2px; font-size: 13.5px; }
+  .when { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .row-actions { grid-column: 2 / -1; display: flex; align-items: center; gap: 14px; margin-top: 2px; }
+  .row-actions a { color: var(--link); font-size: 13px; font-weight: 600; text-decoration: none; }
+  .quiet { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; padding: 0; }
+  .popup-actions { display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding: 8px 0 8px; }
+  .pill {
+    border: 0; background: var(--y); color: var(--ink); height: 36px; padding: 0 16px; border-radius: 999px;
+    font: inherit; font-size: 13.5px; font-weight: 650; cursor: pointer;
+  }
+  body[data-state="closed"] .panel, body[data-state="closed"] .popup,
+  body[data-state="open"] .popup, body[data-state="popup"] .panel { display: none; }
+  body[data-state="open"] .bell, body[data-state="popup"] .bell { background: #fff; box-shadow: inset 0 0 0 1.5px var(--ink); }
+  @media (max-width: 800px) {
+    .topbar { height: 60px; padding: 0 16px; gap: 12px; }
+    .logo-note, .nav { display: none; }
+    .page { padding: 16px 16px 24px; }
+    h1 { font-size: 28px; }
+    .stats { display: none; }
+    .panel, .popup { left: 12px; right: 12px; width: auto; top: 68px; }
+  }
+</style>
+</head>
+<body data-state="closed">
+  <header class="topbar">
+    <a class="logo" href="#">
+      <span class="wordmark">Андреенко<span class="ribbon"></span></span>
+      <span class="logo-note">кабинет наставника</span>
+    </a>
+    <nav class="nav" aria-label="Разделы">
+      <a class="on" href="#">Ученики и заявки</a>
+      <a href="#">Методички</a>
+      <a href="#">Цитаты дня</a>
+      <a href="#">Задания недели</a>
+      <a href="#">Письма</a>
+      <a href="#">Мой профиль</a>
+    </nav>
+    <div class="actions">
+      <div class="anchor">
+        <button class="bell" type="button" aria-label="Уведомления, 4 новых">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+          <span class="count">4</span>
+        </button>
+      </div>
+      <a class="avatar" href="#">Л</a>
+      <button class="menu" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>
+        Меню
+      </button>
+    </div>
+  </header>
+
+  <section class="panel" aria-label="Список уведомлений">
+    <div class="panel-head">
+      <div class="kicker">С последнего визита · 4</div>
+      <button class="textbtn" type="button">Прочитать все</button>
+    </div>
+    <ul class="rows">
+      <li class="row">
+        <span class="dot"></span>
+        <div>
+          <span class="who">Виктория</span>
+          <span class="what">Сдано основное задание</span>
+          <span class="detail">Методичка «1 Писательская практика»</span>
+        </div>
+        <span class="when">вчера</span>
+        <div class="row-actions"><a href="#">Открыть</a><button class="quiet" type="button">Прочитано</button></div>
+      </li>
+      <li class="row">
+        <span class="dot"></span>
+        <div>
+          <span class="who">Yannie_E</span>
+          <span class="what">Сдана глава</span>
+          <span class="detail">Глава 4, «Кухня»</span>
+        </div>
+        <span class="when">вчера</span>
+        <div class="row-actions"><a href="#">Открыть</a><button class="quiet" type="button">Прочитано</button></div>
+      </li>
+      <li class="row">
+        <span class="dot"></span>
+        <div>
+          <span class="who">Ваня</span>
+          <span class="what">Правки в упражнениях</span>
+          <span class="detail">Раздел «Упражнения»</span>
+        </div>
+        <span class="when">3 ч назад</span>
+        <div class="row-actions"><a href="#">Открыть</a><button class="quiet" type="button">Прочитано</button></div>
+      </li>
+      <li class="row">
+        <span class="dot"></span>
+        <div>
+          <span class="who">Ян</span>
+          <span class="what">Сдано еженедельное задание</span>
+          <span class="detail">«Одна сцена, два взгляда»</span>
+        </div>
+        <span class="when">сегодня</span>
+        <div class="row-actions"><a href="#">Открыть</a><button class="quiet" type="button">Прочитано</button></div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="popup" aria-label="Утро, новые события">
+    <div class="popup-head">
+      <div>
+        <div class="kicker">Первый заход за день</div>
+        <h2>Пока Вас не было</h2>
+        <p class="lead">Четыре события с прошлого визита. Каждое можно открыть или отметить прочитанным.</p>
+      </div>
+    </div>
+    <ul class="rows">
+      <li class="row">
+        <span class="dot"></span>
+        <div>
+          <span class="who">Виктория</span>
+          <span class="what">Сдано основное задание</span>
+          <span class="detail">Методичка «1 Писательская практика»</span>
+        </div>
+        <span class="when">вчера</span>
+        <div class="row-actions"><a href="#">Открыть</a><button class="quiet" type="button">Прочитано</button></div>
+      </li>
+      <li class="row">
+        <span class="dot"></span>
+        <div>
+          <span class="who">Yannie_E</span>
+          <span class="what">Сдана глава</span>
+          <span class="detail">Глава 4, «Кухня»</span>
+        </div>
+        <span class="when">вчера</span>
+        <div class="row-actions"><a href="#">Открыть</a><button class="quiet" type="button">Прочитано</button></div>
+      </li>
+      <li class="row">
+        <span class="dot"></span>
+        <div>
+          <span class="who">Ваня</span>
+          <span class="what">Правки в упражнениях</span>
+          <span class="detail">Раздел «Упражнения»</span>
+        </div>
+        <span class="when">3 ч назад</span>
+        <div class="row-actions"><a href="#">Открыть</a><button class="quiet" type="button">Прочитано</button></div>
+      </li>
+      <li class="row">
+        <span class="dot"></span>
+        <div>
+          <span class="who">Ян</span>
+          <span class="what">Сдано еженедельное задание</span>
+          <span class="detail">«Одна сцена, два взгляда»</span>
+        </div>
+        <span class="when">сегодня</span>
+        <div class="row-actions"><a href="#">Открыть</a><button class="quiet" type="button">Прочитано</button></div>
+      </li>
+    </ul>
+    <div class="popup-actions">
+      <button class="quiet" type="button">Оставить на потом</button>
+      <button class="pill" type="button">Прочитать все</button>
+    </div>
+  </section>
+
+  <main class="page">
+    <div class="date">понедельник, 2 ноября</div>
+    <h1>Доброе утро, <span class="mk">Лиза</span></h1>
+    <div class="stats">
+      <div class="stat"><span>Ждут разбора</span><b>4</b></div>
+      <div class="stat"><span>Активные ученики</span><b>6</b></div>
+    </div>
+  </main>
+</body>
+</html>
