@@ -26,12 +26,14 @@ import CalendarWidget from "./CalendarWidget";
 import WeekSide from "./WeekSide";
 import type { WeekSideModel } from "@/lib/weekSide";
 import DailyQuote from "./DailyQuote";
+import WriteStart from "./WriteStart";
 import MentorNearest from "./MentorNearest";
 import Wordmark from "./Wordmark";
 import ToggleSwitch from "./ToggleSwitch";
 import WorkshopBookCard from "./WorkshopBookCard";
 import WorkshopCycleCard from "./WorkshopCycleCard";
 import type { DailyQuote as DailyQuoteRow } from "@/data/dailyQuotes";
+import type { WriteChapter } from "@/lib/writeChapterKey";
 import type { WorkshopBook } from "@/lib/workshopBooks";
 import type { WorkshopCycle } from "@/lib/workshopCycles";
 import type { NearestDeadlineView, NearestPaymentView } from "@/lib/studentFocus";
@@ -116,6 +118,7 @@ export default function Sidebar({
   dailyQuote,
   weekSide,
   studentFeed,
+  writeChapters,
   children,
 }: {
   basePath: string;
@@ -141,6 +144,7 @@ export default function Sidebar({
   dailyQuote?: DailyQuoteRow | null;
   weekSide?: WeekSideModel | null;
   studentFeed?: StudentFeedItem[];
+  writeChapters?: WriteChapter[];
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -533,6 +537,7 @@ export default function Sidebar({
           {calendar && (
             <>
               {dailyQuote ? <DailyQuote quote={dailyQuote} /> : null}
+              <WriteStart basePath={basePath} bookIds={(books ?? []).map((book) => book.id)} chapters={writeChapters ?? []} />
               <CalendarWidget
                 tasks={calendar.tasks}
                 paymentDay={calendar.paymentDay}
@@ -659,6 +664,9 @@ export default function Sidebar({
                     <>
                       <div className="mb-3">
                         {dailyQuote ? <DailyQuote quote={dailyQuote} /> : null}
+                        <div className="mt-3">
+                          <WriteStart basePath={basePath} bookIds={(books ?? []).map((book) => book.id)} chapters={writeChapters ?? []} />
+                        </div>
                       </div>
                       <CalendarWidget
                         tasks={calendar.tasks}

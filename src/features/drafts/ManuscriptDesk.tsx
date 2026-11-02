@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import { FileUp, Plus } from "lucide-react";
 import WritingEditor from "@/features/exercises/additional/WritingEditor";
 import type { ContentFormat } from "@/features/exercises/additional/richText";
@@ -9,6 +10,7 @@ import { formatChars } from "@/features/acts/chapterText";
 import { countSigns } from "./manuscriptCount";
 import { createManuscriptChapter, renameManuscriptChapter, saveManuscriptChapter } from "./actions";
 import ManuscriptImport from "./ManuscriptImport";
+import { manuscriptLastKey } from "@/lib/writeChapterKey";
 
 export type ManuscriptChapter = {
   id: string;
@@ -20,6 +22,27 @@ export type ManuscriptChapter = {
   manuscript: string;
   manuscriptFormat: string;
 };
+
+function BookPick({
+  books,
+  value,
+  onChange,
+}: {
+  books: { id: string; title: string }[];
+  value: string;
+  onChange: (bookId: string) => void;
+}) {
+  return (
+    <label className="manuscript-book">
+      <span>Книга</span>
+      <select aria-label="Книга" value={value} onChange={(event) => onChange(event.target.value)}>
+        {books.map((book) => (
+          <option key={book.id} value={book.id}>{book.title.trim() || "Без названия"}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
 
 function asFormat(value: string): ContentFormat {
   return value === "markdown" ? "markdown" : "plain";
@@ -89,23 +112,33 @@ export default function ManuscriptDesk({
   initialChapters,
   viewerId,
   readOnly,
+  focusChapterId = null,
+  startFocus = false,
+  books = [],
 }: {
   bookId: string | null;
   bookTitle: string;
   initialChapters: ManuscriptChapter[];
   viewerId: string;
   readOnly: boolean;
+  focusChapterId?: string | null;
+  startFocus?: boolean;
+  books?: { id: string; title: string }[];
 }) {
   const [theme, setTheme] = useState<Theme>("white");
   const [zoom, setZoom] = useState(100);
-  const [focus, setFocus] = useState(false);
+  const [focus, setFocus] = useState(startFocus);
   const [importOpen, setImportOpen] = useState(false);
   const [chapters, setChapters] = useState(initialChapters);
-  const [currentId, setCurrentId] = useState(initialChapters[0]?.id ?? null);
+  const [currentId, setCurrentId] = useState(() => {
+    if (focusChapterId && initialChapters.some((chapter) => chapter.id === focusChapterId)) return focusChapterId;
+    return initialChapters[0]?.id ?? null;
+  });
   const [status, setStatus] = useState<"saved" | "saving">("saved");
   const timer = useRef<number | null>(null);
   const latest = useRef<{ id: string; content: string; format: ContentFormat } | null>(null);
   const deskRef = useRef<HTMLElement>(null);
+  const pathname = usePathname();
   const focusRef = useRef(false);
   const canFocusRef = useRef(false);
 
@@ -113,6 +146,15 @@ export default function ManuscriptDesk({
     setTheme(readTheme(viewerId));
     setZoom(readZoom(viewerId));
   }, [viewerId]);
+
+  useEffect(() => {
+    if (!bookId || !currentId) return;
+    try {
+      localStorage.setItem(manuscriptLastKey(bookId), currentId);
+    } catch {
+      // Хранилище недоступно: виджет откроет последнюю главу книги.
+    }
+  }, [bookId, currentId]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -268,6 +310,22 @@ export default function ManuscriptDesk({
     }, 700);
   }
 
+  function chooseBook(nextBookId: string, stayFocus: boolean) {
+    const query = new URLSearchParams();
+    query.set("book", nextBookId);
+    query.set("part", "write");
+    if (stayFocus) {
+      query.set("focus", "1");
+      try {
+        const saved = localStorage.getItem(manuscriptLastKey(nextBookId));
+        if (saved) query.set("chapter", saved);
+      } catch {
+        // Откроется первая глава выбранной книги.
+      }
+    }
+    window.location.assign(`${pathname}?${query.toString()}`);
+  }
+
   function addChapter() {
     if (!bookId || readOnly) return;
     void (async () => {
@@ -306,6 +364,9 @@ export default function ManuscriptDesk({
       aria-label="Режим письма"
     >
       <div className="manuscript-focus-top">
+        {books.length > 1 && bookId ? (
+          <BookPick books={books} value={bookId} onChange={(id) => chooseBook(id, true)} />
+        ) : null}
         <h2>{current.title.trim() || "Без названия"}</h2>
         <span className="manuscript-count">{formatChars(current.writtenChars)} знаков</span>
         <span className="manuscript-zoom">
@@ -340,7 +401,11 @@ export default function ManuscriptDesk({
     <section ref={deskRef} className="manuscript" aria-label="Рукопись">
       <aside className="manuscript-list">
         <div className="manuscript-list-head">
-          <span>{bookTitle.trim() || "Книга"}</span>
+          {books.length > 1 && bookId ? (
+            <BookPick books={books} value={bookId} onChange={(id) => chooseBook(id, false)} />
+          ) : (
+            <span>{bookTitle.trim() || "Книга"}</span>
+          )}
         </div>
         {readOnly ? null : (
           <div className="manuscript-list-actions">

@@ -1578,6 +1578,59 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   align-items: center;
   gap: 6px;
 }
+.write-start {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px;
+  gap: 4px;
+  align-items: center;
+  background: var(--deep);
+  color: #fff;
+  border-radius: 16px;
+  padding: 12px 8px 12px 14px;
+  text-decoration: none;
+  box-shadow: 0 10px 24px -16px rgba(43, 45, 92, 0.8);
+}
+.write-start > span { display: block; min-width: 0; }
+.write-start b {
+  display: block;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.write-start > span > span {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.72);
+}
+.write-start svg { justify-self: end; }
+.manuscript-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.manuscript-parts a {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+.manuscript-parts a.is-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+  font-weight: 650;
+}
 .daily-quote-credit { min-width: 0; }
 .daily-quote-rule { width: 12px; height: 1px; background: var(--line); flex-shrink: 0; }
 .mentor-side-nav { display: none; }
@@ -3198,6 +3251,22 @@ html.manuscript-page body {
   min-width: 0;
 }
 .manuscript-list { padding: 12px; }
+.manuscript-book { display: flex; flex-direction: column; gap: 2px; min-width: 0; width: 100%; }
+.manuscript-book span { font-size: 11px; color: var(--muted); font-weight: 650; }
+.manuscript-book select {
+  width: 100%;
+  max-width: 220px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  padding: 0 12px;
+}
+.manuscript-focus .manuscript-book { width: auto; }
+.manuscript-focus .manuscript-book select { background: transparent; color: inherit; }
 .manuscript-list-head {
   display: flex;
   align-items: center;
@@ -3419,6 +3488,7 @@ html.manuscript-page body {
 .manuscript-focus[data-theme="dark"] { background: #161513; color: #f6f3ec; }
 .manuscript-focus-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 14px;
   margin-bottom: 8px;

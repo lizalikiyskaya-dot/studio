@@ -3,6 +3,8 @@
 import { siteConfirm } from "@/components/SiteDialog";
 
 import { useState, useTransition, useRef } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { Draft } from "@/generated/prisma/client";
 import FileAttachBox from "@/components/FileAttachBox";
 import { uploadFile } from "@/lib/uploadFile";
@@ -23,14 +25,22 @@ export default function DraftsList({
   studentId,
   initialDrafts,
   manuscript,
+  books = [],
   readOnly = false,
   manuscriptReadOnly = readOnly,
+  part = "write",
+  focusChapterId = null,
+  startFocus = false,
 }: {
   studentId: string;
   initialDrafts: Draft[];
   manuscript?: { bookId: string | null; bookTitle: string; chapters: ManuscriptChapter[]; viewerId: string };
+  books?: { id: string; title: string }[];
   readOnly?: boolean;
   manuscriptReadOnly?: boolean;
+  part?: "write" | "files";
+  focusChapterId?: string | null;
+  startFocus?: boolean;
 }) {
   const [drafts, setDrafts] = useState(initialDrafts);
   // Card is draggable ONLY while the grip handle is held, so selecting the
@@ -39,6 +49,14 @@ export default function DraftsList({
   const [, startTransition] = useTransition();
   const dragId = useRef<string | null>(null);
   const dragOverId = useRef<string | null>(null);
+  const pathname = usePathname();
+
+  function partHref(next: "write" | "files") {
+    const query = new URLSearchParams();
+    if (manuscript?.bookId) query.set("book", manuscript.bookId);
+    query.set("part", next);
+    return `${pathname}?${query.toString()}`;
+  }
 
   function handleAdd() {
     startTransition(async () => {
@@ -96,27 +114,34 @@ export default function DraftsList({
       <PageHeader
         title="Рукописи"
         actions={
-          readOnly ? undefined : (
+          part === "files" && !readOnly ? (
           <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
             <Plus size={16} /> Добавить рукопись
           </button>
-          )
+          ) : undefined
         }
       />
-      {manuscript ? (
-        <ManuscriptDesk
-          bookId={manuscript.bookId}
-          bookTitle={manuscript.bookTitle}
-          initialChapters={manuscript.chapters}
-          viewerId={manuscript.viewerId}
-          readOnly={manuscriptReadOnly}
-        />
-      ) : null}
-      <h2 className="manuscript-files">Файлы и ссылки</h2>
-      {drafts.length === 0 ? (
+      <div className="manuscript-parts" role="tablist" aria-label="Разделы рукописи">
+        <Link href={partHref("write")} className={part === "write" ? "is-on" : undefined} aria-current={part === "write" ? "page" : undefined}>Писать</Link>
+        <Link href={partHref("files")} className={part === "files" ? "is-on" : undefined} aria-current={part === "files" ? "page" : undefined}>Файлы и ссылки</Link>
+      </div>
+      {part === "write" ? (
+        manuscript ? (
+          <ManuscriptDesk
+            bookId={manuscript.bookId}
+            bookTitle={manuscript.bookTitle}
+            initialChapters={manuscript.chapters}
+            viewerId={manuscript.viewerId}
+            readOnly={manuscriptReadOnly}
+            focusChapterId={focusChapterId}
+            startFocus={startFocus}
+            books={books}
+          />
+        ) : null
+      ) : drafts.length === 0 ? (
         <EmptyState
-          cue="Самое время писать"
-          detail="Черновики и рукописи появятся здесь."
+          cue="Файлов пока нет"
+          detail="Ссылки и файлы рукописи появятся здесь."
           action={
             readOnly ? undefined : (
             <button type="button" onClick={handleAdd} className="btn-y px-5 text-[14.5px]" style={{ height: 44, width: "auto" }}>
