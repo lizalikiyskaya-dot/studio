@@ -1,5 +1,6 @@
 import { appUrl } from "@/lib/mail";
 import { queueCabinetChange } from "@/lib/activityDigest";
+import { sendTaskDecisionMail } from "@/lib/reviewMail";
 
 export const MENTOR_DIGEST_GROUPS = ["accepted", "revision", "note", "text", "feedback"] as const;
 export type MentorDigestGroup = (typeof MENTOR_DIGEST_GROUPS)[number];
@@ -111,7 +112,7 @@ export function noteUrl(anchorUrl: string | undefined): string {
   return `${appUrl()}/dashboard/tasks`;
 }
 
-/** В пачку «Наставник внёс правку». Если тумблер выключен, строка не пишется. */
+/** В пачку «Наставник внёс правку». Принято и доработка уходят отдельным письмом сразу. */
 export async function queueMentorDigest(input: {
   studentId: string;
   group: MentorDigestGroup;
@@ -119,6 +120,17 @@ export async function queueMentorDigest(input: {
   title: string;
   url: string;
 }) {
+  if (input.group === "accepted" || input.group === "revision") {
+    await sendTaskDecisionMail({
+      studentId: input.studentId,
+      group: input.group,
+      title: input.title,
+      url: input.url,
+    }).catch((error) => {
+      console.error("[mail] письмо о задании не ушло", error);
+    });
+    return;
+  }
   await queueCabinetChange({
     studentId: input.studentId,
     byMentor: true,

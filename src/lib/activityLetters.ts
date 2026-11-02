@@ -52,7 +52,7 @@ export function mentorDigestGroups(pieces: DigestPiece[]): { title: string; item
 }
 
 function digestFoot(url: string | undefined): string {
-  const base = "Одно письмо на пачку правок за час, не на каждое сохранение.";
+  const base = "Сводка приходит не чаще одного раза в сутки. Если новых правок не было, письма нет.";
   if (!url) return base;
   return `${base}<br><a href="${escapeHtml(url)}" style="color:#4B3FC0;text-decoration:underline;">${escapeHtml(optOutLinkLabel("mail"))}</a>`;
 }

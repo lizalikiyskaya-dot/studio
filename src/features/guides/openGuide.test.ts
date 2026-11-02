@@ -28,9 +28,8 @@ test("открытие методички не шлёт письмо само и
   assert.doesNotMatch(actions, /backfill/i);
   assert.match(notify, /dashboard\/materials\?tab=handouts/);
   assert.doesNotMatch(notify, /\/dashboard\/guides\//);
-  assert.match(cabinet, /Отправить уведомление на почту\?/);
-  assert.match(cabinet, /«Отправить»|Отправить/);
-  assert.match(cabinet, /Не отправлять/);
+  assert.doesNotMatch(cabinet, /Отправить уведомление на почту/);
+  assert.doesNotMatch(library, /Отправить уведомление на почту/);
   assert.doesNotMatch(cabinet, /\/dashboard\/guides\/|\/mentor\/guides\//);
   assert.doesNotMatch(cabinet, /ChevronDown|aria-expanded/);
   assert.match(library, /показать/);

@@ -446,7 +446,7 @@ function chrome(key: LetterKey, vars: Record<string, string>): {
   if (key === "mentor-edit") {
     return {
       action: { label: "Открыть кабинет", url: vars.кабинет || tasks },
-      footnote: unsubFoot("Одно письмо на пачку правок за час, не на каждое сохранение.", vars.отписка, "mail"),
+      footnote: unsubFoot("Сводка приходит не чаще одного раза в сутки. Если новых правок не было, письма нет.", vars.отписка, "mail"),
       signature: EMAIL_SIGNATURE,
     };
   }
