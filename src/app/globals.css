@@ -326,7 +326,32 @@ body:has(.writing-mode) .annotate-pop { z-index: 250 !important; }
   }
 }
 
-.book-section-strip { display: none; }
+.book-section-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  overflow: visible;
+  padding: 8px 20px 10px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  scrollbar-width: none;
+}
+.book-section-strip::-webkit-scrollbar { display: none; }
+.book-section-strip a {
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.book-section-strip a.is-on { background: var(--y); font-weight: 650; }
 
 .suggest-doc {
   white-space: pre-wrap;
@@ -1309,6 +1334,92 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
 }
 .studio-topnav a .nav-icon { display: none; }
+.studio-topbar { flex-wrap: wrap; height: auto; min-height: 64px; row-gap: 2px; align-items: center; }
+.studio-topbar .wordmark-name { padding-bottom: 0.8em; }
+.studio-topnav {
+  overflow: visible;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  height: auto;
+  min-width: min(100%, 560px);
+}
+.workshop-plaque {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 4px 0 14px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--ink);
+  position: relative;
+  flex: 0 1 auto;
+  min-width: max-content;
+  max-width: 100%;
+}
+.workshop-plaque-ribbon {
+  position: absolute;
+  left: 12px;
+  top: 0;
+  width: 8px;
+  height: 14px;
+  background: var(--y);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+}
+.workshop-plaque-copy { display: flex; align-items: baseline; gap: 6px; min-width: 0; margin-left: 8px; }
+.workshop-plaque-kicker { font-size: 13px; font-weight: 650; color: var(--ink); white-space: nowrap; }
+.workshop-plaque-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.workshop-plaque-pills { display: flex; gap: 2px; flex-shrink: 0; }
+.workshop-plaque-pills a {
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ink2);
+  background: transparent;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.workshop-plaque-pills a.is-on { background: var(--y); color: var(--ink); }
+@media (max-width: 1279px) {
+  .workshop-plaque-title { display: none; }
+}
+.studio-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  position: relative;
+  text-decoration: none;
+}
+.studio-tab-ic {
+  height: 32px;
+  min-width: 46px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+.studio-tab.is-workshop { flex: 1.45; }
+.studio-tab.is-workshop .studio-tab-ic { min-width: 64px; }
+.pub-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.pub-tabs button {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 14px;
+  background: var(--soft);
+  color: var(--ink);
+  cursor: pointer;
+}
+.pub-tabs button.is-on { background: var(--y); font-weight: 650; }
 .nav-beacon {
   position: absolute;
   top: 4px;
@@ -2292,32 +2403,14 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
   .auth-hero-copy { margin-top: 28px; }
   .auth-hero-foot { display: none; }
   .auth-panel { border-left: none; border-top: 1px solid #ececec; padding: 28px 20px 48px; }
-  .studio-topbar { height: 60px; padding: 0 16px; gap: 12px; }
-  .book-section-strip {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 8px 16px 10px;
-    background: #fff;
-    border-bottom: 1px solid var(--line);
-    scrollbar-width: none;
-  }
-  .book-section-strip::-webkit-scrollbar { display: none; }
-  .book-section-strip a {
-    flex: 0 0 auto;
-    height: 34px;
-    padding: 0 14px;
-    border-radius: 999px;
-    background: var(--soft);
-    color: var(--ink);
-    font-size: 13.5px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    white-space: nowrap;
-  }
-  .book-section-strip a.is-on { background: var(--y); font-weight: 650; }
-  .studio-logo { min-width: 0; }
+  .studio-topbar { height: auto; min-height: 60px; padding: 8px 16px; gap: 10px; flex-wrap: wrap; }
+  .book-section-strip { padding: 8px 16px 10px; }
+  .studio-logo { order: 1; min-width: 0; }
+  .studio-top-actions { order: 2; }
+  .workshop-plaque { order: 3; width: auto; max-width: 100%; height: 40px; min-width: 0; }
+  .workshop-plaque-title { display: none; }
+  .studio-menu-btn { width: 40px; padding: 0; font-size: 0; gap: 0; justify-content: center; }
+  .studio-menu-btn svg { width: 18px; height: 18px; }
   .studio-topnav { display: none; }
   .studio-menu-btn { display: inline-flex; flex-shrink: 0; }
   .mentor-side-nav { display: block; }

@@ -1,6 +1,6 @@
-import OpenCallsView from "@/features/openCalls/OpenCallsView";
+import { redirect } from "next/navigation";
 
 export default async function Page({ params }: { params: Promise<{ studentId: string }> }) {
   const { studentId } = await params;
-  return <OpenCallsView studentId={studentId} />;
+  redirect(`/student-view/${studentId}/publications?tab=calls`);
 }

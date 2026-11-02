@@ -60,7 +60,7 @@ export async function loadWeekSide(studentId: string, basePath: string): Promise
     ? {
         title: nearest.call.target.trim() || "Опен-колл",
         deadline: formatShort(nearest.date),
-        href: `${basePath}/open-calls`,
+        href: `${basePath}/publications?tab=calls`,
       }
     : null;
 

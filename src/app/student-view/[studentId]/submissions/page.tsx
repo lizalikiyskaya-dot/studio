@@ -1,6 +1,6 @@
-import SubmissionsView from "@/features/submissions/SubmissionsView";
+import { redirect } from "next/navigation";
 
 export default async function Page({ params }: { params: Promise<{ studentId: string }> }) {
   const { studentId } = await params;
-  return <SubmissionsView studentId={studentId} />;
+  redirect(`/student-view/${studentId}/publications?tab=tracker`);
 }
