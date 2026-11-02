@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname } from "next/navigation";
 import { FileUp, Plus, Trash2 } from "lucide-react";
 import ManuscriptFocus from "./ManuscriptFocus";
@@ -8,7 +8,9 @@ import type { ContentFormat } from "@/features/exercises/additional/richText";
 import { formatChars } from "@/features/acts/chapterText";
 import { countSigns } from "./manuscriptCount";
 import { siteAlert, siteConfirm } from "@/components/SiteDialog";
-import { deletePlanChapter } from "@/features/books/actions";
+import { deletePlanChapter, reorderPlanChapters } from "@/features/books/actions";
+import ChapterMove from "@/features/books/ChapterMove";
+import { moveBy, moveWithin } from "@/features/tasks/order";
 import { createManuscriptChapter, renameManuscriptChapter, saveManuscriptChapter } from "./actions";
 import ManuscriptImport from "./ManuscriptImport";
 import { manuscriptLastKey } from "@/lib/writeChapterKey";
@@ -71,6 +73,9 @@ export default function ManuscriptDesk({
   const [focus, setFocus] = useState(startFocus);
   const [importOpen, setImportOpen] = useState(false);
   const [chapters, setChapters] = useState(initialChapters);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
   const [currentId, setCurrentId] = useState(() => {
     if (focusChapterId && initialChapters.some((chapter) => chapter.id === focusChapterId)) return focusChapterId;
     return initialChapters[0]?.id ?? null;
@@ -236,6 +241,26 @@ export default function ManuscriptDesk({
     })();
   }
 
+  function commitOrder(next: ManuscriptChapter[]) {
+    if (!bookId || next.every((chapter, index) => chapter.id === chapters[index]?.id)) return;
+    setChapters(next);
+    startTransition(() => reorderPlanChapters(bookId, next.map((chapter) => chapter.id)));
+  }
+
+  function nudgeChapter(chapterId: string, dir: -1 | 1) {
+    commitOrder(moveBy(chapters, chapters.map((chapter) => chapter.id), chapterId, dir));
+  }
+
+  function dropChapter(chapterId: string) {
+    if (!dragId || dragId === chapterId) {
+      setDragId(null);
+      return;
+    }
+    const from = dragId;
+    setDragId(null);
+    commitOrder(moveWithin(chapters, chapters.map((chapter) => chapter.id), from, chapterId));
+  }
+
   async function removeChapter(chapterId: string) {
     if (readOnly) return;
     if (!(await siteConfirm("Удалить главу?"))) return;
@@ -316,7 +341,27 @@ export default function ManuscriptDesk({
         ) : (
           <ul>
             {chapters.map((chapter, index) => (
-              <li key={chapter.id} className="manuscript-chapter">
+              <li
+                key={chapter.id}
+                className={`manuscript-chapter${overId === chapter.id && dragId !== chapter.id ? " is-drag-over" : ""}`}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  if (dragId && dragId !== chapter.id) setOverId(chapter.id);
+                }}
+                onDrop={() => {
+                  setOverId(null);
+                  dropChapter(chapter.id);
+                }}
+              >
+                {readOnly ? null : (
+                  <ChapterMove
+                    first={index === 0}
+                    last={index === chapters.length - 1}
+                    onUp={() => nudgeChapter(chapter.id, -1)}
+                    onDown={() => nudgeChapter(chapter.id, 1)}
+                    onDragStart={() => setDragId(chapter.id)}
+                  />
+                )}
                 <button
                   type="button"
                   className={chapter.id === current?.id ? "manuscript-chapter-pick is-on" : "manuscript-chapter-pick"}

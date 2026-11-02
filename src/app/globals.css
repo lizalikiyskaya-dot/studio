@@ -2754,6 +2754,12 @@ html.studio-sheet-open .notes-fab { visibility: hidden; }
 .chapter-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .chapter-card-n { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 .chapter-card-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.chapter-move { display: inline-flex; align-items: center; gap: 2px; }
+.chapter-move .chapter-tool { cursor: pointer; }
+.chapter-card.is-drag-over,
+.manuscript-chapter.is-drag-over { outline: 2px solid var(--y); outline-offset: 2px; }
+.manuscript-list .chapter-move { align-self: center; }
+.manuscript-list .chapter-move button { width: auto; flex: none; padding: 4px 6px; }
 .chapter-tool {
   border: 0;
   background: transparent;
