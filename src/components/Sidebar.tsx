@@ -362,7 +362,8 @@ export default function Sidebar({
   ) : null;
 
   const currentBook = (books ?? []).find((book) => book.id === bookParam) ?? books?.[0];
-  const bookTitle = currentBook?.title.trim() || "Книга";
+  const rawBookTitle = currentBook?.title.trim() ?? "";
+  const bookTitle = rawBookTitle.toLocaleLowerCase("ru-RU") === "книга" ? "" : rawBookTitle;
   const showWorkshopPlaque = !mentorMenuOnly && (bookWorkshopUnlocked || storyWorkshopUnlocked);
 
   const subItems = onBook && bookWorkshopUnlocked
@@ -396,10 +397,9 @@ export default function Sidebar({
         </Link>
         {showWorkshopPlaque && (
           <div className="workshop-plaque" aria-label="Мастерская">
-            <span className="workshop-plaque-ribbon" aria-hidden="true" />
             <div className="workshop-plaque-copy">
               <div className="workshop-plaque-kicker">Мастерская</div>
-              <div className="workshop-plaque-title">{bookTitle}</div>
+              {bookTitle ? <div className="workshop-plaque-title">{bookTitle}</div> : null}
             </div>
             <div className="workshop-plaque-pills">
               {bookWorkshopUnlocked && (
