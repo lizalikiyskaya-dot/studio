@@ -1,5 +1,8 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/prisma";
+import { RESEND_COOLDOWN_MS, cooldownRemainingMs } from "@/lib/resetWait";
+
+export { RESEND_COOLDOWN_MS, cooldownRemainingMs, formatResetWait } from "@/lib/resetWait";
 
 /**
  * Ссылки «Забыли пароль?».
@@ -9,8 +12,6 @@ import { prisma } from "@/lib/prisma";
  * срабатывает один раз.
  */
 export const RESET_TTL_MS = 60 * 60 * 1000;
-/** Не чаще одного письма в 2 минуты на аккаунт — от «долбёжки» формой. */
-const RESEND_COOLDOWN_MS = 2 * 60 * 1000;
 
 export const MIN_PASSWORD_LENGTH = 8;
 export const MAX_PASSWORD_LENGTH = 200;
@@ -26,26 +27,31 @@ export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
+export type ResetIssue =
+  | { ok: true; token: string }
+  | { ok: false; retryAfterMs: number };
+
 /**
- * Создаёт токен для пользователя. Возвращает null, если письмо этому
- * пользователю уже отправляли только что.
+ * Создаёт токен для пользователя. Если письмо этому человеку уже уходило
+ * в последние 2 минуты, нового токена нет: возвращаем, сколько ждать.
  */
-export async function issueResetToken(userId: string): Promise<string | null> {
+export async function issueResetToken(userId: string): Promise<ResetIssue> {
+  const now = Date.now();
   const recent = await prisma.passwordResetToken.findFirst({
-    where: { userId, createdAt: { gt: new Date(Date.now() - RESEND_COOLDOWN_MS) } },
+    where: { userId, createdAt: { gt: new Date(now - RESEND_COOLDOWN_MS) } },
     orderBy: { createdAt: "desc" },
   });
-  if (recent) return null;
+  if (recent) return { ok: false, retryAfterMs: cooldownRemainingMs(recent.createdAt, now) };
 
   const token = randomBytes(32).toString("hex");
   await prisma.passwordResetToken.create({
     data: {
       userId,
       tokenHash: hashToken(token),
-      expiresAt: new Date(Date.now() + RESET_TTL_MS),
+      expiresAt: new Date(now + RESET_TTL_MS),
     },
   });
-  return token;
+  return { ok: true, token };
 }
 
 export type ResetLookup =
