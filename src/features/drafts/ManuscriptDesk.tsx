@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { FileUp, Plus, Trash2 } from "lucide-react";
 import WritingEditor from "@/features/exercises/additional/WritingEditor";
+import ManuscriptFocus from "./ManuscriptFocus";
 import type { ContentFormat } from "@/features/exercises/additional/richText";
 import { formatChars } from "@/features/acts/chapterText";
 import { countSigns } from "./manuscriptCount";
@@ -50,64 +50,6 @@ function asFormat(value: string): ContentFormat {
   return value === "markdown" ? "markdown" : "plain";
 }
 
-const THEMES = [
-  { id: "white", label: "Белая" },
-  { id: "paper", label: "Бумага" },
-  { id: "dark", label: "Тёмная" },
-] as const;
-
-type Theme = (typeof THEMES)[number]["id"];
-
-const ZOOM_MIN = 80;
-const ZOOM_MAX = 200;
-const ZOOM_STEP = 10;
-
-function themeKey(viewerId: string) {
-  return `manuscript-theme:${viewerId}`;
-}
-
-function zoomKey(viewerId: string) {
-  return `manuscript-zoom:${viewerId}`;
-}
-
-function readTheme(viewerId: string): Theme {
-  try {
-    const saved = localStorage.getItem(themeKey(viewerId));
-    if (saved === "paper" || saved === "dark" || saved === "white") return saved;
-  } catch {
-    // Хранилище недоступно: остаётся белая тема.
-  }
-  return "white";
-}
-
-function readZoom(viewerId: string) {
-  try {
-    const saved = Number(localStorage.getItem(zoomKey(viewerId)));
-    if (Number.isFinite(saved) && saved >= ZOOM_MIN && saved <= ZOOM_MAX) return saved;
-  } catch {
-    // Хранилище недоступно: остаётся обычный размер.
-  }
-  return 100;
-}
-
-function ThemeSwitch({ theme, onChange }: { theme: Theme; onChange: (theme: Theme) => void }) {
-  return (
-    <span className="manuscript-themes" role="group" aria-label="Тема окна">
-      {THEMES.map((item) => (
-        <button
-          key={item.id}
-          type="button"
-          className={item.id === theme ? "is-on" : undefined}
-          aria-pressed={item.id === theme}
-          onClick={() => onChange(item.id)}
-        >
-          {item.label}
-        </button>
-      ))}
-    </span>
-  );
-}
-
 export default function ManuscriptDesk({
   bookId,
   bookTitle,
@@ -127,8 +69,6 @@ export default function ManuscriptDesk({
   startFocus?: boolean;
   books?: { id: string; title: string }[];
 }) {
-  const [theme, setTheme] = useState<Theme>("white");
-  const [zoom, setZoom] = useState(100);
   const [focus, setFocus] = useState(startFocus);
   const [importOpen, setImportOpen] = useState(false);
   const [chapters, setChapters] = useState(initialChapters);
@@ -143,11 +83,6 @@ export default function ManuscriptDesk({
   const pathname = usePathname();
   const focusRef = useRef(false);
   const canFocusRef = useRef(false);
-
-  useEffect(() => {
-    setTheme(readTheme(viewerId));
-    setZoom(readZoom(viewerId));
-  }, [viewerId]);
 
   useEffect(() => {
     if (!bookId || !currentId) return;
@@ -227,52 +162,6 @@ export default function ManuscriptDesk({
       document.removeEventListener("keydown", onKey);
     };
   }, [focus]);
-
-  useEffect(() => {
-    if (!focus) return;
-    function onKey(event: KeyboardEvent) {
-      const mac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
-      const chord = mac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
-      if (!chord || event.altKey) return;
-      const zoomIn = event.code === "Equal" || event.code === "NumpadAdd";
-      const zoomOut = !event.shiftKey && (event.code === "Minus" || event.code === "NumpadSubtract");
-      const reset = !event.shiftKey && (event.code === "Digit0" || event.code === "Numpad0");
-      if (!zoomIn && !zoomOut && !reset) return;
-      event.preventDefault();
-      setZoom((current) => {
-        const next = reset ? 100 : Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, current + (zoomIn ? ZOOM_STEP : -ZOOM_STEP)));
-        try {
-          localStorage.setItem(zoomKey(viewerId), String(next));
-        } catch {
-          // Размер останется до перезагрузки страницы.
-        }
-        return next;
-      });
-    }
-    window.addEventListener("keydown", onKey, true);
-    return () => window.removeEventListener("keydown", onKey, true);
-  }, [focus, viewerId]);
-
-  function chooseTheme(next: Theme) {
-    setTheme(next);
-    try {
-      localStorage.setItem(themeKey(viewerId), next);
-    } catch {
-      // Выбор останется до перезагрузки страницы.
-    }
-  }
-
-  function bumpZoom(delta: number) {
-    setZoom((current) => {
-      const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, current + delta));
-      try {
-        localStorage.setItem(zoomKey(viewerId), String(next));
-      } catch {
-        // Размер останется до перезагрузки страницы.
-      }
-      return next;
-    });
-  }
 
   const current = chapters.find((chapter) => chapter.id === currentId) ?? null;
   focusRef.current = focus;
@@ -375,53 +264,32 @@ export default function ManuscriptDesk({
     );
   }
 
-  const focusScreen = focus && current ? createPortal(
-    <div
-      className="manuscript manuscript-focus"
-      data-theme={theme}
-      style={{ "--manuscript-zoom": zoom / 100 } as CSSProperties}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Режим письма"
-    >
-      <div className="manuscript-focus-top">
-        {books.length > 1 && bookId ? (
-          <BookPick books={books} value={bookId} onChange={(id) => chooseBook(id, true)} />
-        ) : null}
-        <h2>{current.title.trim() || "Без названия"}</h2>
-        <span className="manuscript-count">{formatChars(current.writtenChars)} знаков</span>
-        {readOnly ? null : (
-          <button type="button" className="chapter-tool chapter-tool-icon" aria-label="Удалить главу" onClick={() => removeChapter(current.id)}>
-            <Trash2 size={14} />
-            Удалить
-          </button>
-        )}
-        <span className="manuscript-zoom">
-          <button type="button" title="Уменьшить текст" aria-label="Уменьшить текст" disabled={zoom <= ZOOM_MIN} onClick={() => bumpZoom(-ZOOM_STEP)}>−</button>
-          <button type="button" title="Увеличить текст" aria-label="Увеличить текст" disabled={zoom >= ZOOM_MAX} onClick={() => bumpZoom(ZOOM_STEP)}>+</button>
-        </span>
-        <ThemeSwitch theme={theme} onChange={chooseTheme} />
-        <button
-          type="button"
-          className="writing-tool manuscript-glyph"
-          title="Свернуть"
-          aria-label="Свернуть"
-          onClick={() => setFocus(false)}
-        >
-          <span aria-hidden="true">⤡</span>
-        </button>
-      </div>
-      <WritingEditor
-        key={current.id}
-        value={current.manuscript}
-        format={asFormat(current.manuscriptFormat)}
-        onChange={onChange}
-        placeholder="Напишите главу здесь"
-        variant="focus"
-        readOnly={readOnly}
-      />
-    </div>,
-    document.body,
+  const focusScreen = focus && current ? (
+    <ManuscriptFocus
+      key={current.id}
+      title={current.title}
+      value={current.manuscript}
+      format={asFormat(current.manuscriptFormat)}
+      onChange={onChange}
+      placeholder="Напишите главу здесь"
+      readOnly={readOnly}
+      viewerId={viewerId}
+      layout="screen"
+      onClose={() => setFocus(false)}
+      leading={
+        <>
+          {books.length > 1 && bookId ? (
+            <BookPick books={books} value={bookId} onChange={(id) => chooseBook(id, true)} />
+          ) : null}
+          {readOnly ? null : (
+            <button type="button" className="chapter-tool chapter-tool-icon" aria-label="Удалить главу" onClick={() => removeChapter(current.id)}>
+              <Trash2 size={14} />
+              Удалить
+            </button>
+          )}
+        </>
+      }
+    />
   ) : null;
 
   return (
