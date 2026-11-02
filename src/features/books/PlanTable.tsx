@@ -5,7 +5,9 @@ import { siteAlert, siteConfirm } from "@/components/SiteDialog";
 import { useState, useTransition, useRef, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import type { PlanChapter } from "@/generated/prisma/client";
-import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, updatePlanChapterReview, toggleChapterActBreak, deletePlanChapter } from "./actions";
+import { moveBy, moveWithin } from "@/features/tasks/order";
+import { createPlanChapter, updatePlanChapterNumber, updatePlanChapterColor, updatePlanChapterReview, toggleChapterActBreak, deletePlanChapter, reorderPlanChapters } from "./actions";
+import ChapterMove from "./ChapterMove";
 import SuggestableField from "@/features/suggestions/SuggestableField";
 import { blurOnEnter } from "@/lib/blurOnEnter";
 import { useHeaderAction } from "@/components/headerAction";
@@ -158,7 +160,37 @@ export default function PlanTable({
 }) {
   const [chapters, setChapters] = useState(initialChapters);
   const [acts, setActs] = useState(initialActs);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+
+  function siblings(chapterId: string) {
+    const chapter = chapters.find((item) => item.id === chapterId);
+    if (!chapter) return [];
+    return chapters.filter((item) => (item.actId ?? null) === (chapter.actId ?? null)).map((item) => item.id);
+  }
+
+  function commitOrder(next: PlanChapter[]) {
+    if (next.every((chapter, index) => chapter.id === chapters[index]?.id)) return;
+    setChapters(next);
+    startTransition(() => reorderPlanChapters(bookId, next.map((chapter) => chapter.id)));
+  }
+
+  function nudge(chapterId: string, dir: -1 | 1) {
+    commitOrder(moveBy(chapters, siblings(chapterId), chapterId, dir));
+  }
+
+  function dropOn(chapterId: string) {
+    if (!dragId || dragId === chapterId) {
+      setDragId(null);
+      return;
+    }
+    const from = chapters.find((item) => item.id === dragId);
+    const to = chapters.find((item) => item.id === chapterId);
+    setDragId(null);
+    if (!from || !to || (from.actId ?? null) !== (to.actId ?? null)) return;
+    commitOrder(moveWithin(chapters, siblings(dragId), dragId, chapterId));
+  }
 
   function handleAdd() {
     startTransition(async () => {
@@ -272,8 +304,16 @@ export default function PlanTable({
                       <article
                         key={chapter.id}
                         id={`chapter-${chapter.id}`}
-                        className={`chapter-card is-${tone}`}
+                        className={`chapter-card is-${tone}${overId === chapter.id && dragId !== chapter.id ? " is-drag-over" : ""}`}
                         style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+                        onDragOver={(event) => {
+                          event.preventDefault();
+                          if (dragId && dragId !== chapter.id) setOverId(chapter.id);
+                        }}
+                        onDrop={() => {
+                          setOverId(null);
+                          dropOn(chapter.id);
+                        }}
                       >
                         <div className="chapter-card-top">
                           <span className="chapter-card-n">Глава {numbers.get(chapter.id)}</span>
@@ -350,6 +390,13 @@ export default function PlanTable({
                           </div>
                         </div>
                         <div className="chapter-card-tools">
+                          <ChapterMove
+                            first={siblings(chapter.id)[0] === chapter.id}
+                            last={siblings(chapter.id).at(-1) === chapter.id}
+                            onUp={() => nudge(chapter.id, -1)}
+                            onDown={() => nudge(chapter.id, 1)}
+                            onDragStart={() => setDragId(chapter.id)}
+                          />
                           <ColorPicker
                             current={chapter.color ?? null}
                             onChange={(color) => handleRowColor(chapter.id, color)}

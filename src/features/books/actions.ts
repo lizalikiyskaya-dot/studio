@@ -232,3 +232,12 @@ export async function deletePlanChapter(chapterId: string): Promise<{ ok: true }
   revalidatePath(`/student-view/${book.studentId}`, "layout");
   return { ok: true };
 }
+
+export async function reorderPlanChapters(bookId: string, ids: string[]) {
+  const book = await prisma.book.findUniqueOrThrow({ where: { id: bookId } });
+  await requireCabinetAccess(book.studentId);
+  const existing = await prisma.planChapter.findMany({ where: { bookId }, select: { id: true } });
+  const known = new Set(existing.map((row) => row.id));
+  if (new Set(ids).size !== ids.length || ids.length !== known.size || ids.some((id) => !known.has(id))) return;
+  await prisma.$transaction(ids.map((id, order) => prisma.planChapter.update({ where: { id }, data: { order } })));
+}
