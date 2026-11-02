@@ -45,7 +45,7 @@ export default function WeeklyForm({
   }
 
   return (
-    <div className="mt-3" data-no-digest="">
+    <div className="weekly-compose mt-3" data-no-digest="">
       {editing ? (
         <WeeklyEditor viewerId={viewerId} value={text} onChange={setText} />
       ) : (
@@ -55,7 +55,7 @@ export default function WeeklyForm({
         </div>
       )}
       {editing ? (
-        <div className="mt-3 flex flex-wrap items-center gap-3">
+        <div className="weekly-submit mt-3 flex flex-wrap items-center gap-3">
           <button
             type="button"
             className="btn-y px-5 text-[14.5px]"

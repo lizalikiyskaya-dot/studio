@@ -824,6 +824,9 @@ div.suggest-doc.fld {
   }
 }
 .weekly-page { max-width: 720px; }
+.weekly-page:has(.weekly-write) { max-width: none; }
+.weekly-page:has(.weekly-write) > :not(.weekly-compose) { max-width: 720px; }
+.weekly-compose > :not(.weekly-write) { max-width: 720px; }
 .mentor-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 22px; align-items: start; }
 .plan-board { overflow-x: auto; }
 .plan-mobile { display: none; }
@@ -3654,7 +3657,7 @@ html.manuscript-page body {
   box-shadow: 0 12px 32px -18px rgba(32, 32, 32, 0.45);
 }
 .manuscript-focus .writing-prose {
-  width: min(calc(100% - 96px), calc(var(--manuscript-measure, 66) * 1ch));
+  width: min(calc(100% - 12vw), calc(var(--manuscript-measure, 66) * 1ch));
   max-width: calc(var(--manuscript-measure, 66) * 1ch);
   margin-left: auto;
   margin-right: auto;
@@ -3662,9 +3665,10 @@ html.manuscript-page body {
   color: inherit;
   border: 0;
   box-shadow: none;
+  border-radius: 0;
   font-size: calc(19px * var(--manuscript-zoom, 1));
-  line-height: 1.65;
-  padding-top: 48px;
+  line-height: 1.7;
+  padding: 56px 0 24px;
 }
 .manuscript-focus .writing-prose h2 {
   font-family: inherit;
@@ -3676,24 +3680,34 @@ html.manuscript-page body {
 .manuscript-focus .writing-prose h2::after { content: none; }
 .manuscript-focus .writing-editor:not(:has(.writing-toolbar)) .writing-prose { padding-top: 8px; }
 .manuscript-focus .writing-prose.is-empty:before {
-  top: 48px;
-  right: 2px;
-  left: 2px;
+  top: 56px;
+  right: 0;
+  left: 0;
 }
 .manuscript-focus .writing-editor:not(:has(.writing-toolbar)) .writing-prose.is-empty:before { top: 8px; }
 .weekly-write {
   position: relative;
+  width: 100%;
   min-height: 68vh;
   display: flex;
   flex-direction: column;
   margin-top: 8px;
   padding: 4px 0 8px;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
 }
 .weekly-write[data-theme="white"] { background: transparent; color: var(--ink); }
+.weekly-write[data-theme="paper"] { background: #f3e6c8; color: #3b2918; }
+.weekly-write[data-theme="dark"] { background: #161513; color: #f6f3ec; }
 .manuscript-focus-close { position: absolute; top: 12px; right: 16px; z-index: 3; margin-top: 0; }
 @media (max-width: 700px) {
   .manuscript-focus-title { display: none; }
   .manuscript-focus .writing-tool { width: 22px; height: 22px; }
+  .manuscript-focus .writing-prose {
+    width: min(calc(100% - 32px), calc(var(--manuscript-measure, 66) * 1ch));
+    padding-top: 52px;
+  }
 }
 @media (max-width: 800px) {
   .manuscript { grid-template-columns: 1fr; }
