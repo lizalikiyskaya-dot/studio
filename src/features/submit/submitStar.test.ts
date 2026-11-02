@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import test from "node:test";
 import { flightDestination, submitReviewControl } from "./submitStar";
 
@@ -7,6 +9,14 @@ test("звёздочка летит к счётчику звёзд, потом �
   assert.deepEqual(flightDestination(from, { x: 80, y: 24 }, { x: 90, y: 70 }), { x: 80, y: 24 });
   assert.deepEqual(flightDestination(from, null, { x: 90, y: 70 }), { x: 90, y: 70 });
   assert.deepEqual(flightDestination(from, null, null), { x: 40, y: 332 });
+});
+
+test("полёт звёзды выключен только у основных заданий", () => {
+  const root = path.resolve(import.meta.dirname, "../..");
+  const tasks = fs.readFileSync(path.join(root, "features/tasks/TasksTable.tsx"), "utf8");
+  const exercises = fs.readFileSync(path.join(root, "features/exercises/ExerciseStatusControl.tsx"), "utf8");
+  assert.match(tasks, /<SubmitForReviewButton[\s\S]*?fly=\{false\}/);
+  assert.doesNotMatch(exercises, /fly=\{false\}/);
 });
 
 test("кнопка сдачи гаснет только после «принято»", () => {

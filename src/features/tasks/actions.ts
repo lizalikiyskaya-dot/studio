@@ -111,8 +111,8 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
   if (session.role !== "MENTOR" && status !== "SUBMITTED") return task.status;
   if (task.status === status) return status;
   await prisma.task.update({ where: { id: taskId }, data: { status } });
-  // 3 звёзды один раз: сдача на проверку или «принято». Повтор и «на доработке» не удваивают.
-  if (mainTaskAwardsStars(status)) {
+  // 3 звёзды один раз, только когда наставник ставит «принято». Журнал не пишет задачу второй раз.
+  if (mainTaskAwardsStars(status, session.role)) {
     await awardStars(task.studentId, "MAIN_TASK", task.id);
   }
   const review = session.role === "MENTOR" ? reviewGroup(status) : null;
