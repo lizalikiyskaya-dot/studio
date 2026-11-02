@@ -36,6 +36,8 @@ import type { DailyQuote as DailyQuoteRow } from "@/data/dailyQuotes";
 import type { WorkshopBook } from "@/lib/workshopBooks";
 import type { WorkshopCycle } from "@/lib/workshopCycles";
 import type { NearestDeadlineView, NearestPaymentView } from "@/lib/studentFocus";
+import type { FeedItem } from "@/lib/mentorFeed";
+import { MentorBell } from "@/features/mentorFeed/MentorFeed";
 import { setReviewMode } from "@/features/reviewMode/actions";
 import { useCanSuggest, useSetCanSuggest } from "@/features/suggestions/SuggestionContext";
 import { useSheetSwipe } from "@/components/useSheetSwipe";
@@ -110,6 +112,7 @@ export default function Sidebar({
   books,
   cycles,
   nearest,
+  feed,
   dailyQuote,
   weekSide,
   children,
@@ -133,6 +136,7 @@ export default function Sidebar({
   books?: WorkshopBook[];
   cycles?: WorkshopCycle[];
   nearest?: { deadlines: NearestDeadlineView[]; payments: NearestPaymentView[] };
+  feed?: FeedItem[];
   dailyQuote?: DailyQuoteRow | null;
   weekSide?: WeekSideModel | null;
   children: ReactNode;
@@ -399,6 +403,7 @@ export default function Sidebar({
           })}
         </nav>
         <div className="studio-top-actions">
+          {mentorMenuOnly && feed ? <MentorBell items={feed} /> : null}
           {typeof notesCount === "number" && (
             <button type="button" className="notes-chip" onClick={() => window.dispatchEvent(new Event("studio:toggle-notes"))}>
               <MessageSquareText size={16} />

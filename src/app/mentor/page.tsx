@@ -5,10 +5,11 @@ import { approveUser, rejectUser } from "./actions";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import StudentsList from "./StudentsList";
-import { getUnseenActivity } from "@/lib/unseenActivity";
 import { markedTitle } from "@/components/markedTitle";
 import { loadCurrentWork } from "@/lib/studentFocusData";
-import { sectionLabel } from "@/lib/sections";
+import { loadMentorFeed } from "@/lib/mentorFeedLoad";
+import { feedCounts, studentHint } from "@/lib/mentorFeed";
+import { MentorDayCard, MentorFeedPanel } from "@/features/mentorFeed/MentorFeed";
 
 export default async function MentorPage() {
   const session = await getSession();
@@ -46,8 +47,19 @@ export default async function MentorPage() {
   const students = people
     .filter((s) => s.status === "APPROVED" || s.status === "SUSPENDED")
     .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, "ru"));
-  // Маячок у имени = непросмотренные правки ученика (см. lib/unseenActivity).
-  const unseen = await getUnseenActivity(session.userId, students);
+  const feed = await loadMentorFeed(session.userId);
+  const counts = feedCounts(feed);
+  const hintByStudent = new Map<string, { hint: string; href: string; at: string; kind: string; sourceId: string }>();
+  for (const item of feed) {
+    if (item.seen || hintByStudent.has(item.studentId)) continue;
+    hintByStudent.set(item.studentId, {
+      hint: studentHint(item),
+      href: item.href,
+      at: item.at,
+      kind: item.kind,
+      sourceId: item.sourceId,
+    });
+  }
   const currentWork = await loadCurrentWork(students.map((s) => s.id));
   const studentsWithBeacons = students.map((s) => ({
     id: s.id,
@@ -63,7 +75,11 @@ export default async function MentorPage() {
     avatarUrl: s.avatarUrl,
     lastSeenAt: s.lastSeenAt,
     lastActivityAt: s.lastActivityAt,
-    unseenAt: unseen[s.id] ?? null,
+    unseenAt: hintByStudent.get(s.id) ? new Date(hintByStudent.get(s.id)!.at) : null,
+    unseenHint: hintByStudent.get(s.id)?.hint ?? null,
+    unseenHref: hintByStudent.get(s.id)?.href ?? null,
+    unseenKind: hintByStudent.get(s.id)?.kind ?? null,
+    unseenSourceId: hintByStudent.get(s.id)?.sourceId ?? null,
     currentWork: currentWork[s.id] ?? null,
   }));
 
@@ -76,9 +92,6 @@ export default async function MentorPage() {
   const openCount = students.filter((s) => s.status === "APPROVED" && s.paymentStatus === "PAID").length;
   const awaitingCount = students.filter((s) => s.status === "APPROVED" && s.paymentStatus !== "PAID").length;
   const suspendedCount = students.filter((s) => s.status === "SUSPENDED").length;
-  const nowMs = new Date().getTime();
-  const onlineCount = students.filter((s) => s.lastSeenAt && nowMs - new Date(s.lastSeenAt).getTime() < 3 * 60_000).length;
-  const freshEdits = studentsWithBeacons.filter((s) => s.unseenAt).length;
   const today = new Date();
   const weekStart = new Date(today);
   weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
@@ -100,29 +113,22 @@ export default async function MentorPage() {
   );
   const hello = hour < 12 ? "Доброе утро" : hour < 18 ? "Добрый день" : "Добрый вечер";
   const mentorName = mentor?.name?.trim().split(/\s+/)[0] || "наставник";
-  const recentEdits = students.length === 0
-    ? []
-    : await prisma.sectionActivity.findMany({
-        where: { studentId: { in: students.map((s) => s.id) }, byRole: "STUDENT" },
-        orderBy: { at: "desc" },
-        take: 6,
-      });
-  const nameById = new Map(students.map((s) => [s.id, s.name]));
 
   return (
     <div>
       <div className="text-[14px] capitalize" style={{ color: "var(--muted)" }}>{dateLabel}</div>
       <h1 className="page-title mt-1 mb-5">{hello}, {markedTitle(mentorName)}</h1>
+      <MentorDayCard items={feed} />
       <div className="mentor-stats">
         <div className="mentor-stat is-lead">
           <div className="mentor-stat-lbl">Ждут разбора</div>
-          <div className="mentor-stat-num">{freshEdits}</div>
-          <div className="mentor-stat-sub">непросмотренные правки</div>
+          <div className="mentor-stat-num">{counts.action}</div>
+          <div className="mentor-stat-sub">сдано и ещё не открыто</div>
         </div>
         <div className="mentor-stat">
-          <div className="mentor-stat-lbl">Активные ученики</div>
-          <div className="mentor-stat-num">{activeCount}</div>
-          <div className="mentor-stat-sub">{onlineCount} сейчас онлайн</div>
+          <div className="mentor-stat-lbl">Правки</div>
+          <div className="mentor-stat-num">{counts.edits}</div>
+          <div className="mentor-stat-sub">без сдачи, не открыты</div>
         </div>
         <div className="mentor-stat">
           <div className="mentor-stat-lbl">Новые заявки</div>
@@ -171,22 +177,7 @@ export default async function MentorPage() {
               ))}
             </div>
           </section>
-          <section className="sheet p-4">
-            <h2 className="text-[16px] font-semibold mb-2">Последние правки</h2>
-            {recentEdits.length === 0 ? (
-              <p className="text-[13.5px]" style={{ color: "var(--muted)" }}>Свежих правок нет.</p>
-            ) : (
-              recentEdits.map((row) => (
-                <a key={`${row.studentId}:${row.section}`} href={`/student-view/${row.studentId}/${row.section}`} className="mentor-edit-row">
-                  <span className="min-w-0">
-                    <span className="block truncate text-[14px] font-medium">{nameById.get(row.studentId) ?? "Ученик"}</span>
-                    <span className="block truncate text-[12.5px]" style={{ color: "var(--muted)" }}>{sectionLabel(row.section)}</span>
-                  </span>
-                  <span className="shrink-0 text-[12px]" style={{ color: "var(--muted)" }}>{ago(row.at, today)}</span>
-                </a>
-              ))
-            )}
-          </section>
+          <MentorFeedPanel items={feed} />
           <section className="sheet p-4">
             <h2 className="text-[16px] font-semibold mb-2">Недавние решения</h2>
             {decided.length === 0 ? (
@@ -207,13 +198,3 @@ export default async function MentorPage() {
   );
 }
 
-function ago(date: Date, now: Date): string {
-  const mins = Math.max(0, Math.round((now.getTime() - date.getTime()) / 60000));
-  if (mins < 1) return "только что";
-  if (mins < 60) return `${mins} мин назад`;
-  const hours = Math.round(mins / 60);
-  if (hours < 24) return `${hours} ч назад`;
-  const days = Math.round(hours / 24);
-  if (days === 1) return "вчера";
-  return `${days} дн назад`;
-}

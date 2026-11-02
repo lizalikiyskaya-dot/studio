@@ -11,6 +11,7 @@ import { loadWorkshopBooks } from "@/lib/workshopBooks";
 import { loadWorkshopCycles } from "@/lib/workshopCycles";
 import { loadDailyQuote } from "@/lib/loadDailyQuote";
 import { loadWeekSide } from "@/lib/weekSide";
+import FeedHighlight from "@/features/mentorFeed/FeedHighlight";
 
 export default async function StudentViewLayout({
   children,
@@ -58,6 +59,7 @@ export default async function StudentViewLayout({
   return (
     <SuggestionProvider canSuggest={student.reviewModeEnabled}>
       <SectionTracker studentId={student.id} basePath={`/student-view/${studentId}`} />
+      <FeedHighlight />
       <Sidebar
         basePath={`/student-view/${studentId}`}
         userName={student.name}

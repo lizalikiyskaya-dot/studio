@@ -237,6 +237,7 @@ model User {
   badgeAwards       BadgeAward[]
   emailLogs           EmailLog[]
   mailDigests         MailDigest[]
+  chapterFeedEvents   ChapterFeedEvent[]
 }
 
 // Одноразовая ссылка «Забыли пароль?». В базе лежит только SHA-256 от
@@ -631,6 +632,30 @@ model WorkPlan {
 // Last time any content in a given section changed, for a given student's
 // cabinet, and which role made the change. Used to light "new updates"
 // beacons next to sidebar sections for the OTHER party.
+// Событие «глава сдана». У главы нет своего времени, поэтому момент
+// перехода в «сдана» пишется сюда. Прочитанность живёт отдельно.
+model ChapterFeedEvent {
+  id        String   @id @default(cuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  chapterId String   @unique
+  title     String   @default("")
+  at        DateTime @default(now()) @updatedAt
+
+  @@index([studentId])
+}
+
+// Наставник открыл конкретное событие ленты. Одна строка на событие.
+model MentorItemSeen {
+  userId   String
+  kind     String
+  sourceId String
+  seenAt   DateTime @default(now()) @updatedAt
+
+  @@id([userId, kind, sourceId])
+  @@index([userId])
+}
+
 model SectionActivity {
   studentId String
   section   String

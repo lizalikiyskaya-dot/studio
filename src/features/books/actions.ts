@@ -11,6 +11,7 @@ import { submittedStatusCounts } from "@/features/streak/weeks";
 import { isChapterReview, type ChapterReviewValue } from "./chapterReview";
 import { appUrl } from "@/lib/mail";
 import { queueMentorDigest, reviewGroup } from "@/lib/mentorDigest";
+import { clearChapterSubmitted, recordChapterSubmitted } from "@/lib/chapterFeed";
 
 async function attachAct(bookId: string, actId?: string | null) {
   if (actId) {
@@ -97,6 +98,13 @@ export async function updatePlanChapterReview(chapterId: string, status: Chapter
   await requireMentor(book.studentId);
   if (chapter.reviewStatus === status) return;
   await prisma.planChapter.update({ where: { id: chapterId }, data: { reviewStatus: status } });
+  if (status === "SUBMITTED") {
+    const number = chapter.order + 1;
+    const name = chapter.title.trim();
+    await recordChapterSubmitted(book.studentId, chapter.id, name ? `Глава ${number}, «${name}»` : `Глава ${number}`);
+  } else {
+    await clearChapterSubmitted(chapter.id);
+  }
   if (chapterAwardsStars(status)) await awardStars(book.studentId, "CHAPTER", chapter.id);
   if (submittedStatusCounts(chapter.reviewStatus, status)) await creditStreakWeek(book.studentId);
   const review = reviewGroup(status);

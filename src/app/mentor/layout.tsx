@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import Sidebar from "@/components/Sidebar";
 import { loadMentorNearest } from "@/lib/studentFocusData";
+import { loadMentorFeed } from "@/lib/mentorFeedLoad";
 
 export default async function MentorLayout({
   children,
@@ -15,10 +16,10 @@ export default async function MentorLayout({
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   if (!user) redirect("/login");
-  const nearest = await loadMentorNearest();
+  const [nearest, feed] = await Promise.all([loadMentorNearest(), loadMentorFeed(session.userId)]);
 
   return (
-    <Sidebar basePath="/mentor" userName={user.name} isMentor mentorMenuOnly avatarUrl={user.avatarUrl} nearest={nearest}>
+    <Sidebar basePath="/mentor" userName={user.name} isMentor mentorMenuOnly avatarUrl={user.avatarUrl} nearest={nearest} feed={feed}>
       {children}
     </Sidebar>
   );
