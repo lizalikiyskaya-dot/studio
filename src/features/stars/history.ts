@@ -39,6 +39,25 @@ export function starAwardReason(row: StarReasonSource): string {
   }
 }
 
+/** +N или −N. Ноль остаётся нулём, без знака. */
+export function starHistoryDelta(points: number): string {
+  if (!Number.isFinite(points) || points === 0) return "0";
+  if (points > 0) return `+${points}`;
+  return `−${Math.abs(points)}`;
+}
+
+/** Свежие сверху: соседние строки одного дня собираются в одну группу. */
+export function groupStarHistory<T extends { at: string }>(rows: T[]): { date: string; rows: T[] }[] {
+  const groups: { date: string; rows: T[] }[] = [];
+  for (const row of rows) {
+    const date = starHistoryDate(row.at) || "Без даты";
+    const last = groups[groups.length - 1];
+    if (last && last.date === date) last.rows.push(row);
+    else groups.push({ date, rows: [row] });
+  }
+  return groups;
+}
+
 /** Дата начисления по Москве, без «г.». */
 export function starHistoryDate(iso: string): string {
   const date = new Date(iso);
