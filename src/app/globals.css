@@ -1156,7 +1156,6 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   background: var(--y);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
 }
-.wordmark.lg .wordmark-name { font-size: 34px; }
 .auth-hero-copy { margin-top: auto; position: relative; z-index: 1; }
 .auth-kicker {
   font-family: var(--font-serif), Georgia, serif;

@@ -6,7 +6,7 @@ export default function AuthShowcase() {
     <aside className="auth-hero">
       <span className="auth-ribbon" aria-hidden="true" />
       <div className="relative z-10">
-        <Wordmark size="lg" />
+        <Wordmark />
       </div>
       <div className="auth-hero-copy">
         <div className="auth-kicker">Студия художественной прозы</div>
