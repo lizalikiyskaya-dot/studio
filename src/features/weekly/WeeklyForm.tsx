@@ -38,7 +38,7 @@ export default function WeeklyForm({
   }
 
   return (
-    <div className="mt-3">
+    <div className="mt-3" data-no-digest="">
       <label className="fld-label" style={{ marginTop: 0 }}>
         Ваш текст
         <textarea
@@ -63,7 +63,7 @@ export default function WeeklyForm({
         <span className="text-[13px]" style={{ color: "var(--muted)" }}>
           {saved
             ? "Повторная сдача этой недели звёзды не удваивает."
-            : "Сразу 2 звёздочки. Проверка наставника не нужна."}
+            : "Сразу 2 звёздочки. Наставник получит письмо о сдаче."}
         </span>
       </div>
       {message ? (
