@@ -1,6 +1,6 @@
-export default function Wordmark({ size = "md" }: { size?: "md" | "lg" }) {
+export default function Wordmark() {
   return (
-    <span className={`wordmark${size === "lg" ? " lg" : ""}`}>
+    <span className="wordmark">
       <span className="wordmark-name">
         Андреенко
         <span className="wordmark-ribbon" aria-hidden="true" />
