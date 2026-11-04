@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Макет. Рукописи, два раздела</title>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400&family=Onest:wght@400;500;600;650&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="cabinet.css" />
+  <style>
+    .chapters { display: grid; grid-template-columns: 220px 1fr; gap: 14px; }
+    .list, .editor { border: 1px solid var(--line); border-radius: 18px; padding: 12px; min-height: 280px; }
+    .list button { display: block; width: 100%; text-align: left; border: 0; background: transparent; border-radius: 12px; padding: 8px; }
+    .list button.on { background: #fff6cc; }
+    .list small { display: block; color: var(--muted); }
+    .editor h2 { margin: 8px 0 4px; font-size: 22px; }
+    .editor p { font-family: Literata, Georgia, serif; font-size: 17px; line-height: 1.5; }
+    .file { border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; margin-top: 8px; }
+    .file b { background: #fff6cc; padding: 0 3px; }
+    @media (max-width: 800px) {
+      .chapters { grid-template-columns: 1fr; }
+      .pagepad { padding: 16px; }
+      h1 { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="desk-only">
+    <header class="topbar">
+      <div class="logo">Андреенко<i></i></div>
+      <nav class="nav">
+        <a>Задания</a><a>Задание недели</a><a>План работы</a><a>Материалы</a>
+        <a class="on">Рукописи</a><a>Упражнения</a><a>Трекер заявок</a><a>Опен-коллы</a>
+      </nav>
+    </header>
+    <div class="shell">
+      <main class="main">
+        <p class="note">Макет. Два подраздела вместо одной длинной страницы.</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <h1>Руко<mark>писи</mark></h1>
+          <button class="ybtn">+ Новая глава</button>
+        </div>
+        <div class="pills">
+          <button class="on" type="button">Писать</button>
+          <button type="button">Файлы и ссылки</button>
+        </div>
+        <div class="chapters">
+          <aside class="list">
+            <b>Дом у реки</b>
+            <button type="button"><small>Глава 1</small>Туман<small>127 зн.</small></button>
+            <button class="on" type="button"><small>Глава 2</small>Письма<small>1 240 зн.</small></button>
+          </aside>
+          <section class="editor">
+            <div class="note">Трекер · 1 240 знаков · план главы 1 500</div>
+            <h2>Письма</h2>
+            <p>Северная река молчит у дома. Герой стоит на мостках и смотрит, как туман снимает крыши.</p>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div class="phone-only pagepad">
+    <p class="note">Макет телефона. Здесь открыт второй подраздел.</p>
+    <h1>Руко<mark>писи</mark></h1>
+    <div class="pills">
+      <button type="button">Писать</button>
+      <button class="on" type="button">Файлы и ссылки</button>
+    </div>
+    <button class="ybtn" type="button">+ Добавить рукопись</button>
+    <article class="file">
+      <b>Северная река молчит у дома.</b>
+      <div class="note">1 ноября 2026 г. · ссылка и файл</div>
+    </article>
+  </div>
+</body>
+</html>
