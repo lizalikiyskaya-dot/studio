@@ -1653,7 +1653,64 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 }
 .daily-quote-credit { min-width: 0; }
 .daily-quote-rule { width: 12px; height: 1px; background: var(--line); flex-shrink: 0; }
-.mentor-side-nav { display: none; }
+.mentor-side-nav { display: block; }
+.mentor-side-nav .nav-item { color: var(--ink); }
+.mentor-side-nav .nav-item.active { background: #e8e1dc; color: var(--ink); }
+.side-identity { display: flex; align-items: center; gap: 12px; }
+.side-identity-name {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.25;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.side-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  margin-top: 6px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--y);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.side-profile-btn.is-on { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.side-logout {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  gap: 8px;
+  height: 40px;
+  margin-top: auto;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.studio-sheet .side-logout { align-self: stretch; width: calc(100% - 24px); margin: 12px 12px 4px; }
+.side-profile-btn:focus-visible,
+.side-logout:focus-visible,
+.mentor-side-nav .nav-item:focus-visible {
+  outline: 2px solid var(--v);
+  outline-offset: 2px;
+}
+@media (min-width: 981px) {
+  .studio-sidebar.is-mentor-nav {
+    min-height: calc(100dvh - var(--chrome-h, 64px) - 64px);
+  }
+}
 .deadline-card {
   position: relative;
   background: var(--deep);
