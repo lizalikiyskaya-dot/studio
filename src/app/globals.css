@@ -1657,24 +1657,22 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
 .mentor-side-nav .nav-item { color: var(--ink); }
 .mentor-side-nav .nav-item.active { background: #e8e1dc; color: var(--ink); }
 .side-identity { display: flex; align-items: center; gap: 12px; }
-.side-identity-block { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
-.side-edit-btn {
+.side-settings {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 6px 12px;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
-  background: var(--y);
+  background: var(--soft);
   color: var(--ink);
-  font-size: 13px;
-  font-weight: 650;
-  line-height: 1.2;
-  text-align: center;
   text-decoration: none;
 }
-.side-edit-btn:focus-visible { outline: 2px solid var(--v); outline-offset: 2px; }
+.side-settings:focus-visible { outline: 2px solid var(--v); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  .side-settings:hover { background: #e8e1dc; }
+}
 .side-logout.is-flow { margin-top: 0; }
 .side-identity-name {
   overflow: hidden;

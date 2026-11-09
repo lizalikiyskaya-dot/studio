@@ -20,6 +20,7 @@ import {
   PenLine,
   Quote,
   Send,
+  Settings,
   X,
 } from "lucide-react";
 import CalendarWidget from "./CalendarWidget";
@@ -505,22 +506,22 @@ export default function Sidebar({
           )}
 
           {!mentorMenuOnly && (
-            <div className="side-card side-identity-block">
-              <div className="flex items-center gap-3">
-                <div className="avatar h-10 w-10 text-[13px]" style={{ background: avatarBg, color: avatarFg }}>
-                  {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : getInitials(userName)}
-                </div>
-                <div className="leading-tight min-w-0">
-                  <div className="text-[14.5px] font-semibold truncate">{userName}</div>
-                  <div className="text-[12.5px]" style={{ color: "var(--faded)" }}>личный кабинет</div>
-                </div>
+            <div className="side-card flex items-center gap-3">
+              <div className="avatar h-10 w-10 text-[13px]" style={{ background: avatarBg, color: avatarFg }}>
+                {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : getInitials(userName)}
               </div>
-              {!mentorViewLabel && (
-                <Link href={profileHref} className="side-edit-btn">
-                  <Pencil size={14} />
-                  Изменить имя и фото
-                </Link>
-              )}
+              <div className="leading-tight min-w-0 flex-1">
+                <div className="flex items-center gap-1 min-w-0">
+                  <div className="text-[14.5px] font-semibold truncate">{userName}</div>
+                  {!mentorViewLabel && (
+                    <Link href={profileHref} className="side-settings" title="Настройки профиля">
+                      <Settings size={15} aria-hidden="true" />
+                      <span className="sr-only">Настройки профиля</span>
+                    </Link>
+                  )}
+                </div>
+                <div className="text-[12.5px]" style={{ color: "var(--faded)" }}>личный кабинет</div>
+              </div>
             </div>
           )}
 
