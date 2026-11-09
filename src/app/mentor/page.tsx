@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import StudentsList from "./StudentsList";
 import { markedTitle } from "@/components/markedTitle";
-import { loadCurrentWork } from "@/lib/studentFocusData";
+import { loadCurrentWork, loadMentorNearest } from "@/lib/studentFocusData";
+import MentorNearest from "@/components/MentorNearest";
 import { loadMentorFeed } from "@/lib/mentorFeedLoad";
 import { loadAwaitingReview } from "@/lib/awaitingReviewLoad";
 import { feedCounts, studentHint } from "@/lib/mentorFeed";
@@ -49,7 +50,11 @@ export default async function MentorPage() {
   const students = people
     .filter((s) => s.status === "APPROVED" || s.status === "SUSPENDED")
     .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, "ru"));
-  const [feed, awaiting] = await Promise.all([loadMentorFeed(session.userId), loadAwaitingReview()]);
+  const [feed, awaiting, nearest] = await Promise.all([
+    loadMentorFeed(session.userId),
+    loadAwaitingReview(),
+    loadMentorNearest(),
+  ]);
   const counts = feedCounts(feed);
   const hintByStudent = new Map<string, { hint: string; href: string; at: string; kind: string; sourceId: string }>();
   for (const item of feed) {
@@ -147,6 +152,8 @@ export default async function MentorPage() {
           </div>
         </div>
       </div>
+
+      <MentorNearest deadlines={nearest.deadlines} payments={nearest.payments} />
 
       <div className="mentor-home-wrap">
       <div className="mentor-home">

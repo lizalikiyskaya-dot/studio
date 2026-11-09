@@ -27,7 +27,6 @@ import WeekSide from "./WeekSide";
 import type { WeekSideModel } from "@/lib/weekSide";
 import DailyQuote from "./DailyQuote";
 import WriteStart from "./WriteStart";
-import MentorNearest from "./MentorNearest";
 import Wordmark from "./Wordmark";
 import ToggleSwitch from "./ToggleSwitch";
 import WorkshopBookCard from "./WorkshopBookCard";
@@ -36,7 +35,6 @@ import type { DailyQuote as DailyQuoteRow } from "@/data/dailyQuotes";
 import type { WriteChapter } from "@/lib/writeChapterKey";
 import type { WorkshopBook } from "@/lib/workshopBooks";
 import type { WorkshopCycle } from "@/lib/workshopCycles";
-import type { NearestDeadlineView, NearestPaymentView } from "@/lib/studentFocus";
 import type { FeedItem } from "@/lib/mentorFeed";
 import { MentorBell } from "@/features/mentorFeed/MentorFeed";
 import { setReviewMode } from "@/features/reviewMode/actions";
@@ -113,7 +111,6 @@ export default function Sidebar({
   notesCount,
   books,
   cycles,
-  nearest,
   feed,
   dailyQuote,
   weekSide,
@@ -139,7 +136,6 @@ export default function Sidebar({
   notesCount?: number;
   books?: WorkshopBook[];
   cycles?: WorkshopCycle[];
-  nearest?: { deadlines: NearestDeadlineView[]; payments: NearestPaymentView[] };
   feed?: FeedItem[];
   dailyQuote?: DailyQuoteRow | null;
   weekSide?: WeekSideModel | null;
@@ -591,8 +587,6 @@ export default function Sidebar({
             </nav>
           )}
 
-          {mentorMenuOnly && nearest && <MentorNearest deadlines={nearest.deadlines} payments={nearest.payments} />}
-
           {mentorMenuOnly ? (
             <button type="button" onClick={logout} className="side-logout">
               <LogOut size={14} /> Выйти
@@ -761,11 +755,6 @@ export default function Sidebar({
                       </button>
                     )}
                   </nav>
-                  {mentorMenuOnly && nearest && (
-                    <div className="mt-3">
-                      <MentorNearest deadlines={nearest.deadlines} payments={nearest.payments} />
-                    </div>
-                  )}
                   {!mentorViewLabel && (
                     mentorMenuOnly ? (
                       <button type="button" onClick={logout} className="side-logout">

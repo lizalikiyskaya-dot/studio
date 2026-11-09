@@ -1826,7 +1826,20 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   overflow-wrap: break-word;
 }
 .mentor-now.is-empty { color: var(--muted); }
+.mentor-nearest-board {
+  margin: 0 0 18px;
+  padding: 14px 16px 12px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #fff;
+}
+.mentor-nearest-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 28px;
+}
 .mentor-nearest h2 {
+  margin: 0;
   font-size: 16px;
   font-weight: 600;
   line-height: 1.2;
@@ -1845,6 +1858,9 @@ textarea.fld { height: auto; min-height: 96px; padding: 12px 14px; }
   font-size: 13px;
   line-height: 1.35;
   color: var(--ink2);
+}
+.mentor-nearest-board .mentor-nearest-row {
+  grid-template-columns: max-content minmax(0, 1fr);
 }
 .mentor-nearest-row {
   display: grid;
