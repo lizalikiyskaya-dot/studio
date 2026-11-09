@@ -3537,10 +3537,13 @@ html.manuscript-page body {
   display: flex;
   flex-direction: column;
   grid-template-columns: none;
-  min-height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
   margin: 0;
   padding: 18px 28px 32px;
   border-radius: 0;
+  overflow: hidden;
 }
 .manuscript-focus[data-theme="white"] { background: #fff; color: var(--ink); }
 .manuscript-focus[data-theme="paper"] { background: #f3e6c8; color: #3b2918; }
@@ -3593,6 +3596,18 @@ html.manuscript-page body {
 }
 .manuscript-measure button:disabled { opacity: 0.35; cursor: default; }
 .manuscript-focus .writing-editor { flex: 1; min-height: 0; position: relative; }
+/* Сданное задание в «Развернуть»: страница под замком, поэтому листается текст внутри окна.
+   Кнопка «Свернуть» снаружи и остаётся на месте. */
+.manuscript.manuscript-focus .writing-editor:not(:has(.writing-toolbar)) {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+.manuscript.manuscript-focus .writing-editor:not(:has(.writing-toolbar)) .writing-prose {
+  overflow: visible;
+}
 .manuscript-focus .writing-editor-focus { align-items: center; }
 .manuscript-focus .writing-toolbar {
   position: absolute;

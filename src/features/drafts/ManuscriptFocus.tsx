@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import WritingEditor from "@/features/exercises/additional/WritingEditor";
 import type { ContentFormat } from "@/features/exercises/additional/richText";
@@ -110,6 +110,8 @@ export default function ManuscriptFocus({
   const [zoom, setZoom] = useState(100);
   const [measure, setMeasure] = useState(MEASURE_DEFAULT);
   const [view, setView] = useState(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -125,16 +127,18 @@ export default function ManuscriptFocus({
     function onKey(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
       event.preventDefault();
-      onClose();
+      onCloseRef.current();
     }
     const previous = document.body.style.overflow;
+    const scrollY = window.scrollY;
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = previous;
       document.removeEventListener("keydown", onKey);
+      window.scrollTo(0, scrollY);
     };
-  }, [layout, onClose]);
+  }, [layout]);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
