@@ -23,6 +23,7 @@ import {
   type ViewerRole,
 } from "./noteSignals";
 import { cabinetSection, urlForViewer } from "./quoteMatch";
+import { mentorNoteLabel } from "./mentorLabels";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,7 @@ function NoteCard({
   onReopen,
   onJump,
   current,
+  mentorLabels,
 }: {
   note: Note;
   comments: Comment[];
@@ -83,6 +85,7 @@ function NoteCard({
   onReopen: (id: string) => void;
   onJump: (note: Note) => void;
   current: boolean;
+  mentorLabels: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [collapsed, setCollapsed] = useState(note.resolved);
@@ -122,6 +125,11 @@ function NoteCard({
 
         {/* author + date */}
         <div className="flex-1 min-w-0">
+          {mentorLabels ? (
+            <div className="text-[11px] font-semibold leading-4" style={{ color: "var(--ink)" }}>
+              {mentorNoteLabel(note.anchorQuote)}
+            </div>
+          ) : null}
           <span className="text-[12.5px] font-medium" style={{ color: "var(--ink)" }}>
             {note.author}
           </span>
@@ -341,11 +349,13 @@ export default function NotesPanel({
   viewerRole,
   initialNotes,
   initialComments,
+  mentorLabels = false,
 }: {
   studentId: string;
   viewerRole: ViewerRole;
   initialNotes: Note[];
   initialComments: Record<string, Comment[]>;
+  mentorLabels?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [mobile, setMobile] = useState(false);
@@ -749,6 +759,7 @@ export default function NotesPanel({
                 onReopen={handleReopen}
                 onJump={handleJump}
                 current={note.id === currentId}
+                mentorLabels={mentorLabels}
               />
             ))}
           </div>
