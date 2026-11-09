@@ -505,14 +505,22 @@ export default function Sidebar({
           )}
 
           {!mentorMenuOnly && (
-            <div className="side-card flex items-center gap-3">
-              <div className="avatar h-10 w-10 text-[13px]" style={{ background: avatarBg, color: avatarFg }}>
-                {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : getInitials(userName)}
+            <div className="side-card side-identity-block">
+              <div className="flex items-center gap-3">
+                <div className="avatar h-10 w-10 text-[13px]" style={{ background: avatarBg, color: avatarFg }}>
+                  {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : getInitials(userName)}
+                </div>
+                <div className="leading-tight min-w-0">
+                  <div className="text-[14.5px] font-semibold truncate">{userName}</div>
+                  <div className="text-[12.5px]" style={{ color: "var(--faded)" }}>личный кабинет</div>
+                </div>
               </div>
-              <div className="leading-tight min-w-0">
-                <div className="text-[14.5px] font-semibold truncate">{userName}</div>
-                <div className="text-[12.5px]" style={{ color: "var(--muted)" }}>личный кабинет</div>
-              </div>
+              {!mentorViewLabel && (
+                <Link href={profileHref} className="side-edit-btn">
+                  <Pencil size={14} />
+                  Изменить имя и фото
+                </Link>
+              )}
             </div>
           )}
 
@@ -591,19 +599,19 @@ export default function Sidebar({
             <button type="button" onClick={logout} className="side-logout">
               <LogOut size={14} /> Выйти
             </button>
-          ) : (
-          <div className="side-card mt-auto flex items-center gap-2">
-            {!mentorViewLabel ? (
-              <>
-                <Link href={profileHref} className="text-[13.5px] font-medium">профиль</Link>
-                <button type="button" onClick={logout} className="ml-auto inline-flex items-center gap-1.5 text-[13px]" style={{ color: "var(--muted)" }}>
-                  <LogOut size={14} /> Выйти
-                </button>
-              </>
-            ) : (
+          ) : mentorViewLabel ? (
+            <div className="side-card mt-auto flex items-center gap-2">
               <span className="text-[13px]" style={{ color: "var(--muted)" }}>Кабинет {mentorViewLabel}</span>
-            )}
-          </div>
+            </div>
+          ) : (
+            <>
+              <div className="side-card">
+                <Link href={profileHref} className="text-[13.5px] font-medium" style={{ color: "var(--ink)" }}>профиль</Link>
+              </div>
+              <button type="button" onClick={logout} className="side-logout is-flow">
+                <LogOut size={14} /> Выйти
+              </button>
+            </>
           )}
         </aside>
 
