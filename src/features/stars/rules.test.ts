@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import test from "node:test";
 import { AUTHOR_RANKS, chapterAwardsStars, mainTaskAwardsStars, rankForStars, rankProgressLine, starsLabel, submissionReadyForStars } from "./rules";
 
@@ -53,11 +55,25 @@ test("склонение звёзд", () => {
   assert.equal(starsLabel(22), "22 звёздочки");
 });
 
-test("основное задание даёт звёзды за сдачу и принятие", () => {
-  assert.equal(mainTaskAwardsStars("IN_PROGRESS"), false);
-  assert.equal(mainTaskAwardsStars("NEEDS_REVISION"), false);
-  assert.equal(mainTaskAwardsStars("SUBMITTED"), true);
-  assert.equal(mainTaskAwardsStars("ACCEPTED"), true);
+test("основное задание платит только когда наставник ставит «принято»", () => {
+  assert.equal(mainTaskAwardsStars("SUBMITTED", "STUDENT"), false);
+  assert.equal(mainTaskAwardsStars("ACCEPTED", "STUDENT"), false);
+  assert.equal(mainTaskAwardsStars("SUBMITTED", "MENTOR"), false);
+  assert.equal(mainTaskAwardsStars("IN_PROGRESS", "MENTOR"), false);
+  assert.equal(mainTaskAwardsStars("NEEDS_REVISION", "MENTOR"), false);
+  assert.equal(mainTaskAwardsStars("ACCEPTED", "MENTOR"), true);
+});
+
+test("начисление основного задания идёт только через правило с ролью", () => {
+  const root = path.resolve(import.meta.dirname, "../..");
+  const tasks = fs.readFileSync(path.join(root, "features/tasks/actions.ts"), "utf8");
+  const exercises = fs.readFileSync(path.join(root, "features/exercises/cardStatus.ts"), "utf8");
+  const chapters = fs.readFileSync(path.join(root, "features/books/actions.ts"), "utf8");
+  assert.match(tasks, /mainTaskAwardsStars\(status, session\.role\)/);
+  assert.doesNotMatch(tasks, /mainTaskAwardsStars\(status\)/);
+  assert.doesNotMatch(exercises, /awardStars/);
+  assert.match(chapters, /chapterAwardsStars\(status\)/);
+  assert.doesNotMatch(chapters, /mainTaskAwardsStars/);
 });
 
 test("глава даёт звёзды только за статус «принята»", () => {
