@@ -20,6 +20,7 @@ import {
   PenLine,
   Quote,
   Send,
+  Settings,
   X,
 } from "lucide-react";
 import CalendarWidget from "./CalendarWidget";
@@ -27,7 +28,6 @@ import WeekSide from "./WeekSide";
 import type { WeekSideModel } from "@/lib/weekSide";
 import DailyQuote from "./DailyQuote";
 import WriteStart from "./WriteStart";
-import MentorNearest from "./MentorNearest";
 import Wordmark from "./Wordmark";
 import ToggleSwitch from "./ToggleSwitch";
 import WorkshopBookCard from "./WorkshopBookCard";
@@ -36,7 +36,6 @@ import type { DailyQuote as DailyQuoteRow } from "@/data/dailyQuotes";
 import type { WriteChapter } from "@/lib/writeChapterKey";
 import type { WorkshopBook } from "@/lib/workshopBooks";
 import type { WorkshopCycle } from "@/lib/workshopCycles";
-import type { NearestDeadlineView, NearestPaymentView } from "@/lib/studentFocus";
 import type { FeedItem } from "@/lib/mentorFeed";
 import { MentorBell } from "@/features/mentorFeed/MentorFeed";
 import { setReviewMode } from "@/features/reviewMode/actions";
@@ -113,7 +112,6 @@ export default function Sidebar({
   notesCount,
   books,
   cycles,
-  nearest,
   feed,
   dailyQuote,
   weekSide,
@@ -139,7 +137,6 @@ export default function Sidebar({
   notesCount?: number;
   books?: WorkshopBook[];
   cycles?: WorkshopCycle[];
-  nearest?: { deadlines: NearestDeadlineView[]; payments: NearestPaymentView[] };
   feed?: FeedItem[];
   dailyQuote?: DailyQuoteRow | null;
   weekSide?: WeekSideModel | null;
@@ -329,7 +326,6 @@ export default function Sidebar({
         { key: "quotes", href: "/mentor/quotes", label: "Цитаты дня", icon: Quote, beacon: false, active: pathname === "/mentor/quotes" },
         { key: "weekly-admin", href: "/mentor/weekly", label: "Задания недели", icon: Sparkles, beacon: false, active: pathname === "/mentor/weekly" },
         { key: "mail", href: "/mentor/mail", label: "Письма", icon: Mail, beacon: false, active: pathname === "/mentor/mail" || (pathname?.startsWith("/mentor/mail/") ?? false) },
-        { key: "profile", href: "/mentor/profile", label: "Мой профиль", icon: Pencil, beacon: false, active: pathname === "/mentor/profile" },
       ]
     : [
         ...TOP_ITEMS.map((item) => ({
@@ -391,7 +387,7 @@ export default function Sidebar({
   ) : null;
 
   return (
-    <div className={`studio-shell${mentorViewLabel ? " has-mentor" : ""}${!mentorMenuOnly ? " has-tabs" : ""}`}>
+    <div className={`studio-shell${mentorViewLabel ? " has-mentor" : ""}${!mentorMenuOnly ? " has-tabs" : ""}${mentorMenuOnly ? " is-mentor-nav" : ""}`}>
       <div className="studio-chrome">
         {mentorBar}
       <header className="studio-topbar">
@@ -415,18 +411,20 @@ export default function Sidebar({
             </div>
           </div>
         )}
-        <nav className="studio-topnav" aria-label="Разделы">
-          {topLinks.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.key} href={item.href} className={item.active ? "active" : ""} title={item.label}>
-                <Icon className="nav-icon" size={16} />
-                <span className="nav-text">{item.label}</span>
-                {item.beacon && <span className="nav-beacon" title="Есть обновления" />}
-              </Link>
-            );
-          })}
-        </nav>
+        {!mentorMenuOnly && (
+          <nav className="studio-topnav" aria-label="Разделы">
+            {topLinks.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link key={item.key} href={item.href} className={item.active ? "active" : ""} title={item.label}>
+                  <Icon className="nav-icon" size={16} />
+                  <span className="nav-text">{item.label}</span>
+                  {item.beacon && <span className="nav-beacon" title="Есть обновления" />}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
         <div className="studio-top-actions">
           {mentorMenuOnly && feed ? <MentorBell items={feed} /> : null}
           {studentFeed ? <StudentBell items={studentFeed} /> : null}
@@ -437,7 +435,7 @@ export default function Sidebar({
               {typeof liveNotesCount === "number" && liveNotesCount > 0 && <span className="notes-count">{liveNotesCount}</span>}
             </button>
           )}
-          {!mentorViewLabel && (
+          {!mentorViewLabel && !mentorMenuOnly && (
             <Link href={profileHref} className="avatar h-10 w-10 text-[13px]" style={{ background: isMentor ? "var(--deep)" : avatarBg, color: isMentor ? "#fff" : avatarFg }} title={userName}>
               {avatarUrl ? <img src={avatarUrl} alt={userName} className="h-full w-full object-cover" /> : getInitials(userName)}
             </Link>
@@ -482,21 +480,47 @@ export default function Sidebar({
       </div>
 
       <div className="studio-body">
-        <aside id="studio-navigation" className="studio-sidebar">
+        <aside id="studio-navigation" className={`studio-sidebar${mentorMenuOnly ? " is-mentor-nav" : ""}`}>
           <div className="flex justify-end studio-menu-btn">
             <button type="button" onClick={() => setSheet(null)} className="inline-flex items-center gap-2 rounded-full px-3 h-9" style={{ background: "#fff" }}>
               <X size={16} /> Закрыть
             </button>
           </div>
 
+          {mentorMenuOnly && (
+            <div className="side-card side-identity">
+              <div className="avatar h-11 w-11 text-[13px]" style={{ background: "var(--deep)", color: "#fff" }}>
+                {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : getInitials(userName)}
+              </div>
+              <div className="min-w-0">
+                <div className="side-identity-name">{userName}</div>
+                <Link
+                  href="/mentor/profile"
+                  className={`side-profile-btn${pathname === "/mentor/profile" ? " is-on" : ""}`}
+                  aria-current={pathname === "/mentor/profile" ? "page" : undefined}
+                >
+                  Мой профиль
+                </Link>
+              </div>
+            </div>
+          )}
+
           {!mentorMenuOnly && (
             <div className="side-card flex items-center gap-3">
               <div className="avatar h-10 w-10 text-[13px]" style={{ background: avatarBg, color: avatarFg }}>
                 {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : getInitials(userName)}
               </div>
-              <div className="leading-tight min-w-0">
-                <div className="text-[14.5px] font-semibold truncate">{userName}</div>
-                <div className="text-[12.5px]" style={{ color: "var(--muted)" }}>личный кабинет</div>
+              <div className="leading-tight min-w-0 flex-1">
+                <div className="flex items-center gap-1 min-w-0">
+                  <div className="text-[14.5px] font-semibold truncate">{userName}</div>
+                  {!mentorViewLabel && (
+                    <Link href={profileHref} className="side-settings" title="Настройки профиля">
+                      <Settings size={15} aria-hidden="true" />
+                      <span className="sr-only">Настройки профиля</span>
+                    </Link>
+                  )}
+                </div>
+                <div className="text-[12.5px]" style={{ color: "var(--faded)" }}>личный кабинет</div>
               </div>
             </div>
           )}
@@ -572,27 +596,24 @@ export default function Sidebar({
             </nav>
           )}
 
-          {mentorMenuOnly && nearest && <MentorNearest deadlines={nearest.deadlines} payments={nearest.payments} />}
-
-          {mentorMenuOnly && (
-            <div className="side-card">
-              <div className="text-[16px] font-semibold">Кабинет наставника</div>
-              <Link href="/mentor/profile" className="lnk mt-3 inline-flex text-[13.5px]">Мой профиль</Link>
-            </div>
-          )}
-
-          <div className="side-card mt-auto flex items-center gap-2">
-            {!mentorViewLabel ? (
-              <>
-                <Link href={profileHref} className="text-[13.5px] font-medium">профиль</Link>
-                <button type="button" onClick={logout} className="ml-auto inline-flex items-center gap-1.5 text-[13px]" style={{ color: "var(--muted)" }}>
-                  <LogOut size={14} /> Выйти
-                </button>
-              </>
-            ) : (
+          {mentorMenuOnly ? (
+            <button type="button" onClick={logout} className="side-logout">
+              <LogOut size={14} /> Выйти
+            </button>
+          ) : mentorViewLabel ? (
+            <div className="side-card mt-auto flex items-center gap-2">
               <span className="text-[13px]" style={{ color: "var(--muted)" }}>Кабинет {mentorViewLabel}</span>
-            )}
-          </div>
+            </div>
+          ) : (
+            <>
+              <div className="side-card">
+                <Link href={profileHref} className="text-[13.5px] font-medium" style={{ color: "var(--ink)" }}>профиль</Link>
+              </div>
+              <button type="button" onClick={logout} className="side-logout is-flow">
+                <LogOut size={14} /> Выйти
+              </button>
+            </>
+          )}
         </aside>
 
         <main className="studio-content">{children}</main>
@@ -730,6 +751,12 @@ export default function Sidebar({
                         </Link>
                       );
                     })}
+                    {mentorMenuOnly && (
+                      <Link href="/mentor/profile" className={`studio-sheet-link${pathname === "/mentor/profile" ? " active" : ""}`}>
+                        <Pencil size={16} />
+                        <span>Мой профиль</span>
+                      </Link>
+                    )}
                     {!mentorMenuOnly && calendar && (
                       <button type="button" className="studio-sheet-link" onClick={() => setSheet("calendar")}>
                         <CalendarDays size={16} />
@@ -737,20 +764,19 @@ export default function Sidebar({
                       </button>
                     )}
                   </nav>
-                  {mentorMenuOnly && nearest && (
-                    <div className="mt-3">
-                      <MentorNearest deadlines={nearest.deadlines} payments={nearest.payments} />
-                    </div>
-                  )}
                   {!mentorViewLabel && (
-                    <div className="mt-3 flex items-center px-3 pb-1">
-                      {!mentorMenuOnly && (
-                        <Link href={profileHref} className="text-[14.5px] font-medium" style={{ color: "var(--ink)" }}>Профиль</Link>
-                      )}
-                      <button type="button" onClick={logout} className="ml-auto inline-flex items-center gap-1.5 text-[13.5px]" style={{ color: "var(--muted)" }}>
+                    mentorMenuOnly ? (
+                      <button type="button" onClick={logout} className="side-logout">
                         <LogOut size={14} /> Выйти
                       </button>
-                    </div>
+                    ) : (
+                      <div className="mt-3 flex items-center px-3 pb-1">
+                        <Link href={profileHref} className="text-[14.5px] font-medium" style={{ color: "var(--ink)" }}>Профиль</Link>
+                        <button type="button" onClick={logout} className="ml-auto inline-flex items-center gap-1.5 text-[13.5px]" style={{ color: "var(--muted)" }}>
+                          <LogOut size={14} /> Выйти
+                        </button>
+                      </div>
+                    )
                   )}
                 </>
               )}
