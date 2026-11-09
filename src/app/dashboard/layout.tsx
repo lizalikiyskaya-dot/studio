@@ -14,6 +14,7 @@ import { loadDailyQuote } from "@/lib/loadDailyQuote";
 import { loadWeekSide } from "@/lib/weekSide";
 import { loadStudentFeed } from "@/lib/studentFeedLoad";
 import { loadWriteChapters } from "@/lib/writeChapters";
+import { mentorLabelsFromEnv } from "@/features/notes/mentorLabels";
 
 export default async function DashboardLayout({
   children,
@@ -91,7 +92,7 @@ export default async function DashboardLayout({
       >
         {children}
       </Sidebar>
-      <NotesPanel studentId={user.id} viewerRole="STUDENT" initialNotes={notes} initialComments={noteComments} />
+      <NotesPanel studentId={user.id} viewerRole="STUDENT" initialNotes={notes} initialComments={noteComments} mentorLabels={mentorLabelsFromEnv("STUDENT")} />
       <PresencePing />
     </>
   );

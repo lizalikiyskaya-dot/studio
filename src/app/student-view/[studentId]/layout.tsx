@@ -13,6 +13,7 @@ import { loadDailyQuote } from "@/lib/loadDailyQuote";
 import { loadWeekSide } from "@/lib/weekSide";
 import FeedHighlight from "@/features/mentorFeed/FeedHighlight";
 import { loadWriteChapters } from "@/lib/writeChapters";
+import { mentorLabelsFromEnv } from "@/features/notes/mentorLabels";
 
 export default async function StudentViewLayout({
   children,
@@ -85,7 +86,7 @@ export default async function StudentViewLayout({
       >
         {children}
       </Sidebar>
-      <NotesPanel studentId={student.id} viewerRole="MENTOR" initialNotes={notes} initialComments={noteComments} />
+      <NotesPanel studentId={student.id} viewerRole="MENTOR" initialNotes={notes} initialComments={noteComments} mentorLabels={mentorLabelsFromEnv("MENTOR")} />
     </SuggestionProvider>
   );
 }
