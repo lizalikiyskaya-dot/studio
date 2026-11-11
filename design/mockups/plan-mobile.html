@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Макет. План книги, телефон: список и лента</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Onest:wght@400;500;600;650&display=swap" rel="stylesheet" />
+  <style>
+    :root { --ink:#202020; --muted:#6d6a64; --line:#eceae4; --y:#ffd43b; --soft:#f6f5f1; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f3f1ec; font-family: Onest, sans-serif; color: var(--ink); }
+    .phone { width: 390px; background: #fff; padding: 18px 16px 28px; }
+    .kicker { margin: 0 0 10px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+    h1 { margin: 0; font-size: 32px; letter-spacing: -0.04em; font-weight: 650; }
+    h1 mark { background: var(--y); color: inherit; padding: 0 3px; }
+    .views { display: inline-flex; margin-top: 12px; padding: 3px; background: var(--soft); border-radius: 999px; gap: 3px; }
+    .views span { border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 650; }
+    .views .on { background: var(--ink); color: #fff; }
+    h2 { margin: 16px 0 8px; font-size: 12px; color: var(--muted); font-weight: 650; }
+    .board { display: grid; grid-template-columns: 64px repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .ch { background: var(--soft); border-radius: 12px; padding: 8px; font-size: 13px; font-weight: 650; }
+    .ch small { display: block; color: var(--muted); font-weight: 500; font-size: 11px; }
+    .lane { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 650; }
+    .lane i { width: 6px; height: 22px; border-radius: 99px; }
+    .cell { min-height: 78px; background: #fafaf8; border-radius: 12px; padding: 6px; }
+    .cell.drop { background: #fff8d6; box-shadow: inset 0 0 0 2px var(--y); }
+    .ev { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: 10px; padding: 6px 8px; }
+    .ev b { display: block; font-size: 13px; }
+    .ev span { display: block; margin-top: 2px; font-family: Literata, Georgia, serif; font-size: 12px; line-height: 1.3; color: #3a3834; }
+    .ev.lift { transform: translate(8px, -8px); box-shadow: 0 12px 20px -14px rgba(32,32,32,.5); }
+    .note { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .card { display: grid; grid-template-columns: 16px 5px 1fr; gap: 8px; border: 1px solid var(--line); border-radius: 16px; padding: 12px; margin: 0 0 8px; }
+    .grip { color: #c4c0b8; }
+    .bar { border-radius: 99px; }
+    .who { font-size: 12px; font-weight: 650; }
+    strong { display: block; margin-top: 1px; }
+    p { margin: 4px 0 0; font-family: Literata, Georgia, serif; font-size: 14px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <p class="kicker">Макет телефона. Лента листается вбок. Список под ней — тот же план, его не убираем.</p>
+    <h1>План <mark>книги</mark></h1>
+    <div class="views"><span>Список</span><span class="on">Лента</span></div>
+    <h2>Лента. Глава держит несколько веток</h2>
+    <div class="board">
+      <div></div>
+      <div class="ch">Глава 2<small>Москва</small></div>
+      <div class="ch">Глава 3<small>Кафе</small></div>
+      <div class="ch">Глава 4<small>Сон</small></div>
+      <div class="lane"><i style="background:#2FB083"></i>Янис</div>
+      <div class="cell"><article class="ev" style="--c:#2FB083"><b>Поезд</b><span>Рядом с Эмбер.</span></article></div>
+      <div class="cell drop"></div>
+      <div class="cell"><article class="ev lift" style="--c:#2FB083"><b>Генрих</b><span>Тянут в главу 3.</span></article></div>
+      <div class="lane"><i style="background:#F28A3C"></i>Эмбер</div>
+      <div class="cell"><article class="ev" style="--c:#F28A3C"><b>Кафе</b><span>Та же глава.</span></article></div>
+      <div class="cell"><article class="ev" style="--c:#F28A3C"><b>Ночь</b><span>Рядом с Колей.</span></article></div>
+      <div class="cell"></div>
+      <div class="lane"><i style="background:#3B9EDB"></i>Коля</div>
+      <div class="cell"></div>
+      <div class="cell"><article class="ev" style="--c:#3B9EDB"><b>Звонок</b><span>Та же глава.</span></article></div>
+      <div class="cell"></div>
+    </div>
+    <p class="note">Жёлтая клетка — куда встанет «Генрих». В «Москве» две ветки, в «Кафе» тоже две. Остальные главы листаются вбок.</p>
+    <h2>Список. Те же события конспектом</h2>
+    <article class="card">
+      <span class="grip">⠿</span>
+      <span class="bar" style="background:#2FB083"></span>
+      <div>
+        <span class="who" style="color:#14684B">Янис · глава 1</span>
+        <strong>Новость про деда</strong>
+        <p>Тянуть за ручку. Цвет — ветка.</p>
+      </div>
+    </article>
+    <article class="card">
+      <span class="grip">⠿</span>
+      <span class="bar" style="background:#F28A3C"></span>
+      <div>
+        <span class="who" style="color:#9A4B12">Эмбер · глава 2</span>
+        <strong>Москва, внук, кафе</strong>
+        <p>В ленте это столбец «Москва».</p>
+      </div>
+    </article>
+    <article class="card">
+      <span class="grip">⠿</span>
+      <span class="bar" style="background:#3B9EDB"></span>
+      <div>
+        <span class="who" style="color:#18638F">Коля · глава 3</span>
+        <strong>Племянник звонит</strong>
+        <p>В той же главе, что ночь Эмбер.</p>
+      </div>
+    </article>
+  </div>
+</body>
+</html>
