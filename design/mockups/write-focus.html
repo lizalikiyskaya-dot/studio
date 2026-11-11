@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Макет. Режим письма</title>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Onest:wght@400;500;600;650&display=swap" rel="stylesheet" />
+  <style>
+    :root { --ink:#202020; --muted:#8a8a8a; --line:#ececec; --y:#ffd43b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #fff; color: var(--ink); font-family: Onest, sans-serif; }
+    .page { max-width: 920px; margin: 0 auto; padding: 28px 28px 40px; }
+    .kicker { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+    .top { display: flex; align-items: center; gap: 12px; }
+    h1 { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -0.03em; flex: 1; }
+    .count { color: var(--muted); font-size: 13px; }
+    .themes { display: flex; gap: 4px; background: #f4f4f4; border-radius: 999px; padding: 3px; }
+    .themes span { padding: 4px 8px; border-radius: 999px; font-size: 12px; }
+    .themes .on { background: #fff; font-weight: 650; }
+    .collapse { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; }
+    .tools { display: flex; gap: 6px; margin: 18px 0 8px; color: var(--muted); font-size: 13px; }
+    .tools i { font-style: normal; width: 28px; height: 28px; border: 1px solid var(--line); border-radius: 8px; display: grid; place-items: center; }
+    .prose { font-family: Literata, Georgia, serif; font-size: 20px; line-height: 1.6; max-width: 68ch; }
+    .prose p { margin: 0 0 0.8em; }
+    @media (max-width: 700px) {
+      .page { padding: 18px 16px 28px; }
+      h1 { font-size: 22px; }
+      .themes { display: none; }
+      .prose { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <p class="kicker">Так экран выглядит сразу после «Начать писать!». Список глав и файлы остаются за кнопкой «Свернуть».</p>
+    <div class="top">
+      <h1>Письма</h1>
+      <span class="count">1 240 знаков</span>
+      <span class="themes"><span class="on">Белая</span><span>Бумага</span><span>Тёмная</span></span>
+      <span class="collapse" aria-hidden="true">⤡</span>
+    </div>
+    <div class="tools"><i>B</i><i>I</i><i>U</i><i>H</i><i>•</i><i>1.</i></div>
+    <div class="prose">
+      <p>Северная река молчит у дома. Герой стоит на мостках и смотрит, как туман снимает крыши.</p>
+      <p>Каретка уже в тексте. Не нужно искать главу в списке слева.</p>
+    </div>
+  </div>
+</body>
+</html>
